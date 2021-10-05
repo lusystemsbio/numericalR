@@ -6,19 +6,19 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 
 |Table of Contents|
 |:----------------|
-|1.Introduction to R programming|
-|2.Ordinary differential equations|
-|3.Nullcline & bifurcation|
-|4.Stochastic differential equations|
-|5.Molecular dynamics simulations|
-|6.Metropolis algorithm|
-|7.Gillespie algorithm|
-|8.Partial differential equations|
-|9.Simulated annealing|
-|10.Replica exchange|
-|11.Dynamic programming|
-|12.Dead end elimination|
-|13.Genetic algorithm|
-|14.Dimensionality reduction|
-|15.Clustering|
-|16.Network modularity|
+|1. Introduction to R programming|
+|2. Ordinary differential equations|
+|3. Nullcline & bifurcation|
+|4. Stochastic differential equations|
+|5. Molecular dynamics simulations|
+|6. Metropolis algorithm|
+|7. Gillespie algorithm|
+|8. Partial differential equations|
+|9. Simulated annealing|
+|10. Replica exchange|
+|11. Dynamic programming|
+|12. Dead end elimination|
+|13. Genetic algorithm|
+|14. Dimensionality reduction|
+|15. Clustering|
+|16. Network modularity|
