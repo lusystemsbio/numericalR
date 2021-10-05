@@ -2,7 +2,7 @@
 title: "Introduction to R Programming"
 author: "Mingyang Lu"
 date: "10/5/2021"
-output: github_document
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
