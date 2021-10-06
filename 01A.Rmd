@@ -1,7 +1,7 @@
 ---
 title: "Introduction to R Programming"
 author: "Mingyang Lu"
-date: "10/5/2021"
+date: "10/6/2021"
 output: 
   github_document:
     toc: true
@@ -35,6 +35,135 @@ help(runif)     # show documentation for the topic -- runif in this example
 ```
 
 ## Learning R
-I will not provide a detailed R tutorial, as they are already available. I recommend 
+I will not provide a detailed R tutorial, as they are already available. I recommend the following resources for learning R.
+
+* [An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html) from [CRAN](https://cran.r-project.org)
+
+* [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) by Thomas Girke at UC Riverside
+
+* [Efficient R programming](https://csgillespie.github.io/efficientR/) by Colin Gillespie & Robin Lovelace
+
+Here, I will provide a brief overview of R syntax and highlight a few R's unique features. 
+
+#### Typical data types & math operations
+```{r}
+a = 10 + 3.14    # integer, real number; assignment to a
+a*a # a multiplies a
+a**2 # square of a, which gives the same value as the previous one
+b = 3.0 + 4.0i  # complex number; assignment to b
+Mod(b) # The modulus of b
+c = (3 + 4 == 7)   # logical; c is TRUE
+!c   # not c, which is FALSE
+d = "Monday"  # character
+class(d)  # showing the data type of d
+nchar(d)  # number of characters in a string
+```
+#### Vectors
+```{r}
+vec = c("Man","Woman","Woman","Man","Woman")   # a vector of characters
+length(vec) #length of a vector
+vec == "Woman" # logic values comparing each element to "Woman"
+which(vec == "Woman") # identifying the indices of the elements being "Woman"
+```
+#### Factors
+Factor type is an important data type in R. It is commonly used to represent categorical data. 
+```{r}
+vec_factor = as.factor(vec)   # converting the character vector to a factor vector
+class(vec);class(vec_factor)  # checking the data types
+levels(vec_factor); nlevels(vec_factor)  # levels and the number of levels
+```
+#### If statement
+```{r}
+a = 0
+if(a == 1){   # conditions
+  print("a equals to 1")
+} else {
+  print("a is not 1")
+}
+```
+#### For loops
+```{r}
+for (i in 1:5) print(i)   # version 1
+```
+
+```{r}
+for (i in seq_len(5)) print(i)   # version 2
+```
+
+```{r}
+v = c(1,2,5,7)
+for (i in v){
+  print(i)   # version 3
+}
+```
+
+#### While statement
+```{r}
+i = 0
+while(i < 5){
+  i = i + 2
+  print(i)
+}
+```
+
+#### Apply
+Another unique feature in R. Apply performs a function iteratively through an array or matrix. It's usually a more efficient way than a for loop. Syntax: apply(X, MARGIN, FUN). Here, X is an array or matrix. MARGIN=1 performs the specified function by rows, 2 by columns. FUN: is the function to apply. 
+```{r}
+mat = matrix(rnorm(16), nrow = 4)    # generating a random matrix of 4 x 4
+mat
+apply(mat, 1, sum)   # row sum
+rowSums(mat)   # An alternative way to do row sum
+apply(mat, 2, sum)   # column sum
+colSums(mat)  # An alternative way to do column sum
+```
+There are other apply-like functions, such as lappy, sappy, tapply, *etc.* [Check here for more details.](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family)
+
+#### Functions
+```{r}
+myfunction <- function(x) {    # a simple function to perform x square
+  x*x
+}
+b = myfunction(4)
+print(paste0("b = ",b))
+```
+
+#### List
+Lists can contain elements of different types. 
+```{r}
+my_list = list("a", c(1,2,3), FALSE, 3.14)  # Defining a new list
+my_list[[1]]   # the first element
+my_list[[2]]   # the second element
+names(my_list) = c("letters", "array", "TF", "pi")  # naming list elements
+my_list$TF   # retrieve elements by names
+my_vector = unlist(my_list)   # convert the list to a vector
+my_vector
+```
+
+#### Data frames
 
 
+#### Input/output
+
+#### Packages
+
+#### Basic plotting
+
+## A few notes
+
+#### Factor v.s. character
+
+#### Matrix v.s. data frame
+
+#### List v.s. vector
+
+## Efficient R programming
+
+#### Vectors
+
+#### Vactors
+
+#### C/Fortran codes
+
+#### Compilation
+
+#### Parallelization
