@@ -5,6 +5,7 @@ date: "10/6/2021"
 output: 
   github_document:
     toc: true
+    toc_depth: 4
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +35,7 @@ From the R Console, type the following command to get help.
 help(runif)     # show documentation for the topic -- runif in this example
 ```
 
-## Learning R
+## A crash course of R
 I will not provide a detailed R tutorial, as they are already available. I recommend the following resources for learning R.
 
 * [An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html) from [CRAN](https://cran.r-project.org)
@@ -107,7 +108,7 @@ while(i < 5){
 ```
 
 #### Apply
-Another unique feature in R. Apply performs a function iteratively through an array or matrix. It's usually a more efficient way than a for loop. Syntax: apply(X, MARGIN, FUN). Here, X is an array or matrix. MARGIN=1 performs the specified function by rows, 2 by columns. FUN: is the function to apply. 
+Another unique feature in R. Apply performs a function iteratively through an array or matrix. It's usually more efficient than a for-loop. Syntax: apply(X, MARGIN, FUN). Here, X is an array or matrix. MARGIN=1 performs the specified function by rows, MARGIN=2 by columns. FUN is the function to apply. 
 ```{r}
 mat = matrix(rnorm(16), nrow = 4)    # generating a random matrix of 4 x 4
 mat
@@ -139,14 +140,56 @@ my_vector = unlist(my_list)   # convert the list to a vector
 my_vector
 ```
 
-#### Data frames
-
+#### Data frame
+Data frame is widely used in R. It's similar to a matrix but allows mixed data types in it.
+```{r}
+my_data = data.frame(
+          id = c(1:5),
+          atom = c("N","CA","CB","C","O"),
+          mass = c(14, 12, 12, 12, 16),
+          size = c(1.2, 1.4, 1.4, 1.4, 1.1)
+)
+print(my_data)
+colnames(my_data)
+str(my_data)      # get the structure 
+my_data$mass      # retrive a column
+my_data$backbone = c(T, T, F, T, T)   # add a column
+print(my_data)
+my_data = rbind(my_data, c(6, "S", 32, 1.6, F))   # add a row
+print(my_data)
+```
 
 #### Input/output
+```{r}
+save(my_data,file = "my_data.Rdata")    # save the data frame my_data to file
+saveRDS(my_data, file = "my_data.RDS")  # save my_data to an RDS file
+load("my_data.Rdata")   # read data from an Rdata file; my_data, if exist, would be overwritten
+my_data2 = readRDS("my_data.RDS")   # read data from an RDS file, assign it to another variable
+```
 
-#### Packages
+#### Package
+The following code works to install/remove packages (not in the R markdown format to avoid adding/removing packages)
+```
+if(! "umap" %in% rownames(installed.packages())) {      # check if the package exists
+  install.packages("umap")   # if not, install "umap"
+}
+library("umap")    # load the umap library
+help(umap)
+remove.packages("umap")    # remove it ...
+```
 
 #### Basic plotting
+``` {r}
+x = seq_len(5)
+y = x**2
+plot(x, y)       # plot points
+curve(x**2)      # plot f(x) = x*x
+y = data.frame(xvalues = rnorm(1000), yvalues = rnorm(1000))    # 1000 random points in 2D
+plot(y$xvalues, y$yvalues)     # scatter plot
+library(ggplot2)
+ggplot(y, aes(x = xvalues, y = yvalues)) +    # density map
+  stat_density2d(aes(fill = ..density..), geom = "raster", contour = FALSE)
+``` 
 
 ## A few notes
 
