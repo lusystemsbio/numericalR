@@ -7,8 +7,8 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |Table of Contents|
 |:----------------|
 |1. Introduction to R programming|
-|-- 1A. [Basics](https://lusystemsbio.github.io/numericalR/01A.html) |
-|-- 1B. [Efficient programming](https://lusystemsbio.github.io/numericalR/01B.html) |
+|-- 1A. [Basics of R](https://lusystemsbio.github.io/numericalR/01A.html) |
+|-- 1B. [Efficient R programming](https://lusystemsbio.github.io/numericalR/01B.html) |
 |-- 1C. [Exerises](https://lusystemsbio.github.io/numericalR/01C.html) |
 |2. Ordinary differential equations|
 |3. Nullcline & bifurcation|
