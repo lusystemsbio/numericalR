@@ -1,5 +1,5 @@
 ---
-title: "Introduction to R Programming"
+title: "Part 1: Introduction to R Programming"
 subtitle: "A. Basics of R"
 author: "Mingyang Lu"
 date: "10/12/2021"
