@@ -1,18 +1,19 @@
 ---
 title: "Introduction to R Programming"
+subtitle: "A. Basics of R"
 author: "Mingyang Lu"
 date: "10/12/2021"
 output: 
-  github_document:
+  html_document:
     toc: true
-    toc_depth: 4
+    toc_depth: 2
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Why Using R?
+# Why Using R?
 R is a programming language designed for statistical computing and graphics. Unlike a compiled language, such as C and Fortran, R is typically used as an interpreted language. There are several reasons why I choose R here.
 
 * R is simple to use. If you have some experience with any other programming language, it should be pretty easy to learn R.
@@ -35,7 +36,7 @@ From the R Console, type the following command to get help.
 help(runif)     # show documentation for the topic -- runif in this example
 ```
 
-## A crash course of R
+# A crash course of R
 I will not provide a detailed R tutorial, as they are already available. I recommend the following resources for learning R.
 
 * [An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html) from [CRAN](https://cran.r-project.org)
@@ -46,7 +47,7 @@ I will not provide a detailed R tutorial, as they are already available. I recom
 
 Here, I will provide a brief overview of R syntax and highlight a few R's unique features. 
 
-#### Typical data types & math operations
+## Typical data types & math operations
 ```{r}
 a = 10 + 3.14    # integer, real number; assignment to a
 a*a # a multiplies a
@@ -59,21 +60,24 @@ d = "Monday"  # character
 class(d)  # showing the data type of d
 nchar(d)  # number of characters in a string
 ```
-#### Vectors
+
+## Vectors
 ```{r}
 vec = c("Man","Woman","Woman","Man","Woman")   # a vector of characters
 length(vec) #length of a vector
 vec == "Woman" # logic values comparing each element to "Woman"
 which(vec == "Woman") # identifying the indices of the elements being "Woman"
 ```
-#### Factors
+
+## Factors
 Factor type is an important data type in R. It is commonly used to represent categorical data. 
 ```{r}
 vec_factor = as.factor(vec)   # converting the character vector to a factor vector
 class(vec);class(vec_factor)  # checking the data types
 levels(vec_factor); nlevels(vec_factor)  # levels and the number of levels
 ```
-#### If statement
+
+## If statement
 ```{r}
 a = 0
 if(a == 1){   # conditions
@@ -82,7 +86,8 @@ if(a == 1){   # conditions
   print("a is not 1")
 }
 ```
-#### For loops
+
+## For loops
 ```{r}
 for (i in 1:5) print(i)   # version 1
 ```
@@ -98,7 +103,7 @@ for (i in v){
 }
 ```
 
-#### While statement
+## While statement
 ```{r}
 i = 0
 while(i < 5){
@@ -107,7 +112,7 @@ while(i < 5){
 }
 ```
 
-#### Apply
+## Apply
 Another unique feature in R. Apply performs a function iteratively through an array or matrix. It's usually more efficient than a for-loop. Syntax: apply(X, MARGIN, FUN). Here, X is an array or matrix. MARGIN=1 performs the specified function by rows, MARGIN=2 by columns. FUN is the function to apply. 
 ```{r}
 mat = matrix(rnorm(16), nrow = 4)    # generating a random matrix of 4 x 4
@@ -119,7 +124,7 @@ colSums(mat)  # An alternative way to do column sum
 ```
 There are other apply-like functions, such as lappy, sappy, tapply, *etc.* [Check here for more details.](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family)
 
-#### Functions
+## Functions
 ```{r}
 myfunction <- function(x) {    # a simple function to perform x square
   x*x
@@ -128,7 +133,7 @@ b = myfunction(4)
 print(paste0("b = ",b))
 ```
 
-#### List
+## List
 Lists can contain elements of different types. 
 ```{r}
 my_list = list("a", c(1,2,3), FALSE, 3.14)  # Defining a new list
@@ -140,7 +145,7 @@ my_vector = unlist(my_list)   # convert the list to a vector
 my_vector
 ```
 
-#### Data frame
+## Data frame
 Data frame is widely used in R. It's similar to a matrix but allows mixed data types in it.
 ```{r}
 my_data = data.frame(
@@ -160,15 +165,15 @@ my_data = rbind(my_data, c(6, "S", 32, 1.6, F))   # add a row
 print(my_data)
 ```
 
-#### Input/output
+## Input/output
 ```{r}
-save(my_data,file = "01A_files/my_data.Rdata")    # save the data frame my_data to file
-saveRDS(my_data, file = "01A_files/my_data.RDS")  # save my_data to an RDS file
-load("01A_files/my_data.Rdata")   # read data from an Rdata file; my_data, if exist, would be overwritten
-my_data2 = readRDS("01A_files/my_data.RDS")   # read data from an RDS file, assign it to another variable
+save(my_data,file = "extra/data/01A/my_data.Rdata")    # save the data frame my_data to file
+saveRDS(my_data, file = "extra/data/01A/my_data.RDS")  # save my_data to an RDS file
+load("extra/data/01A/my_data.Rdata")   # read data from an Rdata file; my_data, if exist, would be overwritten
+my_data2 = readRDS("extra/data/01A/my_data.RDS")   # read data from an RDS file, assign it to another variable
 ```
 
-#### Package
+## Package
 The following code works to install/remove packages (not in the R markdown format to avoid adding/removing packages)
 ```
 if(! "umap" %in% rownames(installed.packages())) {      # check if the package exists
@@ -179,7 +184,7 @@ help(umap)
 remove.packages("umap")    # remove it ...
 ```
 
-#### Basic plotting
+## Basic plotting
 ``` {r}
 x = seq_len(5)
 y = x**2
@@ -192,10 +197,10 @@ ggplot(y, aes(x = xvalues, y = yvalues)) +    # density map
   stat_density2d(aes(fill = ..density..), geom = "raster", contour = FALSE)
 ``` 
 
-## A few notes
+# A few notes
 The previous section highlights the basic usage of R. Please refer to "[An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)" and [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) for more details. In the following, I will emphasize a few R features that new learners may overlook or be confused.
 
-#### Factor vs. string
+## Factor vs. string
 Factors may look similar to Strings, but they are very different in R scripting. What makes things worse is that, in R version before 4.0, stringsAsFactors = TRUE by default. That means, for R funtionality using the parameter stringsAsFactors, any string would be interpreted as a factor . However, in R version 4.0 or later, the default stringsAsFactors = FALSE. If a package is developed for R before v4.0 and by assuming default treatment of strings (as factors), the same package may not work properly for R v.4.0 or later. A good practice for R programming is (1) Use R version 3.6.3 if many legacy R packages are required; (2) always specify how string would be treated. Here is an example to create a data frame containing characters/strings.
 
 ```{r}
@@ -219,14 +224,14 @@ class(my_data$atom)  # always character type
 ```
 Here is an example to read a table from a file.
 ```{r}
-write.table(my_data, file = "01A_files/my_data.txt", quote = F, sep="\t", row.names = F) #The table is saved to a file
-data_read = read.table("01A_files/my_data.txt", header = T, sep = "\t")   #Read the table from the saved file
+write.table(my_data, file = "extra/data/01A/my_data.txt", quote = F, sep="\t", row.names = F) #The table is saved to a file
+data_read = read.table("extra/data/01A/my_data.txt", header = T, sep = "\t")   #Read the table from the saved file
 class(data_read$atom)   # factor if R version < 4.0; character if R version >=4.0
-data_read = read.table("01A_files/my_data.txt", header = T, sep = "\t", as.is = T)   # as.is = T reads strings as characters
+data_read = read.table("extra/data/01A/my_data.txt", header = T, sep = "\t", as.is = T)   # as.is = T reads strings as characters
 class(data_read$atom)
 ```
 
-#### Data frame vs. matrix
+## Data frame vs. matrix
 Matrix is more suitable for linear algebra analysis; while data frame is good to save heterogeneous data and ideal for statistics analysis, plotting, *etc.* Sometimes, data can be saved as either a data frame or a matrix. It is important to be aware of the data type, so that appropriate functions/operators are applied. Refer to [the following article](https://www.geeksforgeeks.org/matrix-vs-dataframe-in-r/) for the comparison of matrix and data frame.
 [Basic plotting] shows an example of plotting with data frame. Here is an example of linear regression with data frame.
 ```{r}
@@ -236,7 +241,8 @@ abline(model)   # add the fitted line
 summary(model)   # summary of the linear model
 
 ```
-#### List vs. vector
+
+## List vs. vector
 Lists are recursive type of vectors -- lists can have values of different types. A data frame is a list where column elements have the same data type. In the above-mentioned linear regression example, model is a list containing results of the linear model.
 ```{r}
 str(model)   # show the structure of the list

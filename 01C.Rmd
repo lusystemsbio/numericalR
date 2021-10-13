@@ -1,0 +1,48 @@
+---
+title: "Introduction to R Programming -- Exercises"
+author: "Mingyang Lu"
+date: "10/12/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Radius of Gyration
+In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
+```{r}
+if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
+  install.packages("bio3d")   # if not, install "bio3d"
+}
+library(bio3d)
+```
+The package bio3d allows users to download and process protein structures from Protein Data Bank.
+```{r}
+mystructure <- read.pdb("7l3u")  # load online data
+coord <- mystructure$atom
+class(coord)
+```
+The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
+Here, the radius of gyration $R_g$ is defined as:
+
+$$R^2_g=\frac{\sum_{k=1}^{N}m_k(\mathbf{r_k}-\mathbf{r_{mean}})^2}{\sum_{k=1}^{N}m_k}$$
+
+Hint: try the following for the usage of atom2mass
+```{r}
+  ?atom2mass
+```
+
+# Benchmark code performance
+The following code is extremely slow for large n.
+```{r}
+n = 10
+v = c()
+for(i in seq_len(n)){
+  v = c(v, i**2)
+}
+v
+```
