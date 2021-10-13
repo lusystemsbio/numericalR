@@ -38,12 +38,15 @@ Hint: try the following for the usage of atom2mass
 ```
 
 # Benchmark code performance
-The following code is extremely slow for large n.
-```{r}
-n = 10
-v = c()
-for(i in seq_len(n)){
-  v = c(v, i**2)
-}
-v
-```
+Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute the following quantity for large n:
+
+$$\ln n!=\sum_{j=1}^{n}\ln j$$
+
+Create R functions using the following methods: 
+
+* (1) Iteration with a for loop in R; 
+* (2) Use vector operations in R; 
+* (3) Use apply-family functions (such as apply, lapply, *etc.*) in R; 
+* (4) Use C or Fortran subroutines/functions. 
+
+Benchmark these methods with microbenchmark.
