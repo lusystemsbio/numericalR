@@ -48,9 +48,9 @@ $$\ln n!=\sum_{j=1}^{n}\ln j$$
 
 Create R functions using the following methods: 
 
-* (1) Iteration with a for loop in R; 
+* (1) Iteration with for loop in R; 
 * (2) Use vector operations in R; 
-* (3) Use apply-family functions (such as apply, lapply, *etc.*) in R; 
+* (3) Use Apply family functions (such as apply, lapply, *etc.*) in R; 
 * (4) Use C or Fortran subroutines/functions. 
 
 Benchmark these methods with microbenchmark.
@@ -60,4 +60,4 @@ In mathematics, there is famous formula called Stirling's approximation.
 $$\ln n! \approx n\ln n - n$$
 Plot the difference of the left hand side and the right hand side, *.i.e.*,
 $$\ln n! - n\ln n + n$$
-as the function $n$
+as the function $n$. 
