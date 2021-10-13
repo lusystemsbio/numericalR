@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Radius of Gyration
+# Radius of gyration
 In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
 ```{r}
 if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
