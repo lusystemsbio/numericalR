@@ -44,7 +44,9 @@ v = v*v
 v
 ```
 
-Iteration is commonly used in programming. Unfortunately, iteration, *e.g.*, using a For Loop, is very slow in R. For example, the following code calculates the mean and standard deviation (SD) of a series of numbers. 
+Iteration is commonly used in programming. Unfortunately, iteration, *e.g.*, using a For Loop, is very slow in R. For example, the following code calculates the mean and standard deviation (SD) of a series of numbers. Please note that the definition of SD here is the mathematical definition.
+
+$$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}}$$
 ``` {r}
 my_sum = 0
 my_sum2 = 0
@@ -72,6 +74,14 @@ means = apply(mat, 2, mean)
 means2 = apply(mat*mat, 2, mean)
 sd = sqrt(means2 - means*means)
 sd
+```
+
+In statistics, a lightly different definition is typically used.
+
+$$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n-1}}$$
+For example, the sd function in R uses this definition.
+```{r}
+apply(mat, 2, sd)
 ```
 
 # Byte compile package
@@ -145,6 +155,7 @@ Lastly, parallelization is another way to improve the performance of R. If simpl
 library(parallel)   # load the parallel library
 library(microbenchmark)  # use microbenchmark library for timing
 numCores = detectCores()     # the number of available cores 
+numCores
 tests = seq(1, 10000)
 my_test <- function(test_id) {
   v = rnorm(1000)

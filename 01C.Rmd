@@ -26,11 +26,15 @@ The package bio3d allows users to download and process protein structures from P
 mystructure <- read.pdb("7l3u")  # load online data
 coord <- mystructure$atom
 class(coord)
+head(coord)
 ```
 The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
 Here, the radius of gyration $R_g$ is defined as:
 
-$$R^2_g=\frac{\sum_{k=1}^{N}m_k(\mathbf{r_k}-\mathbf{r_{mean}})^2}{\sum_{k=1}^{N}m_k}$$
+$$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j(\mathbf{r_j}-\mathbf{\overline{r}})^2}{\sum_{j=1}^{N}m_j}}$$
+where $\mathbf{\overline{r}}$ is defined as
+
+$$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
 
 Hint: try the following for the usage of atom2mass
 ```{r}
