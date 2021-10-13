@@ -373,7 +373,7 @@ summary {
 <div id="TOC">
 <ul>
 <li><a href="#radius-of-gyration">Radius of gyration</a></li>
-<li><a href="#benchmark-code-performance">Benchmark code performance</a></li>
+<li><a href="#stirlings-approximation">Stirling’s approximation</a></li>
 </ul>
 </div>
 
@@ -412,8 +412,8 @@ class(coord)</code></pre>
 <p>Hint: try the following for the usage of atom2mass</p>
 <pre class="r"><code>  ?atom2mass</code></pre>
 </div>
-<div id="benchmark-code-performance" class="section level1">
-<h1>Benchmark code performance</h1>
+<div id="stirlings-approximation" class="section level1">
+<h1>Stirling’s approximation</h1>
 <p>Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute the following quantity for large n:</p>
 <p><span class="math display">\[\ln n!=\sum_{j=1}^{n}\ln j\]</span></p>
 <p>Create R functions using the following methods:</p>
@@ -432,6 +432,8 @@ class(coord)</code></pre>
 </ol></li>
 </ul>
 <p>Benchmark these methods with microbenchmark.</p>
+<p>In mathematics, there is famous formula called Stirling’s approximation.</p>
+<p><span class="math display">\[\ln n! \approx n\ln n - n\]</span> Plot the difference of the left hand side and the right hand side, <em>.i.e.</em>, <span class="math display">\[\ln n! - n\ln n + n\]</span> as the function <span class="math inline">\(n\)</span></p>
 </div>
 
 
