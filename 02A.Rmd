@@ -1,0 +1,19 @@
+---
+title: "Part 2: Ordinary differential equations"
+subtitle: "A. Modeling gene circuits with rate equations"
+author: "Mingyang Lu"
+date: "10/13/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We will start to introduce numerical methods in the context of particular real-world applications. In each section, we will introduce the background of an application, available quantitative methods, and corresponding numerical methods. For numerical analyses, the focus will be on (1) the theory, (2) their implementation in R, and (3) available R packages/libraries.
+
+# Gene circuit modeling: one-gene circuits
+

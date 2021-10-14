@@ -58,6 +58,6 @@ Benchmark these methods with microbenchmark.
 In mathematics, there is famous formula called Stirling's approximation.
 
 $$\ln n! \approx n\ln n - n$$
-Plot the difference of the left hand side and the right hand side, *.i.e.*,
-$$\ln n! - n\ln n + n$$
+Plot the relative difference of the left hand side and the right hand side, *.i.e.*,
+$$1-\frac{n\ln - n}{\ln n!}$$
 as the function $n$. 
