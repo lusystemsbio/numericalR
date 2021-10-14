@@ -30,7 +30,7 @@ R is a programming language designed for statistical computing and graphics. Unl
 
 To get started, one needs to download and install R and RStudio from the following websites:  [CRAN](https://cran.r-project.org) and [RStudio](https://www.rstudio.com/). I recommend R version 3.6.3 for this tutorial. 
 
-From the R Console, type the following command to get help.
+From the R console, type the following command to get help.
 
 ```{r}
 help(runif)     # show documentation for the topic -- runif in this example
@@ -57,7 +57,7 @@ Mod(b) # The modulus of b
 c = (3 + 4 == 7)   # logical; c is TRUE
 !c   # not c, which is FALSE
 d = "Monday"  # character
-class(d)  # showing the data type of d
+class(d)  # show the data type of d
 nchar(d)  # number of characters in a string
 ```
 
@@ -65,15 +65,15 @@ nchar(d)  # number of characters in a string
 ```{r}
 vec = c("Man","Woman","Woman","Man","Woman")   # a vector of characters
 length(vec) #length of a vector
-vec == "Woman" # logic values comparing each element to "Woman"
-which(vec == "Woman") # identifying the indices of the elements being "Woman"
+vec == "Woman" # logic values, compare each element to "Woman"
+which(vec == "Woman") # identify the indices of the elements being "Woman"
 ```
 
 ## Factors
 Factor type is an important data type in R. It is commonly used to represent categorical data. 
 ```{r}
-vec_factor = as.factor(vec)   # converting the character vector to a factor vector
-class(vec);class(vec_factor)  # checking the data types
+vec_factor = as.factor(vec)   # convert the character vector to a factor vector
+class(vec);class(vec_factor)  # check the data types
 levels(vec_factor); nlevels(vec_factor)  # levels and the number of levels
 ```
 
@@ -115,7 +115,7 @@ while(i < 5){
 ## Apply
 Another unique feature in R. Apply performs a function iteratively through an array or matrix. It's usually more efficient than a for-loop. Syntax: apply(X, MARGIN, FUN). Here, X is an array or matrix. MARGIN=1 performs the specified function by rows, MARGIN=2 by columns. FUN is the function to apply. 
 ```{r}
-mat = matrix(rnorm(16), nrow = 4)    # generating a random matrix of 4 x 4
+mat = matrix(rnorm(16), nrow = 4)    # generate a random matrix of 4 x 4
 mat
 apply(mat, 1, sum)   # row sum
 rowSums(mat)   # An alternative way to do row sum
@@ -136,10 +136,10 @@ print(paste0("b = ",b))
 ## List
 Lists can contain elements of different types. 
 ```{r}
-my_list = list("a", c(1,2,3), FALSE, 3.14)  # Defining a new list
+my_list = list("a", c(1,2,3), FALSE, 3.14)  # define a new list
 my_list[[1]]   # the first element
 my_list[[2]]   # the second element
-names(my_list) = c("letters", "array", "TF", "pi")  # naming list elements
+names(my_list) = c("letters", "array", "TF", "pi")  # name list elements
 my_list$TF   # retrieve elements by names
 my_vector = unlist(my_list)   # convert the list to a vector
 my_vector
@@ -174,7 +174,7 @@ my_data2 = readRDS("extra/data/01A/my_data.RDS")   # read data from an RDS file,
 ```
 
 ## Package
-The following code works to install/remove packages (not in the R markdown format to avoid adding/removing packages)
+The following code works to install/remove packages 
 ```
 if(! "umap" %in% rownames(installed.packages())) {      # check if the package exists
   install.packages("umap")   # if not, install "umap"
@@ -198,7 +198,7 @@ ggplot(y, aes(x = xvalues, y = yvalues)) +    # density map
 ``` 
 
 # A few notes
-The previous section highlights the basic usage of R. Please refer to "[An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)" and [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) for more details. In the following, I will emphasize a few R features that new learners may overlook or be confused.
+The previous section highlights the basic usage of R. Please refer to "[An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)" and [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) for more details. In the following, I will emphasize a few R features that new learners may overlook or be confused about.
 
 ## Factor vs. string
 Factors may look similar to Strings, but they are very different in R scripting. What makes things worse is that, in R version before 4.0, stringsAsFactors = TRUE by default. That means, for R funtionality using the parameter stringsAsFactors, any string would be interpreted as a factor . However, in R version 4.0 or later, the default stringsAsFactors = FALSE. If a package is developed for R before v4.0 and by assuming default treatment of strings (as factors), the same package may not work properly for R v.4.0 or later. A good practice for R programming is (1) Use R version 3.6.3 if many legacy R packages are required; (2) always specify how string would be treated. Here is an example to create a data frame containing characters/strings.
