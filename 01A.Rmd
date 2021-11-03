@@ -127,7 +127,7 @@ There are other apply-like functions, such as lappy, sappy, tapply, *etc.* [Chec
 ## Functions
 ```{r}
 myfunction <- function(x) {    # a simple function to perform x square
-  x*x
+  return(x*x)
 }
 b = myfunction(4)
 print(paste0("b = ",b))

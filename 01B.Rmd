@@ -1,6 +1,6 @@
 ---
 title: "Part 1: Introduction to R Programming"
-subtitle: "B. Efficient R Porgramming"
+subtitle: "B. Efficient R Programming"
 author: "Mingyang Lu"
 date: "10/12/2021"
 output: 
@@ -91,7 +91,7 @@ library(compiler)
 my_sd =  function(x) {   # define the function
   my_mean = mean(x)
   my_mean2 = mean(x*x)
-  sqrt(my_mean2 - my_mean**2)
+  return(sqrt(my_mean2 - my_mean**2))
 }
 cmp_sd = cmpfun(my_sd)   # compile it to byte code
 cmp_sd(seq_len(100))   # same calculations as a previous example, but with compiled function
@@ -104,6 +104,7 @@ Many R packages are written in a compiled language. It is important to use them 
 Here is an example of Fortran subroutines, provided in the file "extra/src/sub_cal_sd.f90". Note that only integer, double precision and logical arguments are allowed in Fortran-R interface approach. 
 ```
 subroutine cal_sd(n,x,sd)
+  implicit none
   integer,intent(in) :: n
   double precision, intent(in) :: x(n)
   double precision, intent(out) :: sd

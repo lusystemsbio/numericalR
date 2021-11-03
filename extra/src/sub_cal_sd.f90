@@ -1,4 +1,5 @@
 subroutine cal_sd(n,x,sd)
+  implicit none
   integer,intent(in) :: n
   double precision, intent(in) :: x(n)
   double precision, intent(out) :: sd

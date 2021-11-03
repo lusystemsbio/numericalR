@@ -1,0 +1,27 @@
+---
+title: 'Part 2: Ordinary differential equations'
+subtitle: "F. Exercises"
+author: "Mingyang Lu"
+date: "10/26/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Fourth order Runge-Kutta 
+
+In part 2B equation (6), we show a more accurate numerical integrator of ODEs: the fourth order Runge-Kutta method, or RK4. Please proof the method and calculate its accuracy in terms of $O(\Delta t)$
+
+# Hysteresis
+
+Consider the circuit with one self-activating gene, described by equation (1) in Part 2D. Simulate the circuit by gradually increasing $k$ from 0.1 to 0.2, starting from the steady state when $k = 0.1$. Also simulate for another time the same circuit by gradually decreasing $k$ from 0.2 to 0.1, starting from the steady state when $k = 0.2$. Find the similarity and differences of the two time trajectories, *i.e.*, $X(t)$. 
+
+# Anorther bifurcation analysis
+
+Consider the circuit with one self-inhibiting gene, described by equation (1) in Part 2E. We would like to plot a bifurcation diagram for the circuit dynamics. Here, we select the time delay $\tau$ as the control parameter, and simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the conrol parameter $\tau$.
+
