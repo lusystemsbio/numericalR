@@ -1,0 +1,113 @@
+---
+title: 'Part 2: Ordinary differential equations'
+subtitle: "E. Delayed differential equations"
+author: "Mingyang Lu"
+date: "10/26/2021"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Intro
+
+Many processes occur with time delays. It's not uncommon that a dynamical system is described by rate equations containing functions of previous time points. This type of differential equations is called delay differential equations (DDEs). 
+
+For example, we consider the circuit with one self-inhibiting gene, as discussed in the previous section. We use a fixed time delay $\tau$ to represent time cost to induce transcription. Therefore, the rate equation becomes 
+
+$$ \frac{dX(t)}{dt} = g_0 + g_1\frac{1}{1+ (X(t-\tau)/X_0)^n} - kX(t) \tag {1}$$
+
+For a steady state $X_s$, the value is time indepedent. Thus, the condition of steady states is the same as that for an ODE, *i.e.*,
+
+$$ g_0 + g_1\frac{1}{1+ (X_s/X_0)^n} - kX_s = 0$$
+Same method can be used to identify steady state solutions. However, the stability of the system may change because of the delays. 
+
+# Numerical integration for DDE
+We consider the DDE in Equation (1) and $X(t - \tau) = X_0$ for $t \leq \tau$. (Be careful, this seems intuitive but may cause issues as the derivatives of the solutions are discontinuous.) The most generic way to simulate a DDE is to generate time steps and $X$ solutions for the whole interval $t \in [-\tau, t_{max}]$. $X(t-\tau)$ can be retrieve anytime during the integration. Certainly, this is not the most efficient numerical method. 
+
+``` {r}
+f_1g_self_inh_delays <- function(t, X, X_old) {
+   10 + 60 * hill_inh(X_old, 200, 4) - 0.1 * X
+}
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  1/(1+a)
+}
+
+# 2nd order Runge-Kutta (RK2) for DDE
+RK2_delays <- function(derivs, X0, t.total, dt, tau){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(-tau, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  
+  n_delay = as.integer(tau/dt)
+  X_all[1:(n_delay+1)] = X0
+  
+  for (i in (n_delay+1):(n_all-1)) {
+    k1 = dt * derivs(t_all[i],X_all[i],X_all[i-n_delay])
+    xb = X_all[i] + k1
+    k2 = dt * derivs(t_all[i+1],xb, X_all[i+1-n_delay])
+    X_all[i+1] = X_all[i] + (k1+k2)/2
+  }
+  cbind(t_all, X_all)   # the output is a matrix of t & X(t) for all time steps
+}
+
+
+plot(NULL, xlab="t (Minute)", ylab="X (nM)",
+      xlim=c(-20,200), ylim=c(150,450))
+
+tau_all = seq(5,20,5)
+label_all = paste0("tau = ", tau_all)
+ntau = length(tau_all)
+
+ind = 1
+for(tau in tau_all){
+  results = RK2_delays(f_1g_self_inh_delays, X0 = 200, t.total = 200, dt = 0.1, tau)
+  lines(results[,1], results[,2], type = "l", col = ind)
+  ind = ind + 1
+}
+legend("topleft", inset=0.02, legend = label_all,
+       col=1:ntau, lty=1, cex=0.8)
+```
+
+When $\tau = 5 \text{Min}$, the system converges to the steady state at around 250 nM. When $\tau$ increases, the time dynamics change to damping oscillation, and eventually stable oscillation. That at point, the steady state is unstable, as it moves away from the steady state. Therefore, with different delays, a self-inhibitory gene may have either a stable steady state or an oscillatory state. 
+
+# Simulation with deSolve
+
+The function *dede* is a general solver for DDEs. Here, we implement its usage. It gives pretty much the same results.
+``` {r}
+library(deSolve)
+f_1g_self_inh_dde <- function(t,X, p) {
+  tau = p$tau
+  if (t < tau)
+    X_old = p$X0
+  else
+    X_old =  lagvalue( t - tau ,1)
+  
+  list(10 + 60 * hill_inh(X_old, 200, 4) - 0.1 * X)
+}
+X0 =  200
+t_all = seq(0, 200, by = 0.1)
+p = list(tau = 20, X0 = X0)
+results = dede(X0, t_all, f_1g_self_inh_dde, p)
+plot(results[,1], results[,2], type = "l", xlab="t (Minute)", ylab="X (nM)",
+      xlim=c(-20,200), ylim=c(150,450))
+```
+
+# Some notes
+
+Numerical integration of DDEs seem to be straightforward. It has been widely applied in science and engineering. However, there are few points worth noting:
+
+* A DDE is usually ill defined, as there is discontinuity of $X$ at $t = 0$, thus more discontinuity at later time points. One needs to be cautious when interpreting the simulation results of DDE.
+
+* A delay system can sometimes be converted to an ODE system when introducing intermediate steps for the reactions with delays. For example, for a delay from gene A regulating gene B, we can add another intermediate node C and new edges from A to C and C to B.
+
+* Other than the numerical method introduced above, there are more efficient way to solve DDEs. We will leave it as an exercise.
