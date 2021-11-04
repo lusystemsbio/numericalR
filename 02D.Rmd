@@ -223,7 +223,7 @@ Therefore, we get
               \Delta X = h \Delta k \end{cases} \tag{5}
 \end{equation}
 
-,where $h(X,k) = \frac{dX}{dk}$ can be computed according to equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in equation (5) would depend on which direction we want to go.
+,where $h(X,k) = \frac{dX}{dk}$ can be computed according to equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
 
 ``` {r}
 X_init = 0
@@ -267,5 +267,5 @@ legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1,
 
 ```
 
-The above implementation works great in this example. However, it may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. 
+The above implementation works great in this example. However, it may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue. 
 
