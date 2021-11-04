@@ -1,4 +1,6 @@
-## Numerical Methods using R
+# Numerical Methods using R
+
+### [Mingyang Lu](https://github.com/lusystemsbio), Nov 2021
 
 ---
 
@@ -17,7 +19,7 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 2D. [Bifurcation](https://lusystemsbio.github.io/numericalR/02D.html) |
 |-- 2E. [Delayed differential equations](https://lusystemsbio.github.io/numericalR/02E.html) |
 |-- 2F. [Exercises](https://lusystemsbio.github.io/numericalR/02F.html) |
-|3. Phase diagram: systems with two variables|
+|3. Phase plane method: systems with two variables|
 |-- 3A. [Nulllines](https://lusystemsbio.github.io/numericalR/03A.html) |
 |-- 3B. [Bifurcation](https://lusystemsbio.github.io/numericalR/03B.html) |
 |-- 3C. [Separatrix](https://lusystemsbio.github.io/numericalR/03C.html) |

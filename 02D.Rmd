@@ -135,7 +135,7 @@ The expression is defined as a function h, which will be used later. Therefore, 
               X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
 \end{equation}
 
-We can then use a correction method, such as Newton's method, to find the nearby solution. For Netwon's method, we solve $f(X) = 0$ from starting from an initial guess at $X_0$. Let us denote the solution $X = X_S$,
+We can then use a correction method, such as Newton's method, to find the nearby solution. For Netwon's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. Let us denote the solution $X = X_S$,
 
 $$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
 
