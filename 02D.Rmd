@@ -267,5 +267,5 @@ legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1,
 
 ```
 
-The above implementation works great in this example. However, it may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue. 
+The above implementation works great in this example. However, it may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue, *.e.g.*, [Halley's method](https://en.wikipedia.org/wiki/Halley%27s_method).
 
