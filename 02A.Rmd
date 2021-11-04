@@ -152,6 +152,7 @@ Finding the analytical solution of Equation (9) is non-trivial. We will discuss 
 
 # Circuit with a self-inhibiting gene
 A third example is a gene $X$, whose expression is inhibited by itself. 
+
 <center> ![Figure 4](./extra/data/02A/fig4.png) </center>
 <br/>
 
@@ -193,6 +194,7 @@ In this case, the rate equation is
 
 # Toggle switch circuit
 Lastly, we show another gene circuit containing two transcription factors $X$ and $Y$.
+
 <center> ![Figure 5](./extra/data/02A/fig5.png) </center>
 <br/>
 Here, $X$ is an inhibitor of gene $y$, while $Y$ is an inhibitor of gene $x$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as
@@ -202,4 +204,4 @@ Here, $X$ is an inhibitor of gene $y$, while $Y$ is an inhibitor of gene $x$. We
               \frac{dY}{dt} = g_{Y0}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{13}
 \end{equation}
 
-In this case, the system is described by two coupled differential equations, the solutions to which are in the form of $X(t)$ and $Y(t)$. As there are two variables $X$ and $Y$, more sophisticated tools are required to understand this type of dynamical systems. We will discuss about it in both Part 2C and Part 3. 
+In this case, the system is described by two coupled differential equations, the solutions to which are in the form of $X(t)$ and $Y(t)$. As there are two variables $X$ and $Y$, more sophisticated tools are required to understand this type of dynamical systems. We will discuss about it in Part 3. 
