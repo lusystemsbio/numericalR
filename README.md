@@ -23,27 +23,3 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 3C. [Separatrix](https://lusystemsbio.github.io/numericalR/03C.html) |
 |-- 3D. [Potential](https://lusystemsbio.github.io/numericalR/03D.html) |
 |-- 3E. [Exercises](https://lusystemsbio.github.io/numericalR/03D.html) |
-|4. Stochastic differential equations|
-|-- 4A. [Euler–Maruyama method](https://lusystemsbio.github.io/numericalR/04A.html) |
-|-- 4B. [Milstein method](https://lusystemsbio.github.io/numericalR/04B.html) |
-|-- 4C. [State transitions](https://lusystemsbio.github.io/numericalR/04C.html) |
-|-- 4D. [Exercises](https://lusystemsbio.github.io/numericalR/05C.html) |
-|5. Molecular dynamics simulations|
-|-- 5A. [Integrators](https://lusystemsbio.github.io/numericalR/05A.html) |
-|-- 5B. [Boundary conditions](https://lusystemsbio.github.io/numericalR/05B.html) |
-|-- 5C. [Neighbor list](https://lusystemsbio.github.io/numericalR/05C.html) |
-|-- 5D. [?Examples?](https://lusystemsbio.github.io/numericalR/05D.html) |
-|-- 5E. [Exercises](https://lusystemsbio.github.io/numericalR/05E.html) |
-|6. Metropolis algorithm|
-|7. Gillespie algorithm|
-|8. Partial differential equations|
-|9. Simulated annealing|
-|10. Replica exchange|
-|11. Dynamic programming|
-|12. Dead end elimination|
-|13. Genetic algorithm|
-|14. Dimensionality reduction|
-|15. Clustering|
-|16. Network modularity|
-
-(Minimizer)
