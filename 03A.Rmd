@@ -3,6 +3,7 @@ title: "Part 3: Phase plane"
 subtitle: "A. Nullclines"
 author: "Mingyang Lu"
 date: "11/03/2021"
+theme: jekyll-theme-minimal
 output: 
   html_document:
     toc: true
