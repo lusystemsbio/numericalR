@@ -6,7 +6,7 @@ date: "11/03/2021"
 output: 
   html_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -23,22 +23,136 @@ We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynam
               \frac{dY}{dt} = g_{Y0}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases}
 \end{equation}
 
+### ODE simulations
+
+Below shows functions to compute the derivatives of the toggle switch circuit. For illustration, the kinetic parameters of the circuit are provided in the script. 
 ``` {r}
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(1/(1+a))
+}
+
+derivs_ts <- function(t, Xs) {
+  X = Xs[1]
+  Y = Xs[2]
+  dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
+  dydt = 4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y
+  return(c(dxdt, dydt))
+}
+```
+
+We can simualte the dynamics of $X$ and $Y$ using 4th order Runge-Kutta (RK4). The function RK4_2D for a system with two variables is very similar to the function RK4 in Part 2B. Now, the time trajectory is stored in a matrix called X_all.
+
+```{r}
+# 4th order Runge-Kutta (RK4)
+RK4_2D <- function(derivs, init, t.total, dt){
+  # derivs: the function of the derivatives 
+  # init: initial condition in c(X0, Y0)
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = matrix(0, nrow = n_all, ncol = 2)
+  X_all[1,] = init 
+  df_half = dt/2
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i,])
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2)
+    k4 = dt * derivs(t_1,X_all[i,] + k3)
+    X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+
+set.seed(77)   # set the seed for the random number generator, remove this line to generate more random initial conditions
+X_init_all = array(runif(20, 0, 600), dim = c(10,2)) # generate 10 random initial conditions
+
+t.total = 100
+dt  = 0.1
+plot(NULL, xlab="t (Minute)", ylab="Levels (nM)", xlim=c(0,80), ylim=c(0,650)) 
+for(i in seq_len(nrow(X_init_all))){
+  results = RK4_2D(derivs_ts, X_init_all[i,], t.total, dt)
+  lines(results[,1], results[,2], col = 1)
+  lines(results[,1], results[,3], col = 2)
+}
+legend("top", inset=0.02, legend = c("X", "Y"),
+       col=1:2, lty=1, cex=0.8)
+```
+
+We randomly selected 10 initial conditions and simulate the ODEs starting from each. As shown in the above figure, the system can reach to two stable steady states, *i.e.*, two sets of $X$ and $Y$. 
+
+### Phase plane
+
+A powerful way to characterize the dynamic behavior of such a two-variable system is the phase plane analysis. A phase plane describes the states of a system by two axes representing, *e.g.* in this case, the levels of the two variables. Here, we plot the time trajectories from the previous simulations to the phase plane of $X$ and $Y$.
+
+``` {r, fig.width = 5, fig.height = 5}
+plot(NULL, xlab="X (nM)", ylab="Y (nM)", xlim=c(0,600), ylim=c(0,650)) 
+for(i in seq_len(nrow(X_init_all))){
+  results = RK4_2D(derivs_ts, X_init_all[i,], t.total, dt)
+  lines(results[,2], results[,3], col = 1)
+}
+``` 
+ 
+The trajectories shown in the phase plane illustrate again the existence of two stable steady states. 
+
+### Vector field
+
+We can also plot arrows for points in the phase plane to represent the direction of changes.
+
+\begin{equation}
+\begin{cases} V_X = \frac{dX}{dt}  \\
+              V_Y = \frac{dY}{dt} \end{cases}
+\end{equation}
+
+``` {r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+
+X_all = seq(0, 600, by=20)   # all X grids
+Y_all = seq(0, 650, by=20)   # all Y grids
+XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
+
+results = t(apply(XY_all, MARGIN=1, function(Xs) {return(c(Xs, derivs_ts(0, Xs)))})) # generate all vector field data
+colnames(results) = c("X", "Y", "dX", "dY")
+
+ggplot(data=as.data.frame(results), aes(x=X, y=Y)) + 
+  geom_segment(aes(xend=X+dX, yend=Y+dY), arrow = arrow(length = unit(0.05,"in")))
 
 ```
 
-trajectory
+In the vector filed, vectors are pointing towards to stable steady states. There is also another steady state in the middle of the plot, where the nearby vectors point toward it from one direction and point outwards from another direction. This steady state is a saddle point, a type of unstable steady statThere is also another steady state in the middle of the plot, where the nearby vectors point toward it from one direction and point outwards from another direction. This steady state is a saddle point, a type of unstable steady state. 
 
-phase plane
+We can choose to plot the unit vectors of the vector field to highlight the directions. 
 
-vector field
+``` {r,fig.width = 5, fig.height = 5}
+
+results = t(apply(XY_all, MARGIN=1, function(Xs) {
+  v = derivs_ts(0, Xs)
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate all vector field data
+colnames(results) = c("X", "Y", "dX", "dY")
+
+ggplot(data=as.data.frame(results), aes(x=X, y=Y)) + 
+  geom_segment(aes(xend=X+20*dX, yend=Y+20*dY), arrow = arrow(length = unit(0.05,"in")))
+
+```
 
 # Nullclines
 
-## Contour method
+concept
 
-## Numerical continuation
+Variable separation
 
-## Find intersects
 
-## Stability
+### Contour method
+
+### Numerical continuation
+
+# Steady states in 2D
+
+### Find intersects
+
+### Stability
