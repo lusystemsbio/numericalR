@@ -25,5 +25,5 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 3A. [Nulllines](https://lusystemsbio.github.io/numericalR/03A.html) |
 |-- 3B. [Bifurcation](https://lusystemsbio.github.io/numericalR/03B.html) |
 |-- 3C. [Separatrix](https://lusystemsbio.github.io/numericalR/03C.html) |
-|-- 3D. [Effective potential: revisit](https://lusystemsbio.github.io/numericalR/03D.html) |
+|-- 3D. [Effective potential revisited](https://lusystemsbio.github.io/numericalR/03D.html) |
 |-- 3E. [Exercises](https://lusystemsbio.github.io/numericalR/03D.html) |
