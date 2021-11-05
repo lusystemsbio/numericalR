@@ -19,8 +19,8 @@ In Part 3, we will generalize what we learn from Part 2 to ODEs with two variabl
 We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynamics can be described by a set of two ODEs below (*i.e.*, equation (13) in Part 2A). 
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{X0}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
-              \frac{dY}{dt} = g_{Y0}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases}
+\begin{cases} \frac{dX}{dt} = g_{X_0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
+              \frac{dY}{dt} = g_{Y_0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases}
 \end{equation}
 
 ### ODE simulations
@@ -129,30 +129,90 @@ We can choose to plot the unit vectors of the vector field to highlight the dire
 
 ``` {r,fig.width = 5, fig.height = 5}
 
-results = t(apply(XY_all, MARGIN=1, function(Xs) {
+results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
   v = derivs_ts(0, Xs)
   v_norm = v / sqrt(v[1]**2 + v[2]**2)
   return(c(Xs, v_norm))})) # generate all vector field data
-colnames(results) = c("X", "Y", "dX", "dY")
+colnames(results_unit) = c("X", "Y", "dX", "dY")
 
-ggplot(data=as.data.frame(results), aes(x=X, y=Y)) + 
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
   geom_segment(aes(xend=X+20*dX, yend=Y+20*dY), arrow = arrow(length = unit(0.05,"in")))
-
+p1
 ```
 
 # Nullclines
 
-concept
+Another convenient way to evaluate the behavior of a nonlinear dynamical system is the techniques of nullcline analysis. A nullcline corresponds to the steady state condition of one ODE. Thus, there are two nullclines for (1) $\frac{dX}{dt} = 0$ and (2) $\frac{dY}{dt} = 0$. In the current example, the first nullcline satisfies 
 
-Variable separation
+$$f_X(X, Y) = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX = 0  \tag{1} $$
+The second one satisfies
 
+$$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY = 0 \tag{2} $$
+The curve for an equation like $f_X(X, Y) = 0$ can be obtain numerically, as we will discussed very soon. But for this relatively simple example, we can get the curve right away by *separation of variables*.
+
+From equation (1), we can move $k_XX$ to the right hand side, and we have
+
+$$X(Y)  = \frac{g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}}}{k_X} \tag{3}$$
+
+Similarly, from equation (2), we can also get
+
+$$ Y(X) = \frac{g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}}{k_Y} \tag{4} $$
+
+The first nullcline (equation (3)) can also be expression as $Y(X)$. Although we don't have to, as $X(Y)$ is sufficent to obtain the nullcline curve numerically. 
+
+``` {r,fig.width = 6, fig.height = 5}
+X_all = seq(0, 600, by=1)   # all X grids
+Y_all = seq(0, 650, by=1)   # all Y grids
+
+nullcline1 <- function(Y) {
+  X= (5 + 50 * hill_inh(Y, 100, 4))/0.1 
+  return(cbind(X, Y))
+}
+nullcline2 <- function(X) {
+  Y = (4 + 40 * hill_inh(X, 150, 4))/0.12
+  return(cbind(X, Y))
+}
+
+null1 = nullcline1(Y_all)
+null2 = nullcline2(X_all)
+
+p1 +
+  geom_line(data = as.data.frame(null1), aes(x=X, y=Y, colour = "dX/dt=0"), size=1) + 
+  geom_line(data = as.data.frame(null2), aes(x=X, y=Y, colour = "dY/dt=0"), size=1) 
+
+``` 
+
+The intersections of the two nullclines are the steady states of the system. By checking the number of intersections, we can identify the multi-stability property easily. The separation of variables should be applied whenever possible. However, it may not be feasible in many situations. We then have to reply on other approaches, such as contour method and numerical continuation.
 
 ### Contour method
 
+One of such approaches relies on the contour analysis. We consider $Z = f_X(X,Y)$ and construct a landscape of a plane of $X$ and $Y$, with $Z$ as the height. The nullcline would be the contour line when $Z=0$. This can be easily done with the *contour* function in base R or other plotting packages, such as *geom_contour* from *ggplot2*. In this approach, $Z$ values for all 2D grid points are required to compute the contour. This can be computational intensive when high resolution grid points are needed. The contour method is usually robust, as long as the $Z$ values are smooth enough for interpolation.
+
+``` {r,fig.width = 5, fig.height = 5}
+X_all = seq(0, 600, by=10)   # all X grids
+Y_all = seq(0, 650, by=10)   # all Y grids
+nX = length(X_all)
+nY = length(Y_all)
+XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
+
+results = t(apply(XY_all, MARGIN=1, function(Xs) {return(c(Xs, derivs_ts(0, Xs)))})) # generate all vector field data
+z_X = array(results[,3], dim = c(nX, nY))
+z_Y = array(results[,4], dim = c(nX, nY))
+
+contour(X_all, Y_all, z_X, levels = 0, col = 2, xlab = "X", ylab = "Y", drawlabels = F)
+contour(X_all, Y_all, z_Y, levels = 0, col = 3, add = TRUE, drawlabels = F)
+```
+
 ### Numerical continuation
+
+Another approach is ther numerical continuation, which we have already applied for bifurcation analysis. In that previous analysis, we identify the bifurcation curve that satisfies $f(X, k) = 0$. Similarly, we will identify the nullcline curve that satisfies $f_X(X, Y) = 0$ (and the other one that obeys $f_Y(X, Y) = 0$). Here, we can choose $X$ as the control parameter and find $Y(X)$. Of course, it is also fine to choose $Y$ as the control parameter and find $X(Y)$. 
+
+``` {r,fig.width = 5, fig.height = 5}
+
+```
 
 # Steady states in 2D
 
-### Find intersects
+### Find intersections
 
 ### Stability
