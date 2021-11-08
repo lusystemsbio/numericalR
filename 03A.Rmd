@@ -54,7 +54,6 @@ RK4_2D <- function(derivs, init, t.total, dt){
   n_all = length(t_all)
   X_all = matrix(0, nrow = n_all, ncol = 2)
   X_all[1,] = init 
-  df_half = dt/2
   for (i in 1:(n_all-1)) {
     t_0= t_all[i]
     t_0.5 = t_0 + 0.5*dt
@@ -205,14 +204,150 @@ contour(X_all, Y_all, z_Y, levels = 0, col = 3, add = TRUE, drawlabels = F)
 
 ### Numerical continuation
 
-Another approach is ther numerical continuation, which we have already applied for bifurcation analysis. In that previous analysis, we identify the bifurcation curve that satisfies $f(X, k) = 0$. Similarly, we will identify the nullcline curve that satisfies $f_X(X, Y) = 0$ (and the other one that obeys $f_Y(X, Y) = 0$). Here, we can choose $X$ as the control parameter and find $Y(X)$. Of course, it is also fine to choose $Y$ as the control parameter and find $X(Y)$. 
+Another approach is the numerical continuation, which we have already applied in the bifurcation analysis in Part 2D. In that previous analysis, we identify the bifurcation curve that satisfies $f(X, k) = 0$. Similarly, we will identify the nullcline curve that satisfies $f_X(X, Y) = 0$ (and the other one that obeys $f_Y(X, Y) = 0$). Here, we can choose $Y$ as the control parameter and find $X(Y)$ (that's what we will do below). Of course, it is also fine to choose $X$ as the control parameter and find $Y(X)$. 
 
 ``` {r,fig.width = 5, fig.height = 5}
+f_null1 <- function(X, Y) {       # f_X(X, Y)
+  return(5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X)
+}
+dfdX_null1 <- function(X, Y) {   # Jacobian (1st order partial derivatives) for f_X(X, Y)
+  return(-0.1)
+}
+dfdY_null1 <- function(X, Y) {
+  y_frac = (Y/100)**4
+  return(-200/Y*y_frac/(1+y_frac)**2)
+}
+f_null2 <- function(X, Y) {       # f_Y(X, Y)
+  return(4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y)
+}
+dfdX_null2 <- function(X, Y) {   # Jacobian for f_Y(X, Y)
+  x_frac = (X/150)**4
+  return(-160/X*x_frac/(1+x_frac)**2)
+}
+dfdY_null2 <- function(X, Y) {   
+  return(-0.12)
+}
 
+# Newton's Method
+find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
+  while(abs(func(X, parms)) > error){
+    f = func(X, parms)
+    X = X - f/dfunc(X, parms)
+    if((X-X_range[1])*(X-X_range[2]) > 0) break 
+  }
+  return(X)
+}
+
+# 4th order Runge-Kutta (RK4) for 1D
+# simplified to (1) only output steady-state X or final X, 
+# (2) derivative is not the function of t in this implementation, thus some t-dependent parts are simplified
+RK4_1D_steady <- function(derivs, X0, params, t.total, dt){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  error = 10^-8
+  t = 0
+  X = X0
+  while(t <= t.total){
+    df = derivs(X, params)
+    if(abs(df) < error) break
+  
+    k1 = dt * df
+    k2 = dt * derivs(X + k1/2, params)
+    k3 = dt * derivs(X + k2/2, params)
+    k4 = dt * derivs(X + k3, params)
+    
+    X = X + (k1+2*k2+2*k3+k4)/6
+    t = t + dt
+  }
+  return(X)
+}
+
+nullcline_numcont <- function(func, dfdX, dfdY, X_range, Y_range, X_init, Y_init, direct = 1, step_arc) {
+  nmax_cycle = 10000
+  
+  results = matrix(NA, nrow = nmax_cycle, ncol = 2)
+  cycle = 1
+  step_Y_previous = direct 
+  step_X_previous = 0
+  
+  X_new = X_init
+  Y = Y_init 
+  results[cycle,] = c(X_new, Y)
+  while(((X_new - X_range[1])*(X_new - X_range[2]) <= 0) & # boundary check
+        ((Y - Y_range[1]) * (Y - Y_range[2]) <= 0) & 
+        (cycle < nmax_cycle)) {
+    h = -dfdY(X_new, Y)/dfdX(X_new, Y) 
+    
+    step_Y = step_arc/sqrt(1+h**2)
+    step_X = step_Y*h
+    
+    if((step_Y_previous * step_Y + step_X_previous * step_X) < 0){ 
+      step_Y = - step_Y
+      step_X = - step_X
+    }
+    step_Y_previous = step_Y
+    step_X_previous = step_X
+    
+    Y = Y + step_Y
+    X_init = X_new + step_X
+    
+    X_new = find_root_Newton(X=X_init, func=func, dfunc=dfdX, parms=Y, X_range = X_range) 
+    
+    cycle = cycle + 1
+    results[cycle,] = c(X_new, Y)
+  }
+  results = na.omit(results)
+  colnames(results) = c("X","Y")
+  return(results)
+}
+
+X_range = c(0, 600)
+Y_range = c(0, 650)
+
+# the initial X,Y need to be provided, here we manually selected them with an initial simulation
+X_init_guess_null1 = 500
+Y_init_guess_null1 = 1
+X_init_null1 = RK4_1D_steady(f_null1, X_init_guess_null1, Y_init_guess_null1, 1000, 0.01)  # start from ~ (550, 1)
+null1_cont = nullcline_numcont(f_null1, dfdX_null1, dfdY_null1, X_range, Y_range, 
+                               X_init = X_init_null1, Y_init = Y_init_guess_null1, direct = 1, step_arc = 3)
+
+X_init_guess_null2 = 1
+Y_init_guess_null2 =366.6 
+X_init_null2 = RK4_1D_steady(f_null2, X_init_guess_null2, Y_init_guess_null2, 1000, 0.01)   # start from ~ (8,366.6)
+null2_cont = nullcline_numcont(f_null2, dfdX_null2, dfdY_null2, X_range, Y_range, 
+                               X_init = X_init_null2, Y_init = Y_init_guess_null2, direct = -1, step_arc = 3)
+plot(NULL, xlab="X", ylab="Y", xlim=X_range, ylim=Y_range)
+points(null1_cont[,1], null1_cont[,2], pch = 1, cex = 0.3, col = 2)
+points(null2_cont[,1], null2_cont[,2], pch = 1, cex = 0.3, col = 3)
+legend("topright", inset=0.02, legend = c("dX/dt=0", "dY/dt=0"), col=2:3, lty=1, cex=0.8)
 ```
+
+The core code is equivalent to the code for 1-variable bifurcation analysis in Part 2D. It looks lengthy and somewhat cumbersome, as the boundary of two variables and the initial direction of nullclines need to be specified. Again, the readers can try the algorithm without the correction method by *find_root_Newton*. One issue about the above code is the lack of divergent check of the functions and Jacobians. 
 
 # Steady states in 2D
 
+Now with the two nullclines, we can find all steady states by the intersections of the two curves. We will discuss the numerical methods to identify all steady states and the way to determine their stability.
+
 ### Find intersections
+
+We consider two curves $A$ and $B$, each of which is specified by a series of 2D vectors, *i.e.*, $(\mathbf{A_1}, \mathbf{A_2}, ...,\mathbf{A_n}, \mathbf{A_{n+1}}, ...)$ for $A$ and  $(\mathbf{B_1}, \mathbf{B_2}, ...,\mathbf{B_n}, \mathbf{B_{n+1}}, ...)$ for $B$. Here, $\mathbf{A_n}$ represents the coordinates of the nth point along the curve $A$, *i.e.*, $c(X(A_n), Y(A_n))$. The data frames null1_cont and null2_cont obtained above are examples of the two curves. Now, we consider the four points $\mathbf{A_n}$, $\mathbf{A_{n+1}}$, $\mathbf{B_n}$ and $\mathbf{B_{n+1}}$, as shown in the figure below. The curve between two consecutive points can be approximated as a straight line. We will numerically evaluate (1) whether an interaction is formed by the two segments and if so (2) the coordinate of the interaction.
+
+<center> ![Figure 1](./extra/data/03A/fig1.png){width=70%} </center>
+<br/>
+
+The figure shows two situations in which the two lines intersect (left) or not (right). Any point $\mathbf{C}$ along the line ($\mathbf{A_n}$, $\mathbf{A_{n+1}}$) can be written as 
+
+$$ \mathbf{C} = \mathbf{A_n} + \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) \tag{5}  $$
+If the point $\mathbf{C}$ is also along the line ($\mathbf{B_n}$, $\mathbf{B_{n+1}}$). We get
+
+$$ \mathbf{C} = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{5}  $$
+From equations (5) and (6), we have
+
+$$ \mathbf{A_n} + \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{7} $$
+(7) has two variables $\alpha$ and $\beta$ and two equations. Thus, $\alpha$ and $\beta$ can be determined as below.
+
+
 
 ### Stability

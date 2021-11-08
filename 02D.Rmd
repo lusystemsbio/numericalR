@@ -135,7 +135,7 @@ The expression is defined as a function h, which will be used later. Therefore, 
               X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
 \end{equation}
 
-We can then use a correction method, such as Newton's method, to find the nearby solution. For Netwon's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. Let us denote the solution $X = X_S$,
+We can then use a correction method, such as Newton's method, to find the nearby solution. For Newton's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. Let us denote the solution $X = X_S$,
 
 $$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
 
@@ -158,7 +158,7 @@ find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
   while(abs(func(X, parms)) > error){
     f = func(X, parms)
     X = X - f/dfunc(X, parms)
-    if((X-X_range[1])*(X-X_range[2]) > 0) break;  # a check to avoid infinite loop, no debug steps are provided here for simplification
+    if((X-X_range[1])*(X-X_range[2]) > 0) break  # a check to avoid infinite loop, no debug steps are provided here for simplification
   }
   return(X)
 }
@@ -244,7 +244,7 @@ while(((k - k_range[1]) * (k - k_range[2]) <= 0) & (cycle < nmax_cycle)) {
   step_k = ds/sqrt(1+h**2)
   step_X = step_k*h
   
-  if(step_k_previous * step_k + step_X_previous * step_X < 0) {  # the direction of change should be the same along the search
+  if((step_k_previous * step_k + step_X_previous * step_X) < 0) {  # the direction of change should be the same along the search
     step_k = - step_k
     step_X = - step_X
   }
@@ -267,4 +267,4 @@ legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1,
 
 ```
 
-The above implementation works great in this example. However, it may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue, *.e.g.*, [Halley's method](https://en.wikipedia.org/wiki/Halley%27s_method).
+The above implementation works great in this example. It also works reasonably well without the correction method (find_root_Newton). However, numerical continuation may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue, *.e.g.*, [Halley's method](https://en.wikipedia.org/wiki/Halley%27s_method).
