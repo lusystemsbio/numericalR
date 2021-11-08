@@ -274,7 +274,6 @@ RK4 <- function(derivs, X0, t.total, dt){
   n_all = length(t_all)
   X_all = numeric(n_all)
   X_all[1] = X0
-  df_half = dt/2
   for (i in 1:(n_all-1)) {
     t_0= t_all[i]
     t_0.5 = t_0 + 0.5*dt
