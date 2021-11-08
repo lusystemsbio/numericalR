@@ -311,13 +311,13 @@ X_init_guess_null1 = 500
 Y_init_guess_null1 = 1
 X_init_null1 = RK4_1D_steady(f_null1, X_init_guess_null1, Y_init_guess_null1, 1000, 0.01)  # start from ~ (550, 1)
 null1_cont = nullcline_numcont(f_null1, dfdX_null1, dfdY_null1, X_range, Y_range, 
-                               X_init = X_init_null1, Y_init = Y_init_guess_null1, direct = 1, step_arc = 3)
+                               X_init = X_init_null1, Y_init = Y_init_guess_null1, direct = 1, step_arc = 1)
 
 X_init_guess_null2 = 1
 Y_init_guess_null2 =366.6 
 X_init_null2 = RK4_1D_steady(f_null2, X_init_guess_null2, Y_init_guess_null2, 1000, 0.01)   # start from ~ (8,366.6)
 null2_cont = nullcline_numcont(f_null2, dfdX_null2, dfdY_null2, X_range, Y_range, 
-                               X_init = X_init_null2, Y_init = Y_init_guess_null2, direct = -1, step_arc = 3)
+                               X_init = X_init_null2, Y_init = Y_init_guess_null2, direct = -1, step_arc = 1)
 plot(NULL, xlab="X", ylab="Y", xlim=X_range, ylim=Y_range)
 points(null1_cont[,1], null1_cont[,2], pch = 1, cex = 0.3, col = 2)
 points(null2_cont[,1], null2_cont[,2], pch = 1, cex = 0.3, col = 3)
@@ -326,28 +326,8 @@ legend("topright", inset=0.02, legend = c("dX/dt=0", "dY/dt=0"), col=2:3, lty=1,
 
 The core code is equivalent to the code for 1-variable bifurcation analysis in Part 2D. It looks lengthy and somewhat cumbersome, as the boundary of two variables and the initial direction of nullclines need to be specified. Again, the readers can try the algorithm without the correction method by *find_root_Newton*. One issue about the above code is the lack of divergent check of the functions and Jacobians. 
 
-# Steady states in 2D
+``` {r}
+save(null1_cont, null2_cont, file = "./extra/data/03A/null_03A.RData")    # we save the data for 03B
 
-Now with the two nullclines, we can find all steady states by the intersections of the two curves. We will discuss the numerical methods to identify all steady states and the way to determine their stability.
+```
 
-### Find intersections
-
-We consider two curves $A$ and $B$, each of which is specified by a series of 2D vectors, *i.e.*, $(\mathbf{A_1}, \mathbf{A_2}, ...,\mathbf{A_n}, \mathbf{A_{n+1}}, ...)$ for $A$ and  $(\mathbf{B_1}, \mathbf{B_2}, ...,\mathbf{B_n}, \mathbf{B_{n+1}}, ...)$ for $B$. Here, $\mathbf{A_n}$ represents the coordinates of the nth point along the curve $A$, *i.e.*, $c(X(A_n), Y(A_n))$. The data frames null1_cont and null2_cont obtained above are examples of the two curves. Now, we consider the four points $\mathbf{A_n}$, $\mathbf{A_{n+1}}$, $\mathbf{B_n}$ and $\mathbf{B_{n+1}}$, as shown in the figure below. The curve between two consecutive points can be approximated as a straight line. We will numerically evaluate (1) whether an interaction is formed by the two segments and if so (2) the coordinate of the interaction.
-
-<center> ![Figure 1](./extra/data/03A/fig1.png){width=70%} </center>
-<br/>
-
-The figure shows two situations in which the two lines intersect (left) or not (right). Any point $\mathbf{C}$ along the line ($\mathbf{A_n}$, $\mathbf{A_{n+1}}$) can be written as 
-
-$$ \mathbf{C} = \mathbf{A_n} + \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) \tag{5}  $$
-If the point $\mathbf{C}$ is also along the line ($\mathbf{B_n}$, $\mathbf{B_{n+1}}$). We get
-
-$$ \mathbf{C} = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{5}  $$
-From equations (5) and (6), we have
-
-$$ \mathbf{A_n} + \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{7} $$
-(7) has two variables $\alpha$ and $\beta$ and two equations. Thus, $\alpha$ and $\beta$ can be determined as below.
-
-
-
-### Stability
