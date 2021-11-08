@@ -1,6 +1,6 @@
 ---
 title: "Part 3: Phase plane"
-subtitle: "A. Steady states in 2D"
+subtitle: "B. Steady states in 2D"
 author: "Mingyang Lu"
 date: "11/08/2021"
 output: 
