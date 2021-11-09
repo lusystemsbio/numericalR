@@ -13,10 +13,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In Part 3, we will generalize what we learn from Part 2 to ODEs with two variables and apply them to model a gene circuit with two nodes. We will focus on phase plane analysis for a visual characterization of nonlinear dynamical systems.
+In Part 3, we will generalize what we learn from Part 2 to ODEs with two variables and apply them to model a gene circuit with two genes. We will focus on phase plane analysis for a visual characterization of nonlinear dynamical systems.
 
 # A system with two variables
-We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynamics can be described by a set of two ODEs below (*i.e.*, equation (13) in Part 2A). 
+
+We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynamics can be described by a set of two ODEs below (*i.e.*, Equation (13) in Part 2A). 
 
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = g_{X_0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
@@ -25,7 +26,8 @@ We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynam
 
 ### ODE simulations
 
-Below shows functions to compute the derivatives of the toggle switch circuit. For illustration, the kinetic parameters of the circuit are provided in the script. 
+Below shows functions to compute the derivatives of the toggle switch circuit. For illustration, the kinetic parameters of the circuit are hard coded in the script. 
+
 ``` {r}
 hill_inh <- function(X,X0,n) {
   a = (X/X0)**n
@@ -41,7 +43,7 @@ derivs_ts <- function(t, Xs) {
 }
 ```
 
-We can simualte the dynamics of $X$ and $Y$ using 4th order Runge-Kutta (RK4). The function RK4_2D for a system with two variables is very similar to the function RK4 in Part 2B. Now, the time trajectory is stored in a matrix called X_all.
+We can simulate the dynamics of $X$ and $Y$ with 4th order Runge-Kutta (RK4). The function RK4_2D for a system with two variables is very similar to the function RK4 in Part 2B. Now, the time trajectory is stored in a matrix called X_all.
 
 ```{r}
 # 4th order Runge-Kutta (RK4)
@@ -82,7 +84,7 @@ legend("top", inset=0.02, legend = c("X", "Y"),
        col=1:2, lty=1, cex=0.8)
 ```
 
-We randomly selected 10 initial conditions and simulate the ODEs starting from each. As shown in the above figure, the system can reach to two stable steady states, *i.e.*, two sets of $X$ and $Y$. 
+We randomly selected 10 initial conditions and simulate the ODEs starting from each. As shown in the above plot, the system can reach to two stable steady states, *i.e.*, two sets of $X$ and $Y$. 
 
 ### Phase plane
 
@@ -122,7 +124,7 @@ ggplot(data=as.data.frame(results), aes(x=X, y=Y)) +
 
 ```
 
-In the vector filed, vectors are pointing towards to stable steady states. There is also another steady state in the middle of the plot, where the nearby vectors point toward it from one direction and point outwards from another direction. This steady state is a saddle point, a type of unstable steady statThere is also another steady state in the middle of the plot, where the nearby vectors point toward it from one direction and point outwards from another direction. This steady state is a saddle point, a type of unstable steady state. 
+In the vector filed, vectors are pointing towards two stable steady states. There is also another steady state in the middle of the plot, where the nearby vectors point toward it from one direction and point outwards from another direction. This steady state is a saddle point, a type of unstable steady state. 
 
 We can choose to plot the unit vectors of the vector field to highlight the directions. 
 
@@ -147,6 +149,7 @@ $$f_X(X, Y) = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX = 0  \tag{1} $$
 The second one satisfies
 
 $$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY = 0 \tag{2} $$
+
 The curve for an equation like $f_X(X, Y) = 0$ can be obtain numerically, as we will discussed very soon. But for this relatively simple example, we can get the curve right away by *separation of variables*.
 
 From equation (1), we can move $k_XX$ to the right hand side, and we have
@@ -157,7 +160,7 @@ Similarly, from equation (2), we can also get
 
 $$ Y(X) = \frac{g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}}{k_Y} \tag{4} $$
 
-The first nullcline (equation (3)) can also be expression as $Y(X)$. Although we don't have to, as $X(Y)$ is sufficent to obtain the nullcline curve numerically. 
+The first nullcline (Equation (3)) can also be expression as $Y(X)$. Although we don't have to, as $X(Y)$ is sufficient to characterize the nullcline curve numerically. 
 
 ``` {r,fig.width = 6, fig.height = 5}
 X_all = seq(0, 600, by=1)   # all X grids
@@ -328,5 +331,4 @@ The core code is equivalent to the code for 1-variable bifurcation analysis in P
 
 ``` {r}
 save(null1_cont, null2_cont, file = "./extra/data/03A/null_03A.RData")    # we save the data for 03B
-
 ```

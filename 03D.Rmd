@@ -13,9 +13,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In the previous section, we show typical dynamical analysis based on phase plane for two-variable non-linear dynamical systems. In the case of toggle switch gene circuit, the vector field and time trajectories indicates that there are two basins. A term named separatrix is a curve in the phase plane that defines the boundary of the basins. Starting from any initial condition from one side of the separatrix will always lead to the corresponding steady state (attractor). Usually it is non-trivial to obtain separatrix in general. But for certain cases like saddle-node systems, there is an easy to get obtain the separatrix.
+In the previous section, we show typical dynamical analysis based on phase plane for two-variable non-linear dynamical systems. In the case of toggle switch gene circuit, the vector field and time trajectories indicates that there are two basins. A term named separatrix is a curve in the phase plane that defines the boundary of the basins. Starting from any initial condition from one side of the separatrix will always lead to the corresponding steady state (attractor). Usually it is non-trivial to obtain separatrix in general. But for certain cases like saddle-node systems, there is an easy trick to obtain the separatrix.
 
 We again consider the following ODEs,
+
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
               \frac{dY}{dt} = f_Y(X,Y) \end{cases}
@@ -29,6 +30,7 @@ But now we modify both equations by changing the sign only:
 \end{equation}
 
 We first plot the vector field of the modified ODEs in the phase plane.
+
 ``` {r,fig.width = 5, fig.height = 5}
 library(ggplot2)
 hill_inh <- function(X,X0,n) {
@@ -59,7 +61,7 @@ p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) +
 p1 
 ```
 
-Now, the middle stead state remains a saddle point. But instead of being *"repulsive"*, the vectors point towards the middle steady state along the direction the the three steady states. Once reaching the steady state, the vectors point outwards along the boundary, which is the separatrix. Thus, we can sample points around the saddle point as the initial conditions for the modified ODEs to numerical obtain the separatrix.
+Now, the middle stead state remains a saddle point. But instead of being *"repulsive"*, the vectors point towards the middle steady state along the direction of the three steady states. Once reaching the steady state, the vectors point outwards along the boundary, which is the separatrix. Thus, we can sample points around the saddle point as the initial conditions for the modified ODEs to numerical obtain the separatrix.
 
 ``` {r, fig.width = 5, fig.height = 5}
 # 4th order Runge-Kutta (RK4)
@@ -120,4 +122,3 @@ p1 + xlim(0, 600) + ylim(0, 650)
 ```
 
 In the above plot, the trajectories representing the separatrix (red) are shown together with the vector field of the modified ODEs (black) and the trajectories of the original ODEs (blue). We can observe that the blue lines never go across the red line. 
-

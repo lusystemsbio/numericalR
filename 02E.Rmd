@@ -21,12 +21,13 @@ For example, we consider the circuit with one self-inhibiting gene, as discussed
 
 $$ \frac{dX(t)}{dt} = g_0 + g_1\frac{1}{1+ (X(t-\tau)/X_0)^n} - kX(t) \tag {1}$$
 
-For a steady state $X_s$, the value is time indepedent. Thus, the condition of steady states is the same as that for an ODE, *i.e.*,
+For a steady state $X_s$, the value is time independent. Thus, the condition of steady states is the same as that for an ODE, *i.e.*,
 
 $$ g_0 + g_1\frac{1}{1+ (X_s/X_0)^n} - kX_s = 0$$
 Same method can be used to identify steady state solutions. However, the stability of the system may change because of the delays. 
 
 # Numerical integration for DDE
+
 We consider the DDE in Equation (1) and $X(t - \tau) = X_0$ for $t \leq \tau$. (Be careful, this seems intuitive but may cause issues as the derivatives of the solutions are discontinuous.) The most generic way to simulate a DDE is to generate time steps and $X$ solutions for the whole interval $t \in [-\tau, t_{max}]$. $X(t-\tau)$ can be retrieve anytime during the integration. Certainly, this is not the most efficient numerical method. 
 
 ``` {r}
@@ -83,6 +84,7 @@ When $\tau = 5 \text{Min}$, the system converges to the steady state at around 2
 # Simulation with deSolve
 
 The function *dede* is a general solver for DDEs. Here, we implement its usage. It gives pretty much the same results.
+
 ``` {r}
 library(deSolve)
 f_1g_self_inh_dde <- function(t,X, p) {
@@ -110,4 +112,4 @@ Numerical integration of DDEs seem to be straightforward. It has been widely app
 
 * A delay system can sometimes be converted to an ODE system when introducing intermediate steps for the reactions with delays. For example, for a delay from gene A regulating gene B, we can add another intermediate node C and new edges from A to C and C to B.
 
-* Other than the numerical method introduced above, there are more efficient way to solve DDEs. We will leave it as an exercise.
+* Other than the numerical method introduced above, there are more efficient way to solve DDEs, such as [the method of steps](https://reference.wolfram.com/language/tutorial/NDSolveDelayDifferentialEquations.html). 

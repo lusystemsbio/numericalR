@@ -201,7 +201,7 @@ ggplot(y, aes(x = xvalues, y = yvalues)) +    # density map
 The previous section highlights the basic usage of R. Please refer to "[An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html)" and [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) for more details. In the following, I will emphasize a few R features that new learners may overlook or be confused about.
 
 ## Factor vs. string
-Factors may look similar to Strings, but they are very different in R scripting. What makes things worse is that, in R version before 4.0, stringsAsFactors = TRUE by default. That means, for R funtionality using the parameter stringsAsFactors, any string would be interpreted as a factor . However, in R version 4.0 or later, the default stringsAsFactors = FALSE. If a package is developed for R before v4.0 and by assuming default treatment of strings (as factors), the same package may not work properly for R v.4.0 or later. A good practice for R programming is (1) Use R version 3.6.3 if many legacy R packages are required; (2) always specify how string would be treated. Here is an example to create a data frame containing characters/strings.
+Factors may look similar to Strings, but they are very different in R scripting. What makes things worse is that, in R versions before 4.0, stringsAsFactors = TRUE by default. That means, for R functionality using the parameter stringsAsFactors, any string would be interpreted as a factor . However, in R versions 4.0 or later, the default stringsAsFactors = FALSE. If a package is developed for R before v4.0 and by assuming default treatment of strings (as factors), the same package may not work properly for R v.4.0 or later. A good practice for R programming is (1) Use R version 3.6.3 if many legacy R packages are required; (2) always specify how string would be treated. Here is an example to create a data frame containing characters/strings.
 
 ```{r}
 my_data = data.frame(
@@ -243,7 +243,7 @@ summary(model)   # summary of the linear model
 ```
 
 ## List vs. vector
-Lists are recursive type of vectors -- lists can have values of different types. A data frame is a list where column elements have the same data type. In the above-mentioned linear regression example, model is a list containing results of the linear model.
+Lists are recursive type of vectors -- lists can have values of different types. A data frame is a list where column elements have the same data type. In the above-mentioned example of linear regression, model is a list containing results of the linear model.
 ```{r}
 str(model)   # show the structure of the list
 ```

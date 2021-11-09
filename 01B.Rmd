@@ -37,7 +37,7 @@ v
 ```
 
 # Vectorize codes
-An even better appraoch is the following. It uses vector operations instead.
+An even better approach is the following. It uses vector operations instead.
 ```{r}
 v = seq_len(n)
 v = v*v
@@ -101,7 +101,8 @@ apply(mat, 2, cmp_sd)  # apply to a matrix
 
 # Use C/Fortran codes
 Many R packages are written in a compiled language. It is important to use them when possible. It is also feasible to write functions in C, C++, or Fortran, and call these functions from R.
-Here is an example of Fortran subroutines, provided in the file "extra/src/sub_cal_sd.f90". Note that only integer, double precision and logical arguments are allowed in Fortran-R interface approach. 
+Here is an example of Fortran subroutines, provided in the file "extra/src/sub_cal_sd.f90". Note that only integer, double precision and logical arguments are allowed in the Fortran-R interface approach. 
+
 ```
 subroutine cal_sd(n,x,sd)
   implicit none
@@ -121,15 +122,21 @@ subroutine cal_sd(n,x,sd)
   sd = sqrt(mean2 - mean**2)
 end subroutine cal_sd
 ```
-The Fortran code needs to be first compiled into a .so file. This needs to be done in command line with a fortran compiler (gfortran from gcc).
+
+The Fortran code needs to be first compiled into a .so file. This needs to be done in command line with a Fortran compiler (gfortran from gcc).
+
 ```
 gfortran -fpic -shared extra/src/sub_cal_sd.f90 -o extra/src/sub_cal_sd.so
 ```
+
 Then, in R load the shared library
+
 ```{r}
 dyn.load("extra/src/sub_cal_sd.so")
 ```
+
 cal_sd can be called in R below. The arguments of the Fortran subroutines can be found in the output list.
+
 ```{r}
 n = 100
 v = seq_len(n)
@@ -137,7 +144,9 @@ my_sd = 0.0
 results = .Fortran("cal_sd",as.integer(n),as.double(v), my_sd)
 results             # [[3]] outputs the sd 
 ```
+
 To make it even more convenient, one can write an R wrapper.
+
 ``` {r}
  my_sd_R <- function(x) {
    if (!is.numeric(x))
@@ -148,10 +157,13 @@ To make it even more convenient, one can write an R wrapper.
  }
 my_sd_R(seq_len(100))
 ```
+
 More details can be found in [this page](http://users.stat.umn.edu/~geyer/rc/).
 
 # Parallelization
-Lastly, parallelization is another way to improve the performance of R. If simple parallelization is needed, it's pretty simple with Apply functions. Simply setup the desired calculations in a list. Instead of using lapply, use mclapply and specify the number of cores in use. As demonstrated below, the code with parallelization is much faster.
+
+Lastly, parallelization is another way to improve the performance of R. If simple parallelization is needed, we can use Apply functions. Simply setup the desired calculations in a list. Instead of using lapply, use mclapply and specify the number of cores in use. As demonstrated below, the code with parallelization is much faster.
+
 ```{r}
 library(parallel)   # load the parallel library
 library(microbenchmark)  # use microbenchmark library for timing

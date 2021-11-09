@@ -14,34 +14,42 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Radius of gyration
+
 In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
+
 ```{r}
 if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
   install.packages("bio3d")   # if not, install "bio3d"
 }
 library(bio3d)
 ```
-The package bio3d allows users to download and process protein structures from Protein Data Bank.
+
+The package bio3d allows users to download and process protein structures from Protein Data Bank (PDB).
+
 ```{r}
 mystructure <- read.pdb("7l3u")  # load online data
 coord <- mystructure$atom
 class(coord)
 head(coord)
 ```
+
 The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
 Here, the radius of gyration $R_g$ is defined as:
 
 $$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j(\mathbf{r_j}-\mathbf{\overline{r}})^2}{\sum_{j=1}^{N}m_j}}$$
+
 where $\mathbf{\overline{r}}$ is defined as
 
 $$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
 
 Hint: try the following for the usage of atom2mass
+
 ```{r}
   ?atom2mass
 ```
 
 # Stirling's approximation
+
 Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute the following quantity for large n:
 
 $$\ln n!=\sum_{j=1}^{n}\ln j$$
