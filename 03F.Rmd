@@ -1,0 +1,98 @@
+---
+title: "Part 3: Phase plane"
+subtitle: "F. Exercises"
+author: "Mingyang Lu"
+date: "11/09/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Numerical continuation for 2D bifurcation
+
+We consider the same toggle switch circuit, described in details in Parts 3A-E. The goal here is the reproduce the bifurcation curves from Part 3C using numerical continuation. From math, we will identify a curve that satisfy equation (1) -- there are two equations and three variables.
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = f_X(X, Y, \lambda) = 0 \\
+              \frac{dY}{dt} = f_Y(X, Y, \lambda) = 0 \end{cases} \tag{1}
+\end{equation}
+
+Take partial derivatives with respect to $X$, $Y$, and $\lambda$, we get
+
+\def\A{
+\begin{pmatrix}
+      \Delta X \\
+      \Delta Y 
+\end {pmatrix}}
+
+\def\B{
+\begin{pmatrix}
+      f_X \\
+      f_Y 
+\end {pmatrix}}
+
+\begin{equation}
+\begin{cases} \frac{\partial f_X}{\partial X}\Delta X + \frac{\partial f_X}{\partial Y}\Delta Y + \frac{\partial f_X}{\partial \lambda}\Delta \lambda = 0  \\
+              \frac{\partial f_Y}{\partial X}\Delta X + \frac{\partial f_Y}{\partial Y}\Delta Y + \frac{\partial f_Y}{\partial \lambda}\Delta \lambda = 0 \end{cases}
+\end{equation}
+
+Taking the matrix form, we have
+
+$$ \mathbf{J} \A + \frac{\partial}{\partial \lambda}\B \Delta \lambda = 0 \tag{2}$$
+
+$\mathbf{J}$ is the Jacobian matrix, $\mathbf{\Delta X} = \A$, $\mathbf{f} = \B$. So, equation (2) becomes
+
+$$ \mathbf{J}\mathbf{\Delta X}  + \frac{\partial}{\partial \lambda}\mathbf{f} \Delta \lambda = 0 \tag{3}$$
+Thus, we will obtain
+
+$$ \frac{d\mathbf{X}}{d\lambda}  = - \mathbf{J}^{-1}\frac{\partial}{\partial \lambda}\mathbf{f} \tag{4}$$
+Equation (4) is a generalization of equation (2) in Part 2D. From $\frac{d\mathbf{X}}{d\lambda}$, we can compute changes in $\lambda$, $X$ and $Y$ along the bifurcation curve.
+
+Implement the algorithm, and calculate the bifurcation curves in Part 3C.
+
+# A flip-flop gene circuit
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 1](./extra/data/03F/fig1.png) </center>
+<br/>
+
+$X$ actives $y$, and $Y$ inhibit $x$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\ 
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{2}
+\end{equation}
+
+Explore the behavior of the system with the phase plane analysis. 
+
+(1) How many steady states the circuit can have?
+
+(2) What are the stability property of the steady states?
+
+# A toggle switch circuit with self-activating genes
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 2](./extra/data/03F/fig2.png) </center>
+<br/>
+
+$X$ can both inhibit $y$ and active $x$; $Y$ can both inhibit $x$ and active $y$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = (g_{X0} + g_{X1}\frac{(X/X_{0X})^{n_{XX}}}{1+(X/X_{0X})^{n_{XX}}})\frac{1}{1+(Y/Y_{0Y})^{n_{YX}}} - k_XX \\
+              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases} \tag{3}
+\end{equation}
+
+Explore the behavior of the system with the phase plane analysis.
+
+(1) How many steady states the circuit can have?
+
+(2) What are the stability property of the steady states?
+
+(3) Plot bifurcation diagrams with respect to one kinetic parameter (such as $k_X$).

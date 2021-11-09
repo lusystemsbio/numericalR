@@ -74,10 +74,10 @@ find_intersection <- function(lineA, lineB, nA, nB) {
     intersection = c((1-alpha)*lineA[nA,1] + alpha *lineA[nA+1,1], 
                     (1-alpha)*lineA[nA,2] + alpha *lineA[nA+1,2],1)
     # 1st and 2nd elements: X & Y
-    # 3rd element: 1 means found, 2 means not found
+    # 3rd element: 1 means found, 0 means not found
   }
   else{
-    intersection = c(0,0,0)
+    intersection = c(alpha,beta,0)
   }
   return(intersection)
 }
@@ -115,7 +115,7 @@ This approach works fine. However, it is very slow, as it has to go through all 
 
 ``` {r}
 f_null1 <- function(X, Y) {       # dX/dt
-  return(5 + 50/(1+ (Y/100)**4) - 0.1 * X)
+  return(5 + 50/(1+(Y/100)**4) - 0.1 * X)
 }
 f_null2 <- function(X, Y) {       # dY/dt
   return(4 + 40/(1+(X/150)**4) - 0.12 * Y)
@@ -124,12 +124,10 @@ f_null2 <- function(X, Y) {       # dY/dt
 dxdt = f_null1(null2_cont[,1], null2_cont[,2])  #dX/dt along the nullcline dY/dt = 0
 dydt = f_null2(null1_cont[,1], null1_cont[,2])  #dY/dt along the nullcline dX/dt = 0
 
-lineA = null1_cont
-lineB = null2_cont
-
 find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
-  lineA_ind = which(dydt * c(dydt[-1],NA)<=0)  # find sign flipping between two consecutive points
-  lineB_ind = which(dxdt * c(dxdt[-1],NA)<=0) 
+  small = 10^-3
+  lineA_ind = which(dydt * c(dydt[-1],NA)<=small)  # find sign flipping between two consecutive points
+  lineB_ind = which(dxdt * c(dxdt[-1],NA)<=small) 
   
   lines_all = expand.grid(lineA_ind, lineB_ind)   # all combinations of the above
   results = apply(lines_all, MARGIN = 1, function(inds) {
