@@ -66,7 +66,7 @@ $X$ actives $y$, and $Y$ inhibit $x$. We consider the chemical rate equations of
 
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\ 
-              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{2}
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{5}
 \end{equation}
 
 Explore the behavior of the system with the phase plane analysis. 
@@ -86,7 +86,7 @@ $X$ can both inhibit $y$ and active $x$; $Y$ can both inhibit $x$ and active $y$
 
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = (g_{X0} + g_{X1}\frac{(X/X_{0X})^{n_{XX}}}{1+(X/X_{0X})^{n_{XX}}})\frac{1}{1+(Y/Y_{0Y})^{n_{YX}}} - k_XX \\
-              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases} \tag{3}
+              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases} \tag{6}
 \end{equation}
 
 Explore the behavior of the system with the phase plane analysis.
