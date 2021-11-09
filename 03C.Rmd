@@ -15,11 +15,167 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this part, we will integrate what we have discussed in the previous two parts. The goal is to generate bifurcation diagrams to characterize the dynamical behavior of the toggle switch circuit. To generate a bifurcation diagram, we first need to specify a control parameter. We will plot bifurcation for the steady states of the circuit as the function of the control parameter. We will need to (1) choose the value of the control parameter; (2) identify nullclines; (3) find the steady states by the intersections of the two nullclines; (4) find the stability; (5) repeat 1 - 4 until we reconstruct the bifurcation diagram.
 
-Here is script to achieve this.
+Here, we consider a slightly modified version of the same circuit system. The rate equations have two variables $X$ and $Y$ and two parameters $g_X$ and $k$.
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = f_X(X, Y, g_X, k) = 5 + g_X\frac{1}{1+(Y/100)^4} - kX \\
+              \frac{dY}{dt} = f_Y(X, Y, g_X, k) = 5 + 50\frac{1}{1+(X/100)^4} - kY \tag{1} \end{cases}
+\end{equation}
+
+We will identify bifurcation diagrams by varying either $g_X$ or $k$.
 
 ```{r}
+# ODE terms
+fx <- function(X, Y, gX, k) {       # dX/dt
+  return(5 + gX/(1 + (Y/100)**4) - k * X)
+}
+fy <- function(X, Y, gX, k) {       # dY/dt
+  return(5 + 50/(1 + (X/100)**4) - k * Y)
+}
 
+# nullcline can be determined by separation of variables. Here, we obtain points along the bifurcation curve. 
+null_fx <- function(gX, k, X_range, Y_range) {
+  Y_all = seq(Y_range[1], Y_range[2], length.out = 1000)
+  X_all = (5 + gX/(1 + (Y_all/100)**4))/k
+  ind = which((X_all - X_range[1]) *(X_all - X_range[2]) <= 0)
+  results = cbind(X_all, Y_all)
+  colnames(results) = c("X", "Y")
+  return(results)
+}
+
+null_fy <- function(gX, k, X_range, Y_range) {
+  X_all = seq(X_range[1], X_range[2], length.out = 1000)
+  Y_all = (5 + 50/(1 + (X_all/100)**4)) / k 
+  ind = which((Y_all - Y_range[1]) *(Y_all - Y_range[2]) <= 0)
+  results = cbind(X_all, Y_all)
+  colnames(results) = c("X", "Y")
+  return(results)
+}
+
+# find all intersections
+find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
+  small = 10^-3   # use a small positive number instead of 0 to allow some numerical errors in the following step; 
+  lineA_ind = which(dydt * c(dydt[-1],NA)<=small)  # find sign flipping between two consecutive points
+  lineB_ind = which(dxdt * c(dxdt[-1],NA)<=small) 
+  
+  lines_all = expand.grid(lineA_ind, lineB_ind)   # all combinations of the above
+  results = apply(lines_all, MARGIN = 1, function(inds) {
+    return(find_intersection(lineA, lineB, inds[1], inds[2]))})
+  return(t(results[1:2,which(results[3,] == 1)]))
+}
+
+find_intersection <- function(lineA, lineB, nA, nB) {
+  dAX = lineA[nA+1,1] - lineA[nA,1]
+  dAY = lineA[nA+1,2] - lineA[nA,2]
+  
+  dBX = lineB[nB+1,1] - lineB[nB,1]
+  dBY = lineB[nB+1,2] - lineB[nB,2]
+  
+  dABX = lineB[nB,1] - lineA[nA, 1]
+  dABY = lineB[nB,2] - lineA[nA, 2]
+  
+  d = dAX * dBY - dAY * dBX
+  
+  alpha = (dABX * dBY - dABY*dBX)/d
+  beta = (dABX * dAY - dABY*dAX)/d
+  
+  if((alpha*(1-alpha) >= 0) &
+     (beta*(1-beta) >= 0)) {   # check whether there is an intersection in between
+    intersection = c((1-alpha)*lineA[nA,1] + alpha *lineA[nA+1,1], 
+                    (1-alpha)*lineA[nA,2] + alpha *lineA[nA+1,2],1)
+    # 1st and 2nd elements: X & Y
+    # 3rd element: 1 means found, 0 means not found
+  }
+  else{
+    intersection = c(0,0,0)
+  }
+  return(intersection)
+}
+
+stability_v2 <- function(func_fx, func_fy, gX, k, ss) { 
+  delta = 0.001
+  delta2 = delta*2
+  func_fx_current = func_fx(ss[1], ss[2], gX, k) 
+  func_fy_current = func_fy(ss[1], ss[2], gX, k)  
+  dfxdx = (func_fx(ss[1]+delta, ss[2], gX, k) - func_fx_current)/delta2
+  dfxdy = (func_fx(ss[1], ss[2]+delta, gX, k) - func_fx_current)/delta2
+  dfydx = (func_fy(ss[1]+delta, ss[2], gX, k) - func_fy_current)/delta2
+  dfydy = (func_fy(ss[1], ss[2]+delta, gX, k) - func_fy_current)/delta2
+  
+  jacobian = array(c(dfxdx, dfydx, dfxdy, dfydy), c(2,2))
+  lambda = eigen(jacobian)$values
+  if(class(lambda[1]) == "complex") {
+    if(Re(lambda[1]) < 0){
+      stability = 4   # stable spiral
+    }else{
+      stability = 5   # unstable spiral
+    }
+  }
+  else{
+    if((lambda[1] < 0) & (lambda[2] <0)){
+      stability = 1   # stable 
+    }else if((lambda[1] >= 0) & (lambda[2] >= 0)){
+      stability = 2   # unstable 
+    }else{
+      stability = 3   # saddle
+    }
+  }
+  return(stability)
+}
+
+# all integrated function
+find_steady_states <- function(gX, k, X_range, Y_range) {
+  line_1 = null_fx(gX, k, X_range, Y_range)
+  line_2 = null_fy(gX, k, X_range, Y_range)
+  
+  dxdt = fx(line_2[,1], line_2[,2], gX, k)  #dX/dt along the nullcline dY/dt = 0
+  dydt = fy(line_1[,1], line_1[,2], gX, k)  #dY/dt along the nullcline dX/dt = 0
+  
+  ss = find_intersection_all_fast(line_1, line_2, dxdt, dydt)
+  
+  ss_with_stability =  t(apply(ss, MARGIN = 1, function(ss) {
+                          return(c(ss,stability_v2(fx, fy, gX, k, ss)))}))
+  return(ss_with_stability)
+}
 
 ```
 
-In this example, nullclines can be determined easily. Otherwise, we have to reply on other approaches, such as numerical continuation. We previously discussed the numerical continuation to identify the curve satisfying the condition of a equation with two variables. This can be generalized to the conditions of a set of $n$ equations with $n+1$ variables. In this case, $n=2$. We will discuss numerical continuation for toggle switch bifurcation in Part 3F.
+Bifurcation with respect to $g_X$. From the plot below, this is saddle-node bifurcation.
+
+``` {r}
+X_range = c(0, 1000)
+Y_range = c(0, 1000)
+
+gX = 50
+k = 0.1
+ss_all = numeric()
+for(gX in seq(0, 100, by = 1)){
+  ss = find_steady_states(gX, k, X_range, Y_range)
+  ss_all = rbind(ss_all, cbind(gX,ss))
+}
+colnames(ss_all) = c("gX", "X", "Y", "Stability")
+plot(ss_all[,1], ss_all[,2], col = ss_all[,4], type = "p", pch = 16, cex = 0.4,
+     xlab="gX", ylab="X", xlim=c(0,100), ylim=c(0,1000))
+legend("topleft", inset=0.02, legend = c("Stable", "Saddle"), col=c(1,3), lty=1, cex=0.8)
+```
+
+Bifurcation with respect to $k$. This type of bifurcation is called pitchfork bifurcation.
+
+``` {r}
+X_range = c(0, 1000)
+Y_range = c(0, 1000)
+
+gX = 50
+k = 0.1
+ss_all = numeric()
+for(k in seq(0.01, 0.15, by = 0.001)){
+  ss = find_steady_states(gX, k, X_range, Y_range)
+  ss_all = rbind(ss_all, cbind(k,ss))
+}
+colnames(ss_all) = c("k", "X", "Y", "Stability")
+plot(ss_all[,1], ss_all[,2], col = ss_all[,4], type = "p", pch = 16, cex = 0.4,
+     xlab="gX", ylab="X", xlim=c(0,0.15), ylim=c(0,800))
+legend("topleft", inset=0.02, legend = c("Stable", "Saddle"), col=c(1,3), lty=1, cex=0.8)
+```
+
+In this example, nullclines can be determined easily. Otherwise, we have to reply on other approaches, such as numerical continuation. We previously discussed the numerical continuation to identify the curve satisfying the condition of a equation with two variables. This can be generalized to the conditions of a set of $n$ equations with $n+1$ variables. In this case, $n=2$. We will leave numerical continuation for the bifurcation analysis for toggle switch circuit as an exercise in Part 3F.

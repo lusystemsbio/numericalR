@@ -167,7 +167,7 @@ The concept of potential energy is widely used in science. In particular, for a 
 For a one-variable system, we can make an analogy between circuit dynamics governed by the rate equation 
 
 $$ \frac{dX}{dt} = f(X)$$
-with an overdamped particle in 1D. For the overdamped particle, $X$ represents its position in 1D, $-f(X)$ is the force, $\frac{dX}{dt}$ represents the velocity of the particle. Here, velocity is proportional to the force for an overdamped system. Therfore, we can define the potential function
+with an overdamped particle in 1D. For the overdamped particle, $X$ represents its position in 1D, $-f(X)$ is the force, $\frac{dX}{dt}$ represents the velocity of the particle. Here, velocity is proportional to the force for an overdamped system. Therefore, we can define the potential function
 
 $$ U(X) = -\int_{X_0}^X f(x)dx + U(X_0) $$
 We will illustrate how to obtain the effective potential with numerical integration for the circuit with one self-activating gene. We set $U(X_0 = 0) = 0$. A common numerical method to integrate a function is by the trapezoidal rule.

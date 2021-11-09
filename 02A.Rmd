@@ -200,7 +200,7 @@ Lastly, we show another gene circuit containing two transcription factors $X$ an
 Here, $X$ is an inhibitor of gene $y$, while $Y$ is an inhibitor of gene $x$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{Y0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
               \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{13}
 \end{equation}
 
