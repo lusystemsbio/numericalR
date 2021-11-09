@@ -13,5 +13,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r, echo=FALSE}
 ind = read.csv("index.csv", sep = ";", header = T, as.is = T)
 ind = ind[order(ind[,1]),]
+
+parts_with_url = lapply(strsplit(ind$Related.sections, ","), FUN = function(str){
+  str_trimed = gsub(" ", "", str)
+  return(paste0("[", str_trimed, "](./", str_trimed, ".html)"))
+})
+
+new = lapply(parts_with_url, FUN = function(list_str){
+  return(paste(list_str, collapse = ", "))
+})
+
+ind$Related.sections = unlist(new)
+
 knitr::kable(ind, row.names = F)
 ```
