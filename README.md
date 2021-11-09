@@ -11,20 +11,20 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |Table of Contents|
 |:----------------|
 |1. Introduction to R programming|
-|-- 1A. [Basics of R](https://lusystemsbio.github.io/numericalR/01A.html) |
-|-- 1B. [Efficient R programming](https://lusystemsbio.github.io/numericalR/01B.html) |
-|-- 1C. [Exercises](https://lusystemsbio.github.io/numericalR/01C.html) |
+|-- 1A. [Basics of R](./01A.html) |
+|-- 1B. [Efficient R programming](./01B.html) |
+|-- 1C. [Exercises](./01C.html) |
 |2. Ordinary differential equations|
-|-- 2A. [Modeling gene circuits with rate equations](https://lusystemsbio.github.io/numericalR/02A.html) |
-|-- 2B. [Numerical integration](https://lusystemsbio.github.io/numericalR/02B.html) |
-|-- 2C. [Stability](https://lusystemsbio.github.io/numericalR/02C.html) |
-|-- 2D. [Bifurcation](https://lusystemsbio.github.io/numericalR/02D.html) |
-|-- 2E. [Delayed differential equations](https://lusystemsbio.github.io/numericalR/02E.html) |
-|-- 2F. [Exercises](https://lusystemsbio.github.io/numericalR/02F.html) |
+|-- 2A. [Modeling gene circuits with rate equations](./02A.html) |
+|-- 2B. [Numerical integration](./02B.html) |
+|-- 2C. [Stability](./02C.html) |
+|-- 2D. [Bifurcation](./02D.html) |
+|-- 2E. [Delayed differential equations](./02E.html) |
+|-- 2F. [Exercises](./02F.html) |
 |3. Phase plane
-|-- 3A. [Nulllines](https://lusystemsbio.github.io/numericalR/03A.html) |
-|-- 3B. [Stability in 2D](https://lusystemsbio.github.io/numericalR/03B.html) |
-|-- 3C. [Bifurcation](https://lusystemsbio.github.io/numericalR/03C.html) |
-|-- 3D. [Separatrix](https://lusystemsbio.github.io/numericalR/03D.html) |
-|-- 3E. [Effective potential revisited](https://lusystemsbio.github.io/numericalR/03E.html) |
-|-- 3F. [Exercises](https://lusystemsbio.github.io/numericalR/03F.html) |
+|-- 3A. [Nulllines](./03A.html) |
+|-- 3B. [Stability in 2D](./03B.html) |
+|-- 3C. [Bifurcation](./03C.html) |
+|-- 3D. [Separatrix](./03D.html) |
+|-- 3E. [Effective potential revisited](./03E.html) |
+|-- 3F. [Exercises](./03F.html) |
