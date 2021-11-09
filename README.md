@@ -6,8 +6,7 @@
 ![logo](https://lusystemsbio.github.io/numericalR/extra/data/logo.png)
 ---
 
-The purpose of this tutorial is to illustrate the use of R programming in numerical analyses, which can easily lead to a large variety of applications in science and engineering. I will cover basic elements of numerical methods and algorithms for solving different types of differential equations, running simulations, and performing optimization. Rather than just showing how to do so with existing packages, I will focus on the details of each algorithm using R and provide its usage in the context of real-world applications in the fields of biomedical engineering, bioengineering, and data science. The tutorial is organized into a series of R Markdown files. Students should be able to view the materials and play around with the provided R scripts using R/RStudio. 
-
+The purpose of this tutorial is to illustrate the use of R programming in numerical analyses, which can easily lead to a large variety of applications in science and engineering. I will cover basic elements of numerical methods and algorithms for solving different types of differential equations, running simulations, and performing optimization. Rather than just showing how to do so with existing packages, I will focus on the details of each algorithm using R and provide its usage in the context of real-world applications in the fields of biomedical engineering, bioengineering, and data science. The tutorial is organized into a series of R Markdown files. Students should be able to view the materials and play around with the provided R scripts using R/RStudio. [Index to algorithms and important keywords can be found here.](./ind.html) 
 
 |Table of Contents|
 |:----------------|

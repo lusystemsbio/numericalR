@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-We now attempt to generalize the concept of effective potential, as described in Part 2C, to a two-variable system. Again, we consider the following rate equation
+We now attempt to generalize the concept of effective potential, as described in Part 2C, to a two-variable system. Again, we consider the following rate equations
 
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
@@ -31,12 +31,13 @@ Numerically, we can  compute the integration for a path by
 $$ \Delta U(X,Y) = -f_X(X, Y)\Delta x - f_Y(X, Y)\Delta y \tag {2}$$
 In the following, we will show that **such a potential definition has a serious problem**.
 
-We take the toggle switch circuit again as an example to illustrate the integration of the 2D effective potential. We will compute the potential along the two nullclines. As in the first nullcline, $f_X(X, Y) = 0$. So when computing $U(X,Y)$ with equation (1), we can omit the first term from the right hand side of equation (2). 
+We take the toggle switch circuit again as an example to illustrate the integration of the 2D effective potential. We will compute the potential along the two nullclines. As in the first nullcline, $f_X(X, Y) = 0$. So when computing $U(X,Y)$ with Equation (1), we can omit the first term from the right hand side of Equation (2). 
 
 $$ U(X+\Delta x, Y+\Delta y) = U(X, Y) - \frac{f_Y(X,Y) + f_Y(X+ \Delta x, Y + \Delta y)}{2}\Delta y $$
-We can also compute the potential along the second nullcline, $f_Y(X,Y) = 0$. Here, the second term from the right hand side of equation (2) can be omitted.
+We can also compute the potential along the second nullcline, $f_Y(X,Y) = 0$. Here, the second term from the right hand side of Equation (2) can be omitted.
 
 $$ U(X+\Delta x, Y+\Delta y) = U(X, Y) - \frac{f_X(X,Y) + f_X(X+ \Delta x, Y + \Delta y)}{2}\Delta x $$
+The R script below specifies the system.
 
 ``` {r,fig.width = 5, fig.height = 5}
 library(ggplot2)
@@ -85,8 +86,10 @@ ggplot() +
     
 ```
 
+Now we compute the effective potential with the trapezoidal rule. We provide an implementation for any path that is specified in the matrix *line*.
+
 ``` {r}
-# now integrate f_Y(X,Y) with trapezoidal rule
+# now integrate f_Y(X,Y) with the trapezoidal rule
 cal_int_2D_line <- function(line, func_fx, func_fy, ss) {
   ntot = nrow(line) 
   U_all = array(0, dim = ntot)
@@ -116,10 +119,10 @@ legend("bottom", inset=0.02, legend = c("along dX/dt=0", "along dY/dt=0"),
        col=c(1,3), lty=1, cex=0.8)
 ```
 
-The above plot shows that, while the effective potential curves correctly capture the steady states as the local extrema, the potential values depend on the path! However, in physics, a potential function should be path independent. Therefore, for a 2D nonlinear dynamical system, this way to define effective potential is invalid. The main reason is that the $(f_X, f_Y)$ is  non-conservative, *i.e.*,
+The above plot shows that, while the effective potential curves correctly capture the steady states as the local extrema, the potential values depend on the path! However, in physics, a potential function should be path independent. Therefore, for a 2D nonlinear dynamical system, the method to define the effective potential here is invalid. The main reason is that the $(f_X, f_Y)$ is  non-conservative, *i.e.*,
 
 $$\frac{\partial F_Y}{\partial X} - \frac{\partial F_X}{\partial Y} \neq 0$$
 Usually, for a molecular system, the force $F$ is derived from a molecular potential $U$. Thus, $F_X =-\frac{\partial U}{\partial X}$, and $F_Y =-\frac{\partial U}{\partial Y}$. So,
 
 $$\frac{\partial F_Y}{\partial X} = \frac{\partial F_X}{\partial Y} = - \frac{\partial^2 U}{\partial X\partial Y}$$
-Therefore, a molecular force field is always conservative. Such a property is usuallly not true for a nonlinear dynamical system. There are certainly other ways to define effective potential for these situations. But this is out of the scope of this tutorial. 
+Therefore, a molecular force field is always conservative. Such a property is usually not true for a nonlinear dynamical system. There are certainly other ways to define effective potential for these situations. But this is out of the scope of this tutorial. 

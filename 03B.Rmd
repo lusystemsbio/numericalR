@@ -17,7 +17,7 @@ Now with the two nullclines, we can find all steady states by the intersections 
 
 ### Find intersections
 
-We consider two curves $A$ and $B$, each of which is specified by a series of 2D vectors, *i.e.*, $(\mathbf{A_1}, \mathbf{A_2}, ...,\mathbf{A_n}, \mathbf{A_{n+1}}, ...)$ for $A$ and  $(\mathbf{B_1}, \mathbf{B_2}, ...,\mathbf{B_n}, \mathbf{B_{n+1}}, ...)$ for $B$. Here, $\mathbf{A_n}$ represents the coordinates of the nth point along the curve $A$, *i.e.*, $(X(A_n), Y(A_n))$. The data frames null1_cont and null2_cont obtained in Part 3A are examples of the two curves. Now, we consider the four points $\mathbf{A_n}$, $\mathbf{A_{n+1}}$, $\mathbf{B_n}$ and $\mathbf{B_{n+1}}$, as shown in the figure below. The curve between two consecutive points can be approximated as a straight line. We will numerically evaluate (1) whether an interaction is formed by the two segments and if so (2) the coordinate of the interaction.
+We consider two curves $A$ and $B$, each of which is specified by a series of 2D vectors, *i.e.*, $(\mathbf{A_1}, \mathbf{A_2}, ...,\mathbf{A_n}, \mathbf{A_{n+1}}, ...)$ for $A$ and  $(\mathbf{B_1}, \mathbf{B_2}, ...,\mathbf{B_n}, \mathbf{B_{n+1}}, ...)$ for $B$. Here, $\mathbf{A_n}$ represents the coordinates of the nth point along the curve $A$, *i.e.*, $(X(A_n), Y(A_n))$. The data frames null1_cont and null2_cont obtained in Part 3A are examples of the two curves. Now, we consider the four points $\mathbf{A_n}$, $\mathbf{A_{n+1}}$, $\mathbf{B_n}$ and $\mathbf{B_{n+1}}$, as shown in the figure below. The curve between two consecutive points can be approximated as a straight line. We will numerically evaluate (1) whether an intersection is formed by the two segments and if so (2) the coordinate of the intersection.
 
 <center> ![Figure 1](./extra/data/03B/fig1.png){width=70%} </center>
 <br/>
@@ -30,15 +30,15 @@ When $0 \leq\alpha\leq 1$, $\mathbf{C}$ is between $\mathbf{A_n}$ and $\mathbf{A
 If the point $\mathbf{C}$ is also along the line ($\mathbf{B_n}$, $\mathbf{B_{n+1}}$). We get
 
 $$ \mathbf{C} = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{2}  $$
-From equations (1) and (2), we have
+From Equations (1) and (2), we have
 
 $$  \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) - \beta (\mathbf{B_{n+1}} - \mathbf{B_n})  = \mathbf{B_n} - \mathbf{A_n} \tag{3} $$
-(7) has two variables $\alpha$ and $\beta$ and two equations. Thus, $\alpha$ and $\beta$ can be determined as below.
+Equation (3) has two variables $\alpha$ and $\beta$ and two equations. Thus, $\alpha$ and $\beta$ can be determined as below.
 
 For a 2-D vector $\mathbf{V} = (V_X, V_Y)$, a perpendicular vector would be $\mathbf{V_{\perp}} = (\frac{1}{V_X}, -\frac{1}{V_Y})$. That is because
 
 $$\mathbf{V} \cdot \mathbf{V_{\perp}} = 0$$
-An easy way to solve $\alpha$ in equation (7) is to perform the dot product operation to the vector perpendicular to $\mathbf{B_{n+1}} - \mathbf{B_n}$ to both sides of the equation. The vector, denoted as $\mathbf{V_{B\perp}}$ here, can be expressed as 
+An easy way to solve $\alpha$ in Equation (3) is to perform the dot product operation to the vector perpendicular to $\mathbf{B_{n+1}} - \mathbf{B_n}$ to both sides of the equation. The vector, denoted as $\mathbf{V_{B\perp}}$ here, can be expressed as 
 
 $$\mathbf{V_{B\perp}} = (\frac{1}{X_{B_{n+1}} - X_{B_n}}, -\frac{1}{Y_{B_{n+1}} - Y_{B_n}})$$
 With the dot product operation, we have
@@ -51,7 +51,7 @@ $$\alpha = \frac{(X_{B_n} - X_{A_n})(Y_{B_{n+1}} - Y_{B_n}) - (Y_{B_n} - Y_{A_n}
 Similarly, we get
 
 $$\beta = \frac{(X_{B_n} - X_{A_n})(Y_{A_{n+1}} - Y_{A_n}) - (Y_{B_n} - Y_{A_n})(X_{A_{n+1}} - X_{A_n}) }{(X_{A_{n+1}} - X_{A_n})(Y_{B_{n+1}} - Y_{B_n}) - (Y_{A_{n+1}} - Y_{A_n})(X_{B_{n+1}} - X_{B_n}) } \tag {5}$$
-The intersection $C$ can be then calculated from either equation (1) or (2).
+The intersection $C$ can be then calculated from either Equation (1) or (2).
 
 ``` {r}
 find_intersection <- function(lineA, lineB, nA, nB) {
@@ -125,7 +125,7 @@ dxdt = f_null1(null2_cont[,1], null2_cont[,2])  #dX/dt along the nullcline dY/dt
 dydt = f_null2(null1_cont[,1], null1_cont[,2])  #dY/dt along the nullcline dX/dt = 0
 
 find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
-  small = 10^-3
+  small = 10^-3    # small is used to allow some tolerance of numerical errors in detecting sign flipping
   lineA_ind = which(dydt * c(dydt[-1],NA)<=small)  # find sign flipping between two consecutive points
   lineB_ind = which(dxdt * c(dxdt[-1],NA)<=small) 
   
@@ -147,12 +147,13 @@ The above two methods give the same results. But the second method is way faster
 We will now explore the stability of the identified steady states.
 
 Consider a system following
+
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
               \frac{dY}{dt} = f_Y(X,Y) \end{cases}
 \end{equation}
 
-It is at a steady state $(X_S, Y_S)$ with small perturbations, $X = X_S + \Delta X$ and $Y = Y_S + \Delta Y$. By Taylor expansion and $f_X(X_S, Y_S) = 0$, $f_Y(X_S, Y_S) = 0$, we get
+It is at a steady state $(X_s, Y_s)$ with small perturbations, $X = X_s + \Delta X$ and $Y = Y_s + \Delta Y$. By Taylor expansion and $f_X(X_s, Y_s) = 0$, $f_Y(X_s, Y_s) = 0$, we get
 
 \def\A{
 \begin{pmatrix}
@@ -184,7 +185,7 @@ The matrix
 
 is the Jacobian matrix that we have discussed previously.
 
-We now set $\Delta X(t) = \delta x e^{\lambda t}$, where $\delta x$ and $\lambda$ are two constants. Similarly, $\Delta Y(t) = \delta y e^{\lambda t}$. Together with equation (6), we have
+We now set $\Delta X(t) = \delta x e^{\lambda t}$, where $\delta x$ and $\lambda$ are two constants. Similarly, $\Delta Y(t) = \delta y e^{\lambda t}$. Together with Equation (6), we have
 
 \begin{equation}
 \lambda\C = \mathbf{J} \C \tag{7}

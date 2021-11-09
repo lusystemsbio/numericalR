@@ -15,7 +15,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 # Intro
-Let us continue our discussion on the circuit of one self-activating gene (Equations 7 - 8 in Part 2A). When we vary the values of $k$, as we learned from Part 2C, the circuit can have either one steady state (monostable) or three steady states (bistable as there are two stable states). To get a more complete picture of the system, we consider $k$ as a control parameter, and plot the curve of steady states $X_s$ as the function of $k$. This is called 1-dimensional bifurcation diagram. Let us discuss how we obtain such as curve numerically. We consider the following rate equation with $X$ as the state variable and $k$ as the control parameter.
+
+Let us continue our discussion on the circuit of one self-activating gene (Equations (7) - (8) in Part 2A). When we vary the values of $k$, as we learned from Part 2C, the circuit can have either one steady state (monostable) or three steady states (bistable as there are two stable states). To get a more complete picture of the system, we consider $k$ as a control parameter, and plot the curve of steady states $X_s$ as the function of $k$. This is called 1-dimensional bifurcation diagram. Let us discuss how we obtain such as curve numerically. We consider the following rate equation with $X$ as the state variable and $k$ as the control parameter.
 
 \begin{equation}
 \frac{dX}{dt} = f(X,k) = 10 + 45\frac{X^4}{X^4+200^4} - kX \tag{1}
@@ -28,6 +29,7 @@ derivs_k <- function(X, k) {
 ```
 
 # Direct method: find all roots
+
 The most straightforward way is to uniformly sample $k$ values and, for each $k$, identify all roots $X_s$ for $f(X,k)=0$. The following shows an implementation of such method using an R package rootSolve. We also check stability of steady states according to $\frac{df}{dX}$. It works very well for this example. However, it may fail in some situations, as finding all roots for a nonlinear function s not guaranteed. Compared to other methods, this method should be slower but more stable.
 
 ``` {r}
@@ -47,13 +49,14 @@ plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= (3 - results
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
 ```
 
-The bifurcation curve clearly shows how the dynamical behavior of the circuit changes with respect to the changes in $k$. There are two turning points of the bifurcation curve. The first one is at around $k = 0.125$, where one of the stable steady states and the unstable steady state has very close $X$ values. The second one is at around $k = 0.170$. These two points are called bifurcation points. The system is monostable when $k$ is smaller than the $k$ value of the first bifurcation point. In this regime, the $X$ steady state level is relatively high. When $k$ is between the $k$ vlaues of the two bifurcation points, the system is bistable, with two stable steady states of both high and low $X$ levels. When $k$ is higher than the $k$ value of the second bifurcation point, the system becomes monostable again, with one stable steady state of relatively low $X$ level. This type of bifurcation is called saddle-node bifurcation.
+The bifurcation curve clearly shows how the dynamical behavior of the circuit changes with respect to the changes in $k$. There are two turning points of the bifurcation curve. The first one is at around $k = 0.125$, where one of the stable steady states and the unstable steady state has very close $X$ values. The second one is at around $k = 0.170$. These two points are called bifurcation points. The system is monostable when $k$ is smaller than the $k$ value of the first bifurcation point. In this regime, the $X$ steady state level is relatively high. When $k$ is between the $k$ values of the two bifurcation points, the system is bistable, with two stable steady states of both high and low $X$ levels. When $k$ is higher than the $k$ value of the second bifurcation point, the system becomes monostable again, with one stable steady state of relatively low $X$ level. This type of bifurcation is called saddle-node bifurcation.
 
 # Method 2: Get bifurcation curve by simulations
-The second method does not require to solve all roots of $f(X,k)$. Instead, we will utilize the properties of steady states to map all steady states for different $k$. We will start with $k = 0.1$ and simulate the ODE using a random initial condition. Once we reach the steady state, we will recrod $k$ and $X$. Then, we will increase $k$ by a small step $\Delta k$ and simulate the ODE again with the previous steady state as the initial condition. We will repeat the process until we reach a bifurcation point. This can be determined when the new steady state $X_s$ is very different (compared to previous changes) or nonexistent (that could happen when we compute the unstable state, see below) from the steady state of the previous $k$. At this point, we will start another cycle by decreasing $k$ instead. To reach the unstable steady state, we will simulate a modified ODE:
+
+The second method does not require to solve all roots of $f(X,k)$. Instead, we will utilize the properties of steady states to map all steady states for different $k$. We will start with $k = 0.1$ and simulate the ODE using a random initial condition. Once we reach the steady state, we will record $k$ and $X$. Then, we will increase $k$ by a small step $\Delta k$ and simulate the ODE again with the previous steady state as the initial condition. We will repeat the process until we reach a bifurcation point. This can be determined when the new steady state $X_s$ is very different (compared to previous changes) or nonexistent (that could happen when we compute the unstable state, see below) from the steady state of the previous $k$. (Please also note that this approach should work well for the saddle-node bifurcation in this example, but may not work well for other types of bifurcation.) At this point, we will start another cycle by decreasing $k$ instead. To reach the unstable steady states, we will simulate a modified ODE:
 
 $$ \frac{dX}{dt} = -f(X,k) \tag{2}$$
-This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using equation (2). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
+This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using Equation (2). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
 
 ``` {r}
 derivs_k_deSolve <- function(t, X, k) {   # the derivative function should be in the deSolve format
@@ -135,7 +138,7 @@ The expression is defined as a function h, which will be used later. Therefore, 
               X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
 \end{equation}
 
-We can then use a correction method, such as Newton's method, to find the nearby solution. For Newton's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. Let us denote the solution $X = X_S$,
+We can then use a correction method, such as Newton's method, to find the nearby solution. For Newton's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. 
 
 $$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
 
@@ -170,6 +173,7 @@ find_root_Newton(150, derivs_k, dfdX, 0.15, c(0, 800))  # the last root (unstabl
 ```
 
 Now, we implement the numerical continuation method by uniformly varying $k$. 
+
 ``` {r}
 # partial derivatives of f, see equation (1) for the expression of f 
 dfdk <- function(X, k) return(-X)
@@ -217,13 +221,12 @@ To improve the method, we describe the bifurcation curve as the function of arc 
 
 Therefore, we get
 
-
 \begin{equation}
 \begin{cases} \Delta k = \pm \frac{1}{\sqrt{1 + h^2}} \Delta s \\
               \Delta X = h \Delta k \end{cases} \tag{5}
 \end{equation}
 
-,where $h(X,k) = \frac{dX}{dk}$ can be computed according to equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
+,where $h(X,k) = \frac{dX}{dk}$ can be computed according to Equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in Equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
 
 ``` {r}
 X_init = 0

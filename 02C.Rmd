@@ -14,10 +14,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Stability of steady states 
-We start the discussion with the circuit of a constitutively expressed gene, whose dynamics is governed by the rate equation (Equation 1 from Part 2A):
+
+We start the discussion with the circuit of a constitutively expressed gene, whose dynamics is governed by the rate equation (Equation (1) from Part 2A):
 
 $$ \frac{dX}{dt} = f(X) = g - kX \tag{1}$$
-The steady states of a dynamical system must satisfy the condition $ \frac{dX}{dt} = 0 $. In this case, there is one and only one steady state: $X_s = \frac{g}{k}$. Now, let us evaluate the stability of the steady state. In general, a steady state is stable, if, after a small perturbation $X \rightarrow X + \Delta X$ , the system goes back to the same steady state; otherwise, the steady state is unstable.
+
+The steady states of a dynamical system must satisfy the condition $\frac{dX}{dt} = 0$. In this case, there is one and only one steady state: $X_s = \frac{g}{k}$. Now, let us evaluate the stability of the steady state. In general, a steady state is stable, if, after a small perturbation $X \rightarrow X + \Delta X$ , the system goes back to the same steady state; otherwise, the steady state is unstable.
 
 We separate the right hand side of Equation (1) into $g$ and $kX$ and plot them as the function of $X$ below.
 
@@ -70,7 +72,7 @@ legend("top", inset=0.02, legend = c("g(X)", "kX"),
 
 ```
 
-The above plot shows an example of such two curves, who intersect exactly once. Therefore the circuit has only one steady state. It is possible to show that the circuit can only have one steady state, disregarding the choice of model parameters. Similar to the first example, we can find that the steady state is also stable from either plotting or evaluation of Equation (2). Note that since $H^{inh}$ monotonically decreases as $X$ increases, thus its derivative with respect to $X$ is always negative.
+The above plot shows an example of such two curves, who intersect exactly once. Therefore the circuit has only one steady state. It is possible to show that the circuit can only have one steady state, disregarding the choice of the model parameters. Similar to the first example, we can find that the steady state is also stable from either plotting or evaluation of Equation (2). Note that since $H^{inh}$ monotonically decreases as $X$ increases, thus its derivative with respect to $X$ is always negative.
 
 Let us also compute $\frac{df(X)}{dX}$. Note that we use vector operations for high efficiency.
 
@@ -95,6 +97,7 @@ abline(0,0,lty=2)  # add a horizontal line
 ```
 
 # Multi-stability
+
 The third example is the circuit with a self-activating gene, whose dynamics is governed by
 
 \begin{equation}
@@ -125,7 +128,8 @@ When $k = 0.1$ or $k = 0.2$, there is one intersection of the two curves $g(X)$ 
 
 We can intuitively understand the states of the self-activating circuit as follows. When $X$ is low, there is no sufficient $X$ product for transcription factor binding. Thus, the transcription rate is low, and $X$ is kept at a low level. When $X$ is sufficiently high, $X$ binds to the promoter of itself most of time. Thus, the transcription rate is high, and $X$ stays at a high level. This explains why the circuit can have two stable states at the same time.
 
-We can also simulate the ODE with different initial conditions. The plot below shows that the time trajectories converge to the two stable steady states. We can also clearly observe that $X$ of the unstable state is somewehere between 150 nM to 200 nM.
+We can also simulate the ODE with different initial conditions. The plot below shows that the time trajectories converge to the two stable steady states. We can also clearly observe that $X$ of the unstable state is somewhere between 150 nM to 200 nM.
+
 ``` {r}
 library(deSolve)
 dy_deSolve_1g_self_act<- function(t, y, parms) { # modified derivative function for deSolve
@@ -146,7 +150,7 @@ legend("bottomright", inset=0.02, title="Initial conditions",
        legend = legend_text, col=2:9, lty=1, cex=0.8)
 ```
 
-Again, we can also learn the stability of steady states from th $\frac{df(X)}{dX}$ curve.
+Again, we can also learn the stability of steady states from the $\frac{df(X)}{dX}$ curve.
 
 ``` {r}
 f_1g_self_act <- function(X) {
@@ -163,7 +167,9 @@ abline(0,0,lty=2)
 ```
 
 # Effective potential
+
 The concept of potential energy is widely used in science. In particular, for a molecular system, one can write down the potential functions to describe molecular interactions. However, a dynamical system describing a gene regulatory circuit is non-equilibrium in nature. For those systems, energy is not well defined. Nevertheless, it is possible to define *effective potential* for a gene circuit. 
+
 For a one-variable system, we can make an analogy between circuit dynamics governed by the rate equation 
 
 $$ \frac{dX}{dt} = f(X)$$
@@ -183,7 +189,7 @@ The first method uses a for loop to obtain U(X)
 f <- function(X) {
   return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)
 }
-# now integrate f(X) with trapezoidal rule
+# now integrate f(X) with the trapezoidal rule
 cal_int <- function() {
   ntot = 5000
   dx = 0.1

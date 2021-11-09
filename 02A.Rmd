@@ -16,11 +16,14 @@ knitr::opts_chunk$set(echo = TRUE)
 We will start to introduce numerical methods in the context of particular real-world applications. In each section, we will introduce the background of an application, available quantitative methods, and related numerical methods. For numerical analyses, the focus will be on (1) the theory, (2) their implementation in R, and (3) available R packages/libraries.
 
 # Circuit of a constitutively expressed gene
+
 Consider a gene, whose expression is independent of any regulator. The whole transcription process, including gene translation and protein degradation, can be described by the following diagram.
 
 <center> ![Figure 1](./extra/data/02A/fig1.png){width=75%} </center>
 <br/>
-Here, the promoter of the gene $X$ does not play a role in this process. The symbol $\varnothing$ means “null”, *i.e.*, a protein $X$ is destroyed in the degradation step. Now, we onsider a simplified model, in which the transcription and translation steps are described together by a single zero-order reaction with transcription rate $g$.
+
+Here, the promoter of the gene $X$ does not play a role in this process. The symbol $\varnothing$ means “null”, *i.e.*, a protein $X$ is destroyed in the degradation step. Now, we consider a simplified model, in which the transcription and translation steps are described together by a single zero-order reaction with transcription rate $g$.
+
 While the degradation step is described by a first-order reaction with degradation rate $k$. The corresponding chemical equation for this model is
 
 \begin{equation}
@@ -96,13 +99,15 @@ legend("topright", inset=0.02, title="Initial conditions", legend = my_label,
        col=my_col, lty=1, cex=0.8)
 ```
 
-In this example, the system has one stable steady state -- irrespective to the choice of the initial condition, the system will always reach to 500nM. In this simple example, analytical solutions can be easily obtained. However, in may other cases analytical solutions are either much harder to get or it is impossible. Instead, it is desirable to compute numerical solutions. We will illustrate numerical methods to integrate ODEs in Part 2B.
+In this example, the system has one stable steady state -- irrespective to the choice of the initial condition, the system will always reach to 500nM. In this simple example, analytical solutions can be easily obtained. However, in many other cases analytical solutions are either much harder to get or it is impossible. Instead, it is desirable to compute numerical solutions. We will illustrate numerical methods to integrate ODEs in Part 2B.
 
 # Circuit with a self-activating gene
+
 Now, consider a gene, whose expression is regulated by itself. This is because protein $X$ can bind to its own promoter and change its transcription rate to $g(X)$ as a function of $X$, as shown in the following figure.
 
 <center> ![Figure 2](./extra/data/02A/fig2.png){width=60%} </center>
 <br/>
+
 Here, $X$ is an activator of itself, typically illustrated in the circuit diagram below.
 
 <center> ![Figure 3](./extra/data/02A/fig3.png) </center>
@@ -151,6 +156,7 @@ The rate equation for a self-activation gene is:
 Finding the analytical solution of Equation (9) is non-trivial. We will discuss its numerical solutions in Part 2C.
 
 # Circuit with a self-inhibiting gene
+
 A third example is a gene $X$, whose expression is inhibited by itself. 
 
 <center> ![Figure 4](./extra/data/02A/fig4.png) </center>
@@ -193,15 +199,17 @@ In this case, the rate equation is
 \end{equation}
 
 # Toggle switch circuit
+
 Lastly, we show another gene circuit containing two transcription factors $X$ and $Y$.
 
 <center> ![Figure 5](./extra/data/02A/fig5.png) </center>
 <br/>
-Here, $X$ is an inhibitor of gene $y$, while $Y$ is an inhibitor of gene $x$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as
+
+Here, $X$ is an inhibitor of gene $Y$, while $Y$ is an inhibitor of gene $X$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as
 
 \begin{equation}
 \begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
               \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{13}
 \end{equation}
 
-In this case, the system is described by two coupled differential equations, the solutions to which are in the form of $X(t)$ and $Y(t)$. As there are two variables $X$ and $Y$, more sophisticated tools are required to understand this type of dynamical systems. We will discuss about it in Part 3. 
+In this case, the system is described by two coupled ordinary differential equations, the solutions to which are in the form of $X(t)$ and $Y(t)$. As there are two variables $X$ and $Y$, more sophisticated tools are required to understand this type of dynamical systems. We will discuss about it in Part 3. 

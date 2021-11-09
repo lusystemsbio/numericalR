@@ -20,6 +20,7 @@ In this section, we will introduce numerical methods to solve ODEs in the contex
 \end{equation}
 
 # First-order approximation
+
 The Euler method is a first-order method to numerically integrate ODEs. Given the $X$ value at time $t$, we can obtain $X$ value at the next time step $t+\Delta t$ by
 
 \begin{equation}
@@ -31,9 +32,10 @@ The plot below illustrates how the Euler method works.
 <center>![Figure 1](extra/data/02B/fig1.png){width=400}</center>
 <br>
 
-Therefore, we can start with the initial condition $X(t = 0)$ and iteratively apply equation (2) to compute $X(t)$ for every time step. Here, $\Delta t$ is the time step size. The smaller the $\Delta t$ is, the more accurate the integration by equation (2) would be. However, smaller $\Delta t$ also means that it would take more iterations, thus longer time, to simulate $X$ for a fixed duration of time $t$.
+Therefore, we can start from the initial condition $X(t = 0)$ and iteratively apply equation (2) to compute $X(t)$ for every time step. Here, $\Delta t$ is the time step size. The smaller the $\Delta t$ is, the more accurate the integration by equation (2) would be. However, smaller $\Delta t$ also means that it would take more iterations, thus longer time, to simulate $X$ for a fixed duration of time $t$.
 
 Now, we will show how the Euler method works in R. 
+
 ```{r}
 ode1 <- function(X0, t) {   # analytical solutions, see Part 2A
   g = 50; k = 0.1
@@ -81,7 +83,7 @@ lines(results2[,2], results2[,2],  col=4)
 In this example, when time step size $\Delta t$ is 0.1, Euler method gives a very nice approximation to the analytical solution of $X(t)$. When $\Delta t$ is 1, there are some significant differences when $t$ is around 10. Here, the blue and red curves completely overlap.
 
 # Accuracy
-Given a small $\Delta t$, we can express $X(t+\Delta t)$ by Talor expansion
+Given a small $\Delta t$, we can express $X(t+\Delta t)$ by Taylor expansion
 
 \begin{equation}
 X(t+\Delta t) = X(t) + \frac{dX}{dt}\Delta t + O(\Delta t^2) \tag{3}
@@ -90,6 +92,7 @@ X(t+\Delta t) = X(t) + \frac{dX}{dt}\Delta t + O(\Delta t^2) \tag{3}
 Here, the term $O(\Delta t^2)$ summarizes the least significant term of the above expression, as $\Delta t \rightarrow 0$. In other word, it gives the error of the expansion. From equations (1) and (3), we will directly obtain the formula of Euler method in equation (2). Thus, the error of Euler method is at the level of $O(\Delta t^2)$. The same approach can also be applied to estimate the errors of different numerical methods.
 
 # Code efficiency
+
 There are existing packages, such as deSolve, to perform numerical integration in R. Below shows the implementation of the same system for two different time step sizes 1 and 0.1. The outcomes is exactly same as those from our own implementation above.
 
 ```{r}
@@ -111,6 +114,7 @@ legend("bottomright", inset=0.02, title="Time dynamics",
 ```
 
 We can also make a simple Fortran implementation of the same ODE problem as below. The function is provided in the file "extra/src/sub_ode_1g.f90". 
+
 ```
 function derivs_1g(t, x)
   implicit none
@@ -144,12 +148,15 @@ end subroutine ode_1g_euler
 
 ```
 
-The above Fortran function uses a simple iteration and no array/matrix during the integration. The matrix "results" is only used for outputs and plotting. If the detailed time trajectory is not required, I would recommend not save (t, x) for every step, which will further improve the code. 
-We compile the f90 file with gfortran. 
+The above Fortran function uses a simple iteration and no array/matrix during the integration. The matrix "results" is only used for outputs and plotting. If the detailed time trajectory is not required, I would recommend not saving (t, x) for every step, which will further improve the code. 
+We compile the .f90 file with gfortran. 
+
 ```
 gfortran -fpic -shared extra/src/sub_ode_1g.f90 -o extra/src/sub_ode_1g.so
 ```
+
 Load the shared library, thus we can then use the Fortran function in R. As shown below, it works fine.
+
 ```{r}
 dyn.load("extra/src/sub_ode_1g.so")
 dt = 0.1
@@ -162,7 +169,8 @@ a = rbind(c(0.,X0),t(results5[[4]]))
 plot(a[,1], a[,2], type = "l", xlab="t (Minute)", ylab="X (nM)")
 ```
 
-Now, let's compare the performance of the three approaches. We use the same system again, but reduce the time step size to 0.01. In many real applications, one may need to perform longer simulations, thefore larger t_total. The benchmark shows that our own code is slightly faster than the deSolve package. This could be because deSolve uses list to save the results in each step, which is slow in this case. In both our own code and deSolve, an array of time steps is generated in R as the input. The time steps array is repeatly processed in R during the integration -- this can be extremely slow. Fortran code is about one order of magnitude faster than R codes. That's because: (1) the derivative function is hard coded in this example (deSolve can also take derivative functions from compiled languages, like C or Fortran; in this example, the derivative function is in R); (2) although a large result matrix is also created for the Fortran function, it is actually never used during the integration. But the matrix is only used to save the outcome; (3) Fortran program is compiled.
+Now, let's compare the performance of the three approaches. We use the same system again, but reduce the time step size to 0.01. In many real applications, one may need to perform longer simulations, therefore larger t_total. The benchmark shows that our own code is slightly faster than the deSolve package. This could be because deSolve uses list to save the results in each step, which is slow in this case. In both our own code and deSolve, an array of time steps is generated in R as the input. The time steps array is repeatedly processed in R during the integration -- this can be extremely slow. The Fortran code is about one order of magnitude faster than the R codes. That's because: (1) the derivative function is hard coded in this example (deSolve can also take derivative functions from compiled languages, like C or Fortran; in this example, the derivative function is in R); (2) although a large result matrix is also created for the Fortran function, it is actually never used during the integration. But the matrix is only used to save the outcome; (3) Fortran program is compiled.
+
 ```{r}
 library(microbenchmark)  # use microbenchmark library for timing
 X0 = 300
@@ -176,6 +184,7 @@ microbenchmark:::autoplot.microbenchmark(my_benchmark)
 ```
 
 # Second order approximation
+
 In the Euler method, the derivative is approximated as a constant for the interval $t \rightarrow t+\Delta t$. It usually works well when $\Delta t$ is small and the derivative function is "steady". Otherwise, higher order approximation is required. 
 
 Here, we introduce the second order Runge-Kutta method (also called Heun's method), as illustrated in the following Figure.
@@ -197,6 +206,7 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + k_2}{2}
 \end{equation}
 
 We can show that the error of the algorithm is $O(\Delta t^3)$. By Taylor expansion, we have
+
 \begin{equation}
 \begin{aligned}
 X(t + \Delta t) &= X(t) + \frac{X(t)}{dt}\Delta t + \frac{1}{2}\frac{d^2X(t)}{dt^2}\Delta t^2 + O(\Delta t^3)\\
@@ -205,6 +215,7 @@ X(t + \Delta t) &= X(t) + \frac{X(t)}{dt}\Delta t + \frac{1}{2}\frac{d^2X(t)}{dt
 \end{equation}
 
 Because
+
 \begin{equation}
 \begin{aligned}
 \frac{df}{dt} &= \frac{\partial f}{\partial t} + \frac{\partial f}{\partial X}\frac{dX}{dt} \\
@@ -213,6 +224,7 @@ Because
 \end{equation}
 
 And,
+
 \begin{equation}
 \begin{aligned}
 k_2 &= f(X+f(X)\Delta t, t + \Delta t) \Delta t \\
@@ -221,6 +233,7 @@ k_2 &= f(X+f(X)\Delta t, t + \Delta t) \Delta t \\
 \end{equation}
 
 From equations (1) - (3), we find
+
 \begin{equation}
 \begin{aligned}
 \frac{k_1 + k_2}{2} &= f(X,t)\Delta t+ \frac{1}{2}\frac{df(X,t)}{dt}\Delta t^2 + O(\Delta t^3) \\
@@ -229,6 +242,7 @@ From equations (1) - (3), we find
 \end{equation}
 
 Below is the implementation of the second order Runge-Kutta algorithm (RK2) in R. 
+
 ```{r}
 # 2nd order Runge-Kutta (RK2)
 RK2 <- function(derivs, X0, t.total, dt){
@@ -251,6 +265,7 @@ RK2 <- function(derivs, X0, t.total, dt){
 ```
 
 # Fourth order Runge-Kutta method (RK4)
+
 A more commonly used numerical integrator is the fourth order Runge-Kutta (RK4). It has accuracy of the order of O(\Delta t^5). We give the method below, but leave the derivation and accuracy analysis as an exercise. 
 
 \begin{equation}

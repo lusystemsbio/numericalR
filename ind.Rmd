@@ -1,0 +1,17 @@
+---
+title: "Index"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE}
+ind = read.csv("index.csv", sep = ";", header = T, as.is = T)
+ind = ind[order(ind[,1]),]
+knitr::kable(ind, row.names = F)
+```
