@@ -1,0 +1,113 @@
+---
+title: "Part 4: Stochastic differential equations"
+subtitle: "B. Milstein method"
+author: "Mingyang Lu"
+date: "11/11/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Milstein method
+
+Now we discuss more accurate SDE integrator, called Milstein method. 
+
+Consider the same SDE as Equation (3) in Part 4A,
+
+$$dX = f(X)dt + s(X)dW $$
+Milstein method integrates SDE by
+
+$$X_{n+1} = X_n + f(X_n)\Delta t + s(X_n) \Delta W_n + \frac{1}{2}s(X_n)s'(X_n)((\Delta W_n)^2-\Delta t) \tag{1}$$
+, where $s'$ denotes the derivative of s(X) with respect to $X$. In our case, $s(X)=\sqrt{2D(X)}$. The derivation of Equation (1) is by stochastic Taylor expansion. When $D$ is a constant, $s'(X) = 0$. Thus, the Milstein method is equivalent to the Euler-Maruyama method. The Milstein method converges faster than the Euler-Maruyama method for the case in which the noise depends on the state $X$.
+
+``` {r}
+# SDE_Milstein_single is a generic function of Milstein method for a single SDE
+SDE_Milstein_single <- function(derivs, noise, dnoise, para, X0, t.total, dt){
+  # derivs: the function of the derivatives 
+  # noise: the function of the noise term 
+  # dnoise: the function of the derivative of the noise with respect to X
+  # X0: initial condition
+  # para: pass-in parameters
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  dW_all = rnorm(n_all, mean=0, sd=sqrt(dt))  # all dW terms, rnorm generate random variables from normal distribution
+  for (i in 1:(n_all-1)) {
+    t = t_all[i]
+    X = X_all[i]
+    s = noise(t, X, para)
+    dW = dW_all[i]
+    X_all[i+1] = X + dt * derivs(t, X, para) + dW * s  + s*dnoise(t, X, para)/2*(dW**2-dt)
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+# Gene expression noise in gene circuits
+
+We consider a circuit with a self-activating gene $X$, as described in Part 2A, and now with a noise term $b\sqrt{X}\eta(t)$.
+
+$\frac{dX}{dt} = g_0 + g_1 \frac{(X/X_0)^{n_X}}{1+(X/X_0)^{n_X}} - kX + b\sqrt{X}\eta(t) \tag{2}$
+
+In Equation (2), the standard deviation of the noise is proportional to $\sqrt{X}$. When $X$ becomes large, the noise becomes large too. But when $X$ approaches to zero, noise is close to zero too. A similar SDE has been adopted to model the stochastic evolution of interest rates by the Cox-Ingersoll-Ross model in finance. 
+
+```{r}
+hill_ex <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(a/(1+a))
+}
+fx <- function(t, X, b) return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)  # same in Part 2C
+noise <- function(t, X, b) return(b*sqrt(X)) 
+dnoise <- function(t, X, b) return(b/sqrt(X)/2) 
+
+b_all = c(5, 2, 0.5)
+set.seed(1)
+results1 = SDE_Milstein_single(fx, noise, dnoise, para = b_all[1], 300, 1000, 0.01)
+results2 = SDE_Milstein_single(fx, noise, dnoise, para = b_all[2], 300, 1000, 0.01)
+results3 = SDE_Milstein_single(fx, noise, dnoise, para = b_all[3], 300, 1000, 0.01)
+
+plot(NULL, xlab="t", ylab="X (nM)", xlim=c(0,1000), ylim=c(0,700)) 
+lines(results1[,1], results1[,2],  col=2)
+lines(results2[,1], results2[,2],  col=3)
+lines(results3[,1], results3[,2],  col=4)
+legend("topright", inset=0.02, title="b", 
+       legend = c(paste0(b_all)),
+       col=2:4, lty=1, cex=0.8)
+```
+
+As discussed in Part 2C, the circuit has two stable steady states: one near $X = 100 nM$ and the other near $X = 300 nM$. The steady states remains in the stochastic dynamics. One interesting feature of stochastic dynamics of multi-stable systems is dynamical transition between steady states. When the noise is low ($b = 0.5$), $X$ only slightly fluctuates around one stable steady state, and the transition to the other stable steady state is unlikely. When the noise becomes larger ($b = 2$), the circuit dynamics start to exhibit transitions between the two states. When the noise becomes very large ($b = 5$), the state transitions become much frequent. 
+
+Lastly, we consider the same gene circuit but constant noise. Not in this case, the Euler-Maruyama method gives the same results as the Milstein method.
+
+``` {r}
+noise2 <- function(t, X, c) return(c) 
+dnoise2 <- function(t, X, c) return(0) 
+
+c_all = c(30, 20, 10)
+set.seed(1)
+results1 = SDE_Milstein_single(fx, noise2, dnoise2, para = c_all[1], 300, 1000, 0.01)
+results2 = SDE_Milstein_single(fx, noise2, dnoise2, para = c_all[2], 300, 1000, 0.01)
+results3 = SDE_Milstein_single(fx, noise2, dnoise2, para = c_all[3], 300, 1000, 0.01)
+
+plot(NULL, xlab="t", ylab="X (nM)", xlim=c(0,1000), ylim=c(0,700)) 
+lines(results1[,1], results1[,2],  col=2)
+lines(results2[,1], results2[,2],  col=3)
+lines(results3[,1], results3[,2],  col=4)
+legend("topright", inset=0.02, title="b", 
+       legend = c(paste0(b_all)),
+       col=2:4, lty=1, cex=0.8)
+```
+
+As shown in the above plot, the stochastic dynamics look very different from the previous simulations. (Of course, we are not able to set comparable noise levels for the two cases; thus direct comparison is hard.) However, there are at least two clear differences. 
+
+(1) Compared to the case of the state-dependent noise, the circuit with constant noise has larger $X$ fluctuation around the low expression state and has smaller $X$ fluctuation around the high expression state. 
+
+(2) When the circuit is at the low expression state, high noise would result in $X$ below zero. That is because of discretization during SDE integration. Making the time step size $dt$ smaller may help to alleviate this issue. 

@@ -1,0 +1,50 @@
+---
+title: "Part 4: Stochastic differential equations"
+subtitle: "D. Exercises"
+author: "Mingyang Lu"
+date: "11/17/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Convergence of stochastic simulations
+SDE simulation is stochastic in nature. To evaluate the convergence and stability of a simulation, we rely on statistical analysis of the stochastic trajectories, *e.g.*, by mean levels and/or their standard deviations. Using the Ornstein–Uhlenbeck process (see Part 4A) as an example, design a simulation experiment to evaluate the convergence of simulation statistics with respect to the computational cost (here, we consider that the computational cost is proportional to the length of the simulation).
+
+# Geometric Brownian motion
+
+Consider a geometric Brownian motion, governed by the following SDE:
+
+$$\frac{dX}{dt} = \mu X+ \sigma X\eta(t) \tag{1}$$
+, where $\mu$ and $\sigma$ are positive constants. Show using SDE simulations that 
+
+(1) Mean $<X> = X_0 e^{\mu t}$
+
+(2) Variance $Var<X> = X_0^2 e^{2\mu t} (e^{\sigma^2 t} - 1)$
+
+# Noise in a flip-flop circuit
+
+We revisit the flip-flop circuit that we have experienced in Part 3F. Now we consider gene expression noise. Write down the corresponding SDEs for the circuit and simulate its stochastic dynamics. What types of dynamics do the circuit exhibit with the presence of noise?
+
+# Effective potential revisited, again 
+
+We had multiple discusses of effective potential for non-linear dynamical systems (see Parts 2C and 3E). Over there, we defined the effective potential by the analogy of over-damped dynamics. However, this definition has issues for a high dimensional system. Here, instead, we define a new effective potential by
+
+$$ U(X, Y) = - log(P(X,Y)) \tag{2}$$
+, where $P$ is the probability of the states near ($X$, $Y$) in the phase plane.
+
+Use the toggle switch circuit as an example (see Parts 3A-D), perform SDE simulations, and compute the effective potentials. Plot the potential curves along each of the nullclines. 
+
+# Transition state theory
+
+We revisit the transition rate calculations in Part 4C. Now we vary the noise levels. Identify the relationship between the transition rates and the noise levels. Check if your calculations are consistent with Arrhenius equation, *i.e.*, 
+
+$$\kappa \propto e^{-\frac{\Delta U}{D}} \tag{3}$$
+
+, where $D$ represents the noise level.
+
