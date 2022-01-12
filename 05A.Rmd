@@ -1,0 +1,126 @@
+---
+title: "Part 5: Partial differential equations"
+subtitle: "A. Modeling diffusion"
+author: "Mingyang Lu"
+date: "11/18/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Diffusion equation
+
+In the previous section, we have discussed how to model Brownian motion with SDE. For a 1-variable system
+
+$$\frac{dX}{dt} = \sqrt{2D}\eta(t) \tag{1} $$
+
+With an SDE, we describe the time dynamics of $X$. The resulted time trajectories are stochastic in nature. To understand the statistical behavior of the system, we can evaluate the mean and standard deviation of $X$. For a multi-stable system, we can also compute the transition rates between basins. 
+
+Now, we will consider a different but complimentary approach, where instead we characterize the probability distribution of the system at a particular $X$ by the diffusion equation:
+
+$$\frac{\partial P(X,t)}{\partial t} = D \frac{\partial^2 P(X,t)}{\partial X^2} \tag{2} $$
+
+Equation (2) is different from the differential equations discussed in the previous sections, in that $P$ is a function of two variables $X$ and $t$. The term $\frac{\partial P}{\partial t}$ is a partial derivative, defined as
+
+
+ $$\frac{\partial P(X,t)}{\partial t} = \lim_{\Delta t \to 0} \frac{P(X, t+\Delta t) - P(X, t)}{\Delta t} \tag{3}$$
+When evaluating the partial derivative, we only vary $t$ and keep $X$ constant.
+
+# Finite difference method
+
+Now we will explore numerical methods to solve a PDE like Equation (2). Finite difference method is the most straightforward approach. For example, the left hand side of Equation (2) can be numerically computed by Equation (3) when $\Delta t$ is small enough. By Taylor expansion of $P(X, t+\Delta t)$, we have
+
+$$P(X, t+\Delta t) = P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial t^2} \Delta t^2 + O(\Delta t^3) \tag{4}$$
+
+From Equation (4), 
+
+$$  \frac{P(X, t+\Delta t) - P(X, t)}{\Delta t} = \frac{\partial P(X,t)}{\partial t} + O(\Delta t) \tag{5}$$
+
+In other words, this approach gives the error of $\frac{\partial P(X,t)}{\partial t}$ at the level of $O(\Delta t)$.
+
+Now, let us consider the right hand side of Equation (2), where we encounter a second partial derivative. Using Taylor expansions,
+
+$$P(X + \Delta X, t) = P(X, t) + \frac{\partial P(X,t)}{\partial X} \Delta X + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial X^2} \Delta X^2 + \frac{1}{6}\frac{\partial^3 P(X,t)}{\partial X^3} \Delta X^3 + O(\Delta X^4) \tag{6}$$
+
+$$P(X - \Delta X, t) = P(X, t) - \frac{\partial P(X,t)}{\partial X} \Delta X + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial X^2} \Delta X^2 - \frac{1}{6}\frac{\partial^3 P(X,t)}{\partial X^3} \Delta X^3 + O(\Delta X^4) \tag{7}$$
+
+From Equations (6) and (7), we have
+
+
+$$  \frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2} = \frac{\partial^2 P(X,t)}{\partial X^2} + O(\Delta X^2)$$
+
+This demonstrates that $\frac{\partial^2 P(X,t)}{\partial X^2}$ can be approximated by  $\frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2}$.
+
+Together with Equations (5) and (2), we obtain
+
+\begin{equation}
+\begin{aligned}
+P(X, t+\Delta t) &= P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t \\
+ &= P(X, t) + D \frac{\partial^2 P(X,t)}{\partial X^2} \Delta t  \\
+ &= P(X, t) + D \frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2} \Delta t
+\end{aligned}
+\end{equation}
+
+This is similar to the Euler method for ODEs. We can apply this to any $X$ for a given time $t$ to obtain $P(X, t)$ for the next time point $t + \Delta t$.
+
+To fully solve $P(X, t)$ for any given $X$ and $t$, we also need to specify the boundary conditions and the initial conditions. For the boundary conditions, we set $P(X, t) = 0$ for any boundary grid points, where $X = -l/2$ or $X = l/2$, $l$ is the size of the system. For the initial condition, we set $P(X=0, t =0) = 1$, which meeans that at $t = 0$, the system always starts from the origin $X=0$. Here is the implementation of the finite difference method.
+
+```{r}
+l = 100; dX = 1; dt = 0.01; D = 1
+n = as.integer(l/dX)+1  # number of grid points
+X_all = c(1:n)*dX
+p_0 = numeric(n) # the state variable: a vector of P(X,t) for all grids at time t
+p_0[n/2+1] = 1 # specify the initial condition
+
+pde_fd <- function(n, p, dX, dt, D, t_tot) {
+  factor = D/dX**2*dt
+  for (i in seq_len(as.integer(t_tot/dt))){
+    p_plus_one = c(p[-1], 0) # a vector, P(X+dX) for all Xs, 0 is added to specify the boundary conditions
+    p_minus_one = c(0, p[1:(n-1)])  # a vector, P(X-dX) for all Xs, 0 is added to specify the boundary conditions
+    p = p + factor * (p_plus_one + p_minus_one - 2 * p) # finite difference to update all P(X,t)
+  }
+  return(p)
+}
+
+p_1 <- pde_fd(n, p_0, dX, dt, D, 10)
+plot(X_all,p_1, type="l", col=1, xlab="X", ylab="P", xlim=c(1,101), ylim=c(0,0.1)) 
+
+for (i in 2:5){
+  p_1 <- pde_fd(n, p_1, dX, dt, D, 10)
+  lines(X_all,p_1, col=i)
+}
+```
+
+Now, we evaluate mean $X$, $<X>$, and the standard deviation of $X$, $sd(X)$.
+
+```{r}
+meanX <- function(p, X) {
+  return(p %*% X / sum(p))
+}
+sdX <- function(p, X) {
+  var = p %*% X**2 / sum(p)
+  return(sqrt(var - meanX(p,X)**2))
+}
+
+len = 100
+meanX_all = numeric(len)
+sdX_all = numeric(len)
+p_1 <- pde_fd(n, p_0, dX, dt, D, 10)
+meanX_all[1] = meanX(p_1,X_all)
+sdX_all[1] = sdX(p_1,X_all)
+for(i in 2:len){
+  p_1 <- pde_fd(n, p_1, dX, dt, D, 10)
+  meanX_all[i] = meanX(p_1,X_all)
+  sdX_all[i] = sdX(p_1,X_all)
+}
+t_all = 10 * c(1:len)
+plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="Mean X", xlim=c(1,len*10), ylim=c(45,55)) 
+plot(t_all,sdX_all**2, type="p", col=1, xlab="t", ylab="SD(X)^2", xlim=c(1,len*10), ylim=c(0,500)) 
+curve(x*D*2, add = TRUE)
+```
+
