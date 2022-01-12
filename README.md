@@ -40,16 +40,5 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 4D. [Exercises](./04D.html) |
 |5. Partial differential equations|
 |-- 5A. [Modeling diffusion](./05A.html) |
-|-- 5B. [Finite difference method](./05B.html) |
-|-- 5C. [Reaction-diffusion system](./05C.html) |
-|-- 5D. [Exercises](./05D.html) |
-|6. Monte Carlo simulationsi |
-|-- 6A. [Introduction to Monte Carlo method](./06A.html) |
-|-- 6B. [Metropolis algorithm](./06B.html) |
-|-- 6C. [MC simulation of liquid molecules](./06C.html) |
-|-- 6D. [Exercises](./06D.html) |
-|7. Stochastic simulations|
-|-- 7A. [Gillepsie algorithm](./07A.html) |
-|-- 7B. [Comparison between Gillespie and SDE](./07B.html) |
-|-- 7C. [Stochastic reaction-diffusion processes](./07C.html) |
-|-- 7D. [Exercises](./07D.html) |
+|-- 5B. [Reaction-diffusion system](./05B.html) |
+|-- 5C. [Exercises](./05C.html) |
