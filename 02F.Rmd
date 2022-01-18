@@ -23,5 +23,5 @@ Consider the circuit with one self-activating gene, described by Equation (1) in
 
 # Anorther bifurcation analysis
 
-Consider the circuit with one self-inhibiting gene, described by Equation (1) in Part 2E. We would like to plot a bifurcation diagram for the circuit dynamics. Here, we select the time delay $\tau$ as the control parameter, and simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the control parameter $\tau$.
+Consider the circuit with one self-inhibiting gene, described by Equation (1) in Part 2E. Now, we would like to plot a bifurcation diagram for the circuit dynamics by selecting the time delay $\tau$ as the control parameter. For each $\tau$, simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the control parameter $\tau$.
 
