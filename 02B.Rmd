@@ -69,7 +69,7 @@ results2 = Euler_single(dX, 300, 80, 0.1)
 plot(t_all, ode1(300, t_all), type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(300,500)) 
 lines(results1[,1], results1[,2],  col=3)
-lines(results2[,2], results2[,2],  col=4)
+lines(results2[,1], results2[,2],  col=4)
 legend("bottomright", inset=0.02, title="Time dynamics", 
        legend = c("Analytical", "Euler: dt=1", "Euler: dt=0.1"),
        col=2:4, lty=1, cex=0.8)
@@ -77,10 +77,10 @@ legend("bottomright", inset=0.02, title="Time dynamics",
 plot(t_all, ode1(300, t_all), type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(10,14), ylim=c(425,450)) 
 lines(results1[,1], results1[,2],  col=3)
-lines(results2[,2], results2[,2],  col=4)
+lines(results2[,1], results2[,2],  col=4)
 ```
 
-In this example, when time step size $\Delta t$ is 0.1, Euler method gives a very nice approximation to the analytical solution of $X(t)$. When $\Delta t$ is 1, there are some significant differences when $t$ is around 10. Here, the blue and red curves completely overlap.
+In this example, when time step size $\Delta t$ is 0.1, Euler method gives a very nice approximation to the analytical solution of $X(t)$. When $\Delta t$ is 1, there are some significant differences when $t$ is around 10. Here, the blue and red curves are very close to each other.
 
 # Accuracy
 Given a small $\Delta t$, we can express $X(t+\Delta t)$ by Taylor expansion
