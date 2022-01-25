@@ -303,7 +303,9 @@ RK4 <- function(derivs, X0, t.total, dt){
 }
 ```
 
-Next, we numerically evaluate the errors of different numerical integrators for different time step sizes. We introduce a term called root mean square deviation (RMSD) to quantify the differences of $X(t)$ between the exact solutions and the simulations. 
+Next, we numerically evaluate the errors of different numerical integrators for different time step sizes. We introduce a term called root mean square deviation (RMSD) to quantify the differences of $X(t)$ between the exact solutions and the simulations, or in math 
+
+$$d_{RMSD}(X_1, X_2) = \sqrt{\frac{\sum_{i=1}^{n} [X_1(t_i)-X_2(t_i)]^2}{n}}$$
 
 ``` {r}
 # Root Mean Square deviation (RMSD)
