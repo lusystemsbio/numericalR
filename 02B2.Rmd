@@ -1,0 +1,224 @@
+---
+title: 'Part 2: Ordinary differential equations'
+subtitle: "B2. Practice: modeling bacterial growth"
+author: "Mingyang Lu"
+date: "01/23/2022"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this section, we will illustrate the use of ODEs to model bacterial growth and leave some exercises for readers to practice.  
+
+## Exponential growth
+
+#### Analytical solution
+
+The simplest model considers constant [per capita](https://en.wikipedia.org/wiki/Per_capita) growth rate, $r$. The following differential equation describes the rate of change of bacterial counts, $N$, as the function of time, $t$. 
+
+\begin{equation}
+\frac{dN}{dt} = rN \tag{1}
+\end{equation}
+
+The initial condition of Equation (1) is
+
+$$N(t = 0) = N_0$$
+This ODE can be solved analytically, with the solution
+
+\begin{equation}
+N = N_0 e^{rt} \tag{2}
+\end{equation}
+
+We can evaluate $N(t)$ numerically using R, as shown below.
+
+``` {r}
+N_t_exact <- function(t,r,N0) {   # the function to calculate N(t): exact solution
+  return(N0*exp(r*t))
+}
+
+r = 0.1; N0 = 1     # specify the parameter r and the initial condition N0
+
+N_t_exact(t=0, r, N0)   # checking: the initial condition
+N_t_exact(t=1, r, N0)   # checking:  t = 1
+N_t_exact(t=10, r, N0)   # checking:  t = 10
+N_t_exact(t=20, r, N0)   # checking:  t = 20
+N_t_exact(t=50, r, N0)   # checking:  t = 50
+```
+
+Note: be careful to interpret $N$ as fractional numbers. 
+
+We can also use an array to systematically apply *N_t_exact* to a series of $t$ values:
+
+``` {r}
+t = seq(1, 100, 1)   # all time points to be evaluated
+nt1 = N_t_exact(t, r, N0)   # all N(t) values
+
+plot(t, nt1, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,1000))
+```
+
+Another way to evaluate the results is to check t-log(N) plot (log scale in the N axis).
+
+``` {r}
+plot(t, log10(nt1), xlab="t", ylab="log10(N)", xlim=c(0,100), ylim=c(0,4))
+```
+
+Note: we can also generate the plot without directly converting the values in the log scale. To do so, use the argument **log='y'** in the plot function. (Try this! Debug if needed)
+
+#### Use deSolve
+
+Now, we show how to simulate Equation (1) with an ODE solver. We will first use the package deSolve. The selected integration method is the Euler method. 
+
+```{r}
+library(deSolve)  # a general ode solver
+?deSolve # check help page if needed
+dN_deSolve <- function(t, N, parms) { 
+  return(list(r*N))
+}
+parms = c(r = 0.1)
+N0 = 1
+t_all_1 = seq(0, 100, 0.01)  # all t steps during the whole simulation, dt = 0.01
+results_1 = ode(y = N0, times = t_all_1, func = dN_deSolve, parms = NULL, method = "euler")
+
+t_all_2 = seq(0, 100, 0.1)  # all t steps during the whole simulation, dt = 0.1
+results_2 = ode(y = N0, times = t_all_2, func = dN_deSolve, parms = NULL, method = "euler")
+
+t_all_3 = seq(0, 100, 1)  # all t steps during the whole simulation, dt = 1
+results_3 = ode(y = N0, times = t_all_3, func = dN_deSolve, parms = NULL, method = "euler")
+
+plot(results_1[,1], results_1[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(0,100), ylim=c(0,1000))
+lines(results_2[,1], results_2[,2], col=3)
+lines(results_3[,1], results_3[,2], col=4)
+lines(t, nt1, col=5)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler by deSolve: dt=0.01", "Euler by deSolve: dt=0.1",
+                  "Euler by deSolve: dt = 1", "Exact"),
+       col=2:5, lty=1, cex=0.8)
+```
+
+A zoom-in plot indicates that the difference between the numerical integration and the analytical solution is smaller when the time step is smaller.
+
+```{r}
+plot(results_1[,1], results_1[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(66,70), ylim=c(700,1000)) 
+lines(results_2[,1], results_2[,2], col=3)
+lines(results_3[,1], results_3[,2], col=4)
+lines(t, nt1, col=5)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler by deSolve: dt=0.01", "Euler by deSolve: dt=0.1",
+                  "Euler by deSolve: dt = 1", "Exact"),
+       col=2:5, lty=1, cex=0.8)
+```
+
+**Q1.** Simulate the exponential growth model in deSolve with a few other integration methods, such as ode23 and ode45. For each, compare the simulation results with the exact solutions. Evaluate and compare the accuracy of these methods. 
+
+Hint: Use ?deSolve to find its usage.
+
+#### Use integrator functions
+
+Here, we illustrate the use of our own integrator functions, as described in Part 2B. We Use both the Euler method and the 4th order Runge-Kutta method (RK4).
+
+```{r}
+dN <- function(t, N) { # define derivative function, equation (1)
+  return(0.1*N)
+}
+
+# Euler_single is a generic function of Euler method for a single ODE 
+Euler_single <- function(derivs, X0, t.total, dt){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i])
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+
+# 4th order Runge-Kutta (RK4)
+RK4 <- function(derivs, X0, t.total, dt){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i])
+    k2 = dt * derivs(t_0.5,X_all[i] + k1/2)
+    k3 = dt * derivs(t_0.5,X_all[i] + k2/2)
+    k4 = dt * derivs(t_1,X_all[i] + k3)
+    X_all[i+1] = X_all[i] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+
+results_4 = Euler_single(dN, 1, 100, 0.1)
+results_5 = RK4(dN, 1, 100, 0.1)
+
+plot(results_4[,1], results_4[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(66,70), ylim=c(700,1000)) 
+lines(results_5[,1], results_5[,2], col=3)
+lines(t, nt1, col=4)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler dt=0.1", "RK4 dt=0.1", "Exact"),
+       col=2:4, lty=1, cex=0.8)
+```
+
+As shown above, with the same step size $dt = 0.1$, RK4 is much more accurate than the Euler method to model exponential growth for large $t$.
+
+## Logistic growth
+
+#### Analytical solution
+
+The logistic equation considers the limits to growth. The ODE is
+
+\begin{equation}
+\frac{dN}{dt} = rN(1-\frac{N}{B}) \tag{3}
+\end{equation}
+
+Here, $r$ is the per capita growth rate, and $B$ is carrying capacity. 
+The initial condition of Equation (3) is
+
+$$N(t = 0) = N_0$$
+This ODE can be solved analytically, with the solution
+
+\begin{equation}
+N = \frac{N_0 B}{N_0 + (B - N_0)e^{-rt}} \tag{4}
+\end{equation}
+
+```{r}
+logistic_exact <- function(t,r,B,N0) {   # the function to calculate logistic growth: exact solution
+  return(N0*B/(N0+(B-N0)*exp(-r*t)))
+}
+
+N0 = 1; r = 0.1; B= 100
+t = seq(1, 100, 1)   # all time points to be evaluated
+nt2 = logistic_exact(t, r, B, N0)   # all N(t) values
+
+plot(t, nt2, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,110))
+```
+```
+
+**Q2.** We set $B = 100$, $N_0 = 1$, and $r = 0.1$. Plot the logistic equation in R. Use deSolve (or, alternatively, use the above functions *Euler_Single* and *RK4*) to simulate Equation (3). 
+
+(a) Compare the simulation results with the exact solutions (shown above). When (in terms of time $t$) does the algorithms generate largest errors?
+
+(b) Now consider the initial condition as $N_0 = 200$. Perform simulation to find $N(t)$.

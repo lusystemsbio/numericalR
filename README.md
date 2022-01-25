@@ -21,7 +21,8 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 1C. [Exercises](./01C.html) |
 |2. Ordinary differential equations|
 |-- 2A. [Modeling gene circuits with rate equations](./02A.html) |
-|-- 2B. [Numerical integration](./02B.html) |
+|-- 2B. [Numerical integration](./02B.html) | 
+|-- 2B2. [Practice: modeling bacterial growth](./02B2.html) | 
 |-- 2C. [Stability](./02C.html) |
 |-- 2D. [Bifurcation](./02D.html) |
 |-- 2E. [Delayed differential equations](./02E.html) |
