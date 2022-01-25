@@ -64,7 +64,7 @@ plot(t, nt1, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,1000))
 Another way to evaluate the results is to check t-log(N) plot (log scale in the N axis).
 
 ``` {r}
-plot(t, log10(nt1), xlab="t", ylab="log10(N)", xlim=c(0,100), ylim=c(0,4))
+plot(t, log(nt1), xlab="t", ylab="log10(N)", xlim=c(0,100), ylim=c(0,10))
 ```
 
 Note: we can also generate the plot without directly converting the values in the log scale. To do so, use the argument **log='y'** in the plot function. (Try this! Debug if needed)
@@ -75,20 +75,20 @@ Now, we show how to simulate Equation (1) with an ODE solver. We will first use 
 
 ```{r}
 library(deSolve)  # a general ode solver
-?deSolve # check help page if needed
-dN_deSolve <- function(t, N, parms) { 
-  return(list(r*N))
+?deSolve # check the help page if needed
+dN_deSolve <- function(t, N, parameters) { 
+  return(list(parameters[1]*N))   # parameters[1] represents r
 }
-parms = c(r = 0.1)
+parameters = c(r = 0.1)
 N0 = 1
 t_all_1 = seq(0, 100, 0.01)  # all t steps during the whole simulation, dt = 0.01
-results_1 = ode(y = N0, times = t_all_1, func = dN_deSolve, parms = NULL, method = "euler")
+results_1 = ode(y = N0, times = t_all_1, func = dN_deSolve, parms = parameters, method = "euler")
 
 t_all_2 = seq(0, 100, 0.1)  # all t steps during the whole simulation, dt = 0.1
-results_2 = ode(y = N0, times = t_all_2, func = dN_deSolve, parms = NULL, method = "euler")
+results_2 = ode(y = N0, times = t_all_2, func = dN_deSolve, parms = parameters, method = "euler")
 
 t_all_3 = seq(0, 100, 1)  # all t steps during the whole simulation, dt = 1
-results_3 = ode(y = N0, times = t_all_3, func = dN_deSolve, parms = NULL, method = "euler")
+results_3 = ode(y = N0, times = t_all_3, func = dN_deSolve, parms = parameters, method = "euler")
 
 plot(results_1[,1], results_1[,2], type = "l", col=2,
     xlab="t", ylab="N", xlim=c(0,100), ylim=c(0,1000))

@@ -209,7 +209,7 @@ We can show that the error of the algorithm is $O(\Delta t^3)$. By Taylor expans
 
 \begin{equation}
 \begin{aligned}
-X(t + \Delta t) &= X(t) + \frac{X(t)}{dt}\Delta t + \frac{1}{2}\frac{d^2X(t)}{dt^2}\Delta t^2 + O(\Delta t^3)\\
+X(t + \Delta t) &= X(t) + \frac{dX(t)}{dt}\Delta t + \frac{1}{2}\frac{d^2X(t)}{dt^2}\Delta t^2 + O(\Delta t^3)\\
 &= X(t) + f(X,t)\Delta t+ \frac{1}{2}\frac{df(X,t)}{dt}\Delta t^2 + O(\Delta t^3)
 \end{aligned} \tag{1}
 \end{equation}
