@@ -30,6 +30,7 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |3. Phase plane|
 |-- 3A. [Nulllines](./03A.html) |
 |-- 3B. [Stability in 2D](./03B.html) |
+|-- 3B2. [Practice: modeling chemostat"](./03B2.html) | 
 |-- 3C. [Bifurcation for two-variable systems](./03C.html) |
 |-- 3D. [Separatrix](./03D.html) |
 |-- 3E. [Effective potential revisited](./03E.html) |

@@ -534,13 +534,12 @@ ss_all</code></pre>
 <p>This is a typical eigenvalue problem. The solutions of <span class="math inline">\(\lambda\)</span> are the eigenvalues. Now, we implement this calculation. Instead of using the analytical forms of the Jacobian matrix, we will estimate it numerically from the rate equations.</p>
 <pre class="r"><code>stability &lt;- function(func_fx, func_fy, ss) { # ss is a vector of steady state values X_S, Y_S
   delta = 0.001
-  delta2 = delta*2
   func_fx_current = func_fx(ss[1], ss[2])   # this is computed, just in case it is not exactly 0
   func_fy_current = func_fy(ss[1], ss[2])  
-  dfxdx = (func_fx(ss[1]+delta, ss[2]) - func_fx_current)/delta2
-  dfxdy = (func_fx(ss[1], ss[2]+delta) - func_fx_current)/delta2
-  dfydx = (func_fy(ss[1]+delta, ss[2]) - func_fy_current)/delta2
-  dfydy = (func_fy(ss[1], ss[2]+delta) - func_fy_current)/delta2
+  dfxdx = (func_fx(ss[1]+delta, ss[2]) - func_fx_current)/delta
+  dfxdy = (func_fx(ss[1], ss[2]+delta) - func_fx_current)/delta
+  dfydx = (func_fy(ss[1]+delta, ss[2]) - func_fy_current)/delta
+  dfydy = (func_fy(ss[1], ss[2]+delta) - func_fy_current)/delta
   
   jacobian = array(c(dfxdx, dfydx, dfxdy, dfydy), c(2,2))
   lambda = eigen(jacobian)$values
