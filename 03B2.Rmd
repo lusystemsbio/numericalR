@@ -366,7 +366,7 @@ $$ \frac{\partial g}{\partial N}dN + \frac{\partial g}{\partial C}dC = dg = 0 $$
 Thus,
 
 $$ \frac{dC}{dN} \equiv h(N,C) = -\frac{\frac{\partial g}{\partial N}}{\frac{\partial g}{\partial C}} \tag{3}$$
-The expression is defined as a function h, which will be used later. Therefore, starting from a steady state ($N$, $C$), we can obtain the slop of the nullcline $\frac{dC}{dN}$ from equation (3). This allows us to find the initial guess of the next ($N$, $C$) point. 
+The expression is defined as a function h, which will be used later. Therefore, starting from a steady state ($N$, $C$), we can obtain the slope of the nullcline $\frac{dC}{dN}$ from equation (3). This allows us to find the initial guess of the next ($N$, $C$) point. 
 
 \begin{equation}
 \begin{cases} N_{new} = N + \Delta N \\
@@ -421,7 +421,7 @@ $$ X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} $$
 
 This algorithm usually works very well until it reaches to a point, where the slope approaches infinity. It is also a little bit cumbersome to control the direction to move (the same slope can corresponds to two different directions). To improve the method, we describe the nullcline as the function of arc length $s$, instead of the variable $N$. Previously we aim to find $C(N)$, but here we will find $N(s)$ and $C(s)$.
 
-<center> ![arc length continuation](./extra/data/02D/fig1.png){width=50%} </center>
+<center> ![arc length continuation](./extra/data/02D/fig2.png){width=50%} </center>
 <br/>
 
 \begin{equation}
@@ -572,8 +572,8 @@ find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
 }
 
 dNdt = func_f(null2_keep[,1], null2_keep[,2],alpha1, alpha2)  #dN/dt along the nullcline dC/dt = 0
-dCdt1 = func_g(null1_1[,1], null1_1[,2],alpha1, alpha2)  #dY/dt along the nullcline dX/dt = 0 first part
-dCdt2 = func_g(null1_2[,1], null1_2[,2],alpha1, alpha2)  #dY/dt along the nullcline dX/dt = 0 second part
+dCdt1 = func_g(null1_1[,1], null1_1[,2],alpha1, alpha2)  #dC/dt along the nullcline dN/dt = 0 first part (N = 0)
+dCdt2 = func_g(null1_2[,1], null1_2[,2],alpha1, alpha2)  #dC/dt along the nullcline dN/dt = 0 second part (C = 1/(alpha1 - 1))
 
 ss_all1 = find_intersection_all_fast(null1_1, null2_keep, dNdt, dCdt1)
 ss_all1
