@@ -131,7 +131,7 @@ $$ \frac{\partial f}{\partial X}\Delta X + \frac{\partial f}{\partial k}\Delta k
 Thus,
 
 $$ \frac{dX}{dk} \equiv h(X,k) = -\frac{\frac{\partial f}{\partial k}}{\frac{\partial f}{\partial X}} \tag{2}$$
-The expression is defined as a function h, which will be used later. Therefore, starting from a steady state $X$ for a specific $k$, we can obtain the slop of the bifurcation curve $\frac{dX}{dk}$ from equation (2). This allows us to find the initial guess of the next ($k$, $X$) point. 
+The expression is defined as a function h, which will be used later. Therefore, starting from a steady state $X$ for a specific $k$, we can obtain the slope of the bifurcation curve $\frac{dX}{dk}$ from equation (2). This allows us to find the initial guess of the next ($k$, $X$) point. 
 
 \begin{equation}
 \begin{cases} k_{new} = k + \Delta k \\

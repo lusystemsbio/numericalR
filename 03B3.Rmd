@@ -1,0 +1,428 @@
+---
+title: 'Part 2: Phase plane'
+subtitle: "B3. Practice: predator-prey model"
+author: "Mingyang Lu"
+date: "02/20/2022"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this section, we will model predator-prey relationship. The system is described by the classic Lotka-Volterra model.
+
+## Lotka-Volterra model
+
+The system is discribed by:
+
+\begin{equation}
+\begin{cases} \frac{dN}{dt} = f(N,C) = N (a - bP) \\
+              \frac{dP}{dt} = g(N,C) = P (cN -d)  \tag{1} \end{cases}
+\end{equation}
+
+
+## ODE simulation
+
+We first define the derivative function. Here, we allow $a$, $b$, $c$, and $d$ as four explicit parameters.
+
+``` {r}
+derivs_LV <- function(t, Xs, a, b, c, d) { # derivatives of the Lotka-Volterra model
+  N = Xs[1]
+  P = Xs[2]
+  dNdt = N * (a- b*P)
+  dPdt = P * (c*N - d)
+  return(c(dNdt, dPdt))
+}
+```
+
+We will use RK4 integrator to simulate the ODEs defined by Equation (1). 
+
+```{r}
+RK4_2D_generic <- function(derivs, X0, t.total, dt, ...){ # Runge-Kutta 4th order, 2 varaibles, passing parameters via ellipsis
+  # derivs: the function of the derivatives 
+  # X0: initial condition, a vector of two elements
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = matrix(0, nrow = n_all, ncol = 2)
+  X_all[1,] = X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i,], ...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2, ...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2, ...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3, ...)
+    X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+We set $a = d = 1$, $b = 0.03$, and  $c = 0.02$
+
+If we start the simulation from the initial condition ${X(t = 0)} = (2, 0)$, 
+
+``` {r}
+a = 1; b = 0.03; c = 0.02; d = 1
+X0_1 = c(2, 0)  # start from N = 2, P = 0, 
+results_LV_1 = RK4_2D_generic(derivs = derivs_LV, X0 = X0_1, t.total = 10, dt = 0.01, a, b, c, d)
+plot(results_LV_1[,1], results_LV_1[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,10), ylim=c(0,100))
+lines(results_LV_1[,1], results_LV_1[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+With no predator, prey follows exponential growth.
+
+If we start the simulation from the initial condition ${X(t = 0)} = (0, 100)$, 
+
+``` {r}
+X0_2 = c(0, 100)  # start from N = 0, P = 100, 
+results_LV_2 = RK4_2D_generic(derivs = derivs_LV, X0 = X0_2, t.total = 10, dt = 0.01, a, b, c, d)
+plot(results_LV_2[,1], results_LV_2[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,10), ylim=c(0,100))
+lines(results_LV_2[,1], results_LV_2[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+With no prey, predator follows exponential decay.
+
+If we start the simulation from the initial condition ${X(t = 0)} = (30, 10)$, 
+
+``` {r}
+X0_3 = c(30, 10)  # start from N = 30, P = 10, 
+results_LV_3 = RK4_2D_generic(derivs = derivs_LV, X0 = X0_3, t.total = 50, dt = 0.01, a, b, c, d)
+plot(results_LV_3[,1], results_LV_3[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,50), ylim=c(0,150))
+lines(results_LV_3[,1], results_LV_3[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+When both predator and prey exist, the system generates oscillations. We can also plot the system in the plane plane of $N$ and $P$.
+
+``` {r,fig.width = 6, fig.height = 5}
+library(ggplot2)
+
+N_all = seq(0, 150, by=10)   # all N grids
+P_all = seq(0, 100, by=10)   # all P grids
+NP_all = expand.grid(N_all, P_all)   # all combinations of N and P
+
+results_unit = t(apply(NP_all, MARGIN=1, function(Xs) {
+  v = derivs_LV(0, Xs, a, b, c, d)
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate all vector field data 
+colnames(results_unit) = c("N", "P", "dN", "dP")
+
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=N, y=P)) + 
+  geom_segment(aes(xend=N+3*dN, yend=P+3*dP), arrow = arrow(length = unit(0.05,"in")))
+
+colnames(results_LV_3) = c("t", "N", "P")
+p1 +
+   geom_path(data = as.data.frame(results_LV_3), aes(x=N, y=P, colour = 1), size=1) 
+```
+
+Below we choose different initial conditions and, for each, simulate the time trajectory and plot it in the same phase plane.
+
+``` {r,fig.width = 6, fig.height = 5}
+library(ggplot2)
+
+results_LV_4 = RK4_2D_generic(derivs = derivs_LV, X0 = c(40, 20), t.total = 50, dt = 0.01, a, b, c, d)
+results_LV_5 = RK4_2D_generic(derivs = derivs_LV, X0 = c(30, 25), t.total = 50, dt = 0.01, a, b, c, d)
+results_LV_6 = RK4_2D_generic(derivs = derivs_LV, X0 = c(20, 40), t.total = 50, dt = 0.01, a, b, c, d)
+colnames(results_LV_4) = c("t", "N", "P")
+colnames(results_LV_5) = c("t", "N", "P")
+colnames(results_LV_6) = c("t", "N", "P")
+
+p1 +
+   geom_path(data = as.data.frame(results_LV_3), aes(x=N, y=P, colour = "Init: (30, 10)"), size=1) +
+   geom_path(data = as.data.frame(results_LV_4), aes(x=N, y=P, colour = "Init: (40, 20)"), size=1) +
+   geom_path(data = as.data.frame(results_LV_5), aes(x=N, y=P, colour = "Init: (30, 25)"), size=1) +
+   geom_path(data = as.data.frame(results_LV_6), aes(x=N, y=P, colour = "Init: (20, 40)"), size=1) 
+```
+
+## Model fitting
+
+We consider the following data set of lynx/hare populations in 1900-1920 as collected by the Hudson Bay Company. 
+
+
+``` {r}
+lvdata = data.frame(
+         year = seq(1900,1920,by=1),
+         hare = c(30, 47.2, 70.2, 77.4, 36.3, 20.6, 18.1, 21.4, 22, 25.4, 27.1, 40.3, 57, 76.6, 52.3, 19.5, 11.2, 7.6, 14.6, 16.2, 24.7),
+         lynx = c(4, 6.1, 9.8, 35.2, 59.4, 41.7, 19, 13, 8.3, 9.1, 7.4, 8, 12.3, 19.5, 45.7, 51.1, 29.7, 15.8, 9.7, 10.1, 8.6)
+)
+knitr::kable(lvdata, col.names = c("Year", "Hare (x1000)", "Lynx (x1000)"))
+
+```
+
+
+We plot the time trajectory for both species:
+
+```{r}
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(lvdata$year, lvdata$lynx, type = "b", pch=19, col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare", "Lynx"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+Or in the phase plane
+
+``` {r,fig.width = 5, fig.height = 5}
+plot(lvdata$hare, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="Hare x(1000)", ylab="Lynx x(1000)", xlim=c(0,100), ylim=c(0,100))
+```
+
+Now, the goal is to find the optimal parameters $a$, $b$, $c$, $d$ of the Lotka-Volterra model that best fit the data set. We consider two way to do so: (1) error minimization; (2) linear regression.
+
+#### Error minimization
+
+We define the error function as the sum of squares of differences (SSD) between the simulated levels and the levels from the data set. Starting from here, we use a vector *p* to represent all parameters.
+
+```{r}
+# Sum of square of differences (SSD)
+ssd <- function(array1, array2) {
+  diff = array1 - array2
+  return(sum(diff * diff))
+}
+
+cal_error <- function(derivs,data_exp, func_error, nsteps = 10, p){  
+    # derivs defines the ODEs 
+    # data_exp provides the data set; 
+    # nsteps specifies the number of time steps per unit time (integer)
+    # dt gives the time step for the ODE integrator : dt = 1/nstep
+      #(nstep = 1, dt = 1 means that data fitting for every time step)
+      #(nstep = 10, dt = 0.1 means that data fitting for every 10 time steps)
+      #(nstep = 100, dt = 0.01 means that data fitting for every 100 time steps)
+    # func_error computes the errors, it must take two arrays to compare
+    # p is the vector of all parameters c(a, b, c, d)
+    t.total = NROW(data_exp) - 1
+    dt = 1/nsteps
+    X0 = data_exp[1,]   # the first data point as the initial condition
+    sim = RK4_2D_generic(derivs = derivs, X0 = X0, t.total = t.total, dt = dt, 
+                         a = p[1], b = p[2], c = p[3], d = p[4])
+    data_sim = sim[seq(1,NROW(sim),by = nsteps),2:3]
+    
+    return(func_error(data_exp[,1], data_sim[,1]) + func_error(data_exp[,2], data_sim[,2]))
+}
+```
+
+Note that, in the error function, the ODE simulation is done by integration of multiple time steps per unit time (Year). Compared to the implementation with one step per unit time, this allows more accurate simulations but slower optimization. 
+
+Taking any initial guess of the four parameters, we can compute the error of the model:
+
+``` {r}
+data_LV = cbind(lvdata$hare, lvdata$lynx)
+p0 = c(0.5, 0.02, 0.02, 0.5)
+cal_error(derivs = derivs_LV, data_exp = data_LV, func_error = ssd, nsteps = 10, p = p0)
+```
+
+We then perform nonlinear minimization of the error function with respect to the parameters $a$, $b$, $c$ and $d$. An easy way to do so is by an R function *nlm*. We will need to wrap the original *cal_error* to a new function *f*, in such as way that the four parameters are the only arguments. Note that nonlinear minimization by *nlm* is based on Newton's method, therefore it can find a local minimum, but not the global minimum. We need to have a good initial guess to get a reasonable fitting. 
+
+```{r}
+f <- function(p) {
+  return(cal_error(derivs = derivs_LV, data_exp = data_LV, func_error = ssd, nsteps = 10, p))
+}
+
+p0 = c(0.5, 0.02, 0.02, 0.5)
+f(p0)
+fitted = nlm(f = f, p = p0)
+
+p = fitted$estimate
+f(p)
+```
+
+
+
+```{r}
+
+results_simu = RK4_2D_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p[1], b = p[2], c = p[3], d = p[4])
+
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu[,1] + 1900, results_simu[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(lvdata$year, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu[,1] + 1900, results_simu[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+``` {r,fig.width = 5, fig.height = 5}
+plot(lvdata$hare, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="Hare x(1000)", ylab="Lynx x(1000)", xlim=c(0,100), ylim=c(0,100))
+lines(results_simu[,2], results_simu[,3], type = "l", col = 3)
+```
+
+#### Linear regression
+
+In the Lotka-Volterra model, the ODEs are linear functions of the four parameters. Therefore, with a little approximation, one can convert the model fitting problem into a linear regression problem. 
+
+Consider the ODEs:
+
+$$ \frac{dx_i}{dt} = \sum_{j} {a_{ij}g_{ij}(x_1, ... , x_n)}$$
+
+Replace the left hand side of the above equation with finite difference. We have
+
+$$ \frac{x_i(t+\Delta t) - x_i(t-\Delta t)}{2\Delta t} = \sum_{j} {a_{ij}g_{ij}(x_1, ... , x_n)}$$
+
+As all $x_i(t)$ are known from the data (despite of very discrete data points), and functions $g_{ij}$ are known from the Lotka-Volterra model. Thus, we can perform linear regression with respect to all parameters $a_{ij}$ using linear equations for all variables $x_i$ at all time points $t$. In this implementation, we omit the first and the last time points to allow the obove time derivative evaluation.
+
+```{r}
+N_all = lvdata$hare
+P_all = lvdata$lynx
+tot = length(N_all)
+#dndt = a * N + b * (-N*P)
+term_dndt = (N_all[3:tot] - N_all[1:(tot-2)])/2
+term_n = N_all[2:(tot-1)]
+term_minus_np = -N_all[2:(tot-1)]*P_all[2:(tot-1)]
+
+data_n = data.frame(term_dndt = term_dndt, term_n = term_n, term_minus_np = term_minus_np)
+model_n = lm(term_dndt ~ term_n + term_minus_np - 1, data_n)
+model_n$coefficients
+
+#dpdt = c* (N*P) - d * P
+term_dpdt = (P_all[3:tot] - P_all[1:(tot-2)])/2
+term_np = N_all[2:(tot-1)]*P_all[2:(tot-1)]
+term_minus_p = -P_all[2:(tot-1)]
+
+data_p = data.frame(term_dpdt = term_dpdt, term_np = term_np, term_minus_p = term_minus_p)
+model_p = lm(term_dpdt ~ term_np + term_minus_p - 1, data_p)
+model_p$coefficients
+```
+
+```{r}
+p0 = c(model_n$coefficients, model_p$coefficients)
+f(p0)
+
+```
+
+
+```{r}
+
+results_simu2 = RK4_2D_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p0[1], b = p0[2], c = p0[3], d = p0[4])
+
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu2[,1] + 1900, results_simu2[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(lvdata$year, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu2[,1] + 1900, results_simu2[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+Linear regression gives deterministic results. The obtained parameter set does not work very well because of errors in derivative evaluation by finite difference. At least, this simple regression gives a good initial guess for nonlinear minimization.
+
+``` {r}
+fitted = nlm(f = f, p = p0)
+
+p = fitted$estimate
+f(p)
+```
+
+#### A test on a simulated data with more time points
+
+It is reasonable to hypothesize that the errors come from the finite difference approximation. To test that, we generate a data set from the simulated trajectory. We pick one point every three time steps (Readers can choose different values).
+
+``` {r}
+seed = 12
+my_data <- results_simu[seq(1, NROW(results_simu),by = 3),]   # data extracted from the simulations
+nrow_my = NROW(my_data)
+noise = 0
+my_data[,2:3] = my_data[,2:3] + matrix(runif(nrow_my*2, -noise, noise), nrow = nrow_my, ncol = 2) # add noise
+my_data[which(my_data < 0)] = 0   # negative numbers set to zeros
+
+plot(my_data[,1], my_data[,2], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(my_data[,1], my_data[,3], type = "b", pch=15, col=3)
+
+```
+
+Note that we provide an option to add a random perturbation to each data point. However, in the analysis below, we turn the noise option off by setting the noise level to be zero. Readers can try the analyses with different levels of noise.
+
+We now repeat the whole regression analysis with this simulated data.
+
+```{r}
+N_all = my_data[,2]
+P_all = my_data[,3]
+tot = length(N_all)
+#dndt = a * N + b * (-N*P)
+term_dndt = (N_all[3:tot] - N_all[1:(tot-2)])/0.3/2 # be careful of the calculation for delta t
+term_n = N_all[2:(tot-1)]
+term_minus_np = -N_all[2:(tot-1)]*P_all[2:(tot-1)]
+
+data_n = data.frame(term_dndt = term_dndt, term_n = term_n, term_minus_np = term_minus_np)
+model_n = lm(term_dndt ~ term_n + term_minus_np - 1, data_n)
+model_n$coefficients
+
+#dpdt = c* (N*P) - d * P
+term_dpdt = (P_all[3:tot] - P_all[1:(tot-2)])/0.3/2
+term_np = N_all[2:(tot-1)]*P_all[2:(tot-1)]
+term_minus_p = -P_all[2:(tot-1)]
+
+data_p = data.frame(term_dpdt = term_dpdt, term_np = term_np, term_minus_p = term_minus_p)
+model_p = lm(term_dpdt ~ term_np + term_minus_p - 1, data_p)
+model_p$coefficients
+```
+
+```{r}
+p1 = c(model_n$coefficients, model_p$coefficients)
+f(p1)
+```
+
+```{r}
+results_simu3 = RK4_2D_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p1[1], b = p1[2], c = p1[3], d = p1[4])
+
+plot(my_data[,1], my_data[,2], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(results_simu3[,1], results_simu3[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(my_data[,1], my_data[,3], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(results_simu3[,1], results_simu3[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+As shown from the results, linear regression works much better if not perfect.
