@@ -17,7 +17,7 @@ In this section, we will model predator-prey relationship. The system is describ
 
 ## Lotka-Volterra model
 
-The system is discribed by:
+The system is described by:
 
 \begin{equation}
 \begin{cases} \frac{dN}{dt} = f(N,C) = N (a - bP) \\

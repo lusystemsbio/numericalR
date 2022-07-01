@@ -68,14 +68,14 @@ P(X, t+\Delta t) &= P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t \\
 
 This is similar to the Euler method for ODEs. We can apply this to any $X$ for a given time $t$ to obtain $P(X, t)$ for the next time point $t + \Delta t$.
 
-To fully solve $P(X, t)$ for any given $X$ and $t$, we also need to specify the boundary conditions and the initial conditions. For the boundary conditions, we set $P(X, t) = 0$ for any boundary grid points, where $X = -l/2$ or $X = l/2$, $l$ is the size of the system. For the initial condition, we set $P(X=0, t =0) = 1$, which meeans that at $t = 0$, the system always starts from the origin $X=0$. Here is the implementation of the finite difference method.
+To fully solve $P(X, t)$ for any given $X$ and $t$, we also need to specify the boundary conditions and the initial conditions. For the boundary conditions, we set $P(X, t) = 0$ for any boundary grid points, where $X = -l/2$ or $X = l/2$, $l$ is the size of the system. For the initial condition, we set $P(X=0, t =0) = 1$, which means that at $t = 0$, the system always starts from the origin $X=0$. Here is the implementation of the finite difference method.
 
 ```{r}
 l = 100; dX = 1; dt = 0.01; D = 1
 n = as.integer(l/dX)+1  # number of grid points
-X_all = c(1:n)*dX
+X_all = (c(1:n) - (n+1)/2)*dX
 p_0 = numeric(n) # the state variable: a vector of P(X,t) for all grids at time t
-p_0[n/2+1] = 1 # specify the initial condition
+p_0[(n+1)/2] = 1 # specify the initial condition
 
 pde_fd <- function(n, p, dX, dt, D, t_tot) {
   factor = D/dX**2*dt
@@ -88,7 +88,7 @@ pde_fd <- function(n, p, dX, dt, D, t_tot) {
 }
 
 p_1 <- pde_fd(n, p_0, dX, dt, D, 10)
-plot(X_all,p_1, type="l", col=1, xlab="X", ylab="P", xlim=c(1,101), ylim=c(0,0.1)) 
+plot(X_all,p_1, type="l", col=1, xlab="X", ylab="P", xlim=c(-50,50), ylim=c(0,0.1)) 
 
 for (i in 2:5){
   p_1 <- pde_fd(n, p_1, dX, dt, D, 10)
@@ -96,7 +96,7 @@ for (i in 2:5){
 }
 ```
 
-Now, we evaluate mean $X$, $<X>$, and the standard deviation of $X$, $sd(X)$.
+For a small fixed $t$, $P(X,t)$ is a Gaussian distribution. Now, we evaluate mean $X$, $<X>$, and the standard deviation of $X$, $sd(X)$. (Pay attention to the mean and standard deviation functions below)
 
 ```{r}
 meanX <- function(p, X) {
@@ -119,8 +119,10 @@ for(i in 2:len){
   sdX_all[i] = sdX(p_1,X_all)
 }
 t_all = 10 * c(1:len)
-plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="Mean X", xlim=c(1,len*10), ylim=c(45,55)) 
+plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="Mean X", xlim=c(1,len*10), ylim=c(-5,5)) 
 plot(t_all,sdX_all**2, type="p", col=1, xlab="t", ylab="SD(X)^2", xlim=c(1,len*10), ylim=c(0,500)) 
 curve(x*D*2, add = TRUE)
 ```
+
+The results show that $sd(X)^2 ~ t$ for small $t$. When the probability distribution $P(X,t)$ becomes nonzero near the boundary, the $sd^2$ increases smaller than $t$.
 
