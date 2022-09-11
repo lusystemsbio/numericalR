@@ -38,7 +38,9 @@ Here, the radius of gyration $R_g$ is defined as:
 
 $$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j(\mathbf{r_j}-\mathbf{\overline{r}})^2}{\sum_{j=1}^{N}m_j}}$$
 
-where $\mathbf{\overline{r}}$ is defined as
+where $\mathbf{r_j}$ is the coordinate of atom $j$ (*i.e.*, x, y, and z values), $m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. $m_j$ depends on the atom type, which can be found in the above data frame in the "elesy" column.
+
+$\mathbf{\overline{r}}$ is defined as
 
 $$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
 
