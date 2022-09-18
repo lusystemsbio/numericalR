@@ -215,7 +215,6 @@ nt2 = logistic_exact(t, r, B, N0)   # all N(t) values
 
 plot(t, nt2, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,110))
 ```
-```
 
 **Q2.** We set $B = 100$, $N_0 = 1$, and $r = 0.1$. Plot the logistic equation in R. Use deSolve (or, alternatively, use the above functions *Euler_Single* and *RK4*) to simulate Equation (3). 
 
