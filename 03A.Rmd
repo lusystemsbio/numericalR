@@ -184,7 +184,7 @@ p1 +
 
 ``` 
 
-The intersections of the two nullclines are the steady states of the system. By checking the number of intersections, we can identify the multi-stability property easily. The separation of variables should be applied whenever possible. However, it may not be feasible in many situations. We then have to reply on other approaches, such as contour method and numerical continuation.
+The intersections of the two nullclines are the steady states of the system. By checking the number of intersections, we can identify the multi-stability property easily. The separation of variables should be applied whenever possible. However, it may not be feasible in many situations. We then have to rely on other approaches, such as contour method and numerical continuation.
 
 ### Contour method
 

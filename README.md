@@ -43,5 +43,6 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 4D. [Exercises](./04D.html) |
 |5. Partial differential equations|
 |-- 5A. [Modeling diffusion](./05A.html) |
-|-- 5B. [Reaction-diffusion system](./05B.html) |
-|-- 5C. [Exercises](./05C.html) |
+|-- 5B. [Reaction-diffusion systems](./05B.html) |
+|-- 5C. [Turing instability](./05C.html) |
+|-- 5D. [Exercises](./05D.html) |

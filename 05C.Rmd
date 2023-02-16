@@ -1,0 +1,213 @@
+---
+title: "Part 5: Partial differential equations"
+subtitle: "C. Turing instability"
+author: "Mingyang Lu"
+date: "2/14/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Reaction-diffusion equations for a two-component system
+
+For a two-component system of $u$ and $v$, the reaction-diffusion equations are
+
+\begin{equation}
+\begin{aligned}
+\frac{\partial u(X,t)}{\partial t} = f(u,v,t) + D_u \frac{\partial^2 u(X,t)}{\partial X^2} \\
+\frac{\partial v(X,t)}{\partial t} = g(u,v,t) + D_v \frac{\partial^2 v(X,t)}{\partial X^2} \\
+\end{aligned} \tag{1}
+\end{equation}
+
+We generalize the previous PDE integrator for a two-component system. Here, we choose to use the periodic boundary condition by setting the state variables at the boundary points the same. 
+
+For grid points ${X_i}$ for $i = 1,2 ...n$, we set $X_0 = X_n$ and $X_{n+1} = X_1$.
+
+```{r}
+## PDE integration with the finite difference method for a generic reaction-diffusion system (multi-variable)
+pde_fd_reaction_diffusion_multi <- function(derivs, n, ngrid, dX, dt, D, t0, t.total, p0, ...) {
+  #derivs: derivative function
+  #n: number of components
+  #ngrid: number of grid points
+  #dX: X step size
+  #dt: time step size
+  #D: diffusion constant (a vector of n)
+  #t0: initial time
+  #t.total: total simulation time
+  #p0: initial condition: a matrix of (n, ngrid) 
+  
+  t_all = seq(t0, t.total, by = dt)
+  nt_all = length(t_all)
+  factor = D/dX**2*dt
+  p = p0
+  for (i in seq_len(nt_all-1)){
+    p_plus_one = cbind(p[,-1], p[,1]) # a matrix, P(X+dX) for all Xs, periodic boundary condition
+    p_minus_one = cbind(p[,ngrid], p[,1:(ngrid-1)])  # a matrix, P(X-dX) for all Xs, periodic boundary condition
+    f = apply(p, 2, function(X) return (derivs(t_all[i],X, ...)))
+    p = p + f*dt + factor * (p_plus_one + p_minus_one - 2 * p) # finite difference to update all P(X,t)
+  }
+  return(p)
+}
+
+```
+
+# Turing instability
+
+For a two-component dynamical system with a stable steady state, the system can become unstable when considering the molecular diffusion in space. Thus an instability can allow pattern formations. This phenomenon is called Turing instability. There are two classes of such two-component systems, one being the substrate-depletion model and the other being the activator-inhibitor model. In the following, we will illustrate both cases with the [Gierer-Meinhardt model](http://www.scholarpedia.org/article/Gierer-Meinhardt_model).
+
+## An substrate depletion model
+
+The model follows Equation (1), where $D_u =d$, $D_v = 1$, and
+
+\begin{equation}
+\begin{aligned}
+f(u,v,t) &= u^2v-u \\
+g(u,v,t) &= \mu (1-u^2v) \\
+\end{aligned} \tag{2}
+\end{equation}
+
+Here, $v$ serves as a substrate that activates $u$, and, by doing so, $v$ is in turn depleted by $u$.
+
+<center> ![Figure 1](./extra/data/05C/fig1.png){width=20%} </center>
+<br/>
+
+The model has two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns. Pattern formation occurs for the situation of faster $v$ diffusion and large $\mu$.
+
+``` {r,fig.width = 4, fig.height = 3}
+par(mar = c(4, 4, 1, 1))
+set.seed(10)
+n = 2; len = 50; dX = 1; dt = 0.01; t.total_iter = 20
+D = c(0.1,1); mu = 1.5
+
+ngrid = as.integer(len/dX)+1  # number of grid points
+X_all = c(0:(ngrid-1))*dX  # X values for each grid point
+
+u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
+
+turing_asdm <- function(t, p, mu){
+  u = p[1]
+  v = p[2]
+  u2v = u*u*v
+  f =  u2v - u
+  g = mu*(1-u2v)
+  return(c(f,g))
+}
+
+u_1 = u0
+for(i in 0:5){
+  if(i>0){
+    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
+                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+  }
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  lines(X_all,u_1[2,], col=2)
+  legend("topright", inset=0.02, 
+       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
+       col=c(1,2), lty = 1, cex=0.8)
+}
+```
+
+When $d = 0.8$ and $\mu = 1.5$, the system converges to a homogeneous distribution. Here, the difference in diffusion of $u$ and $v$ is very small.
+
+``` {r,fig.width = 4, fig.height = 3}
+par(mar = c(4, 4, 1, 1))
+D = c(0.8,1); mu = 1.5; t.total_iter = 5
+set.seed(10)
+
+u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
+
+u_1 = u0
+for(i in 0:3){
+  if(i>0){
+    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
+                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+  }
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  lines(X_all,u_1[2,], col=2)
+  legend("topright", inset=0.02, 
+       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
+       col=c(1,2), lty = 1, cex=0.8)
+}
+```
+
+When $d = 0.5$ and $\mu = 0.8$, the system becomes of a traveling wave (partially due to the periodic boundary condition).
+
+``` {r,fig.width = 4, fig.height = 3}
+par(mar = c(4, 4, 1, 1))
+D = c(0.7,1); mu = 0.3; t.total_iter = 20
+set.seed(10)
+
+u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
+
+u_1 = u0
+for(i in 0:5){
+  if(i>0){
+    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
+                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+  }
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,10)) 
+  lines(X_all,u_1[2,], col=2)
+  legend("topright", inset=0.02, 
+       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
+       col=c(1,2), lty = 1, cex=0.8)
+}
+```
+
+## An activator-inhibitor model
+
+Lastly, we consider another type of Turing instability -- an activator-inhibitor model:
+
+The model also follows Equation (1), where $D_u =d$, $D_v = 1$, and
+
+\begin{equation}
+\begin{aligned}
+f(u,v,t) &= u^2/v-u \\
+g(u,v,t) &= \mu (u^2 - v) \\
+\end{aligned} \tag{3}
+\end{equation}
+
+Here, $u$ serves as an activator, and $v$ as an inhibitor. The activator can activate itself and the inhibitor, while the inhibitor can suppress both. Similar to the previous model, $v$ diffuses much faster than $u$ (*a.k.a*, self enhancement and long-range inhibition). 
+
+<center> ![Figure 2](./extra/data/05C/fig2.png){width=20%} </center>
+<br/>
+
+There are also two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns too. Here, $u$ and $v$ are synchronized in space. 
+
+``` {r,fig.width = 4, fig.height = 3}
+par(mar = c(4, 4, 1, 1))
+set.seed(10)
+n = 2; len = 50; dX = 1; dt = 0.01; t.total_iter = 20
+D = c(0.1,1); mu = 1.5
+
+ngrid = as.integer(len/dX)+1  # number of grid points
+X_all = c(0:(ngrid-1))*dX  # X values for each grid point
+
+u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
+
+turing_aim <- function(t, p, mu){
+  u = p[1]
+  v = p[2]
+  u2 = u*u
+  f =  u2/v - u
+  g = mu*(u2 - v)
+  return(c(f,g))
+}
+
+u_1 = u0
+for(i in 0:5){
+  if(i>0){
+    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_aim, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
+                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+  }
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  lines(X_all,u_1[2,], col=2)
+  legend("topright", inset=0.02, 
+       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
+       col=c(1,2), lty = 1, cex=0.8)
+}
+```
