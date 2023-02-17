@@ -180,7 +180,7 @@ pre code {
 <li><a href="#reaction-diffusion-equations-for-a-two-component-system">Reaction-diffusion equations for a two-component system</a></li>
 <li><a href="#turing-instability">Turing instability</a>
 <ul>
-<li><a href="#an-substrate-depletion-model">An substrate depletion model</a></li>
+<li><a href="#a-substrate-depletion-model">A substrate depletion model</a></li>
 <li><a href="#an-activator-inhibitor-model">An activator-inhibitor model</a></li>
 </ul></li>
 </ul>
@@ -195,7 +195,7 @@ pre code {
 \frac{\partial v(X,t)}{\partial t} = g(u,v,t) + D_v \frac{\partial^2 v(X,t)}{\partial X^2} \\
 \end{aligned} \tag{1}
 \end{equation}\]</span></p>
-<p>We generalize the previous PDE integrator for a two-component system. Here, we choose to use the periodic boundary condition by setting the state variables at the boundary points the same.</p>
+<p>We generalize the previous PDE integrator for a two-component system. Here, we choose to use a periodic boundary condition by setting the state variables at the boundary points the same.</p>
 <p>For grid points <span class="math inline">\({X_i}\)</span> for <span class="math inline">\(i = 1,2 ...n\)</span>, we set <span class="math inline">\(X_0 = X_n\)</span> and <span class="math inline">\(X_{n+1} = X_1\)</span>.</p>
 <pre class="r"><code>## PDE integration with the finite difference method for a generic reaction-diffusion system (multi-variable)
 pde_fd_reaction_diffusion_multi &lt;- function(derivs, n, ngrid, dX, dt, D, t0, t.total, p0, ...) {
@@ -225,8 +225,8 @@ pde_fd_reaction_diffusion_multi &lt;- function(derivs, n, ngrid, dX, dt, D, t0, 
 <div id="turing-instability" class="section level1">
 <h1>Turing instability</h1>
 <p>For a two-component dynamical system with a stable steady state, the system can become unstable when considering the molecular diffusion in space. Thus an instability can allow pattern formations. This phenomenon is called Turing instability. There are two classes of such two-component systems, one being the substrate-depletion model and the other being the activator-inhibitor model. In the following, we will illustrate both cases with the <a href="http://www.scholarpedia.org/article/Gierer-Meinhardt_model">Gierer-Meinhardt model</a>.</p>
-<div id="an-substrate-depletion-model" class="section level2">
-<h2>An substrate depletion model</h2>
+<div id="a-substrate-depletion-model" class="section level2">
+<h2>A substrate depletion model</h2>
 <p>The model follows Equation (1), where <span class="math inline">\(D_u =d\)</span>, <span class="math inline">\(D_v = 1\)</span>, and</p>
 <p><span class="math display">\[\begin{equation}
 \begin{aligned}
