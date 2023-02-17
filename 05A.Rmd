@@ -66,7 +66,7 @@ P(X, t+\Delta t) &= P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t \\
 \end{aligned} \tag{9}
 \end{equation}
 
-This is similar to the Euler method for ODEs. We can apply this to any $X$ for a given time $t$ to obtain $P(X, t)$ for the next time point $t + \Delta t$. One can also use the 2nd order Runge-Kutta method for the time integration (think how).
+This is similar to the Euler method for ODEs. We can apply this to any $X$ for a given time $t$ to obtain $P(X, t)$ for the next time point $t + \Delta t$. Because of the factor $\frac{\Delta t}{\Delta X^2}$, the distances between two adjacent grid points cannot to be small (why?). One can also use the 2nd order Runge-Kutta method for the time integration (think how).
 
 To fully solve $P(X, t)$ for any given $X$ and $t$, we also need to specify the boundary conditions and the initial conditions. For the boundary condition, we set $P(X, t) = 0$ for any boundary grid points, where $X = -l/2$ or $X = l/2$, $l$ is the size of the system. A boundary condition with specified values of $P$ is called [Dirichlet boundary condition](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition).
 

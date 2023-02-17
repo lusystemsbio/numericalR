@@ -81,7 +81,7 @@ The model has two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the 
 ``` {r,fig.width = 4, fig.height = 3}
 par(mar = c(4, 4, 1, 1))
 set.seed(10)
-n = 2; len = 50; dX = 1; dt = 0.01; t.total_iter = 20
+n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 20
 D = c(0.1,1); mu = 1.5
 
 ngrid = as.integer(len/dX)+1  # number of grid points
@@ -104,7 +104,7 @@ for(i in 0:5){
     u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
                                   t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
   }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,3)) 
   lines(X_all,u_1[2,], col=2)
   legend("topright", inset=0.02, 
        legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
@@ -127,7 +127,7 @@ for(i in 0:3){
     u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
                                   t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
   }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,2)) 
   lines(X_all,u_1[2,], col=2)
   legend("topright", inset=0.02, 
        legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
@@ -135,27 +135,39 @@ for(i in 0:3){
 }
 ```
 
-When $d = 0.5$ and $\mu = 0.8$, the system becomes of a traveling wave (partially due to the periodic boundary condition).
+When $d = 0.3$ and $\mu = 0.9$, the system can oscillate over time, but for each time point both $u$ and $v$ are constant in space. 
 
 ``` {r,fig.width = 4, fig.height = 3}
 par(mar = c(4, 4, 1, 1))
-D = c(0.7,1); mu = 0.3; t.total_iter = 20
+D = c(0.3,1); mu = 0.9; t.total_iter = 1; niter = 100
 set.seed(10)
 
-u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
+u0 = matrix(2 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
 
+traj_u = matrix(0, nrow = niter+1, ncol = 3)
+traj_u[1, ] = c(0, u0[,51])
 u_1 = u0
-for(i in 0:5){
-  if(i>0){
-    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
-  }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,10)) 
-  lines(X_all,u_1[2,], col=2)
-  legend("topright", inset=0.02, 
-       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
-       col=c(1,2), lty = 1, cex=0.8)
+for(i in 0:niter){
+    if(i > 0){
+      u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
+                                    t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+      traj_u[i+1, ] = c(i*t.total_iter, u_1[,51])
+    }
+    if(i < 6){
+      plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,5)) 
+      lines(X_all,u_1[2,], col=2)
+      legend("topright", inset=0.02, 
+           legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
+           col=c(1,2), lty = 1, cex=0.8)
+    }
 }
+```
+
+```{r}
+plot(traj_u[,1], traj_u[,2], type = "l", col = 1, xlab = "t", ylab = "u or v", ylim = c(0,3))
+lines(traj_u[,1], traj_u[,3], col = 2)
+legend("topright", inset=0.02, legend = c("u", "v"), 
+     col=c(1,2), lty = 1, cex=0.8)
 ```
 
 ## An activator-inhibitor model
@@ -181,7 +193,7 @@ There are also two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the
 ``` {r,fig.width = 4, fig.height = 3}
 par(mar = c(4, 4, 1, 1))
 set.seed(10)
-n = 2; len = 50; dX = 1; dt = 0.01; t.total_iter = 20
+n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 5
 D = c(0.1,1); mu = 1.5
 
 ngrid = as.integer(len/dX)+1  # number of grid points
@@ -192,9 +204,8 @@ u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
 turing_aim <- function(t, p, mu){
   u = p[1]
   v = p[2]
-  u2 = u*u
-  f =  u2/v - u
-  g = mu*(u2 - v)
+  f = u**2/v - u
+  g = u**2 - v
   return(c(f,g))
 }
 
@@ -204,7 +215,7 @@ for(i in 0:5){
     u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_aim, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
                                   t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
   }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,50), ylim=c(0,2)) 
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,3)) 
   lines(X_all,u_1[2,], col=2)
   legend("topright", inset=0.02, 
        legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
