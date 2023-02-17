@@ -168,7 +168,7 @@ pde_fd_fokker_planck <- function(derivs, ngrid, X_all, dX, dt, D, t0, t.total, p
 
 We applied the above function on Brownian dynamics under a harmonic potential and constant noise (Ornstein–Uhlenbeck process). 
 
-$$\frac{\partial P}{\partial t} = -\frac{\partial (-kXP)}{\partial X}  + D\frac{\partial^2 P}{\partial X^2} \tag{7}$$
+$$\frac{\partial P}{\partial t} = -\frac{\partial (-kXP)}{\partial X}  + D\frac{\partial^2 P}{\partial X^2} \tag{8}$$
 
 ```{r}
 len = 100; dX = 1; dt = 0.01; D = 1; k = 0.01
@@ -194,9 +194,9 @@ legend("topright", title = "Iterations", inset=0.02,
        col=1:6, lty=1, cex=0.8)
 ```
 
-In the above simulation, the $P$ is localized at the center $X$ initially and converge to a Gaussian distribution. When using a stiffer spring, $P$ converges to a narrower Gaussian. It can be shown the steady state solution of Equation (7) ($\frac{\partial P}{\partial t} =0$) is
+In the above simulation, the $P$ is localized at the center $X$ initially and converge to a Gaussian distribution. When using a stiffer spring, $P$ converges to a narrower Gaussian. It can be shown the steady state solution of Equation (8) ($\frac{\partial P}{\partial t} =0$) is
 
-$$P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}e^{-\frac{kX^2}{2D}} \tag{8}$$
+$$P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}e^{-\frac{kX^2}{2D}} \tag{9}$$
 In the plot, the dots represent the theoretical values of $P_{ss}(X)$.
 
 ```{r}
