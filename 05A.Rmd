@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Diffusion equation
 
-In the previous section, we have discussed how to model Brownian motion with SDE. For a 1-variable system
+In the previous section, we have discussed how to model Brownian motion with an SDE. For a 1-variable system
 
 $$\frac{dX}{dt} = \sqrt{2D}\eta(t) \tag{1} $$
 
