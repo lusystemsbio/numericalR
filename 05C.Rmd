@@ -24,7 +24,7 @@ For a two-component system of $u$ and $v$, the reaction-diffusion equations are
 \end{aligned} \tag{1}
 \end{equation}
 
-We generalize the previous PDE integrator for a two-component system. Here, we choose to use the periodic boundary condition by setting the state variables at the boundary points the same. 
+We generalize the previous PDE integrator for a two-component system. Here, we choose to use a periodic boundary condition by setting the state variables at the boundary points the same. 
 
 For grid points ${X_i}$ for $i = 1,2 ...n$, we set $X_0 = X_n$ and $X_{n+1} = X_1$.
 
@@ -60,7 +60,7 @@ pde_fd_reaction_diffusion_multi <- function(derivs, n, ngrid, dX, dt, D, t0, t.t
 
 For a two-component dynamical system with a stable steady state, the system can become unstable when considering the molecular diffusion in space. Thus an instability can allow pattern formations. This phenomenon is called Turing instability. There are two classes of such two-component systems, one being the substrate-depletion model and the other being the activator-inhibitor model. In the following, we will illustrate both cases with the [Gierer-Meinhardt model](http://www.scholarpedia.org/article/Gierer-Meinhardt_model).
 
-## An substrate depletion model
+## A substrate depletion model
 
 The model follows Equation (1), where $D_u =d$, $D_v = 1$, and
 
