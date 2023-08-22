@@ -1,50 +1,38 @@
 ---
-title: "Part 4: Stochastic differential equations"
+title: 'Part 4: Systems with time delays'
 subtitle: "D. Exercises"
 author: "Mingyang Lu"
-date: "11/17/2021"
-output: 
+date: "08/18/2023"
+output:
   html_document:
-    toc: true
-    toc_depth: 2
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Convergence of stochastic simulations
-SDE simulation is stochastic in nature. To evaluate the convergence and stability of a simulation, we rely on statistical analysis of the stochastic trajectories, *e.g.*, by mean levels and/or their standard deviations. Using the Ornstein–Uhlenbeck process (see Part 4A) as an example, design a simulation experiment to evaluate the convergence of simulation statistics with respect to the computational cost (here, we consider that the computational cost is proportional to the length of the simulation).
+# 1. Anorther bifurcation analysis
 
-# Geometric Brownian motion
+Consider the circuit with one self-inhibiting gene, described by Equation (1) in Part 4A. Now, we would like to plot a bifurcation diagram for the circuit dynamics by selecting the time delay $\tau$ as the control parameter. For each $\tau$, simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the control parameter $\tau$.
 
-Consider a geometric Brownian motion, governed by the following SDE:
+# 2. Method of steps
 
-$$\frac{dX}{dt} = \mu X+ \sigma X\eta(t) \tag{1}$$
-, where $\mu$ and $\sigma$ are positive constants. Show using SDE simulations that 
+We will use the method of steps for simulating DDEs. In this method, we separate the whole simulation into parts of consecutive short simulations of small duration $\tau$. From the initial condition $N(t)$ for $t \in [t_0-\tau,t_0]$, we can perform a short simulation to obtain $N(t)$ for $t \in [t_0, t_0 + \tau]$. Then, we can further perform a short simulation to obtain $N(t)$ for $t \in [t_0+\tau, t_0+2\tau]$. This process can be iterated to advance time until the end of the simulation. In each iteration, only a short time trajectory needs to be saved. 
 
-(1) Mean $<X> = X_0 e^{\mu t}$
+<center> ![Figure 1](./extra/data/04D/steps.png){width=70%} </center>
 
-(2) Variance $Var<X> = X_0^2 e^{2\mu t} (e^{\sigma^2 t} - 1)$
+**(a)** Implement the method of steps. 
 
-# Noise in a flip-flop circuit
+Hint: write a function to perform an iteration of short simulation. This function takes the time trajectory from the previous iteration (or the initial condition for the first iteration) as the input and outputs the time trajectory from the current iteration. 
 
-We revisit the flip-flop circuit that we have experienced in Part 3F. Now we consider gene expression noise. Write down the corresponding SDEs for the circuit and simulate its stochastic dynamics. What types of dynamics do the circuit exhibit with the presence of noise?
+**(b)** Test the algorithm using the logistic growth model with time delays (see the examples in Part 4B).
 
-# Effective potential revisited, again 
+# 3. More on the negative feedback loops
 
-We had multiple discusses of effective potential for non-linear dynamical systems (see Parts 2C and 3E). Over there, we defined the effective potential by the analogy of over-damped dynamics. However, this definition has issues for a high dimensional system. Here, instead, we define a new effective potential by
+In Part 4C, we examined a few negative feedback loops. The loop with either three nodes (Figure 2) or four nodes (Figure 3) can generate oscillatory dynamics. 
 
-$$ U(X, Y) = - log(P(X,Y)) \tag{2}$$
-, where $P$ is the probability of the states near ($X$, $Y$) in the phase plane.
+**(a)** Find a set of parameters for Equation (2) in Part 4C, so that the system generates similar dynamics as those for the loop with three nodes.
 
-Use the toggle switch circuit as an example (see Parts 3A-D), perform SDE simulations, and compute the effective potentials. Plot the potential curves along each of the nullclines. 
-
-# Transition state theory
-
-We revisit the transition rate calculations in Part 4C. Now we vary the noise levels. Identify the relationship between the transition rates and the noise levels. Check if your calculations are consistent with Arrhenius equation, *i.e.*, 
-
-$$\kappa \propto e^{-\frac{\Delta U}{D}} \tag{3}$$
-
-, where $D$ represents the noise level.
-
+**(b)** Find a set of parameters for Equation (2) in Part 4C, so that the system generates similar dynamics as those for the loop with four nodes.

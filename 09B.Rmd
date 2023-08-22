@@ -1,0 +1,350 @@
+---
+title: "Part 9: Global optimization"
+subtitle: "B. Dynamic programming"
+author: "Mingyang Lu"
+date: "08/22/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Dynamic programming
+
+A common optimization problem has a scoring function involving a combination of pairwise terms.
+
+$$E_{tot} = \sum_{i,j}{E_{i,j}} \tag{1}$$
+For example, the potential function for a protein structure is commonly modeled by pairwise energy terms. Computing $E_{tot}$ can be done quite efficiently. But due to an extremely large number of configurations for large systems, sampling all possible configurations to find the global optimum becomes infeasible. 
+
+In some special cases, the scoring function can be decomposed into the scoring function of sub-systems. For example, the total score of a system of size $n$ can be computed from the total score of the system of size $n-1$ plus an addition scoring term that is independent to the sub system of size $n-1$.
+
+$$E_{tot}(n) = E_{tot}(n-1) + e(n) \tag{2}$$
+In such cases, we can use dynamical programming to find the exact solution of a global extremum. In the following, we will illustrate its usage in sequence alignment.
+
+
+# Global sequence alignment
+
+We wish to align two sequences for nucleotides or proteins by transforming one sequence into another with replacement, insertion or deletion. For example, for the following two sequences
+
+```
+GCATGCG
+GATTACA
+```
+
+We can align them into 
+
+```
+GCATG-CG
+G-ATTACA
+```
+
+Letters from the same positions can be either a **match** when they are the same, a **mismatch** when they are different, or an indel (insertion or deletion). In the last type of situations, one sequence contains a gap (represented by "-"). We specify scores for each position depending on the matching status. We assign a positive score $S_{match}$ for a match, a negative (or zero) score $S_{mismatch}$ for a mismach, and a negative (or zero) score $g$ for an indel (gap penalty).
+
+As the scoring function involves the comparisons of two sequences in a particular order, the optimum score can be expressed by the optimum score of a sub-system (*i.e.*, sub-string of the sequences). Thus, we can address the optimization problem effectively with dynamic programming. Needleman–Wunsch algorithm is the original method for global sequence alignment (the alignment of the whole sequences).
+
+Consider that the scoring terms for matches and mismatches are provided by the similar matrix $S(A_i,B_j)$ for the position $i$ from the first sequence $A$ and the position $j$ from the second sequence $B$. We can compute the highest score $F_{i,j}$ for the alignment of the first $i$ characters ($i = 0, 1, ... n_A$) in $A$ and the first $j$ characters ($j = 0, 1, ... n_B$) in $B$. 
+
+Thus, 
+
+\begin{equation}
+\begin{cases}
+  F_{0,j} = jg \tag{3}\\
+  F_{i,0} = ig  \\
+  F_{i,j} = max(F_{i-1,j-1} + S(A_i, B_j), F_{i,j-1} + g, F_{i-1,j} + g)
+\end{cases}
+\end{equation}
+
+In the Needleman–Wunsch algorithm, we (1) compute the similarity matrix; (2) compute the matrix of $F_{i,j}$ with Equation (3) recursively; (3) traceback from $F_{n_A,n_B}$ to find the optimal alignment. Note: there might be multiple solutions of the alignment corresponding to the same optimal score. 
+
+```{r}
+library(stringr)
+
+cal_similarity <- function(A, B, s_match, s_mismatch){
+  # A: sequence A
+  # B: sequence B
+  # s_match: score for a match
+  # s_match: score for a mismatch
+  # return (s): similarity matrix
+  
+  str_a = unlist(str_split(A, ""))
+  str_b = unlist(str_split(B, ""))
+  nA = length(str_a)
+  nB = length(str_b)
+  s = matrix(0, nrow = nA, ncol = nB)
+  for(i in 1:nA){
+    for(j in 1:nB){
+      if(str_a[i] == str_b[j]){
+        s[i,j] = s_match
+      }else{
+        s[i,j] = s_mismatch
+      }
+    }
+  }
+  return(s)
+}
+
+global_scoring <- function(s, gap){
+  # s: matrix of n (length of A), m (length of B)
+  # gap: gap penalty score
+  # return (f): scores for all possible alignments
+  
+  nA = nrow(s)
+  nB = ncol(s)
+  f = matrix(0, nrow = nA+1, ncol = nB+1)
+  f[,1] = (0:nA) * gap
+  f[1,] = (0:nB) * gap
+  for(i in 1:nA){
+    for(j in 1:nB){
+      match = f[i,j] + s[i,j]
+      delete = f[i,j+1] + gap
+      insert = f[i+1,j] + gap
+      f[i+1,j+1] = max(match, delete, insert)
+    }
+  }
+  return(f)
+}
+
+global_traceback <- function(A, B, f, s, gap){
+  # A: sequence A
+  # B: sequence B
+  # f: score matrix for all possible alignments
+  # s: similarity matrix
+  # gap: gap penalty
+  # return: a vector of two strings indicating the optimal alignment
+  
+  str_a = unlist(str_split(A, ""))
+  str_b = unlist(str_split(B, ""))
+  
+  A_align = ""
+  B_align = ""
+  AB_match = ""
+  
+  i = length(str_a)
+  j = length(str_b)
+  while ((i > 0) || (j > 0)){
+    if((i > 0) && (j > 0) && (f[i+1,j+1] == f[i,j] + s[i,j])){
+      A_align = paste0(str_a[i], A_align)
+      B_align = paste0(str_b[j], B_align)
+      if(str_a[i] == str_b[j]){
+        AB_match = paste0("|", AB_match)
+      }else{
+        AB_match = paste0(" ", AB_match)
+      }
+      i = i - 1
+      j = j - 1
+    }else if((i > 0) && (f[i+1,j+1] == f[i,j+1] + gap)){
+      A_align = paste0(str_a[i], A_align)
+      B_align = paste0("-", B_align)
+      AB_match = paste0(" ", AB_match)
+      i = i - 1
+    }else{
+      A_align = paste0("-", A_align)
+      B_align = paste0(str_b[j], B_align)
+      AB_match = paste0(" ", AB_match)
+      j = j - 1
+    }
+  }
+  return(c(A_align, AB_match, B_align))
+}
+
+global_align <- function(A, B, s_match, s_mismatch, gap){
+  # A: sequence A
+  # B: sequence B
+  # s_match: score for a match
+  # s_match: score for a mismatch
+  # gap: gap penalty score
+  s = cal_similarity(A, B, s_match, s_mismatch)
+  f = global_scoring(s, gap)
+  print(f)
+  results = global_traceback(A, B, f, s, gap)
+  return(results)
+}
+```
+
+```{r}
+s_match = 1
+s_mismatch = 0
+gap = 0
+A = "GAATTCAGTTA" 
+B = "GGATCGA" 
+results = global_align(A, B, s_match, s_mismatch, gap)
+test = sapply(results, print, simplify = TRUE)
+```
+
+```{r}
+s_match = 3
+s_mismatch = -3
+gap = -2
+A = "GAATTCAGTTA" 
+B = "GGATCGA" 
+results = global_align(A, B, s_match, s_mismatch, gap)
+test = sapply(results, print, simplify = TRUE)
+```
+
+# Local sequence alignment
+
+Smith–Waterman algorithm is a local sequence alignment that focuses on the best alignment for partial of the sequences. The method is very similar to global sequence alignment, but the optimum score $H_{i,j}$ 
+
+\begin{equation}
+\begin{cases}
+  H_{0,j} = 0 \tag{4}\\
+  H_{i,0} = 0  \\
+  H_{i,j} = max(H_{i-1,j-1} + S(A_i, B_j), H_{i,j-1} + g, H_{i-1,j} + g, 0)
+\end{cases}
+\end{equation}
+
+Essentially, there is no initial gap penalty, and the optimum scores of negative values are changed to zeros. When tracing back, we start from the $i$ and $j$ pairs from the highest score and stop when $H$ becomes zero. This allows to align only the most significant parts of the two sequences. Again, multiple solutions are possible.
+
+```{r}
+local_scoring <- function(s, gap){
+  # s: matrix of n (length of A), m (length of B)
+  # gap: gap penalty score
+  # return (h): scores for all possible alignments
+  
+  nA = nrow(s)
+  nB = ncol(s)
+  h = matrix(0, nrow = nA+1, ncol = nB+1)
+  h[,1] = 0
+  h[1,] = 0
+  for(i in 1:nA){
+    for(j in 1:nB){
+      match = h[i,j] + s[i,j]
+      delete = h[i,j+1] + gap
+      insert = h[i+1,j] + gap
+      h[i+1,j+1] = max(match, delete, insert, 0)
+    }
+  }
+  return(h)
+}
+
+local_traceback <- function(A, B, h, s, gap){
+  # A: sequence A
+  # B: sequence B
+  # h: score matrix for all possible alignments
+  # s: similarity matrix
+  # gap: gap penalty
+  # return: a vector of two strings indicating the optimal alignment
+  
+  str_a = unlist(str_split(A, ""))
+  str_b = unlist(str_split(B, ""))
+  
+  A_align = ""
+  B_align = ""
+  AB_match = ""
+  
+  ind = which(h == max(h), arr.ind = T)
+  
+  # pick the last maximum element in the matrix
+  i = ind[nrow(ind),1]-1
+  j = ind[nrow(ind),2]-1
+  while (((i > 0) || (j > 0)) && (h[i+1,j+1] > 0)){
+    if((i > 0) && (j > 0) && (h[i+1,j+1] == h[i,j] + s[i,j])){
+      A_align = paste0(str_a[i], A_align)
+      B_align = paste0(str_b[j], B_align)
+      if(str_a[i] == str_b[j]){
+        AB_match = paste0("|", AB_match)
+      }else{
+        AB_match = paste0(" ", AB_match)
+      }
+      i = i - 1
+      j = j - 1
+    }else if((i > 0) && (h[i+1,j+1] == h[i,j+1] + gap)){
+      A_align = paste0(str_a[i], A_align)
+      B_align = paste0("-", B_align)
+      AB_match = paste0(" ", AB_match)
+      i = i - 1
+    }else{
+      A_align = paste0("-", A_align)
+      B_align = paste0(str_b[j], B_align)
+      AB_match = paste0(" ", AB_match)
+      j = j - 1
+    }
+  }
+  return(c(A_align, AB_match, B_align))
+}
+
+local_align <- function(A, B, s_match, s_mismatch, gap){
+  # A: sequence A
+  # B: sequence B
+  # s_match: score for a match
+  # s_match: score for a mismatch
+  # gap: gap penalty score
+  s = cal_similarity(A, B, s_match, s_mismatch)
+  h = local_scoring(s, gap)
+  print(h)
+  results = local_traceback(A, B, h, s, gap)
+  return(results)
+}
+```
+
+```{r}
+s_match = 3
+s_mismatch = -3
+gap = -2
+A = "GAATTCAGTTA" 
+B = "GGATCGA" 
+results = global_align(A, B, s_match, s_mismatch, gap)
+test = sapply(results, print, simplify = TRUE)
+results = local_align(A, B, s_match, s_mismatch, gap)
+test = sapply(results, print, simplify = TRUE)
+```
+
+# Travelling salesman problem (TSP)
+
+Consider there are $n$ cities represented by the $x$ and $y$ coordinates in 2D. Our goal is to find the shortest route that travels each city exactly once and then return to the distribution center (the first city). 
+
+```{r}
+c10 = read.table(file = "./extra/data/09/c10.txt")
+colnames(c10) = c("x", "y")
+plot(c10$x, c10$y, type = "p", xlab = "x", ylab = "y")
+```
+
+Here, we consider $n = 10$ cities. We can also apply dynamic programming to find the exact solution of the TSP. This method is called Held–Karp algorithm. We formulate the problem as follows.
+
+First, we consider the first city $i=1$ as the starting point, and define a function *tsp_dp* to compute the  distance of the shortests path from $i=1$ to $j=x$ that goes through a list of cities in $z$, $g(x,z)$.
+
+$$g(x, z) = min_{i \in z}(g(x, z|i), d(i,x)), \tag{5}$$
+
+where $z|i$ means the list of cities in $z$ excluding city $i$, and $d(i,x)$ is the distance between cities $i$ and $x$. Equation (5) can be applied recursively to eventually compute $g(1, 2:n)$. If the optimal $i$ is saved in each function evaluation, we can trace back to find the order of the cities for the optimal path.  See below for the implementation. 
+
+```{r}
+tsp_dp <- function(n, d, x, z){
+  # n: number of cities
+  # d: distance matrix (n by n)
+  # x: the last city
+  # z: a vector of cities passing through
+  # output: g: minimum distance; p: city order
+  if(length(z) == 0){
+    g = d[1,x]
+    pos = 1
+  }else{
+    g = 999999
+    for(i in z){
+      z1 = z[!z == i]
+      results_pre = tsp_dp(n, d, i, z1)
+      dis = results_pre$g + d[i, x]
+      if(g > dis){
+        g = dis
+        pos = c(results_pre$pos, i)
+      }
+    }
+  }
+  return(list(g = g, pos = pos))
+}
+```
+
+This implementation is surprisingly simple. But it only works when $n$ is small (still much better than full permutation).
+
+```{r}
+d = as.matrix(dist(c10, upper = T))
+n = 10
+p = tsp_dp(n,d, 1, 2:n)$pos
+
+plot(c10$x, c10$y, type = "p", xlab = "x", ylab = "y")
+lines(c10$x[p], c10$y[p], type = "l", col = 2)
+lines(c10$x[p[c(n,1)]], c10$y[p[c(n,1)]], type = "l", col = 2)
+```

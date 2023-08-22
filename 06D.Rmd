@@ -1,0 +1,225 @@
+---
+title: "Part 6: Stochastic differential equations"
+subtitle: "D. Stachastic state transitions"
+author: "Mingyang Lu"
+date: "08/18/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# SDEs for a toggle switch circuit 
+
+In this section, we will apply the previously described numerical methods to a toggle switch circuit, as described in Part 2A and Part 3. The dynamics of the circuit expression is governed by a two-variable ODE in the case of deterministic analysis. When we consider gene expression noise to the circuit, the system can be described by SDEs. 
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = g_{X_0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX + s_X(X,Y)\eta_X(t) \\
+              \frac{dY}{dt} = g_{Y_0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY + s_Y(X,Y)\eta_Y(t) \tag{1} \end{cases}
+\end{equation}
+
+Here, we consider the system with constant noise. Below is the R implementation of the rate equations and the noise terms. We use vectors to represent state variables $(X, Y)$, the derivatives $(\frac{dX}{dt}, \frac{dY}{dt})$, and the noise terms $(s_X(X,Y), s_Y(X,Y))$.
+
+``` {r}
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(1/(1+a))
+}
+
+f_ts <- function(t, X, b) {   # same in Part 3E, input: c(X, Y), output: c(dX/dt, dY/dt), 
+  return(c(10 + 40 * hill_inh(X[2], 100, 4) - 0.1*X[1],
+           10 + 40 * hill_inh(X[1], 100, 4) - 0.1*X[2]))
+}
+noise_ts <- function(t, X, b) return(b)  # b: output: c(s_X, s_Y), constant noise here
+```
+
+As the system has constant noise, the Euler-Maruyama method is applied here. 
+
+```{r}
+SDE_Euler_2D <- function(derivs_2D, noise_2D, para, X0, t.total, dt){
+  # derivs: the function of the derivatives, return a 2D vector
+  # noise: the function of the noise term , return a 2D vector
+  # X0: initial condition, a 2D vector of c(X0, Y0)
+  # para: pass-in parameters
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = matrix(0, nrow = n_all, ncol = 2)
+  X_all[1,] = X0
+  dW_all = array(rnorm(2*n_all, mean=0, sd=sqrt(dt)), c(n_all,2))  # all dW terms
+  for (i in 1:(n_all-1)) {
+    t = t_all[i]
+    X = X_all[i,]
+    X = X + dt * derivs_2D(t, X, para) + dW_all[i,] * noise_2D(t, X, para)
+    X_all[i+1,] = pmax(0, X)   # this step alleviate the issue that X becomes negative during the intergration, Xs are no less than zero.
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+Now we perform a stochastic simulation.
+
+``` {r}
+s = c(20, 20)
+X_init = c(50, 200)
+set.seed(1)
+results = SDE_Euler_2D(f_ts, noise_ts, para = s, X0 = X_init, 1000, 0.01) 
+
+plot(NULL, xlab="t", ylab="Levels", xlim=c(0,1000), ylim=c(0,600)) 
+lines(results[,1], results[,2],  col=2)
+lines(results[,1], results[,3],  col=3)
+legend("topright", inset=0.02, legend = c("X", "Y"),
+     col=2:3, lty=1, cex=0.8)
+```
+
+We can also visualize the stochastic trajectory in the phase plane of $X$ and $Y$.
+
+```{r,fig.width = 5, fig.height = 5}
+plot(results[,2], results[,3], type = "l",  cex = 0.3, lwd = 0.3, col = 1,
+     xlab="X", ylab="Y", xlim=c(0,500), ylim=c(0,500))
+```
+
+Similar to the circuit with a self-activating gene, the toggle switch circuit also exhibit bistability. And with sufficient gene expression noise, the circuit can undergo state transitions between the two stable steady states. The state transition happens when $X$ and $Y$ switch the expression levels between the low $X$ high $Y$ state and the high $X$ and low $Y$ state. 
+
+# Transition rate
+
+The above stochastic trajectory indicates state transitions due to gene expression noise. An analogy is the dynamics of a particle under a bistable potential, as illustrated in the following figure. A transition from state A to B occurs when the particle moves away from the basin of A, go across the potential barrier at C, and end up by staying at the basin of B. Similarly, we can define a transition from state B to A. One important statistics of a state transition is the transition rate, defined by the occurrence of the state transitions per unit time. 
+
+To obtain robust statistics of transition rate, a large number of transitions need to be sampled. (The actual number depends on the distribution of the time duration between every two consecutive state transitions. However, as shown in the above simulation, only about three transitions occur in each direction for a simulation of 1000 unit time. The challenge is to efficiently simulate SDEs and have an automated numerical method to count state transitions from the stochastic trajectory. 
+
+<center> ![Figure 1](./extra/data/06D/fig1.png){width=50%} </center>
+<br/>
+
+### Numerating state transitions
+
+One way to compute the transition rate is to perform a long stochastic simulation and then numerate the number of state transitions between the two basins. To achieve this we need (1) a fast ODE integrator and (2) a definition of a state transition. For the first requirement, we would implement a Fortran version of the SDE simulation (see the later part of the section).
+
+For the second requirement, we would define a state transition as follows. 
+
+(1) We separate the phase plane by the line $Y=X$, which is the separatrix of the system. See Part 3D for the method to obtain the separatrix numerical. It worth noting that the separatrix may be different when adding noise of certain type. In this example of constant noise, the separatrix remains the same (why?). 
+
+(2) We identify the ellipse that envelope majority of points in each side of the separatrix. This can be done by eigen decomposition of the covariance matrix. 
+
+``` {r,fig.width = 5, fig.height = 5}
+set_ellipse <- function(mydata, factor=1) {
+  mean_xy = apply(mydata, 2, mean)  # mean X, Y (ellipse center)
+  cov_xy = cov(mydata)  # covariance matrix
+  eigenv = eigen(cov_xy) # find eigenvalues & eigenvectors (ellipse axes and directions)
+  return(list(mean = mean_xy, cov = cov_xy, axis = sqrt(eigenv$values)*factor, vec = eigenv$vectors))
+}
+
+get_ellipse_line <- function(ellipse) {
+  t = seq(0, 2*pi, 0.01)
+  a = ellipse$axis
+  b = cbind(a[1]*cos(t), a[2]*sin(t))
+  c = b %*% t(ellipse$vec)     # generate points along the ellipse
+  x = t(replicate(length(t), ellipse$mean)) + c   # replicate creates a matrix of the mean position.
+  return(x)
+}
+
+results_1 = results[which(results[,2] < results[,3]),2:3]    # X < Y
+ell1 = set_ellipse(results_1, 1.5)
+ell1_line = get_ellipse_line(ell1)
+
+results_2 = results[which(results[,2] >= results[,3]),2:3]   # X >= Y
+ell2 = set_ellipse(results_2, 1.5)
+ell2_line = get_ellipse_line(ell2)
+
+plot(results[,2], results[,3], type = "l",  cex = 0.3, lwd = 0.3, col = 1,
+     xlab="X", ylab="Y", xlim=c(0,500), ylim=c(0,500))
+points(ell1_line[,1], ell1_line[,2], type = "l", lwd = 2, col = 2)
+points(ell2_line[,1], ell2_line[,2], type = "l", lwd = 2, col = 3)
+```
+
+A factor of 1.5 is applied to the axis length to capture most points.
+
+(3)  We can check if a point is within the ellipses or not.
+
+```{r}
+within_ellipse <-function(X, ellipse) {
+  vec = X - ellipse$mean
+  d_a = vec %*% ellipse$vec[,1]   # the projection of the data to the first axis
+  d_b = vec %*% ellipse$vec[,2]   # to the second axis
+  
+  if((abs(d_a) <= ellipse$axis[1]) & (abs(d_b) <= ellipse$axis[2])){ 
+    return(TRUE)
+  }else{
+    return(FALSE)
+  }
+}
+
+within_ellipse(c(100, 300), ell1)
+within_ellipse(c(100, 300), ell2)
+within_ellipse(c(200, 200), ell1)
+within_ellipse(c(200, 200), ell2)
+
+  
+```
+
+(4) During a stochastic simulation, the system is assigned to either state 1 ($X<Y$) or state 2 ($X>=Y$) when the ($X$, $Y$) point falls into the corresponding ellipse. If ($X$, $Y$) becomes outside of both ellipses, the state would not change. A state transition is identified when the system is assigned to the other state, *i.e.*, ($X$, $Y$) enters the other ellipse. By doing so, we will compute the occurrence of state transitions.
+
+``` {r}
+get_state <- function(X, ellipse1, ellipse2) {   # check states
+  if_state1 = within_ellipse(X, ellipse1)
+  if_state2 = within_ellipse(X, ellipse2)
+  if(if_state1) return(1)
+  if(if_state2) return(2)
+  return(NULL)
+}
+
+state_all = unlist(apply(results[,2:3], 1, function(X) return(get_state(X, ell1, ell2))))
+which(diff(state_all) == 1)   # state 1 -> 2
+which(diff(state_all) == -1)  # state 2 -> 1
+```
+
+For the above simulation of 1000 unit time duration, this algorithm detected 10 transitions from the state 1 to state 2, and 9 transitions from the state 2 to 1. From the printed indices, we can observe that many detected "state transitions" occur in a short time period. Some of these might be false positive, as a transition may not be complete before the system goes back to the previous state. One way to alleviate this issue is to decrease the size of the ellipses. However, if the ellipses are too small, some real transitions may not be detected. Another way is to add a grace period during which another state transition would not be detected. However, determining the idea parameter is non-trivial. It is important to evaluate the robustness of a numerical algorithm. 
+
+In addition, the R implementation above is extremely slow. Computing the transition rate requires much longer simulation. Thus, we need to use C/Fortran code.
+
+### Mean first passage time (MFPT)
+
+A much more robust method is to first calculate mean first passage time $\tau$, defined as the time cost for the system to reach the separatrix. The transition rate $\kappa$ can then be obtained by 
+
+$$\kappa = \frac{1}{2\tau} \tag{2}$$
+
+The rationale of Equation (2) is that, when the system is at the separatrix, it can either move forward to the other state, or move backward to the original state. Both cases have 50% chances. Thus, the average waiting time for a transition is $2\tau$. 
+
+Numerically, it is much easier to detect a hit to the separatrix. To avoid the above-mentioned issue when a system does not completely transit, we would:
+
+(1) Detect the current state ($X < Y$ or $X >= Y$) and the simulation time $t_0$.
+
+(2) Simulate until the system hit the separatrix, *i.e.*, the system switches the side. Record the simulation time $t_1$.
+
+(3) Compute the first passage time $t_{fpt} = t_1 - t_0$.
+
+(4) Wait for a fixed duration (the relaxation time), before we start over again (to step 1).
+
+(5) After many iterations of (1 - 4), we then compute the MFPT $\tau = <t_{fpt}>$ and the transition rate by Equation (2).
+
+The implementation of the above algorithm in Fortran is included in [sub_sde_2g.f90](./extra/src/sub_sde_2g.f90). SDE simulations require a random number generator (RNG) to introduce noise. In the R script, we used the build-in function *rnorm* to generate random numbers from a normal distribution. In the Fortran version, a famous RNG called [Lehmer random number generator](https://en.wikipedia.org/wiki/Lehmer_random_number_generator) was implemented to generate random numbers in a uniform distribution from 0 to 1. To obtain random numbers from a normal distribution, we used the [Marsaglia polar method](https://en.wikipedia.org/wiki/Marsaglia_polar_method).
+
+The Fortran code needs to be compiled as follows.
+
+```
+gfortran -fpic -shared extra/src/sub_sde_2g.f90 -o extra/src/sub_sde_2g.so
+```
+
+```{r}
+dyn.load("extra/src/sub_sde_2g.so")
+seed = 11
+t_total = 10**5   # a longer simulation to obtain sufficient transitions (100 times as much)
+kappa = c(0, 0)
+nrun = c(0, 0)
+results2 = .Fortran("sde_simulation",as.integer(seed),as.double(t_total),as.double(kappa),as.integer(nrun))
+results2[[3]]  # transition rates 1->2, 2->1
+results2[[4]]  # number of counted transitions
+```
+
+The above script illustrates the usage of the Fortran code. However, to obtain accurate transition rates, simulation time should be increased from $10^5$ to at least $10^7$. Or multiple runs of the stochastic simulations can be generated in parallel to further improve the efficiency. (Question: how to learn that the calculated transition rates have converged or not?)
+
+Please also note that, for a more complex system, it would be much harder to obtain the separatrix and determine the state of the system from ($X$, $Y$). 

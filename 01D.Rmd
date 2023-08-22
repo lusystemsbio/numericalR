@@ -1,0 +1,86 @@
+---
+title: "Part 1: Introduction to R Programming"
+subtitle: "D. Exercises"
+author: "Mingyang Lu"
+date: "08/16/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Radius of gyration
+
+In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
+
+```{r}
+if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
+  install.packages("bio3d")   # if not, install "bio3d"
+}
+library(bio3d)
+```
+
+The package bio3d allows users to download and process protein structures from Protein Data Bank (PDB).
+
+```{r}
+mystructure <- read.pdb("7l3u")  # load online data
+coord <- mystructure$atom
+class(coord)
+head(coord)
+```
+
+The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
+Here, the radius of gyration $R_g$ is defined as:
+
+$$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j \Delta \mathbf{r_j} \cdot \Delta \mathbf{r_j}}{\sum_{j=1}^{N}m_j}}$$
+
+where $\mathbf{r_j}$ is the coordinate of atom $j$ (*i.e.*, x, y, and z values), $m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. $m_j$ depends on the atom type, which can be found in the above data frame in the "elesy" column.
+
+$\mathbf{\overline{r}}$ is defined as
+
+$$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
+$\Delta \mathbf{r_j}$ is defined as
+
+$$\Delta \mathbf{r_j} = \mathbf{r_j} - \mathbf{\overline{r}}$$
+
+Hint: Pay attention the dot product operation ($\cdot$) in the definition of $R_g$. Try the following for the usage of atom2mass
+
+```{r}
+  ?atom2mass
+```
+
+
+# 2. Stirling's approximation
+
+Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute $\ln n!$. For small $n$, this can be done with the following code:
+
+```{r}
+ln_fact <- function(n) {
+  return (log(factorial(n)))
+}
+ln_fact(10)
+```
+
+However, for large $n$ (*e.g.*, 1000), this method fails (think why?). In this case, we can express $\ln n!$ as the following. 
+
+$$f(n) = \ln n!=\sum_{j=1}^{n}\ln j$$
+
+**2.1** Create R functions to compute $f$ as the function of $n$ using the following methods: 
+
+* (1) Iteration with for loop in R; 
+* (2) Use vector operations in R; 
+* (3) Use Apply family functions (such as apply, lapply, *etc.*) in R; 
+* (4) Use C or Fortran subroutines/functions. 
+
+Benchmark these methods with microbenchmark.
+
+**2.2** In mathematics, there is famous formula called Stirling's approximation.
+
+$$\ln n! \approx n\ln n - n$$
+Plot the relative difference of the left hand side and the right hand side, *.i.e.*,
+$$1-\frac{n\ln - n}{\ln n!}$$
+as the function $n$. 

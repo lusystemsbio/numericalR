@@ -1,8 +1,8 @@
 ---
 title: "Part 3: Phase plane"
-subtitle: "F. Exercises"
+subtitle: "F. Separatrix"
 author: "Mingyang Lu"
-date: "11/09/2021"
+date: "11/08/2021"
 output: 
   html_document:
     toc: true
@@ -13,86 +13,113 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Numerical continuation for 2D bifurcation
+In the previous section, we show typical dynamical analysis based on phase plane for two-variable non-linear dynamical systems. In the case of toggle switch gene circuit, the vector field and time trajectories indicates that there are two basins. A term named separatrix is a curve in the phase plane that defines the boundary of the basins. Starting from any initial condition from one side of the separatrix will always lead to the corresponding steady state (attractor). Usually it is non-trivial to obtain separatrix in general. But for certain cases like saddle-node systems, there is an easy trick to obtain the separatrix.
 
-We consider the same toggle switch circuit, described in details in Parts 3A-E. The goal here is the reproduce the bifurcation curves from Part 3C using numerical continuation. From math, we will identify a curve that satisfy Equation (1) -- there are two equations and three variables.
-
-\begin{equation}
-\begin{cases} \frac{dX}{dt} = f_X(X, Y, \lambda) = 0 \\
-              \frac{dY}{dt} = f_Y(X, Y, \lambda) = 0 \end{cases} \tag{1}
-\end{equation}
-
-Taking partial derivatives with respect to $X$, $Y$, and $\lambda$, we get
-
-\def\A{
-\begin{pmatrix}
-      \Delta X \\
-      \Delta Y 
-\end {pmatrix}}
-
-\def\B{
-\begin{pmatrix}
-      f_X \\
-      f_Y 
-\end {pmatrix}}
+We again consider the following ODEs,
 
 \begin{equation}
-\begin{cases} \frac{\partial f_X}{\partial X}\Delta X + \frac{\partial f_X}{\partial Y}\Delta Y + \frac{\partial f_X}{\partial \lambda}\Delta \lambda = 0  \\
-              \frac{\partial f_Y}{\partial X}\Delta X + \frac{\partial f_Y}{\partial Y}\Delta Y + \frac{\partial f_Y}{\partial \lambda}\Delta \lambda = 0 \end{cases}
+\begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
+              \frac{dY}{dt} = f_Y(X,Y) \end{cases}
 \end{equation}
 
-Taking the matrix form, we have
-
-$$ \mathbf{J} \A + \frac{\partial}{\partial \lambda}\B \Delta \lambda = 0 \tag{2}$$
-
-$\mathbf{J}$ is the Jacobian matrix, $\mathbf{\Delta X} = \A$, $\mathbf{f} = \B$. So, Equation (2) becomes
-
-$$ \mathbf{J}\mathbf{\Delta X}  + \frac{\partial}{\partial \lambda}\mathbf{f} \Delta \lambda = 0 \tag{3}$$
-Thus, we will obtain
-
-$$ \frac{d\mathbf{X}}{d\lambda}  = - \mathbf{J}^{-1}\frac{\partial}{\partial \lambda}\mathbf{f} \tag{4}$$
-Equation (4) is a generalization of Equation (2) in Part 2D. From $\frac{d\mathbf{X}}{d\lambda}$, we can compute changes in $\lambda$, $X$ and $Y$ along the bifurcation curve.
-
-Implement the algorithm, and calculate the bifurcation curves in Part 3C.
-
-# A flip-flop gene circuit
-
-Consider a gene circuit of two transcription factors $X$ and $Y$:
-
-<center> ![Figure 1](./extra/data/03F/fig1.png) </center>
-<br/>
-
-$X$ actives $Y$, and $Y$ inhibit $X$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+But now we modify both equations by changing the sign only:
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\ 
-              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{5}
+\begin{cases} \frac{dX}{dt} = -f_X(X,Y) \\
+              \frac{dY}{dt} = -f_Y(X,Y) \end{cases}
 \end{equation}
 
-Explore the behavior of the system with the phase plane analysis. 
+We first plot the vector field of the modified ODEs in the phase plane.
 
-(1) How many steady states the circuit can have?
+``` {r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(1/(1+a))
+}
 
-(2) What are the stability property of the steady states?
+derivs_ts_revised <- function(t, Xs) {
+  X = Xs[1]
+  Y = Xs[2]
+  dxdt = -(5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X)
+  dydt = -(4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y)
+  return(c(dxdt, dydt))
+}
 
-# A toggle switch circuit with self-activating genes
+X_all = seq(0, 600, by=20)   # all X grids
+Y_all = seq(0, 650, by=20)   # all Y grids
+XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
 
-Consider a gene circuit of two transcription factors $X$ and $Y$:
+results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
+  v = derivs_ts_revised(0, Xs)
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate all vector field data
+colnames(results_unit) = c("X", "Y", "dX", "dY")
 
-<center> ![Figure 2](./extra/data/03F/fig2.png) </center>
-<br/>
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
+  geom_segment(aes(xend=X+20*dX, yend=Y+20*dY), arrow = arrow(length = unit(0.05,"in")))
+p1 
+```
 
-$X$ can both inhibit $Y$ and active $X$; $Y$ can both inhibit $X$ and active $Y$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+Now, the middle stead state remains a saddle point. But instead of being *"repulsive"*, the vectors point towards the middle steady state along the direction of the three steady states. Once reaching the steady state, the vectors point outwards along the boundary, which is the separatrix. Thus, we can sample points around the saddle point as the initial conditions for the modified ODEs to numerical obtain the separatrix.
 
-\begin{equation}
-\begin{cases} \frac{dX}{dt} = (g_{X0} + g_{X1}\frac{(X/X_{0X})^{n_{XX}}}{1+(X/X_{0X})^{n_{XX}}})\frac{1}{1+(Y/Y_{0Y})^{n_{YX}}} - k_XX \\
-              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases} \tag{6}
-\end{equation}
+``` {r, fig.width = 5, fig.height = 5}
+# 4th order Runge-Kutta (RK4) for a generic multi-variable system
+RK4_generic <- function(derivs, X0, t.total, dt, ...){
+  # derivs: the function of the derivatives 
+  # X0: initial condition, a vector of multiple variables
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  nx = length(X0)
+  X_all = matrix(0, nrow = n_all, ncol = nx)
+  X_all[1,] =  X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i,],...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2,...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2,...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3,...)
+    X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
 
-Explore the behavior of the system with the phase plane analysis.
+derivs_ts_orig <- function(t, Xs) {
+  X = Xs[1]
+  Y = Xs[2]
+  dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
+  dydt = 4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y
+  return(c(dxdt, dydt))
+}
 
-(1) How many steady states the circuit can have?
+set.seed(77)   # set the seed for the random number generator, remove this line to generate more random initial conditions
+t.total = 100
+dt  = 0.01
+X_range = c(0,600)
+Y_range = c(0,650)
 
-(2) What are the stability property of the steady states?
+X_init_all = array(runif(20, 0, 600), dim = c(10,2)) # generate 10 random initial conditions
+for(i in seq_len(nrow(X_init_all))){
+  results = RK4_generic(derivs_ts_orig, X_init_all[i,], t.total, dt)
+  colnames(results) = c("t", "X", "Y")
+  p1 = p1 + geom_path(data=as.data.frame(results), aes(x=X, y=Y), color = "blue")
+}
+X_init_all = array(runif(20, -1, 1), dim = c(10,2)) # generate 10 random initial conditions
 
-(3) Plot bifurcation diagrams with respect to a kinetic parameter (such as $k_X$).
+for(i in seq_len(nrow(X_init_all))){
+  X_init = X_init_all[i,] + c(189.96888, 126.64398)
+  results = RK4_generic(derivs_ts_revised, X_init, t.total, dt)
+  results = results[which(((results[,2] - X_range[1])*(results[,2] - X_range[2]) <0) &
+          ((results[,3] - Y_range[1])*(results[,3] - Y_range[2]) < 0)),] # filter points outside of the plotting area
+  colnames(results) = c("t", "X", "Y")
+  p1 = p1 + geom_path(data=as.data.frame(results), aes(x=X, y=Y), color = "red")
+}
+
+p1 + xlim(0, 600) + ylim(0, 650)
+```
+
+In the above plot, the trajectories representing the separatrix (red) are shown together with the vector field of the modified ODEs (black) and the trajectories of the original ODEs (blue). We can observe that the blue lines never go across the red line. 

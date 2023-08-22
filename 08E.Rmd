@@ -1,0 +1,112 @@
+---
+title: "Part 8: Monte Carlo Simulations"
+subtitle: "E. Exercises"
+author: "Mingyang Lu"
+date: "08/22/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Sampling a mixture of bivariate Gaussian distributions
+
+We wish to simulate a set of flow cytometry data for a mixture of cells with two distinct cellular states. Let's consider the following 2D distribution (not normalized) $p(x, y)$, consisting of two bivariate Gaussian distributions. $x$ and $y$ measure the expression levels of two proteins for individual cells.
+
+$$p(x,y) = e^{-(x + 10y - 1)^2 - (x - 0.1y + 2)^2} + e^{-(x - 5y + 2)^2 - (x + 0.2y - 1)^2}. \tag{1}$$
+
+The following R function *p_mixture* computes $p(x,y)$ (the variables $x$ and $y$ are inputted in a vector of size 2).
+
+```{r,fig.width = 6.5, fig.height = 6}
+library(ggplot2)
+p_mixture <- function(x){
+  f1 = x[1]+10*x[2]-1
+  f2 = x[1]-0.1*x[2]+2
+  f3 = x[1]-5*x[2] + 2
+  f4 = x[1]+0.2*x[2] - 1
+  return(exp(-f1**2-f2**2) + exp(-f3**2-f4**2))
+}
+
+x_all = seq(-5,5, by =0.05)
+y_all = seq(-2,2, by =0.01)
+data = expand.grid(x_all, y_all)
+colnames(data) = c("x", "y")
+z_all = apply(data, MARGIN = 1, p_mixture)
+data$z = z_all
+ggplot(data, aes(x=x, y=y, z = z)) + geom_contour(breaks = 10^(seq(-2,0, by =0.3)), colour = "black")
+```
+
+Design a Metropolis-Hastings algorithm to sample the distribution. Show your simulation results by plotting the density map of the sampled data points.
+
+Hint:
+
+(1) Think how to devise an appropriate local move to sample $x$ and $y$.
+
+(2) You can use *geom_bin2d* from the ggplot2 library to plot the density map.
+
+# 2. Stochastic SIR model. 
+
+Consider the following reaction network:
+
+$$S + I {\stackrel{\beta}{\rightarrow}} 2I$$
+
+$$I {\stackrel{\nu}{\rightarrow}} R $$
+
+where $\beta = 0.003$ and $\nu = 1$.
+
+**(a)** We consider the initial condition $S(t=0) = 1000$, $I(t=0) = 1$, and $R(t=0) = 0$. Compute $R_0$. Perform a Gillespie simulation and plot the time dynamics of $S$, $I$ and $R$. Please read the "Gillespie_tutorial.rmd" R Markdown for other modeling examples. You can directly use the functions *gillespie_step* and *ssa*, and you will need to write your own propensity function and stoichiometry function in the following format:
+
+```{r}
+my_propensity <- function(Xs) {   # Xs: current state; you can also supply parameters
+  
+  #output: a vector of propensity for all reactions
+}
+
+my_stoichiometry <- function(r_ind) {   # r_ind: the choice of the reaction
+  
+  # output: the stoichiometry vector for the reaction r_ind
+}
+```
+
+**(b)** Perform a deterministic simulation of the same model (check the course PPTs for modeling epidemiology). Visually compare the deterministic and stochastic dynamics. For ODE integration, you can use the following RK4 function
+
+```{r}
+RK4_generic <- function(derivs, X0, n, t.total, dt, ...){ # Runge-Kutta 4th order, n variables, passing parameters via ellipsis
+  # derivs: the function of the derivatives 
+  # X0: initial condition, a vector of two elements
+  # n: total number of variables 
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = matrix(0, nrow = n_all, ncol = n)
+  X_all[1,] = X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i,], ...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2, ...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2, ...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3, ...)
+    X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+**(c)** Now we consider another set of parameters $\beta = 0.3$ and $\nu = 1$, and a new initial condition $S(t=0) = 10$, $I(t=0) = 1$, and $R(t=0) = 0$. You will find the same $R_0$ under this condition, thus similar deterministic dynamics. Perform the Gillespie simulation (try stochastic simulations multiple times, each with different random number seeds) and deterministic simulations again. Compare your results. 
+
+If you try a sufficient large number of simulations, you will find a variety of SIR dynamics:
+
+**(1)** dynamics similar to the deterministic dynamics: with a peak in $I(t)$, no $I$ eventually, but with positive $S$.
+
+**(2)** $I(t)$ dies out at the very beginning;
+
+**(3)** $I(t)$ generates a peak, but $I(t)$ dies out earlier and there are a sufficiently large number of $S$ left.
+
+**(4)** $I(t)$ generates a peak, but eventually there is no $S$ and $I$ left. 

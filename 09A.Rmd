@@ -1,0 +1,561 @@
+---
+title: "Part 9: Global optimization"
+subtitle: "A. MCMC optimization methods"
+author: "Mingyang Lu"
+date: "08/22/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Inefficient sampling 
+
+Metropolis-Hastings algorithm is very powerful in sampling a probability distribution. However, it could be inefficient in some situations. For example, for a physical system in equilibrium, the sampling of the Boltzmann distribution becomes inefficient at low temperatures $T$. This is because the acceptance rate
+
+$$a  = min(1, \frac{P(x')}{P(x)}) = min(1, e^{-(E_{x'} - E_x)/T}) \tag{1}$$
+
+is extremely low for small $T$. When the system's energy has multiple local minima, MCMC sampling at a low temperature would sample one of the energy basins well, but it is very hard to allow transitions and sample the other energy basins. On the other hand, MCMC sampling at a high temperature would allow transitions across energy barriers but ineffective in sampling certain energy minima. Here, we will discuss a few MCMC algorithms for enhanced sampling and global minimization.
+
+# Himmelblau's function
+
+Here, we use the Himmelblau's function as an example. The Himmelblau's function is defined by
+
+$$f(x,y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2. \tag{2}$$
+As illustrated by the contour map of $f(x,y)$, the Himmelblau's function has four well-separated local minima. All of the minima have $f(x,y) = 0$. The function has been used to evaluate the performance of optimization methods.
+
+```{r,fig.width = 6.5, fig.height = 6}
+library(ggplot2)
+f_Himmelblau <- function(x){
+  f1 = x[1]**2+x[2]-11
+  f2 = x[1]+x[2]**2-7
+  return(f1**2+f2**2)
+}
+
+x_all = seq(-6,6, by =0.1)
+y_all = seq(-6,6, by =0.1)
+data = expand.grid(x_all, y_all)
+colnames(data) = c("x", "y")
+z_all = apply(data, MARGIN = 1, f_Himmelblau)
+data$z = z_all
+p = ggplot(data, aes(x=x, y=y, z = z)) + geom_contour(breaks = 10^(seq(-2,2.5, by =0.5)), colour = "black")
+p
+```
+
+# Sampling by the Metropolis-Hastings algorithm
+
+We can use the standard Metropolis-Hastings algorithm (MH) to sample the landscape of $f$. The Metropolis-Hastings algorithm function *mh* is slightly modified from a previous version, so that it can be used later in one of the MCMC enhanced sampling methods. 
+
+```{r}
+mh <- function(n, func, x0, nstep, dx_max, temp, ifprint = F){
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # x0: initial condition, vector of size n
+  # nstep: number of steps
+  # dx_max: maximum step size (chosen from a uniform distribution)
+  # temp: temperature 
+  # ifprint: logical, print messages (acceptance rate)
+  x = matrix(0, nrow = nstep+1, ncol = n)
+  e = numeric(nstep+1)
+  
+  x[1,] = x0
+  e[1] = func(x[1,])
+  num_accept = 0
+  for(i in 1:nstep){
+    dx = runif(n = n, min = -dx_max, max = dx_max)
+    xnew = x[i,] + dx
+    enew = func(xnew)
+    de = enew - e[i]
+    if((de < 0) || (runif(1) <  exp(-de/temp))){
+      x[i+1,] = xnew
+      e[i+1] = enew
+      num_accept = num_accept + 1
+    }else{
+      x[i+1,] = x[i,]
+      e[i+1] = e[i]
+    }
+  }
+  rate = num_accept/nstep
+  if(ifprint)print(paste0("Acceptance rate ", rate))
+  return(list(x = x, e = e, rate = rate))
+}
+```
+
+For the following four temperatures $T=$ 1, 10, 30, and 50, the higher the $T$, more spaces around multiple local minima can then be sampled. At the lowest $T$, the MH sampling is trapped in a single minimum.
+
+```{r}
+temp_all = c(1, 10, 30, 50)
+for(i in 1:4){
+  set.seed(1)
+  nstep = 10^4
+  results_mh = mh(n = 2, func = f_Himmelblau, x0 = numeric(2), nstep = nstep, dx_max = 0.5, 
+                          temp = temp_all[i], ifprint = T)
+  traj = as.data.frame(results_mh$x)
+  colnames(traj) = c("x", "y")
+  traj$z = 0:nstep
+  traj$time = 0:nstep
+  print(p + geom_path(data=traj, aes(x=x, y=y, color = time), size = 0.2) +
+      scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep/2))
+  plot(0:nstep, results_mh$e, type = "l", col = 2, xlab = "Step", ylab = "E")
+}
+```
+
+# Simulated annealing
+
+A powerful yet surprisingly simple global optimization method is to perform the same Metropolis-Hastings sampling of the Boltzmann distributions but with a decreasing temperature. We typically start with a sufficiently high temperature to allow the sampling of all basins and end with a temperature at (or close to) zero to reach to a local minimum. The method is called simulated annealing (SA). Although the SA method does not guarantee to obtain the global minimum, many runs of the SA sampling/simulations would increase the chance to sample the global minimum. SA has been widely used as a global optimization algorithm due to its simplicity, easy implementation, and effectiveness in many situations. 
+
+There are different temperature updating schemes. Below shows one way that linearly decreases the temperature.
+
+```{r}
+sa_linear <- function(n, func, nstep, dx_max, temp_max, scaling, nint, ifprint = F){
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # nstep: number of steps
+  # dx_max: maximum step size (chosen from a uniform distribution)
+  # temp_max: maximum (initial) temperature 
+  # scaling: temperature scaling factor
+  # nint: number of intervals
+  # ifprint: logical, print messages (acceptance rate)
+  x = matrix(0, nrow = nstep+1, ncol = n)
+  e = numeric(nstep+1)
+  t = seq(temp_max, 0, by = - temp_max/nstep)
+
+  x[1,] = numeric(n)
+  e[1] = func(x[1,])
+  num_accept = 0
+  for(i in 1:nstep){
+    dx = runif(n = n, min = -dx_max, max = dx_max)
+    xnew = x[i,] + dx
+    enew = func(xnew)
+    de = enew - e[i]
+    if((de < 0) || (runif(1) <  exp(-de/t[i]))){
+      x[i+1,] = xnew
+      e[i+1] = enew
+      num_accept = num_accept + 1
+    }else{
+      x[i+1,] = x[i,]
+      e[i+1] = e[i]
+    }
+  }
+  if(ifprint)print(paste0("Acceptance rate ", num_accept/nstep))
+  return(list(x = x, e = e, t = t))
+}
+```
+
+```{r,fig.width = 6.5, fig.height = 6}
+set.seed(1)
+nstep = 10^4
+results_sa = sa_linear(n = 2, func = f_Himmelblau,  nstep = nstep, dx_max = 0.5, 
+                       temp_max = 50, scaling = 0.99, ifprint = T)
+plot(results_sa$t, type = "l", xlab = "Steps", ylab = "Temperature")
+traj = as.data.frame(results_sa$x)
+colnames(traj) = c("x", "y")
+traj$z = results_sa$t
+traj$time = 0:nstep
+print(p + geom_path(data=traj, aes(x=x, y=y, color = time), size = 0.2) +
+    scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep/2))
+print(paste0("Final e: ",results_sa$e[nstep+1]))
+print(paste0(c("Final xy: ",results_sa$x[nstep+1,])))
+```
+
+Another common temperature updating scheme is based on a geometric scaling. During each iteration, the current temperature is scaled by a factor smaller but very close to 1 (*e.g.*, 0.999, see the argument *scaling* in the following SA implementation). The geometric scaling allows the global optimization to converge faster.
+
+```{r}
+sa_geometric <- function(n, func, nstep, dx_max, temp_max, scaling, ifprint = F){
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # nstep: number of steps
+  # dx_max: maximum step size (chosen from a uniform distribution)
+  # temp_max: maximum (initial) temperature 
+  # scaling: temperature scaling factor
+  # ifprint: logical, print messages (acceptance rate)
+  x = matrix(0, nrow = nstep+1, ncol = n)
+  e = numeric(nstep+1)
+  t = temp_max * scaling ** (0:nstep)
+  
+  x[1,] = numeric(n)
+  e[1] = func(x[1,])
+  num_accept = 0
+  for(i in 1:nstep){
+    dx = runif(n = n, min = -dx_max, max = dx_max)
+    xnew = x[i,] + dx
+    enew = func(xnew)
+    de = enew - e[i]
+    if((de < 0) || (runif(1) <  exp(-de/t[i]))){
+      x[i+1,] = xnew
+      e[i+1] = enew
+      num_accept = num_accept + 1
+    }else{
+      x[i+1,] = x[i,]
+      e[i+1] = e[i]
+    }
+  }
+  if(ifprint)print(paste0("Acceptance rate ", num_accept/nstep))
+  return(list(x = x, e = e, t = t))
+}
+```
+
+In the application of this SA method below, the sampling of different RNG seeds lead to different local minima. 
+
+```{r,fig.width = 6.5, fig.height = 6}
+for(i in c(1,2,3,5)){
+  set.seed(i)   # different seeds
+  nstep = 10^4
+  results_sa = sa_geometric(n = 2, func = f_Himmelblau, nstep = nstep, dx_max = 0.5, 
+                        temp_max = 50, scaling = 0.999, ifprint = T)
+  traj = as.data.frame(results_sa$x)
+  colnames(traj) = c("x", "y")
+  traj$z = results_sa$t
+  traj$time = 0:nstep
+  print(p + geom_path(data=traj, aes(x=x, y=y, color = time), size = 0.2) +
+      scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep/2))
+  print(paste0("Final e: ",results_sa$e[nstep+1]))
+  print(paste0(c("Final xy: ",results_sa$x[nstep+1,])))
+}
+plot(results_sa$t, type = "l", xlab = "Steps", ylab = "Temperature")
+```
+
+Q: Could you think about other temperature updating schemes?
+
+# Parallel tempering (aka Replica exchange)
+
+Another enhanced sampling method is called parallel tempering (PT), also known as replica exchange. In the PA method, we set up a series of replicas, each corresponding to a fixed temperature. Within each replica, we perform a Metropolis-Hastings sampling of the Boltzmann distribution at the replica's temperature. We can choose the same or different temperatures for different replicas. A typical choice is to use replicas with high temperatures to cross landscape barriers (high $f$ values) and use replicas with low temperatures to explore local minima (low $f$ values).
+
+Also, after certain steps of Metropolis-Hastings sampling for all replicas, we introduce a swapping of the coordinates $(x, y)$ of two replicas with a probability
+
+$$a  = min(1, \frac{e^{-\frac{E_j}{T_i}}e^{-\frac{E_i}{T_j}}}{e^{-\frac{E_i}{T_i}}e^{-\frac{E_j}{T_j}}}) = min(1, e^{(E_i - E_j)(\frac{1}{T_i}-\frac{1}{T_j})}). \tag{3}$$
+
+Such a swapping scheme satisfies detailed balance and ensures all replicas to sample the Boltzmann distributions at the right temperatures. (Q: how to prove this?) The swapping also allows the replicas with the lower temperatures to sample deep into the local minima and get "helps" from the replicas with higher temperatures to sample more states. 
+
+### Two replicas
+
+We first consider a total of two replicas. In the following implementation, the states ($x$) and scores ($e$) for both replicas are stored individually. 
+
+```{r}
+pt_2rep <- function(n, func, x0, niter, nstep, dx_max, temp, ifprint = F) {
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # x0: initial condition, matrix of dimension (n, 2)
+  # niter: number of iterations 
+  # nstep: number of steps in each iteration
+  # dx_max: maximum step size (chosen from a uniform distribution), vector of size 2
+  # temp: vector of size nrep, temperatures of all replica, vector of size 2
+  # ifprint: logical, print messages (acceptance rate)
+  
+  x1 = matrix(0, nrow = niter*(nstep+1), ncol = n)
+  x2 = matrix(0, nrow = niter*(nstep+1), ncol = n)
+  e1 = numeric(niter*(nstep+1))
+  e2 = numeric(niter*(nstep+1))
+  
+  x1[1,] = x0[1,]
+  x2[1,] = x0[2,]
+  num_accept = 0    # counting the number of accepted swaps
+  rate_rep = numeric(2)  # computing the average acceptance rate for each replica
+  for(i in 1:niter){
+    start = (i-1)*(nstep + 1) + 1
+    end = i*(nstep+1)
+    
+    results_1 = mh(n, func, x1[start,], nstep, dx_max = dx_max[1], temp = temp[1])
+    results_2 = mh(n, func, x2[start,], nstep, dx_max = dx_max[2], temp = temp[2])
+      
+    # save the sampling
+    x1[start:end,] = results_1$x
+    x2[start:end,] = results_2$x
+    e1[start:end] = results_1$e
+    e2[start:end] = results_2$e
+    
+    rate_rep[1] = rate_rep[1] + results_1$rate
+    rate_rep[2] = rate_rep[2] + results_2$rate
+    
+    #check switching or not
+    if(i == niter)break  # not for the last iteration
+    a =  exp((e1[end] - e2[end])*(1/temp[1] - 1/temp[2]))
+    if(runif(1) < a){
+      num_accept = num_accept + 1
+      x1[end+1,] = x2[end,]
+      x2[end+1,] = x1[end,]
+      e1[end+1] = e2[end]
+      e2[end+1] = e1[end]
+    }else{
+      x1[end+1,] = x1[end,]
+      x2[end+1,] = x2[end,]
+      e1[end+1] = e1[end]
+      e2[end+1] = e2[end]
+    }
+  }
+  if(ifprint){
+    print(paste0("Replica swapping acceptance rate ", num_accept/niter))
+    print(paste0(c("Acceptance rate for each replica", rate_rep/niter)))
+  }
+  return(list(x1 = x1, x2 = x2, e1 = e1, e2 = e2))
+}
+  
+```
+
+We save the acceptance rate for both the replica swapping and the MH moves for each replica. These outputs help us to decide appropriate $dx_max$ for efficient MH sampling. In the test below, we set the temperatures of the two replica 10 and 50. The acceptance rate for the replica swapping is good (about 40%). However, when the temperatures become more different, the acceptance rate can significantly drop. In that case, more replicas are needed for more efficient sampling.
+
+```{r}
+set.seed(1)
+n = 2
+x0 = matrix(0, nrow = 2, ncol = n)
+niter = 10^2
+nstep = 10^2
+dx_max = c(1, 2)
+temp = c(10, 50)
+nstep_tot = niter*(nstep+1)
+results_pt = pt_2rep(n = n, func = f_Himmelblau, x0 = x0, niter = niter,
+                    nstep = nstep, dx_max = dx_max, temp = temp, ifprint = T)
+traj1 = as.data.frame(results_pt$x1)
+colnames(traj1) = c("x", "y")
+traj1$z = 1:nstep_tot
+traj1$time = 1:nstep_tot
+print(p + geom_path(data=traj1, aes(x=x, y=y, color = time), size = 0.2) +
+    scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep_tot/2))
+
+traj2 = as.data.frame(results_pt$x2)
+colnames(traj2) = c("x", "y")
+traj2$z = 1:nstep_tot
+traj2$time = 1:nstep_tot
+print(p + geom_path(data=traj2, aes(x=x, y=y, color = time), size = 0.2) +
+    scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep_tot/2))
+```
+
+### Multiple replicas
+
+We generalize the previous PT implementation to allow more than two replicas. Here, we use R lists to save systems' states and *lapply* on the *mh* function for MH sampling of all replica {1, 2, ... $n_{rep}$}. We also set the temperatures $T_1 < T_2 < ... < T_{rep}$. Each replica undergoes the same number of MH sampling steps before replica swapping is allowed. There are also many different ways for replica swapping. For example, two replicas can be randomly selected for swapping. To improve the efficiency, we only allow the swapping between two adjacent replicas. To ensure ergodicity, we perform the swapping between 1 and 2, 3 an 4, *etc* in one round, and the swapping between 2 and 3, 4 and 5, *etc* in a second round.
+
+```{r}
+pt_multi <- function(n, func, x0, nrep, niter, nstep, dx_max, temp, ifprint = F) {
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # x0: initial condition, matrix of dimension (n, nrep)
+  # nrep: number of replicas
+  # niter: number of iterations 
+  # nstep: number of steps in each iteration
+  # dx_max: maximum step size (chosen from a uniform distribution), vector of size nrep
+  # temp: vector of size nrep, temperatures of all replica, vector of size nrep
+  # ifprint: logical, print messages (acceptance rate)
+  
+  mh_rep <- function(ind){
+    return(mh(n, func, x[[ind]][start,], nstep, dx_max = dx_max[ind], temp = temp[ind]))
+  }
+  
+  x = lapply(1:nrep, function(x) matrix(0, nrow = niter*(nstep+1), ncol = n))
+  e = matrix(0, nrow = niter*(nstep+1), ncol = nrep)
+  
+  for(i in 1:nrep){
+    x[[i]][1,] = x0[i,]
+  }
+  num_accept = numeric(nrep-1)    # counting the number of accepted swaps
+  num_proposed = numeric(nrep-1)    # counting the number of attempted swaps
+  rate_rep = numeric(nrep)  # computing the average acceptance rate for each replica
+  for(i in 1:niter){
+    start = (i-1)*(nstep+1) + 1
+    end = i*(nstep+1)
+    
+    results = lapply(1:nrep, mh_rep)
+    
+    # save the sampling
+    for(j in 1:nrep){
+      x[[j]][start:end,] = results[[j]]$x
+      e[start:end,j] = results[[j]]$e
+      rate_rep[j] = rate_rep[j] + results[[j]]$rate
+    }
+    
+    #check switching or not
+    if(i == niter)break  # not for the last iteration
+    
+    for(j in 1:nrep){
+      x[[j]][end+1,] = x[[j]][end,]
+      e[end+1,j] = e[end,j]
+    }
+    
+    if(i %% 2 == 1){
+      j_seq = seq(3, nrep, 2)
+    }else{
+      j_seq = seq(2, nrep, 2)
+    }
+    for(j in j_seq){ # swapping from high temperature first
+      num_proposed[j-1] = num_proposed[j-1] + 1
+      a =  exp((e[end,j-1] - e[end, j])*(1/temp[j-1] - 1/temp[j]))
+      if(runif(1) < a){
+        num_accept[j-1] = num_accept[j-1] + 1
+        x[[j-1]][end+1,] = x[[j]][end,]
+        x[[j]][end+1,] = x[[j-1]][end,]
+        e[end+1,j-1] = e[end,j]
+        e[end+1,j] = e[end,j-1]
+      } # no need to update for a rejection, the end+1 step has been updated earlier.
+    }
+  }
+  if(ifprint){
+    print(paste0(c("Replica swapping acceptance rate ", num_accept/num_proposed)))
+    print(paste0(c("Acceptance rate for each replica", rate_rep/niter)))
+  }
+  return(list(x = x, e = e))
+}
+```
+
+An application of the PT sampling.
+
+```{r}
+set.seed(1)
+n = 2
+nrep = 6
+x0 = matrix(0, nrow = nrep, ncol = n)
+niter = 100
+nstep = 100
+dx_max = c(0.3, 0.5, 0.7, 1, 1.5, 2.5)
+temp = c(2.3, 5, 10, 20, 40, 80)
+nstep_tot = niter*(nstep+1)
+
+results_pt = pt_multi(n = n, func = f_Himmelblau, x0 = x0, nrep = nrep, niter = niter,
+                    nstep = nstep, dx_max = dx_max, temp = temp, ifprint = T)
+for(i in 1:nrep){
+  traj = as.data.frame(results_pt$x[[i]])
+  colnames(traj) = c("x", "y")
+  traj$z = 1:nstep_tot
+  traj$time = 1:nstep_tot
+  print(p + geom_path(data=traj, aes(x=x, y=y, color = time), size = 0.2) +
+      scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep_tot/2))
+}
+
+print(paste0(c("Mean energy per replica: ", sapply(1:nrep, function(i){return (mean(results_pt$e[,i]))}))))
+```
+
+Below show the states sampled in different replicas.
+
+```{r}
+plot(1:nstep_tot,results_pt$x[[1]][,1], type = "l", col = 2, xlab = "Steps", ylab = "Coordinates", ylim = c(-6,6))
+lines(1:nstep_tot,results_pt$x[[1]][,2], type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("x", "y"),
+       col=c(2,4), lty=1, cex=0.8)
+
+plot(1:nstep_tot,results_pt$x[[4]][,1], type = "l", col = 2, xlab = "Steps", ylab = "Coordinates", ylim = c(-6,6))
+lines(1:nstep_tot,results_pt$x[[4]][,2], type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("x", "y"),
+       col=c(2,4), lty=1, cex=0.8)
+
+plot(1:nstep_tot,results_pt$x[[6]][,1], type = "l", col = 2, xlab = "Steps", ylab = "Coordinates", ylim = c(-6,6))
+lines(1:nstep_tot,results_pt$x[[6]][,2], type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("x", "y"),
+       col=c(2,4), lty=1, cex=0.8)
+```
+
+# Simulated tempering
+
+Lastly, we introduce another method called simulated tempering (ST). The method is in fact similar to simulated annealing in that the temperature also varies during the MCMC sampling. However, the ST method is more sophisticated, as it can properly sample the expected Boltzmann distributions at different temperatures in a single sampling trajectory (only one replica is needed).
+
+In the ST method, the temperature of the system is sampled using MCMC among discrete user-defined temperature values $T_1 < T_2 < ... < T_{n_{temp}}$. We define a mixing parameter $\alpha$ to specify the ratio of Markov Chain moves that are devoted for the MH sampling under the same temperature or those that are devoted for MCMC sampling of the temperatures. When sampling the temperatures, we propose a move with 50% chance to increase the temperature to the next discrete level and 50% chance to decrease the temperature to the next discrete level. If the boundaries of the temperature values are reached, the temperature then remains at the boundary (for one of the 50% chances).
+
+The proposed temperature move is accepted with the probability
+
+$$a = min(1, \frac{c'}{c}e^{-E(\frac{1}{T'} - \frac{1}{T})}). \tag{4}$$
+Here, $c$ are the weighting factors for each temperature level. If $c$ is set as the normalization factors of the Boltzmann distributions (*i.e.*, partition functions in statistical mechanics), different temperatures will be sampled with equal probability. $c$ is usually unknown, but we can set arbitrary values for an improved sampling (*e.g.*, larger $c$ for low temperatures to emphasize on the sampling under low temperatures). As usual, the notation $'$ denotes the proposed move. Below shows an implementation.
+
+```{r}
+st <- function(n, func, x0, nstep, alpha, dx_max, ntemp, temp_all, weight_all, ifprint = F) {
+  # n: number of variables
+  # func: function to optimize func(x); x: vector of size n
+  # x0: initial condition, vector of size n
+  # nstep: number of steps in each iteration
+  # alpha: mixing parameter (% of MCMC step v.s temperature step)
+  # dx_max: maximum step size (chosen from a uniform distribution), vector of size nrep
+  # ntemp : number of temperatures (T1 < T2 < T3 ... < Tntemp)
+  # temp_all: vector of size ntemp, temperatures 
+  # ifprint: logical, print messages (acceptance rate)
+  
+  x = matrix(0, nrow = nstep+1, ncol = n)
+  ind_t = integer(nstep+1)
+  e = numeric(nstep+1)
+  
+  x[1,] = x0
+  ind_t[1] = sample(ntemp,1)
+  e[1] = func(x[1,])
+  num_accept = numeric(2)
+  num_tot = numeric(2)
+  for(i in 1:nstep){
+    temp = temp_all[ind_t[i]]
+    
+    if(runif(1) <= alpha){
+      num_tot[1] = num_tot[1] + 1
+      ind_t[i+1] = ind_t[i]
+      dx = runif(n = n, min = -dx_max, max = dx_max)
+      xnew = x[i,] + dx
+      enew = func(xnew)
+      de = enew - e[i]
+      if((de < 0) || (runif(1) <  exp(-de/temp))){
+        x[i+1,] = xnew
+        e[i+1] = enew
+        num_accept[1] = num_accept[1] + 1
+      }else{
+        x[i+1,] = x[i,]
+        e[i+1] = e[i]
+      }
+    }else{
+        num_tot[2] = num_tot[2] + 1
+        if(sample(2,1) == 1){
+          ind_t_new = max(1, ind_t[i]-1)
+        }else{
+          ind_t_new = min(ind_t[i]+1, ntemp)
+        }
+        temp_new = temp_all[ind_t_new]
+        if(runif(1) < weight_all[ind_t_new]/weight_all[ind_t[i]] 
+           * exp(-e[i]*(1/temp_new - 1/temp))){
+          ind_t[i+1] = ind_t_new
+          x[i+1,] = x[i,]
+          e[i+1] = e[i]
+          num_accept[2] = num_accept[2] + 1
+        }else{
+          ind_t[i+1] = ind_t[i]
+          x[i+1,] = x[i,]
+          e[i+1] = e[i]
+        }
+    }
+  }
+  rate = num_accept/num_tot
+  if(ifprint)print(paste0(c("Acceptance rate ", rate)))
+  return(list(x = x, e = e, ind_t = ind_t))
+}
+```
+
+We consider 16 different temperature levels (from 5 to 80) and a set of weighting factors of decreasing values (from 5 to 1). As shown below, the ST method can properly sample multiple minima in a single sampling trajectory.
+
+Q: How to obtain the details of local/global minima from the outputs of the ST?
+ 
+```{r}
+set.seed(1)
+n = 2
+x0 = numeric(n)
+nstep = 10^4
+alpha = 0.9
+dx_max = 1
+temp_all = seq(5,80,5)
+ntemp = length(temp_all)
+weight_all = seq(5, 1, by = - 4/(ntemp-1))
+results_st = st(n = n, func = f_Himmelblau, x0 = x0, nstep = nstep, alpha = alpha, 
+               dx_max = dx_max, ntemp = ntemp, temp_all = temp_all, 
+               weight_all = weight_all, ifprint = T)
+
+traj = as.data.frame(results_st$x)
+colnames(traj) = c("x", "y")
+traj$z = 1:(nstep+1)
+traj$time = 1:(nstep+1)
+print(p + geom_path(data=traj, aes(x=x, y=y, color = time), size = 0.2) +
+    scale_colour_gradient2(low = "blue", mid = "yellow" , high = "red", midpoint=nstep/2))
+
+plot(0:nstep,temp_all[results_st$ind_t], type = "l", col = 2, xlab = "Steps", ylab = "Temperature")
+plot(0:nstep,results_st$e, type = "l", col = 2, xlab = "Steps", ylab = "E")
+
+plot(0:nstep,results_st$x[,1], type = "l", col = 2, xlab = "Steps", ylab = "Coordinates", ylim = c(-6,6))
+lines(0:nstep,results_st$x[,2], type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("x", "y"),
+       col=c(2,4), lty=1, cex=0.8)
+```

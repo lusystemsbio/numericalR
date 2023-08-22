@@ -1,0 +1,464 @@
+---
+title: "Part 8: Monte Carlo Simulations"
+subtitle: "D. Gillespie algorithm"
+author: "Mingyang Lu"
+date: "08/22/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Intro
+
+Here, we will discuss to use Gillepie algorithm to simulate the stochastic dynamics of a chemical reaction network. First, we setup a vector $\mathbf{S}$ to represent the state of the system, composed of the number of molecules of each species. For each chemical reaction $j$, 
+
+$$ \sum_i^{n_s}{\alpha_{ij}S_i} \rightarrow \sum_i^{n_s}{\beta_{ij}S_i}$$
+where $n_S$ is the total number of species.
+
+Second, we define the stoichiometry matrix $\Gamma$, where each element $\Gamma_{ij} = \beta_{ij} - \alpha_{ij}$. The stoichiometry vector $\mathbf{\gamma_j}$ for each reaction $j$ is the $j^th$ column vector of $\Gamma$. 
+
+Third, we define the reaction propensity $R_j$ as the product of its specific probability rate (from the law of mass action, $R_j = k_j \Pi_{i=1}^{n_S} S_i^{\alpha_{ij}}$) and its reaction degeneracy (see [reference]( https://doi.org/10.1016/0378-4371(92)90283-V)).
+
+# Workflow for Gillespie algorithm
+
+**1.** Set the initial state $\mathbf{S}$ and initialize time $t$ to 0.
+
+**2.** Calculate the reaction propensities $R_j(S)$
+
+**3.** Randomly pick a reaction j based on $R_j(S)$
+
+**4.** Randomly pick the waiting time $\tau$ based on $R_{tot} = \sum_{j}{R_j(\mathbf{S})}$
+
+**5.** Increment the simulation time $t \rightarrow t + \tau$
+
+**6.** Update the state $\mathbf{S} \rightarrow \mathbf{S} + \mathbf{\gamma_j}$ reflect the fact that reaction j has occurred.
+
+**7.** Return to step 2.
+
+The following is a generic implementation of the Gillespie algorithm in R.
+
+```{r} 
+# a generic Gillespie algorithm for one iteration
+gillespie_step <- function(t,Xs,propensity, stoichiometry,...){
+  p_all = propensity(Xs, ...)  # propensity
+  p_sum = sum(p_all)
+  if(abs(p_sum) < 10^-9){   # if p_sum = 0, simulation stops
+    return(list(t = t, Xs = Xs, if_stop = TRUE)) 
+  }
+  dt = rexp(1,rate=sum(p_all))  # compute the waiting wait from an exponential distribution 
+  event = sample(length(p_all),size=1,prob=p_all)   # choose the event
+  dx = stoichiometry(event, ...) #  find the stoichiometry vector corresponding to the selected reaction
+  t_new = t + dt
+  Xs_new = Xs + dx
+  return(list(t = t_new, Xs = Xs_new, if_stop = FALSE))  #output: new t, new Xs
+}
+
+# the Gillespie simulation
+# Users need to specify:
+# (1) the initial state X0 (a vector of n species)
+# (2) maximum time (tmax)
+# (3) maximum allowed iterations (iter_max)
+# (4) other parameters required for the propensity (mostly kinetic rates)
+
+ssa <- function(propensity,stoichiometry,X0,tmax,iter_max, ...){
+  Xs = X0
+  n = length(Xs)
+  t_all = rep(NA, iter_max)
+  X_all = matrix(NA, nrow = iter_max, ncol = n)
+  
+  t = 0
+  iter = 1
+  t_all[iter] = t
+  X_all[iter,] = Xs
+  if_stop = FALSE
+  
+  while(t < tmax & iter < iter_max){
+    output <- gillespie_step(t,Xs,propensity, stoichiometry,...)
+    if(output$if_stop)break
+    iter = iter + 1
+    t = output$t
+    Xs = output$Xs
+    t_all[iter] = t
+    X_all[iter,] = Xs
+  }
+  return(cbind(t_all, X_all)) 
+}
+
+cal_stat <- function(results_mat) {    # results_mat: 1st column: t, 2nd - (n+1)th columns: n variables for each t
+  mat = na.omit(results_mat)
+  nt = nrow(mat)
+  nx = ncol(mat)
+  dt = mat[-1,1] - mat[1:(nt-1),1]
+  t_tot = sum(dt)
+  mean = t(mat[1:(nt-1),2:nx]) %*% dt / t_tot
+  mean2 = t(mat[1:(nt-1),2:nx])**2 %*% dt / t_tot
+  sd = sqrt(mean2 - mean**2)
+  error = sd/mean
+  return(list(mean = mean, var = var, sd = sd, error = error))
+}
+```
+
+In the following, we provide a few examples of its usage.
+
+# 1: A gene constitutively transcribed
+
+We consider a gene $x$ with transcriptional rate $g$ and degradation rate $k$.
+
+$$ 0 {\stackrel{g}{\rightarrow}} x {\stackrel{k}{\rightarrow}} 0 $$
+
+The corresponding ODE of the system is
+
+$$\frac{dx}{dt} = g - kx$$
+The stochastic dynamics is a typical birth-death process.
+
+```{r}
+# specify propensity functions
+p_func1 <- function(Xs,g,k) {   # Xs: current state; k1, k2 ...: parameters
+  x = Xs[1]
+  return(c(g,k*x))   #output: a vector of propensity
+}
+
+# specify stoichiometry matrix
+s_func1 <- function(r_ind,g,k) {   # r_ind: the choice of the reaction
+  s_matrix = cbind(c(1),    # x adds 1
+               c(-1))   # x subtracts 1
+  return(s_matrix[,r_ind])
+}
+```
+
+We first check the stochastic dynamics near the stable steady state in the deterministic scenario. The the following, we select $g =  100$ and $k = 0.1$. The deterministic steady state is $\bar{x} = g/k = 1000$. We set $x(t = 0) = \bar{x} = 1000$
+  
+```{r}
+g = 100; k = 0.1
+set.seed(101)
+X0 = c(1000)
+tmax = 100
+iter_max = 20000
+results_1 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k) 
+
+plot(results_1[,1], results_1[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(800,1200))
+lines(results_1[,1], rep(X0,times = nrow(results_1)), col = 3)
+```
+
+Now if we set $g = 10$ and $k = 0.1$. $x(t = 0) = \bar{x} = 100$. 
+
+```{r}
+g = 10; k = 0.1
+set.seed(101)
+X0 = c(100)
+tmax = 100
+iter_max = 2000
+results_2 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k) 
+
+plot(results_2[,1], results_2[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(50,150))
+lines(results_2[,1], rep(X0,times = nrow(results_2)), col = 3)
+```
+
+We then set $g = 1$ and $k = 0.1$. $x(t = 0) = \bar{x} = 10$. 
+
+```{r}
+g = 1; k = 0.1
+set.seed(101)
+X0 = c(10)
+tmax = 100
+iter_max = 2000
+results_3 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k)  
+plot(results_3[,1], results_3[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,15))
+lines(results_3[,1], rep(X0,times = nrow(results_3)), col = 3)
+```
+
+We now evaluate the mean and standard deviation (SD) of $x$ for each simulation.
+
+$$Mean(x) = \frac{\sum_{i=1}^{N} x(t_i)\Delta t_i}{\sum_{i=1}^{N} \Delta t_i}$$
+$$Mean(x^2) = \frac{\sum_{i=1}^{N} x(t_i)^2\Delta t_i}{\sum_{i=1}^{N} \Delta t_i}$$
+$$SD(x) = \frac{\sum_{i=1}^{N} [x(t_i)-Mean(x)]^2\Delta t_i}{\sum_{i=1}^{N} \Delta t_i}$$
+But the simplest way is to first compute $Mean(x)$ and $Mean(x^2)$, then obtain $SD(x)$ from
+
+
+$$SD(x) = \sqrt{Mean(x^2) - Mean(x)^2}$$
+
+Often, we also evaluate the relative error (SD normalized by the mean value). Pay attention that it is incorrect to directly apply $sd()$ and $mean()$ functions to the results matrix, as the waiting times $\Delta t_i$ is not a constant. Also, if we only need to compute the statistics for mean, variance, standard deviations, *etc.*, we can do the calculations for $\sum_{i=1}^{N} x(t_i)\Delta t_i$, $\sum_{i=1}^{N} [x(t_i)-Mean(x)]^2\Delta t_i$, and $\sum_{i=1}^{N} \Delta t_i$ during the stochastic simulation. And the time trajectories (*i.e.*, the whole result matrix does not need to be stored). 
+
+```{r}
+cal_stat <- function(results_mat) {    # results_mat: 1st column: t, 2nd - (n+1)th columns: n variables for each t
+  mat = na.omit(results_mat)
+  nt = nrow(mat)
+  nx = ncol(mat)
+  dt = mat[-1,1] - mat[1:(nt-1),1]
+  t_tot = sum(dt)
+  mean = t(mat[1:(nt-1),2:nx]) %*% dt / t_tot
+  mean2 = t(mat[1:(nt-1),2:nx])**2 %*% dt / t_tot
+  sd = sqrt(mean2 - mean**2)
+  error = sd/mean
+  return(list(mean = mean, var = var, sd = sd, error = error))
+}
+
+```
+
+```{r}
+ss_all = c(1000,100,10)
+stat1 = cal_stat(results_1)
+stat2 = cal_stat(results_2)
+stat3 = cal_stat(results_3)
+
+x_1 = seq(1,1000,1)
+plot(ss_all, c(stat1$sd, stat2$sd, stat3$sd), type = "b", col = 2, xlab = "Steady state x", ylab ="SD", xlim = c(0,1000), ylim = c(0,30))
+lines(x_1, x_1**0.5, type = "l", col = 3)
+legend("bottomright", inset=0.02, legend = c("Simulation", "5*x^0.5"),
+       col=2:4, lty=1, cex=0.8)
+plot(ss_all, c(stat1$error, stat2$error, stat3$error), type = "b", col = 2, xlab = "Steady state x", ylab ="SD/Mean",
+     xlim = c(0,1000), ylim = c(0, 0.4))
+
+```
+
+Now, let's consider the same systems for the above three conditions but starting from the zero initial condition. The purpose is to evaluate the decaying dynamics towards the steady state.
+
+```{r}
+g = 100; k = 0.1
+set.seed(101)
+X0 = c(0)
+tmax = 100
+iter_max = 20000
+results_1 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k) 
+
+plot(results_1[,1], results_1[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1200))
+x_1 = results_1[,1]
+lines(x_1, g/k*(1-exp(-k*x_1)), col = 3)
+```
+
+```{r}
+g = 10; k = 0.1
+set.seed(101)
+X0 = c(0)
+tmax = 100
+iter_max = 2000
+results_2 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k) 
+
+plot(results_2[,1], results_2[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,150))
+x_2 = results_2[,1]
+lines(x_2, g/k*(1-exp(-k*x_2)), col = 3)
+```
+
+```{r}
+g = 1; k = 0.1
+set.seed(101)
+X0 = c(0)
+tmax = 100
+iter_max = 2000
+results_3 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k)  
+plot(results_3[,1], results_3[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,15))
+x_3 = results_3[,1]
+lines(x_3, g/k*(1-exp(-k*x_3)), col = 3)
+```
+
+# 2: Bursting transcription
+
+We consider a gene $x$ with transcriptional rate $g/n$, but n molecules every reaction, and degradation rate $k$.
+
+$$ 0 {\stackrel{g/n}{\rightarrow}} nx$$ 
+
+$$x {\stackrel{k}{\rightarrow}} 0 $$
+
+The corresponding ODE of the system is
+
+$$\frac{dx}{dt} = ng/n - kx = g - kx$$
+```{r}
+# specify propensity functions
+p_func1 <- function(Xs,g,k,n) {   # Xs: current state; k1, k2 ...: parameters
+  x = Xs[1]
+  return(c(g/n,k*x))   #output: a vector of propensity
+}
+
+# specify stoichiometry matrix
+s_func1 <- function(r_ind,g,k,n) {   # r_ind: the choice of the reaction
+  s_matrix = cbind(c(n),    # x adds n
+               c(-1))   # x subtracts 1
+  return(s_matrix[,r_ind])
+}
+```
+
+We  check the stochastic dynamics near the stable steady state in the deterministic scenario. We start with $g =  16$, $k = 0.1$, and $n = 1$. The deterministic steady state is $\bar{x} = g/k = 160$. We set $x(t = 0) = \bar{x} = 160$
+  
+```{r}
+set.seed(91)
+g = 16; k = 0.1; n = 1
+X0 = c(160)
+tmax = 1000
+iter_max = 50000
+results_1 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n) 
+
+plot(results_1[,1], results_1[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
+lines(results_1[,1], rep(X0,times = nrow(results_1)), col = 3)
+```
+
+Now if we set $g = 16$, $k = 0.1$, and $n = 2$. The steady state level remains the same. $x(t = 0) = \bar{x} = 160$. 
+
+```{r}
+g = 16; k = 0.1; n = 2
+X0 = c(160)
+tmax = 2000
+iter_max = 500000
+results_2 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n) 
+
+plot(results_2[,1], results_2[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
+lines(results_2[,1], rep(X0,times = nrow(results_2)), col = 3)
+```
+
+We then set $g = 16$, $k = 0.1$, $n = 4$. $x(t = 0) = \bar{x} = 160$. 
+
+```{r}
+g = 16; k = 0.1; n = 4
+X0 = c(160)
+tmax = 2000
+iter_max = 500000
+results_3 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n)  
+plot(results_3[,1], results_3[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
+lines(results_3[,1], rep(X0,times = nrow(results_3)), col = 3)
+```
+
+We then set $g = 16$, $k = 0.1$, $n = 8$. $x(t = 0) = \bar{x} = 160$. 
+
+```{r}
+g = 16; k = 0.1; n = 8
+X0 = c(160)
+tmax = 1000
+iter_max = 500000
+results_4 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n)  
+plot(results_4[,1], results_4[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
+lines(results_4[,1], rep(X0,times = nrow(results_4)), col = 3)
+```
+
+```{r}
+n_all = c(1,2,4,8)
+stat1 = cal_stat(results_1)
+stat2 = cal_stat(results_2)
+stat3 = cal_stat(results_3)
+stat4 = cal_stat(results_4)
+
+plot(n_all, c(stat1$mean, stat2$mean, stat3$mean, stat4$mean), type = "b", col = 2, xlab = "n", ylab ="Mean", xlim = c(0,8), ylim = c(0,200))
+plot(n_all, c(stat1$sd, stat2$sd, stat3$sd, stat4$sd), type = "b", col = 2, xlab = "n", ylab ="SD", xlim = c(0,8), ylim = c(0,30))
+```
+
+
+# 3: Stochastic dynamics of a self-inhibiting gene
+
+We consider a  model of a self-inhibiting gene. The model is the same as the previous model for a self-activating gene, but with the opposite $g_0$ and $g_1$.
+
+```{r}
+# specify propensity functions
+p_func1 <- function(Xs,g0,g1,k,kon,koff) {   # Xs: current state; k1, k2 ...: parameters
+  d = Xs[1] #D` (0: bound; 1: unbound)
+  c = Xs[2] #C  (0: unbound; 1: bound)
+  m = Xs[3] #M  (number of M)
+  return(c(g0*d, k*m, kon*d*m*(m-1)/2, koff*c, g1*c))   #output: a vector of propensity
+}
+
+# specify stoichiometry matrix
+s_func1 <- function(r_ind,g0,g1,k,kon,koff) {   # r_ind: the choice of the reaction
+  s_matrix = cbind(c(0,0,1),    # M adds 1
+                   c(0,0,-1),   # M subtracts 1
+                   c(-1,1,-2),  # C adds 1, D subtracts 1, and M subtracts 2
+                   c(1,-1,2),  # C subtracts 1, D adds 1, and M adds 2
+                   c(0,0,1))  # M adds 1
+  return(s_matrix[,r_ind])
+}
+```
+
+We set $g_0 = 55$, $g_1 = 5$, $k = 0.1$, $k_{on} = 0.002$, $k_{off} = 90$. With this condition,$K = \sqrt{\frac{2k_{off}}{k_{on}}} = 300$. This is the scenario of high copy number and fast binding/unbinding.
+
+For the initial condition, we first consider $D = 1$, $C = 0$, $M = 300$.  
+  
+```{r}
+set.seed(101)
+g0 = 55; g1 = 5; k = 0.1; kon = 0.002; koff = 90
+X0 = c(1,0,300)
+tmax = 400
+iter_max = 50000
+results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+
+# R: almost a constant; M: noisy because of low copy number of $M$
+plot(results[,1], results[,4], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,600))
+
+# Plotting promoter occupancy
+plot(results[,1], results[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
+lines(results[,1],results[,3], type = "s", col = 3)
+legend("bottomright", inset=0.02, legend = c("D", "C"),
+       col=2:3, lty=1, cex=0.8)
+
+stat = cal_stat(results)
+stat$mean
+stat$sd
+```
+
+Now if we turn off the binding/unbinding ($k_{on} = k_{off} = 0$), and set $g_0 = 30$ so that the system has a similar steady state of $M$. This modified system is the same as a constitutively expressed gene.
+
+```{r}
+set.seed(101)
+g0 = 30; g1 = 30; k = 0.1; kon = 0.0; koff = 0
+X0 = c(1,0,300)
+tmax = 300
+iter_max = 50000
+results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+
+# R: almost a constant; M: noisy because of low copy number of $M$
+plot(results[,1], results[,4], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,600))
+
+# Plotting promoter occupancy
+plot(results[,1], results[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
+lines(results[,1],results[,3], type = "s", col = 3)
+legend("bottomright", inset=0.02, legend = c("D", "C"),
+       col=2:3, lty=1, cex=0.8)
+
+stat = cal_stat(results)
+stat$mean
+stat$sd
+```
+
+Compared to the gene with self-inhibition, the noise level ($SD(M)$) is higher. It is well established that a self-inhibition reduces gene expression noise.
+
+Now if we reduce the copy number of the system with the parameter set $g_0 = 5.5$, $g_1 = 0.5$, $k = 0.1$, $k_{on} = 0.2$, $k_{off} = 90$. With this condition,$K = \sqrt{\frac{2k_{off}}{k_{on}}} = 30$, and the initial condition $D = 1$, $C = 0$, $M = 30$.  
+  
+```{r}
+set.seed(101)
+g0 = 5.5; g1 = 0.5; k = 0.1; kon = 0.2; koff = 90
+X0 = c(1,0,30)
+tmax = 300
+iter_max = 50000
+results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+
+# R: almost a constant; M: noisy because of low copy number of $M$
+plot(results[,1], results[,4], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,60))
+
+# Plotting promoter occupancy
+plot(results[,1], results[,2], type = "s", col=2,
+    xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
+lines(results[,1],results[,3], type = "s", col = 3)
+legend("bottomright", inset=0.02, legend = c("D", "C"),
+       col=2:3, lty=1, cex=0.8)
+
+stat = cal_stat(results)
+stat$mean
+stat$sd
+```
+
+The stochastic dynamcis resemble oscillatory dynamics.

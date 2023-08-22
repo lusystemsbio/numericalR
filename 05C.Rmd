@@ -1,8 +1,8 @@
 ---
-title: "Part 5: Partial differential equations"
-subtitle: "C. Turing instability"
+title: "Part 5: Molecular dynamics"
+subtitle: "C. Modeling a box of 2D particles"
 author: "Mingyang Lu"
-date: "2/14/2023"
+date: "08/18/2023"
 output: 
   html_document:
     toc: true
@@ -13,212 +13,299 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Reaction-diffusion equations for a two-component system
+# Modeling multiple particles in a box
 
-For a two-component system of $u$ and $v$, the reaction-diffusion equations are
+We consider $N_{tot} = 25$ identical particles in a two-dimensional square box of size $a = 6.25$. Below shows a configuration of the system where the particles are located at evenly distributed grid points.
 
-\begin{equation}
-\begin{aligned}
-\frac{\partial u(X,t)}{\partial t} = f(u,v,t) + D_u \frac{\partial^2 u(X,t)}{\partial X^2} \\
-\frac{\partial v(X,t)}{\partial t} = g(u,v,t) + D_v \frac{\partial^2 v(X,t)}{\partial X^2} \\
-\end{aligned} \tag{1}
-\end{equation}
+``` {r,fig.width = 3.5, fig.height = 4, fig.align='center'}
+ntot = 25
+a = 6.25
+grid_x = seq(0, 5, by = 1.25)
+grid_y = seq(0, 5, by = 1.25)
+mat_xy = as.matrix(expand.grid(grid_x, grid_y))
+x0 = c(t(mat_xy))
+xy0 = matrix(x0, ncol = 2, byrow = TRUE)
+plot(xy0[,1], xy0[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0, a), ylim = c(0,a))
+```
 
-We generalize the previous PDE integrator for a two-component system. Here, we choose to use a periodic boundary condition by setting the state variables at the boundary points the same. 
+There are pairwise interactions between any two particles governed by the following force function:
 
-For grid points ${X_i}$ for $i = 1,2 ...n$, we set $X_0 = X_n$ and $X_{n+1} = X_1$.
+$$F(r) = \frac{1}{r^{13}} - \frac{1}{r^7} \tag{1}.$$
+
+``` {r,fig.width = 4, fig.height = 3, fig.align='center'}
+par(mar = c(4, 4, 1, 1))   #set plot margins
+force <- function(r){
+  r3 = r*r*r
+  r6 = r3*r3
+  f = (1/r6/r6 - 1/r6)/r
+  return (f)
+}
+r_all = seq(0, 4, by = 0.01)
+plot(r_all, sapply(r_all, force), type = "l", col = 1, 
+     xlab = "r", ylab = "F", xlim = c(0,4), ylim = c(-0.5,1))
+abline(h = 0, lty = 3, col = 2)
+```
+
+$r$ is the Euclidean distance between the particles. The force in Equation (1) is attractive (*i.e.*, $F(r) < 0$) for $r > 1$ and repulsive (*i.e.*, $F(r) > 0$) for $0 < r < 1$. The masses of all particles are 1. Note, this force function correponds to the famous Lennard Jones (LJ) potential.
+
+``` {r,fig.width = 4, fig.height = 3, fig.align='center'}
+par(mar = c(4, 4, 1, 1))   #set plot margins
+E_LJ <- function(r){
+  r3 = r*r*r
+  r6 = r3*r3
+  e = 1/12/r6/r6 - 1/6/r6
+  return (e)
+}
+r_all = seq(0, 4, by = 0.01)
+plot(r_all, sapply(r_all, E_LJ), type = "l", col = 1, 
+     xlab = "r", ylab = "LJ Potential", xlim = c(0,4), ylim = c(-1,2))
+abline(h = 0, lty = 3, col = 2)
+```
+
+# Periodic boundary condition & minimum image convention
+
+In this simulation, we consider the periodic boundary condition in that particles travel outside of the box would go inside the box from the other side. 
+
+<center> ![](./extra/data/05C/fig1.png){width=30%} </center>
+
+To update the position x (a vector of size 2) of a particle:
 
 ```{r}
-## PDE integration with the finite difference method for a generic reaction-diffusion system (multi-variable)
-pde_fd_reaction_diffusion_multi <- function(derivs, n, ngrid, dX, dt, D, t0, t.total, p0, ...) {
-  #derivs: derivative function
-  #n: number of components
-  #ngrid: number of grid points
-  #dX: X step size
-  #dt: time step size
-  #D: diffusion constant (a vector of n)
-  #t0: initial time
-  #t.total: total simulation time
-  #p0: initial condition: a matrix of (n, ngrid) 
+x = c(-5.5, 4.2); a = 2
+xnew = x - floor(x/a) * a # floor: the largest integer below x/a
+x; xnew
+```
+
+There is no need to update the velocities. 
+
+Using the periodic boundary condition, we simulate a small box of particles to model the behavior of a much larger system consisting of the repetitive boxes. Since each particle can now present a lattice of particles of images, there are an infinite number of interactions to consider between any two particles $i$ and $j$. A common way to address this is to consider the *minimum image convention*, where individual particle in the simulation interacts with the closest image of the remaining particles in the system. 
+
+<center> ![](./extra/data/05C/fig2.png){width=30%} </center>
+
+To compute the corresponding distance between two particles $i$ and $j$, we
+
+```{r}
+xi = c(0.7, 1.9); xj = c(1.8, 1.2); a = 2
+dx = xj - xi  # a vector of size 2
+r1 = sqrt(sum(dx*dx))  # distance directly from xi and xj
+dx = dx - round(dx/a)*a  # round: nearest integer
+r_min = sqrt(sum(dx*dx)) # distance from the minimum image convention
+r1; r_min
+sqrt((2.7-1.8)**2 + (1.9 - 1.2)**2)  # this is actual calculation in r_min
+```
+
+# Compute the total force 
+
+Now we devise a function to compute the x and y components of the total force for each particle. 
+
+The x-component of the force from particle $j$ to particle $i$ is 
+
+$$f_x(j \rightarrow i) = F(r_{ij}) \frac{(x_i - x_j)}{r_{ij}}  \tag{2}$$
+, where $r_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}$. (Note that positive $F$ means repulsive interaction)
+
+Similarly, the y-component of the force is
+
+$$f_y(j \rightarrow i) = F(r_{ij}) \frac{(y_i - y_j)}{r_{ij}}  \tag{3}.$$
+The total force of particle $i$ is the summation of the pairwise forces from any particle $j$ (where $j \ne i$) to particle $i$.
+
+```{r}
+# x-y components of the force from j to i
+force_j2i <- function(i,j, x_all, a){
+  # x_all a vector of 2 * Ntot
+  xi = x_all[2*i-1]
+  yi = x_all[2*i]
+  xj = x_all[2*j-1]
+  yj = x_all[2*j]
   
-  t_all = seq(t0, t.total, by = dt)
-  nt_all = length(t_all)
-  factor = D/dX**2*dt
-  p = p0
-  for (i in seq_len(nt_all-1)){
-    p_plus_one = cbind(p[,-1], p[,1]) # a matrix, P(X+dX) for all Xs, periodic boundary condition
-    p_minus_one = cbind(p[,ngrid], p[,1:(ngrid-1)])  # a matrix, P(X-dX) for all Xs, periodic boundary condition
-    f = apply(p, 2, function(X) return (derivs(t_all[i],X, ...)))
-    p = p + f*dt + factor * (p_plus_one + p_minus_one - 2 * p) # finite difference to update all P(X,t)
-  }
-  return(p)
+  dx = xi - xj
+  dx = dx - round(dx/a)*a 
+  dy = yi - yj
+  dy = dy - round(dy/a)*a 
+  
+  rij = sqrt(dx**2 + dy**2)
+  fxi = force(rij)*dx/rij
+  fyi = force(rij)*dy/rij
+  return(c(fxi,fyi))
 }
 
-```
-
-# Turing instability
-
-For a two-component dynamical system with a stable steady state, the system can become unstable when considering the molecular diffusion in space. Thus an instability can allow pattern formations. This phenomenon is called Turing instability. There are two classes of such two-component systems, one being the substrate-depletion model and the other being the activator-inhibitor model. In the following, we will illustrate both cases with the [Gierer-Meinhardt model](http://www.scholarpedia.org/article/Gierer-Meinhardt_model).
-
-## A substrate depletion model
-
-The model follows Equation (1), where $D_u =d$, $D_v = 1$, and
-
-\begin{equation}
-\begin{aligned}
-f(u,v,t) &= u^2v-u \\
-g(u,v,t) &= \mu (1-u^2v) \\
-\end{aligned} \tag{2}
-\end{equation}
-
-Here, $v$ serves as a substrate that activates $u$, and, by doing so, $v$ is in turn depleted by $u$.
-
-<center> ![Figure 1](./extra/data/05C/fig1.png){width=20%} </center>
-<br/>
-
-The model has two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns. Pattern formation occurs for the situation of faster $v$ diffusion and large $\mu$.
-
-``` {r,fig.width = 4, fig.height = 3}
-par(mar = c(4, 4, 1, 1))
-set.seed(10)
-n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 20
-D = c(0.1,1); mu = 1.5
-
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = c(0:(ngrid-1))*dX  # X values for each grid point
-
-u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
-
-turing_asdm <- function(t, p, mu){
-  u = p[1]
-  v = p[2]
-  u2v = u*u*v
-  f =  u2v - u
-  g = mu*(1-u2v)
-  return(c(f,g))
-}
-
-u_1 = u0
-for(i in 0:5){
-  if(i>0){
-    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
-  }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,3)) 
-  lines(X_all,u_1[2,], col=2)
-  legend("topright", inset=0.02, 
-       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
-       col=c(1,2), lty = 1, cex=0.8)
-}
-```
-
-When $d = 0.8$ and $\mu = 1.5$, the system converges to a homogeneous distribution. Here, the difference in diffusion of $u$ and $v$ is very small.
-
-``` {r,fig.width = 4, fig.height = 3}
-par(mar = c(4, 4, 1, 1))
-D = c(0.8,1); mu = 1.5; t.total_iter = 5
-set.seed(10)
-
-u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
-
-u_1 = u0
-for(i in 0:3){
-  if(i>0){
-    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
-  }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,2)) 
-  lines(X_all,u_1[2,], col=2)
-  legend("topright", inset=0.02, 
-       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
-       col=c(1,2), lty = 1, cex=0.8)
-}
-```
-
-When $d = 0.3$ and $\mu = 0.9$, the system can oscillate over time, but for each time point both $u$ and $v$ are constant in space. 
-
-``` {r,fig.width = 4, fig.height = 3}
-par(mar = c(4, 4, 1, 1))
-D = c(0.3,1); mu = 0.9; t.total_iter = 1; niter = 100
-set.seed(10)
-
-u0 = matrix(2 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
-
-traj_u = matrix(0, nrow = niter+1, ncol = 3)
-traj_u[1, ] = c(0, u0[,51])
-u_1 = u0
-for(i in 0:niter){
-    if(i > 0){
-      u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_asdm, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                    t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
-      traj_u[i+1, ] = c(i*t.total_iter, u_1[,51])
+force_all <- function(t, x_all, a){
+  #Ntot: number of particles
+  # x_all: a vector of 2 * Ntot
+  # a: box size
+  # f: a force vector of 2*Ntot
+  Ntot = length(x_all)/2
+  f = numeric(2*Ntot)
+  for (i in 1:(Ntot-1)){
+    for (j in (i+1):Ntot){
+      fij = force_j2i(i,j, x_all, a)
+      f[(2*i-1):(2*i)] = f[(2*i-1):(2*i)] + fij
+      f[(2*j-1):(2*j)] = f[(2*j-1):(2*j)] - fij
     }
-    if(i < 6){
-      plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,5)) 
-      lines(X_all,u_1[2,], col=2)
-      legend("topright", inset=0.02, 
-           legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
-           col=c(1,2), lty = 1, cex=0.8)
-    }
+  }
+  return(f)
 }
 ```
+
+The function *force_all* computes the forces from all pairwise interactions between the particles. The input argument for this function is a vector of size $2N_{tot}$ for the $x$ and $y$ coordinates. The output of this function is a vector of size $2N_{tot}$ for the $x$ and $y$ components of the total force $f$ for each particle. 
+
+# Update positions by the periodic boundary condition
+
+After every MD integration step, particle positions need to be adjusted according to the periodic boundary condition.
 
 ```{r}
-plot(traj_u[,1], traj_u[,2], type = "l", col = 1, xlab = "t", ylab = "u or v", ylim = c(0,3))
-lines(traj_u[,1], traj_u[,3], col = 2)
-legend("topright", inset=0.02, legend = c("u", "v"), 
-     col=c(1,2), lty = 1, cex=0.8)
+bc_periodic <- function(x_all, a){
+  # X_all: a vector of 2 * Ntot for x and y positions. 
+  # a: box size
+  x_all_new = x_all - floor(x_all/a) * a # floor: the largest integer below x/a
+  return(x_all_new)
+}
 ```
 
-## An activator-inhibitor model
+# Verlocity Verlet (periodic boundary condition)
 
-Lastly, we consider another type of Turing instability -- an activator-inhibitor model:
+We simulated the dynamics of the particles according to
 
-The model also follows Equation (1), where $D_u =d$, $D_v = 1$, and
+$$ m_i\frac{d^2x_i}{dt^2} = \sum_{j\neq i}{f_x(j\rightarrow i)}  \tag{4}$$
 
-\begin{equation}
-\begin{aligned}
-f(u,v,t) &= u^2/v-u \\
-g(u,v,t) &= \mu (u^2 - v) \\
-\end{aligned} \tag{3}
-\end{equation}
+, where $m_i = 1$ (thus can be omitted) and the summation from the right hand side is over all particles other than $i$. A similar equation is needed for $y_i$. 
 
-Here, $u$ serves as an activator, and $v$ as an inhibitor. The activator can activate itself and the inhibitor, while the inhibitor can suppress both. Similar to the previous model, $v$ diffuses much faster than $u$ (*a.k.a*, self enhancement and long-range inhibition). 
-
-<center> ![Figure 2](./extra/data/05C/fig2.png){width=20%} </center>
-<br/>
-
-There are also two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns too. Here, $u$ and $v$ are synchronized in space. 
-
-``` {r,fig.width = 4, fig.height = 3}
-par(mar = c(4, 4, 1, 1))
-set.seed(10)
-n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 5
-D = c(0.1,1); mu = 1.5
-
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = c(0:(ngrid-1))*dX  # X values for each grid point
-
-u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
-
-turing_aim <- function(t, p, mu){
-  u = p[1]
-  v = p[2]
-  f = u**2/v - u
-  g = u**2 - v
-  return(c(f,g))
-}
-
-u_1 = u0
-for(i in 0:5){
-  if(i>0){
-    u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_aim, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                  t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
+```{r}
+# Velocity Verlet method for high dimensional systems (2D, 3D, or multiple particles)
+velocity_verlet_bc <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: a vector of initial position x
+  # v0: a vector of initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  # a: box size (input in ellipsis)
+  t_all = seq(t0, t.total, by=dt)
+  nt_all = length(t_all)
+  nx = length(x0)
+  x_all = matrix(0, nrow = nt_all, ncol = nx)
+  v_all = matrix(0, nrow = nt_all, ncol = nx)
+  x_all[1,] = x0
+  v_all[1,] = v0 
+  for (i in 1:(nt_all-1)) {
+    v_half = v_all[i,] + 0.5 * dt * f(t_all[i], x_all[i,],...)
+    x_all[i+1,] = x_all[i,] + dt * v_half
+    v_all[i+1,] = v_half + 0.5 * dt * f(t_all[i+1], x_all[i+1,],...)
+    
+    x_all[i+1,] = bc_periodic(x_all[i+1,], ...)
   }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,3)) 
-  lines(X_all,u_1[2,], col=2)
-  legend("topright", inset=0.02, 
-       legend = c("u", "v"), title = paste0("t =",i*t.total_iter),
-       col=c(1,2), lty = 1, cex=0.8)
+  return(cbind(t_all, x_all, v_all))   # the output is a matrix of t, x, v for all time steps
 }
 ```
+
+# Initial simulation for t.total = 10
+
+We now perform a dynamics simulation of the box of the $N_{total}=25$ particles using the velocity Verlet method. For the initial condition, we use evenly distributed grid points for the particle positions $x$ and $y$ (see the first figure). We use random velocities in the range of (-0.05, 0.05) for both $v_x$ and $v_y$. The initial simulation takes a short simulation (t.total $= 10$). Time step size $dt = 0.01$. 
+
+``` {r,fig.width = 3.5, fig.height = 4, fig.align='center'}
+set.seed(11)
+#force_all(0, x0, a) # if you want to check the forces for the IC
+ntot = 25
+a = 6.25
+grid_x = seq(0, 5, by = 1.25)
+grid_y = seq(0, 5, by = 1.25)
+mat_xy = as.matrix(expand.grid(grid_x, grid_y))
+x0 = c(t(mat_xy))
+v0 = runif(n = ntot*2, min = -0.05, max = 0.05)
+results_init = velocity_verlet_bc(f = force_all, t0 = 0, x0 = x0, v0 = v0, 
+                                       t.total = 10, dt = 0.01, a = a)
+nt_all = nrow(results_init)
+init_last_step = results_init[nt_all, ]
+
+x0 = init_last_step[2:(2*ntot+1)]
+v0 = init_last_step[(2*ntot+2):(4*ntot+1)]
+
+xy0 = matrix(x0, ncol = 2, byrow = TRUE)
+plot(xy0[,1], xy0[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0, a), ylim = c(0,a))
+```
+The plot shows the particles' positions from the last time point of the initial simulation in a 2D scatter plot. 
+
+# Final simulation for t.total = 100
+
+After the initial simulation, the system should reach to an "equilibrium" -- a more disordered configuration. Now, we continue to perform a longer simulation for t.total $= 100$. (Before you run this simulation, check the time cost from the initial simulation to estimate the waiting time for this longer simulation.) 
+
+``` {r,fig.width = 3.5, fig.height = 4, fig.align='center'}
+results_final = velocity_verlet_bc(f = force_all, t0 = 0, x0 = x0, v0 = v0, 
+                                       t.total = 100, dt = 0.01, a = a)
+nt_all = nrow(results_final)
+final_last_step = results_final[nt_all, ]
+x_f = final_last_step[2:(2*ntot+1)]
+xy_f = matrix(x_f, ncol = 2, byrow = TRUE)
+plot(xy_f[,1], xy_f[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0,a), ylim = c(0,a))
+```
+
+# Radial distribution function
+
+After the simulation has completed, we use the whole time trajectories of all particles to compute the radial distribution function (RDF), $g(r)$. $g(r)$ measures the probability of finding a particle at distance $r$ from a reference particle, relative to the probability of finding the same particle at $r$ in a uniform distribution. 
+
+$$g(r) = \frac{<\rho(r)>}{\rho_0} = \frac{<\Delta N(r)>}{2\pi r \Delta r\rho_0}.  \tag{5}$$ 
+
+$\rho_0$ is the particle density:
+
+$$\rho_0 = \frac{N_{tot}}{a^2}.$$
+
+$\rho(r)$ is the local density of the particles at distance $r$ away from a reference particle. Thus, $<\Delta N(r)>$ is the average number of particles at a shell at distance $r$ and of thickness $\Delta r$ (red particles) from a reference particle (orange particle). 
+
+<center> ![](./extra/data/05C/fig3.png){width=30%} </center>
+
+$<>$ is the operation of averaging over all particles and all time points during this current simulation. Write a function to compute $g(r)$ for a series of $r$ values until $a/2$ (why?) with an interval $\Delta r = 0.05$. Here, you will need to count the number of particles in a shell between $r$ to $r + \Delta r$ and then perform the averaging. Plot $g(r)$. The minimum image convention needs to be considered when computing the distances.
+
+``` {r,fig.width = 4, fig.height = 3, fig.align='center'}
+par(mar = c(4, 4, 1, 1))   #set plot margins
+cal_rdf <- function(ntot, results, a, dr){
+  # ntot: number of particles
+  # results: simulation output matrix
+  # a: box size
+  # dr: bin size
+  nt_all = nrow(results)
+  r_all = seq(dr, a/2, by = dr) 
+  nr = length(r_all)
+  counts = numeric(nr)
+  for(nt in c(1:nt_all)){
+    x_all = results[nt, 2:(2*ntot+1)]
+    for(i in 1:ntot){
+      xi = x_all[2*i-1]
+      yi = x_all[2*i]
+      for(j in 1:ntot){
+        if(i != j){
+          xj = x_all[2*j-1]
+          yj = x_all[2*j]
+          
+          dx = xi - xj
+          dx = dx - round(dx/a)*a 
+          dy = yi - yj
+          dy = dy - round(dy/a)*a 
+          
+          rij = sqrt(dx**2 + dy**2)
+          ind = ceiling(rij/dr)
+          if(ind <= nr){
+            counts[ind] = counts[ind] + 1
+          }
+        }
+      }
+    }
+  }
+
+  r_mean = r_all-0.5*dr
+  rho = counts/nt_all/ntot/2/pi/dr/r_mean
+  rho_0 = ntot/a**2
+  rdf = rho/rho_0
+  return(list(r = r_mean, rdf = rdf))
+}
+
+results_rdf = cal_rdf(ntot = ntot, results = results_final, a = a, dr = 0.05)
+
+plot(results_rdf$r, results_rdf$rdf, type = "l", col = 2, xlab = "r", ylab = "rdf")
+```
+
+The shape of the RDF is typical for a liquid system. RDF ~ 0 below $r = 0.8$ due to strong repulsive interactions from the LJ force. There is a sharp peak near $r = 1$, representing the first coordinate shell. The second peak at $r ~ 2$ is supposed to correspond to the second coordinate shell. The third peak is very close to 1. The second and third peaks are much lower than the first peak due to short-range order and long-range disorder. 
+
+Please note:
+
+* Here, we modeled a 2D system. This simulation can be easily generalized to 3D for modeling more realistic systems. Some properties in 3D may be different from those in 2D.
+
+* For illustration in R, we chose very large time step size and short simulation time. To obtain more robust results, one needs to use much smaller time step size and longer simulations.

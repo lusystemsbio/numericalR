@@ -1,265 +1,224 @@
 ---
 title: 'Part 2: Ordinary differential equations'
-subtitle: "C. Stability"
+subtitle: "C. Practice: modeling bacterial growth"
 author: "Mingyang Lu"
-date: "10/26/2021"
+date: "01/23/2022"
 output:
   html_document:
     toc: yes
-    toc_depth: 2
+    toc_depth: 4
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Stability of steady states 
+In this section, we will illustrate the use of ODEs to model bacterial growth and leave some exercises for readers to practice.  
 
-We start the discussion with the circuit of a constitutively expressed gene, whose dynamics is governed by the rate equation (Equation (1) from Part 2A):
+## Exponential growth
 
-$$ \frac{dX}{dt} = f(X) = g - kX \tag{1}$$
+#### Analytical solution
 
-The steady states of a dynamical system must satisfy the condition $\frac{dX}{dt} = 0$. In this case, there is one and only one steady state: $X_s = \frac{g}{k}$. Now, let us evaluate the stability of the steady state. In general, a steady state is stable, if, after a small perturbation $X \rightarrow X + \Delta X$ , the system goes back to the same steady state; otherwise, the steady state is unstable.
-
-We separate the right hand side of Equation (1) into $g$ and $kX$ and plot them as the function of $X$ below.
-
-```{r}
-g = 50; k = 0.1
-X_all = seq(400, 600, 1)
-plot(X_all, array(g,dim=length(X_all)), type = "l", col =1,
-    xlab="X (nM)", ylab="Rates", xlim=c(400,600), ylim=c(40,60)) 
-lines(X_all, k * X_all,  col=2)
-legend("bottomright", inset=0.02, legend = c("g", "kX"),
-       col=1:2, lty=1, cex=0.8)
-
-```
-
-The intersect of the two curves represents the steady state, where the level of the steady state $X_s = 500$ nM. Now, consider a small perturbation to increase $X$ to $X + \Delta X$ ($\Delta X > 0$). The black curve $y=g$ stays constant, while the red curve $y=kX$ slightly increases. That means $\frac{dX}{dt} < 0$. Therefore, $X$ level will decrease in next time steps. Similarly, if we make a small perturbation to decrease $X$ to $X - \Delta X$. We find 
-$\frac{dX}{dt} > 0$ and $X$ levels will increase right after. Therefore, the steady state $X_s$ is a stable state. In math,
+The simplest model considers constant [per capita](https://en.wikipedia.org/wiki/Per_capita) growth rate, $r$. The following differential equation describes the rate of change of bacterial counts, $N$, as the function of time, $t$. 
 
 \begin{equation}
-  X_s \text{is} 
-    \begin{cases}
-    stable & \frac{df(X)}{dX} < 0 \\
-    unstable & \frac{df(X)}{dX} \geq 0 
-    \end{cases} \tag{2}
+\frac{dN}{dt} = rN \tag{1}
 \end{equation}
 
-We will discuss about unstable steady states later. Here, in this case, $\frac{df(X)}{dX} = -k$, which is negative. Thus, $X_s$ is a stable steady state. Indeed, in Part 2A, we have shown that the system reaches to the same steady state $X_s = 500$ nM, no matter which initial condition is selected (First plot in Part 2A). 
+The initial condition of Equation (1) is
 
-Now, let us consider the circuit with a self-inhibiting gene, whose dynamics is governed by
+$$N(t = 0) = N_0$$
+This ODE can be solved analytically, with the solution
 
 \begin{equation}
-\frac{dX}{dt} = g(X) - kX  \tag{3}
+N = N_0 e^{rt} \tag{2}
 \end{equation}
 
-,where $g(X) = g_0 + g_1 H^{inh}(X)$ (see Equations (10 - 11) in Part 2A).
+We can evaluate $N(t)$ numerically using R, as shown below.
 
-We separate the right hand side of Equation (2) into $g(X)$ and $kX$ and plot them as the function of $X$ below. 
+``` {r}
+N_t_exact <- function(t,r,N0) {   # the function to calculate N(t): exact solution
+  return(N0*exp(r*t))
+}
+
+r = 0.1; N0 = 1     # specify the parameter r and the initial condition N0
+
+N_t_exact(t=0, r, N0)   # checking: the initial condition
+N_t_exact(t=1, r, N0)   # checking:  t = 1
+N_t_exact(t=10, r, N0)   # checking:  t = 10
+N_t_exact(t=20, r, N0)   # checking:  t = 20
+N_t_exact(t=50, r, N0)   # checking:  t = 50
+```
+
+Note: be careful to interpret $N$ as fractional numbers. 
+
+We can also use an array to systematically apply *N_t_exact* to a series of $t$ values:
+
+``` {r}
+t = seq(1, 100, 1)   # all time points to be evaluated
+nt1 = N_t_exact(t, r, N0)   # all N(t) values
+
+plot(t, nt1, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,1000))
+```
+
+Another way to evaluate the results is to check t-log(N) plot (log scale in the N axis).
+
+``` {r}
+plot(t, log(nt1), xlab="t", ylab="log10(N)", xlim=c(0,100), ylim=c(0,10))
+```
+
+Note: we can also generate the plot without directly converting the values in the log scale. To do so, use the argument **log='y'** in the plot function. (Try this! Debug if needed)
+
+#### Use deSolve
+
+Now, we show how to simulate Equation (1) with an ODE solver. We will first use the package deSolve. The selected integration method is the Euler method. 
 
 ```{r}
-g_0 = 10; g_1 = 60; k = 0.1; X0 = 200; n = 4
-hill_inh <- function(X,X0,n) {
-  a = (X/X0)**n
-  return(1/(1+a))
+library(deSolve)  # a general ode solver
+?deSolve # check the help page if needed
+dN_deSolve <- function(t, N, parameters) { 
+  return(list(parameters[1]*N))   # parameters[1] represents r
 }
-X_all = seq(0, 600, 1)
-plot(X_all, g_0 + g_1 * hill_inh(X_all, X0, n), type = "l", col =1,
-    xlab="X (nM)", ylab="Rates", xlim=c(0,600), ylim=c(0,70)) 
-lines(X_all, k * X_all,  col=2)
-legend("top", inset=0.02, legend = c("g(X)", "kX"),
-       col=1:2, lty=1, cex=0.8)
+parameters = c(r = 0.1)
+N0 = 1
+t_all_1 = seq(0, 100, 0.01)  # all t steps during the whole simulation, dt = 0.01
+results_1 = ode(y = N0, times = t_all_1, func = dN_deSolve, parms = parameters, method = "euler")
 
+t_all_2 = seq(0, 100, 0.1)  # all t steps during the whole simulation, dt = 0.1
+results_2 = ode(y = N0, times = t_all_2, func = dN_deSolve, parms = parameters, method = "euler")
+
+t_all_3 = seq(0, 100, 1)  # all t steps during the whole simulation, dt = 1
+results_3 = ode(y = N0, times = t_all_3, func = dN_deSolve, parms = parameters, method = "euler")
+
+plot(results_1[,1], results_1[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(0,100), ylim=c(0,1000))
+lines(results_2[,1], results_2[,2], col=3)
+lines(results_3[,1], results_3[,2], col=4)
+lines(t, nt1, col=5)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler by deSolve: dt=0.01", "Euler by deSolve: dt=0.1",
+                  "Euler by deSolve: dt = 1", "Exact"),
+       col=2:5, lty=1, cex=0.8)
 ```
 
-The above plot shows an example of such two curves, who intersect exactly once. Therefore the circuit has only one steady state. It is possible to show that the circuit can only have one steady state, disregarding the choice of the model parameters. Similar to the first example, we can find that the steady state is also stable from either plotting or evaluation of Equation (2). Note that since $H^{inh}$ monotonically decreases as $X$ increases, thus its derivative with respect to $X$ is always negative.
-
-Let us also compute $\frac{df(X)}{dX}$. Note that we use vector operations for high efficiency.
-
-``` {r}
-f_1g_self_inh <- function(X) {
-   return(10 + 60 * hill_inh(X, 200, 4))
-}
-
-cal_dfdx <- function(X_all, dt, derivs) {
-  f_all = derivs(X_all)  # f(X)
-  f_all_shift_by_one = c(f_all[-1], 0) #f(X+dx)
-  return((f_all_shift_by_one - f_all)/dt) # df/dX = (f(X+dx) - f(X))/dt
-}
-
-X_all = seq(0,600,0.1)
-dfdX = cal_dfdx(X_all, 0.1, f_1g_self_inh)
-
-X_all_corrected = seq(0.05,600-0.05,0.1)   # correct Xs, think why
-plot(X_all_corrected, head(dfdX, -1), type = "l", col =1,
-    xlab="X (nM)", ylab="df/dX", xlim=c(0,600), ylim=c(-0.4,0.1)) 
-abline(0,0,lty=2)  # add a horizontal line
-```
-
-# Multi-stability
-
-The third example is the circuit with a self-activating gene, whose dynamics is governed by
-
-\begin{equation}
-\frac{dX}{dt} = g(X) - kX 
-\end{equation}
-
-,where $g(X) = g_0 + g_1 H^{ex}(X)$ (see Equations (7 - 8) in Part 2A).
-
-Again, we plot $g(X)$ and $kX$. In the plot below, we vary the value of $k$ and fix the rest of the parameters. 
+A zoom-in plot indicates that the difference between the numerical integration and the analytical solution is smaller when the time step is smaller.
 
 ```{r}
-g_0 = 10; g_1 = 45; k = 0.1; X0 = 200; n = 4
-hill_ex <- function(X,X0,n) {
-  a = (X/X0)**n
-  return(a/(1+a))
-}
-X_all = seq(0, 600, 1)
-plot(X_all, g_0 + g_1 * hill_ex(X_all, X0, n), type = "l", col =1,
-    xlab="X (nM)", ylab="Rates", xlim=c(0,600), ylim=c(0,60)) 
-lines(X_all, k * X_all, col=2)
-lines(X_all, 0.15 * X_all, col=3)
-lines(X_all, 0.2 * X_all, col=4)
-legend("topleft", inset=0.02, legend = c("g(X)", "kX (k = 0.1)", "kX (k = 0.15)", "kX (k = 0.2)"),
-       col=1:4, lty=1, cex=0.8)
+plot(results_1[,1], results_1[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(66,70), ylim=c(700,1000)) 
+lines(results_2[,1], results_2[,2], col=3)
+lines(results_3[,1], results_3[,2], col=4)
+lines(t, nt1, col=5)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler by deSolve: dt=0.01", "Euler by deSolve: dt=0.1",
+                  "Euler by deSolve: dt = 1", "Exact"),
+       col=2:5, lty=1, cex=0.8)
 ```
 
-When $k = 0.1$ or $k = 0.2$, there is one intersection of the two curves $g(X)$ and $kX$, so the circuit has one steady state. When $k = 0.15$, there are three intersections, so the circuit has three steady states. From stability analysis, we can show the leftmost and the rightmost steady states are stable, while the middle steady state is unstable. We call this property of dynamical systems *multistability*.
+**Q1.** Simulate the exponential growth model in deSolve with a few other integration methods, such as ode23 and ode45. For each, compare the simulation results with the exact solutions. Evaluate and compare the accuracy of these methods. 
 
-We can intuitively understand the states of the self-activating circuit as follows. When $X$ is low, there is no sufficient $X$ product for transcription factor binding. Thus, the transcription rate is low, and $X$ is kept at a low level. When $X$ is sufficiently high, $X$ binds to the promoter of itself most of time. Thus, the transcription rate is high, and $X$ stays at a high level. This explains why the circuit can have two stable states at the same time.
+Hint: Use ?deSolve to find its usage.
 
-We can also simulate the ODE with different initial conditions. The plot below shows that the time trajectories converge to the two stable steady states. We can also clearly observe that $X$ of the unstable state is somewhere between 150 nM to 200 nM.
+#### Use integrator functions
 
-``` {r}
-library(deSolve)
-dy_deSolve_1g_self_act<- function(t, y, parms) { # modified derivative function for deSolve
-  return(list(10 + 45 * hill_ex(y, 200, 4) - 0.15*y))
-}
-t_all = seq(0, 80, 0.1)
-X0_all = seq(50,400,50) ## all initial conditions
-legend_text = paste0("X0 = ", X0_all)
-plot(NULL, xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(0,500)) 
-ind = 1
-for(X in X0_all){
-  ind = ind + 1
-  results = ode(y = X, times = t_all, func = dy_deSolve_1g_self_act, parms = NULL, method = "rk4")
-  lines(results[,1], results[,2],  col=ind)
+Here, we illustrate the use of our own integrator functions, as described in Part 2B. We Use both the Euler method and the 4th order Runge-Kutta method (RK4).
+
+```{r}
+dN <- function(t, N, r) { # define derivative function, Equation (1)
+  return(r*N)
 }
 
-legend("bottomright", inset=0.02, title="Initial conditions", 
-       legend = legend_text, col=2:9, lty=1, cex=0.8)
-```
-
-Again, we can also learn the stability of steady states from the $\frac{df(X)}{dX}$ curve.
-
-``` {r}
-f_1g_self_act <- function(X) {
-  return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)
-}
-
-X_all = seq(0,500,0.1)
-dfdX = cal_dfdx(X_all, 0.1, f_1g_self_act)
-X_all_corrected = seq(0.05,500-0.05,0.1)  
-
-plot(X_all_corrected, head(dfdX, -1), type = "l", col =1,
-    xlab="X (nM)", ylab="df/dX", xlim=c(0,500), ylim=c(-0.2,0.2)) 
-abline(0,0,lty=2) 
-```
-
-# Effective potential
-
-The concept of potential energy is widely used in science. In particular, for a molecular system, one can write down the potential functions to describe molecular interactions. However, a dynamical system describing a gene regulatory circuit is non-equilibrium in nature. For those systems, energy is not well defined. Nevertheless, it is possible to define *effective potential* for a gene circuit. 
-
-For a one-variable system, we can make an analogy between circuit dynamics governed by the rate equation 
-
-$$ \frac{dX}{dt} = f(X)$$
-with an overdamped particle in 1D. For the overdamped particle, $X$ represents its position in 1D, $-f(X)$ is the force, $\frac{dX}{dt}$ represents the velocity of the particle. Here, velocity is proportional to the force for an overdamped system. Therefore, we can define the potential function
-
-$$ U(X) = -\int_{X_0}^X f(x)dx + U(X_0) $$
-We will illustrate how to obtain the effective potential with numerical integration for the circuit with one self-activating gene. We set $U(X_0 = 0) = 0$. A common numerical method to integrate a function is by the trapezoidal rule.
-
-$$ \int_{X_0}^X f(x)dx = \sum_{x=X_0}^{X-\Delta x}\frac{f(x) + f(x+ \Delta x)}{2}\Delta x$$
-or
-
-$$ U(X+\Delta x) = U(X) - \frac{f(X) + f(X+ \Delta x)}{2}\Delta x $$
-The first method uses a for loop to obtain U(X)
-
-``` {r}
-# define f(X)
-f <- function(X) {
-  return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)
-}
-# now integrate f(X) with the trapezoidal rule
-cal_int <- function() {
-  ntot = 5000
-  dx = 0.1
-  U_all = array(0, dim = ntot + 1)
-  X = 0
-  U_all[1] =  - (f(0) + (f(dx)))/2*dx
-  for(i in 1:ntot) {
-    X = X + dx
-    U_all[i+1] = U_all[i] - (f(X) + (f(X+dx)))/2*dx
+# Euler_single is a generic function of Euler method for a single ODE 
+Euler <- function(derivs, X0, t.total, dt, ...){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i], ...)
   }
-  return(U_all)
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
 }
 
-X_all = seq(0, 500, 0.1)   # generate all Xs in an array
-U1 = cal_int()
-plot(X_all, U1, type = "l",  col =1,
-    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
+# 4th order Runge-Kutta (RK4)
+RK4 <- function(derivs, X0, t.total, dt, ...){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i], ...)
+    k2 = dt * derivs(t_0.5,X_all[i] + k1/2, ...)
+    k3 = dt * derivs(t_0.5,X_all[i] + k2/2, ...)
+    k4 = dt * derivs(t_1,X_all[i] + k3, ...)
+    X_all[i+1] = X_all[i] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+
+X0 = 1; t.total = 100; dt = 0.1; r = 0.1
+results_4 = Euler(derivs = dN, X0 = X0, t.total = t.total, dt = dt, r = r)
+results_5 = RK4(derivs = dN, X0 = X0, t.total = t.total, dt = dt, r = r)
+
+plot(results_4[,1], results_4[,2], type = "l", col=2,
+    xlab="t", ylab="N", xlim=c(66,70), ylim=c(700,1000)) 
+lines(results_5[,1], results_5[,2], col=3)
+lines(t, nt1, col=4)
+
+legend("topleft", inset=0.02, 
+       legend = c("Euler dt=0.1", "RK4 dt=0.1", "Exact"),
+       col=2:4, lty=1, cex=0.8)
 ```
 
-From the potential, there are two basins at around 100 nM and 300 nM, which are exactly the two stable steady states, and a barrier at around 200 nM, which is the unstable steady state. This provides an intuitive way to characterize a dynamical system with multistability. In addition, it also gives some ideas about how *stable* each state is. Here, the right basin has lower effective potential than the left basin. When there is sufficient gene expression noise, the system may transit from one stable state to another stable state. The effective potential also illustrates how *easy* it is to make such a transition. More details will be discussed in Parts 4 & 7.
+As shown above, with the same step size $dt = 0.1$, RK4 is much more accurate than the Euler method to model exponential growth for large $t$.
 
-Now, let us do the numerical integration again in R, but using only vector operations.
+## Logistic growth
+
+#### Analytical solution
+
+The logistic equation considers the limits to growth. The ODE is
+
+\begin{equation}
+\frac{dN}{dt} = rN(1-\frac{N}{B}) \tag{3}
+\end{equation}
+
+Here, $r$ is the per capita growth rate, and $B$ is carrying capacity. 
+The initial condition of Equation (3) is
+
+$$N(t = 0) = N_0$$
+This ODE can be solved analytically, with the solution
+
+\begin{equation}
+N = \frac{N_0 B}{N_0 + (B - N_0)e^{-rt}} \tag{4}
+\end{equation}
 
 ```{r}
-cal_int_vector <- function(X_all) {
-  f_all = f(X_all)   # generate all f(X)
-  f_all_shift_by_one = c(f_all[-1],0.)   # another array containing f(X+dx), except for the last point
-  f_all = (f_all + f_all_shift_by_one)*0.1/2   # each integrated part
-  return(-cumsum(f_all))   # perform cumulative sum
+logistic_exact <- function(t,r,B,N0) {   # the function to calculate logistic growth: exact solution
+  return(N0*B/(N0+(B-N0)*exp(-r*t)))
 }
 
-X_all = seq(0, 500, 0.1)   # generate all Xs in an array
-U2 = cal_int_vector(X_all)
-plot(X_all, U2, type = "l",  col =1,
-    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
+N0 = 1; r = 0.1; B= 100
+t = seq(1, 100, 1)   # all time points to be evaluated
+nt2 = logistic_exact(t, r, B, N0)   # all N(t) values
 
+plot(t, nt2, xlab="t", ylab="N(t)", xlim=c(0,100), ylim=c(0,110))
 ```
 
-We benchmark the efficiency of the two methods. The vector approach is the clear winner. 
+**Q2.** We set $B = 100$, $N_0 = 1$, and $r = 0.1$. Plot the logistic equation in R. Use deSolve (or, alternatively, use the above functions *Euler_Single* and *RK4*) to simulate Equation (3). 
 
-``` {r}
-library(microbenchmark)  # use microbenchmark library for timing
-my_benchmark = microbenchmark(
-               integration_normal = {U1 = cal_int()},
-               integration_vector = {X_all = seq(0,500,0.1);U2 = cal_int_vector(X_all)},
-               times = 10, unit = "s")  
-microbenchmark:::autoplot.microbenchmark(my_benchmark)
+(a) Compare the simulation results with the exact solutions (shown above). When (in terms of time $t$) does the algorithms generate largest errors?
 
-```
-
-Finally, we show the effective potential for $k = 0.2 \text{Minute}^{-1}$.
-
-``` {r}
-f <- function(X) {
-  return(10 + 45 * hill_ex(X, 200, 4) - 0.2*X)
-}
-X_all = seq(0, 500, 0.1)   # generate all Xs in an array
-U2 = cal_int_vector(X_all)
-plot(X_all, U2, type = "l",  col =1,
-    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
-```
-
-And the effective potential for $k = 0.1 \text{Minute}^{-1}$ .
-
-``` {r}
-f <- function(X) {
-  return(10 + 45 * hill_ex(X, 200, 4) - 0.1*X)
-}
-X_all = seq(0, 600, 0.1)   # generate all Xs in an array
-U2 = cal_int_vector(X_all)
-plot(X_all, U2, type = "l",  col =1,
-    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,600))
-```
+(b) Now consider the initial condition as $N_0 = 200$. Perform simulation to find $N(t)$.

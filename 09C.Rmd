@@ -1,0 +1,552 @@
+---
+title: "Part 9: Global optimization"
+subtitle: "C. Genetic algorithm"
+author: "Mingyang Lu"
+date: "08/22/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Genetic Algorithm
+
+Genetic algorithm (GA) is a stochastic method for global optimization, which is inspired by the process of natural selection. The method allows to sample a wide range of variables so that global optimum can be found. A genetic algorithm requires
+
+(1) A genetic representation of the solution, *e.g.*, a vector representation of the variables.
+(2) A fitness function to maximize/minimize. This is essentially the scoring function for the optimization problem.
+
+After defining the genetic representation and the fitness function, we initialize a population of solutions and improve it through iterative application of the mutation, crossover and selection operators. In some problems, another operator inversion may also be used.
+
+```{r}
+library(ggplot2)
+f_rosenbrok <- function(x){
+  # x: a vector of size 2
+  return(100*(x[1]**2-x[2])**2 + (1-x[1])**2)
+}
+
+x_all = seq(-3,3, by =0.1)
+y_all = seq(-3,3, by =0.1)
+data = expand.grid(x_all, y_all)
+colnames(data) = c("x1", "x2")
+z_all = apply(data, MARGIN = 1, f_rosenbrok)
+data$z = z_all
+p = ggplot(data, aes(x=x1, y=x2, z = z)) + geom_contour(breaks = 10^(seq(-2,2.5, by =0.2)), colour = "black")
+p
+```
+
+The function has a minimum at (1,1), but it is hard to be found because of the function values drastically decrease in a narrowly range. Rosenbrock's function has been used to test optimization algorithms. We illustrate the utilization of GA in this simple example. Here, we use a vector $(x_1, x_2)$ for the genetic representation and the function *f_rosenbrok* as the fitness function. For crossover, we take two solutions and randomly swap the variables so that we generate two new solutions (offsprings). For mutation, we randomly pick one variable and perform a small change (sampled from a uniform distribution) to the variable. We first **initialize** *np* number of randomly sampled parent solutions. Then, we perform **crossover** and **mutation** (the ratio of controlled by *rate_x*) to generate another *np* offspring solutions. We then select the best *np* solutions (according to the fitness function) from both the parent and offspring solutions (the **selection** process). That concludes one generation of the GA. We repeat the whole process multiple generations to obtain better solutions. 
+
+```{r}
+# GA implementation (func is minimized)
+ga_opt <- function(n, func, np, rate_x, ngen, xrange, dx_ratio){
+  # n: number of variables
+  # func: function to be optimized
+  # np: number of parents
+  # rate_x: rate of crossover
+  # ngen: number of generations
+  # xrange: variable ranges (matrix of n x 2)
+  # dx_ratio: dx step size chosen as a % of xrange
+  
+  np = ceiling(np/2)*2  # in case np is not an even number
+  dx_max = (xrange[,2] - xrange[,1])*dx_ratio
+  
+  # initialization
+  x_parent = matrix(0, nrow = np, ncol = n)
+  for(i in 1:n){
+    x_parent[,i] = runif(np, xrange[i,1], xrange[i,2])
+  }
+  s_parent = apply(x_parent,1,func)
+  
+  x_offspring = matrix(0, nrow = np, ncol = n)
+  s_keep = matrix(0, nrow = ngen, ncol = np)
+  
+  for(i in 1:ngen){
+   # new generation
+    ind_ran = sample(np)
+    for(j in 1:(np/2)){
+      x1 = x_parent[ind_ran[2*j-1],]
+      x2 = x_parent[ind_ran[2*j],]
+      if(runif(1) < rate_x){
+        # crossover
+        x_offspring[(2*j-1):(2*j),]  = crossover_opt(n, x1,x2)
+      }else{
+        # mutation
+        x_offspring[2*j-1,] = mutation_opt(n,x1,xrange,dx_max)
+        x_offspring[2*j,] = mutation_opt(n,x2,xrange,dx_max)
+      }
+    }
+    # scoring
+    s_offspring = apply(x_offspring, 1, func)
+    
+    # selection
+    x_all = rbind(x_parent, x_offspring)
+    s_all = c(s_parent, s_offspring)
+    rank_all = rank(s_all, ties.method = "random")
+    ind_keep = which(rank_all <= np)
+    
+    x_parent = x_all[ind_keep,]
+    s_parent = s_all[ind_keep]
+    
+    x_best = x_all[which(rank_all == 1),]
+    s_best = s_all[which(rank_all == 1)]
+    s_keep[i,] = s_parent
+  }
+  return(list(x = x_best, s = s_best, 
+              x_parent = x_parent, s_keep = s_keep)) 
+}
+
+
+crossover_opt <- function(n, x1, x2){
+  # n: number of variables
+  # x1, x2: variables (vector of size n)
+  w1 = sample(0:1, n, replace = T)
+  x1_new= x1*w1 + x2*(1-w1)
+  x2_new = x2*w1 + x1*(1-w1) 
+  return(rbind(x1_new, x2_new))
+}
+
+mutation_opt <- function(n, x, xrange, dx_max){
+  # n: number of variables
+  # x: variables (vector of size n)
+  # xrange: matrix of n by 2 (variable boundary)
+  # dx_max: maximum step size
+  ind = sample(n,1)
+  x_new = x
+  x_new[ind] = x_new[ind] + runif(1, min = -dx_max, max = dx_max)
+  if(x_new[ind] < xrange[ind,1]) x_new[ind] = xrange[ind,1]
+  if(x_new[ind] > xrange[ind,2]) x_new[ind] = xrange[ind,2]
+  return(x_new)
+}
+
+```
+
+By the following test, we can obtain solutions very close to the global minimum of the Rosenbrok function. But the performance depends on the choice of the GA parameters: crossover rate, number of parent solutions, and the number of generations. The performance also highly depends on the operations of crossover and mutation.
+
+```{r}
+set.seed(1)
+n = 2; func = f_rosenbrok; np = 50; rate_x = 0.7; ngen = 100
+xrange = matrix(c(-3,3,-3,3), nrow = 2, byrow = T); dx_ratio = 0.1
+results = ga_opt(n, func, np, rate_x, ngen, xrange, dx_ratio)
+
+print(paste0("Best x :", results$x))
+print(paste0("Best score :", results$s))
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+```
+
+Below we also apply GA to optimize the Himmelblau's function.
+
+```{r}
+f_Himmelblau <- function(x){
+  f1 = x[1]**2+x[2]-11
+  f2 = x[1]+x[2]**2-7
+  return(f1**2+f2**2)
+}
+
+n = 2; func = f_Himmelblau; np = 50; rate_x = 0.5; ngen = 100
+xrange = matrix(c(-6,6,-6,6), nrow = 2, byrow = T); dx_ratio = 0.1
+results = ga_opt(n, func, np, rate_x, ngen, xrange, dx_ratio)
+
+print(paste0("Best x :", results$x))
+print(paste0("Best score :", results$s))
+s = results$s_keep
+
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("topright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1, 4), lty=1, cex=0.8)
+```
+
+
+# Travelling salesman problem (TSP) revisited
+
+We again consider $n$ cities represented by the $x$ and $y$ coordinates in 2D. Our goal is to find the shortest route that travels each city exactly once and then return to the first city. Here, we will use genetic algorithm to find an heuristic optimal solution. This approach is related to the homework where you are asked to solve this problem by simulated annealing. The genetic representation $z$ is a vector of size $n$, corresponding to a permutation of city indices from 1 to $n$. The fitness function is the total distance going through all cities in the order specified by $z$. 
+
+As we deal with a genetic representation of unique numbers and in a specific order, special choices of crossover and mutation operators are needed. For mutations, we consider two choices: *point mutation* where two randomly selected cities are swapped, and *inversion* where the city order between two randomly selected cities is reversed. 
+
+```{r}
+# distance function
+cal_s <- function(n, d, z){
+  # n: number of cities
+  # d: distance matrix (n by n)
+  # z: a vector of cities (order, size n)
+  dis = 0 
+  for(i in 1:(n-1)){
+    dis = dis + d[z[i], z[i+1]]
+  }
+  dis = dis + d[z[1], z[n]]
+  return(dis)
+}
+
+# mutation, swap the orders of two random cities
+mut_point <- function(n, z){
+  # n: number of cities
+  # z: a vector of cities (order, size n)
+  sites = sample(n, 2)
+  znew = z
+  znew[sites[1]] = z[sites[2]]
+  znew[sites[2]] = z[sites[1]]
+  return(znew)
+}
+
+# mutation, reverse the orders of two random cities
+mut_inverse <- function(n, z){
+  # n: number of cities
+  # z: a vector of cities (order, size n)
+  sites = sample(n, 2)
+  znew = z
+  znew[sites[1]:sites[2]] = z[sites[2]:sites[1]]
+  return(znew)
+}
+```
+
+# Crossover operators for set permutations
+
+### Partially mixed crossover (PMX)
+
+For crossover, many different methods have been proposed. One popular choice is called partially mapped crossover (PMX). After choosing two random cut points on parents to build offspring, the portion between the cut points, one parent’s string is mapped onto the other parent’s string and the remaining information is exchanged. Then we can fill further bits (from the original parents), for those which have no conflict. For those with conflict, we use the mapping from two parent's strings between the cut points. (see lecture notes for the examples) The implementation is a little complex for PMX. 
+
+```{r}
+# PMX: partially mapped crossover
+pmx <- function(n, z1, z2){
+  # n: number of cities
+  # z1: parent1, a vector of cities (order, size n)
+  # z2: parent2, a vector of cities (order, size n)
+  z1_new = numeric(n)
+  z2_new = numeric(n)
+  sites = sort(sample(n, 2))
+  if((sites[1] == 1) && (sites[2] == n)) return(rbind(z1, z2))
+#  print(sites)
+  
+  ind_list = setdiff(1:n, sites[1]:sites[2])
+  copied_z1 = z1[sites[1]:sites[2]]
+  copied_z2 = z2[sites[1]:sites[2]]
+  
+  z1_new[sites[1]:sites[2]] = copied_z2
+  for (i in ind_list){
+    candidate = z1[i]
+    repeat{
+      ind = which(copied_z2 %in% candidate)
+      if(length(ind) == 0)break
+      candidate = copied_z1[ind]
+    }
+    z1_new[i] = candidate
+  }
+  
+  z2_new[sites[1]:sites[2]] = copied_z1
+  for (i in ind_list){
+    candidate = z2[i]
+    repeat{
+      ind = which(copied_z1 %in% candidate)
+      if(length(ind) == 0)break
+      candidate = copied_z2[ind]
+    }
+    z2_new[i] = candidate
+  }
+  return(rbind(z1_new, z2_new))
+}
+
+```
+
+### Order crossover (OX)
+
+The second choice is order crossover (OX). It builds offspring by choosing a sub-tour of a parent and preserving the relative order of bits of the other parent. First, the bits are copied down between the cuts with similar way into the offspring. Second, starting from the second cut point of one parent, the bits from the other parent are copied in the same order omitting existing bits. Third, this sequence is placed in the first offspring starting from the second cut point. We repeat the same for the second offspring. 
+
+```{r}
+# OX: order crossover
+ox <- function(n, z1, z2){
+  # n: number of cities
+  # z1: parent1, a vector of cities (order, size n)
+  # z2: parent2, a vector of cities (order, size n)
+  z1_new = numeric(n)
+  z2_new = numeric(n)
+  sites = sort(sample(n, 2))
+  if((sites[1] == 1) && (sites[2] == n)) return(rbind(z1, z2))
+  
+#  print(sites)
+  
+  copied_z1 = z1[sites[1]:sites[2]]
+  z2_ordered = c(tail(z2, -sites[2]), head(z2, sites[2]))
+  fill_z2 = setdiff(z2_ordered, copied_z1)
+  z2_new = c(copied_z1, fill_z2)
+  
+  copied_z2 = z2[sites[1]:sites[2]]
+  z1_ordered = c(tail(z1, -sites[2]), head(z1, sites[2]))
+  fill_z1 = setdiff(z1_ordered, copied_z2)
+  z1_new = c(copied_z2, fill_z1)
+  
+  shift = sites[1] - 1
+  if(shift > 0){
+    z2_new = c(tail(z2_new, shift), head(z2_new, -shift))
+    z1_new = c(tail(z1_new, shift), head(z1_new, -shift))
+  }
+  
+  return(rbind(z1_new, z2_new))
+}
+```
+
+### Cycle crossover (CX)
+
+The third choice is cycle crossover (CX). CX generates two offsprings where each bit with its position comes from one of the parents. The first bit for the offspring is selected randomly from the first or from the second parent. Now every bit in the offspring should be taken from one of its parents with the same position. Thus, due to the choice of the first bit, the city that was selected by the second offspring for the first bit can only be selected by the first offspring. We can continue the process until we complete a cycle and filling the remaining blank positions with the bits of those positions which are in second parent.
+
+```{r}
+# CX: cycle crossover
+cx <- function(n, z1, z2){
+  # n: number of cities
+  # z1: parent1, a vector of cities (order, size n)
+  # z2: parent2, a vector of cities (order, size n)
+  z1_new = numeric(n)
+  z2_new = numeric(n)
+  
+  z1_new[1] = z1[1]
+  ind = which(z1 == z2[1])
+  while(z1_new[ind] == 0){
+    z1_new[ind] = z1[ind]
+    ind = which(z1 == z2[ind])
+  }
+  ind_rest = which(z1_new == 0)
+  z1_new[ind_rest] = z2[ind_rest]
+  
+  z2_new = z1 + z2 - z1_new
+  
+  return(rbind(z1_new, z2_new))
+}
+```
+
+# Testing GA on various TSP cases.
+
+Below, we test the mutation and crossover operators. We only select one mutation and one crossover for an GA application. It is also fine to use a mixture of different crossover/mutation operators. 
+
+```{r}
+set.seed(1)
+
+n = 8
+z1 = c(3,4,8,2,7,1,6,5)
+z2 = c(4,2,5,1,6,8,3,7)
+
+# point swapping
+mut_point(n, z1)
+
+# inversion
+mut_inverse(n, z1)
+
+# crossover PMX (2:5)
+pmx(n, z1, z2)
+
+# crossover OX (3:7)
+ox(n, z1, z2)
+
+# crossover CX (same vectors)
+cx(n, z1, z2)
+
+z1 = c(1,2,3,4,5,6,7,8)
+z2 = c(8,5,2,1,3,6,4,7)
+cx(n, z1, z2)
+```
+
+Below shows the GA function for the travelling salesman problem (TSP).
+
+```{r}
+tsp_ga <- function(n, d, np, rate_x, ngen, func_x, func_m){
+  # n: number of cities
+  # d: distance matrix (n by n)
+  # np: population size (even number)
+  # rate_x: rate of crossover (vs. mutation)
+  # ngen: number of generations
+  # func_x: crossover function
+  # func_m:  function
+  
+  np = ceiling(np/2)*2  # in case np is not an even number
+  
+  # initial parent population
+  z_parent = t(replicate(np, sample(n))) 
+  s_parent = apply(z_parent, 1, function(z) return(cal_s(n, d, z)))
+    
+  z_offspring = matrix(0, nrow = np, ncol = n)
+  s_keep = matrix(0, nrow = ngen, ncol = np)
+  
+  for(i in 1:ngen){
+    # new gneration
+    ind_ran = sample(np)
+    for(j in 1:(np/2)){
+      z1 = z_parent[ind_ran[2*j-1],]
+      z2 = z_parent[ind_ran[2*j],]
+      if(runif(1) < rate_x){
+        # crossover
+        z_new = func_x(n, z1, z2)
+        z_offspring[(2*j-1):(2*j),] = z_new
+      }else{
+        # mutation
+        z_offspring[2*j-1,] = func_m(n, z1)
+        z_offspring[2*j,] = func_m(n, z2)
+      }
+    }
+    # scoring
+    s_offspring = apply(z_offspring, 1, function(z) return(cal_s(n, d, z)))
+    
+    # selection
+    z_all = rbind(z_parent, z_offspring)
+    s_all = c(s_parent, s_offspring)
+    rank_all = rank(s_all, ties.method = "random")
+    ind_keep = which(rank_all <= np)
+    
+    z_parent = z_all[ind_keep,]
+    s_parent = s_all[ind_keep]
+    
+    z_best = z_all[which(rank_all == 1),]
+    s_best = s_all[which(rank_all == 1)]
+    s_keep[i,] = s_parent
+  }
+  
+  return(list(z = z_best, s = s_best, s_keep = s_keep))
+}
+```
+
+First, we try the same 10 city example from the previous lecture. It works well to find the optimal solution using PMX and point mutation.
+
+```{r}
+set.seed(1)
+c10 = read.table(file = "./extra/data/09/c10.txt")
+colnames(c10) = c("x", "y")
+plot(c10$x, c10$y, type = "p", xlab = "x", ylab = "y")
+d10 = as.matrix(dist(c10, upper = T))
+
+n = 10; np = 10; rate_x = 0.8; ngen = 50
+results = tsp_ga(n = n, d = d10, np = np, rate_x = rate_x, ngen = ngen, 
+                 func_x = pmx, func_m = mut_point)
+p = results$z
+p
+
+p = c(p,p[1])
+
+plot(c10$x, c10$y, type = "p", xlab = "x", ylab = "y")
+lines(c10$x[p], c10$y[p], type = "l", col = 2)
+
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores", ylim = c(190, 400))
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1,4), lty=1, cex=0.8)
+```
+
+
+Second, we test the GA optimization on a model of 52 cities (*berlin52*). It's a much harder problem, and this time the solution is far from optimal using PMX and point mutation.
+
+```{r}
+set.seed(1)
+c52 = read.table(file = "./extra/data/09/berlin52.tsp")
+colnames(c52) = c("ind", "x", "y")
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+d52 = as.matrix(dist(c52, upper = T))
+
+n = 52; np = 40; rate_x = 0.7; ngen = 2000
+results = tsp_ga(n = n, d = d52, np = np, rate_x = rate_x, ngen = ngen, 
+                 func_x = pmx, func_m = mut_point)
+p = results$z
+p
+
+p = c(p,p[1])
+
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+lines(c52$x[p], c52$y[p], type = "l", col = 2)
+
+print(paste0("Best score :", results$s))
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1, 4), lty=1, cex=0.8)
+```
+
+When inversion operator is used, the solution is much improved. 
+
+```{r}
+set.seed(1)
+c52 = read.table(file = "./extra/data/09/berlin52.tsp")
+colnames(c52) = c("ind", "x", "y")
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+d52 = as.matrix(dist(c52, upper = T))
+
+n = 52; np = 40; rate_x = 0.6; ngen = 2000
+results = tsp_ga(n = n, d = d52, np = np, rate_x = rate_x, ngen = ngen, 
+                 func_x = pmx, func_m = mut_inverse)
+p = results$z
+p
+
+p = c(p,p[1])
+
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+lines(c52$x[p], c52$y[p], type = "l", col = 2)
+
+print(paste0("Best score :", results$s))
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1,4), lty=1, cex=0.8)
+```
+
+In this test with inversion and OX crossover, we find a very good solution. But finding this or better solutions are not guaranteed in our GA implementation. 
+
+```{r}
+set.seed(1)
+n = 52; np = 40; rate_x = 0.7; ngen = 2000
+results = tsp_ga(n = n, d = d52, np = np, rate_x = rate_x, ngen = ngen, 
+                 func_x = ox, func_m = mut_inverse)
+p = results$z
+p
+
+p = c(p,p[1])
+
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+lines(c52$x[p], c52$y[p], type = "l", col = 2)
+
+print(paste0("Best score :", results$s))
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1,4), lty=1, cex=0.8)
+```
+
+When using CX crossover, we find similar results.
+
+```{r}
+set.seed(2)
+n = 52; np = 40; rate_x = 0.7; ngen = 2000
+results = tsp_ga(n = n, d = d52, np = np, rate_x = rate_x, ngen = ngen, 
+                 func_x = cx, func_m = mut_inverse)
+p = results$z
+p
+
+p = c(p,p[1])
+
+plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
+lines(c52$x[p], c52$y[p], type = "l", col = 2)
+
+print(paste0("Best score :", results$s))
+s = results$s_keep
+plot(1:ngen, apply(s, 1, min), type = "l", col = 2, xlab = "Generations", ylab = "Scores")
+lines(1:ngen, apply(s, 1, mean), type = "l", col = 1)
+lines(1:ngen, apply(s, 1, max), type = "l", col = 4)
+legend("bottomright", inset=0.02, 
+       legend = c("min", "mean", "max"),
+       col=c(2,1,4), lty=1, cex=0.8)
+```

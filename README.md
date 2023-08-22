@@ -18,31 +18,53 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |1. Introduction to R programming|
 |-- 1A. [Basics of R](./01A.html) |
 |-- 1B. [Efficient R programming](./01B.html) |
-|-- 1C. [Exercises](./01C.html) |
+|-- 1C. [Numerical methods](./01C.html) |
+|-- 1D. [Exercises](./01D.html) |
 |2. Ordinary differential equations|
 |-- 2A. [Modeling gene circuits with rate equations](./02A.html) |
 |-- 2B. [Numerical integration](./02B.html) | 
-|-- 2B2. [Practice: modeling bacterial growth](./02B2.html) | 
-|-- 2C. [Stability](./02C.html) |
-|-- 2D. [Bifurcation](./02D.html) |
-|-- 2E. [Delayed differential equations](./02E.html) |
+|-- 2C. [Practice: modeling bacterial growth](./02C.html) | 
+|-- 2D. [Stability](./02D.html) |
+|-- 2E. [Bifurcation](./02E.html) |
 |-- 2F. [Exercises](./02F.html) |
 |3. Phase plane|
 |-- 3A. [Nulllines](./03A.html) |
 |-- 3B. [Stability in 2D](./03B.html) |
-|-- 3B2. [Practice: modeling chemostat](./03B2.html) | 
-|-- 3B3. [Practice: predator-prey model](./03B3.html) | 
-|-- 3C. [Bifurcation for two-variable systems](./03C.html) |
-|-- 3D. [Separatrix](./03D.html) |
-|-- 3E. [Effective potential revisited](./03E.html) |
-|-- 3F. [Exercises](./03F.html) |
-|4. Stochastic differential equations|
-|-- 4A. [Euler–Maruyama method](./04A.html) |
-|-- 4B. [Milstein method](./04B.html) |
-|-- 4C. [State transitions](./04C.html) |
+|-- 3C. [Practice: modeling chemostat](./03C.html) | 
+|-- 3D. [Practice: predator-prey model](./03D.html) | 
+|-- 3E. [Bifurcation for two-variable systems](./03E.html) |
+|-- 3F. [Separatrix](./03F.html) |
+|-- 3G. [Effective potential revisited](./03G.html) |
+|-- 3H. [Exercises](./03H.html) |
+|4. Systems with time delays|
+|-- 4A. [Delayed differential equations](./04A.html) |
+|-- 4B. [Examples of systems with time delays](./04B.html) |
+|-- 4C. [Delays from indirect interactions](./04C.html) | 
 |-- 4D. [Exercises](./04D.html) |
-|5. Partial differential equations|
-|-- 5A. [Modeling diffusion](./05A.html) |
-|-- 5B. [Reaction-diffusion systems](./05B.html) |
-|-- 5C. [Turing instability](./05C.html) |
+|5. Molecular dynamics|
+|-- 5A. [Integrators for second order ODEs](./05A.html) |
+|-- 5B. [Orbital motions](./05B.html) |
+|-- 5C. [Modeling a box of 2D particle](./05C.html) |
 |-- 5D. [Exercises](./05D.html) |
+|6. Stochastic differential equations|
+|-- 6A. [Random number generators](./06A.html) |
+|-- 6B. [Brownian motion](./06B.html) |
+|-- 6B. [SDE integrators](./06C.html) |
+|-- 6D. [Stochastic state transitions](./06D.html) |
+|-- 6E. [Exercises](./06E.html) |
+|7. Partial differential equations|
+|-- 7A. [Modeling diffusion](./07A.html) |
+|-- 7B. [Reaction-diffusion systems](./07B.html) |
+|-- 7C. [Turing instability](./07C.html) |
+|-- 7D. [Exercises](./07D.html) |
+|8. Monte Carlo Simulations|
+|-- 8A. [Monte Carlo Method](./08A.html) |
+|-- 8B. [Metropolis algorithm](./08B.html) |
+|-- 8C. [Particles in a box: MCMC sampling](./08C.html) |
+|-- 8D. [Gillespie Algorithm](./08D.html) |
+|-- 8E. [Exercises](./08E.html) |
+|9. Global optimization|
+|-- 9A. [MCMC optimization methods](./09A.html) |
+|-- 9B. [Dynamic programming](./09B.html) |
+|-- 9C. [Genetic algorithm](./09C.html) |
+|-- 9D. [Exercises](./09D.html) |
