@@ -24,7 +24,7 @@ In this section, we will introduce numerical methods to solve ODEs in the contex
 The Euler method is a first-order method to numerically integrate ODEs. Given the $X$ value at time $t$, we can obtain $X$ value at the next time step $t+\Delta t$ by
 
 \begin{equation}
-X(t+\Delta t) = X(t) + f(x)\Delta t \tag{2}
+X(t+\Delta t) = X(t) + f(x,t)\Delta t \tag{2}
 \end{equation}
 
 The plot below illustrates how the Euler method works.
@@ -32,23 +32,23 @@ The plot below illustrates how the Euler method works.
 <center>![Figure 1](extra/data/02B/fig1.png){width=400}</center>
 <br>
 
-Therefore, we can start from the initial condition $X(t = 0)$ and iteratively apply equation (2) to compute $X(t)$ for every time step. Here, $\Delta t$ is the time step size. The smaller the $\Delta t$ is, the more accurate the integration by equation (2) would be. However, smaller $\Delta t$ also means that it would take more iterations, thus longer time, to simulate $X$ for a fixed duration of time $t$.
+Therefore, we can start from the initial condition $X(t = 0)$ and iteratively apply Equation (2) to compute $X(t)$ for every time step. Here, $\Delta t$ is the time step size. The smaller the $\Delta t$ is, the more accurate the integration by Equation (2) would be. However, smaller $\Delta t$ also means that it would take more iterations, thus longer time, to simulate $X$ for a fixed duration of time $t$.
 
 Now, we will show how the Euler method works in R. 
 
 ```{r}
-ode1 <- function(X0, t) {   # analytical solutions, see Part 2A
-  g = 50; k = 0.1
-  return(X0 + (g/k - X0)*(1-exp(-k*t)))
+ode1 <- function(X0, t.total, g, k) {   # analytical solutions, see Part 2A
+  return(X0 + (g/k - X0)*(1-exp(-k*t.total)))
 }
-t_all = seq(0,80,0.1)    # time points to plot
+t_all = seq(0, 80, 0.1)    # time points to plot
 
-dX <- function(t, X) { # define derivative function, equation (1)
-  return(50 - 0.1*X)
+dX <- function(t, X, g, k) { # define derivative function, Equation (1)
+  return(g - k*X)
 }
 
-# Euler_single is a generic function of Euler method for a single ODE 
-Euler_single <- function(derivs, X0, t.total, dt){
+# Euler is a generic function of Euler method for a single ODE 
+# Note that ellipsis (...) is used ot pass any argument to the function. 
+Euler <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
   # X0: initial condition
   # t.total: total simulation time, assuming t starts from 0 at the beginning
@@ -58,15 +58,19 @@ Euler_single <- function(derivs, X0, t.total, dt){
   X_all = numeric(n_all)
   X_all[1] = X0
   for (i in 1:(n_all-1)) {
-    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i])
+    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i], ...)
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
 }
 
-results1 = Euler_single(dX, 300, 80, 1)
-results2 = Euler_single(dX, 300, 80, 0.1)
+# model parameters
+g = 50
+k = 0.1
 
-plot(t_all, ode1(300, t_all), type = "l", col=2,
+results1 = Euler(derivs = dX, X0 = 300, t.total = 80, dt = 1, g = 50, k = 0.1)
+results2 = Euler(derivs = dX, X0 = 300, t.total = 80, dt = 0.1, g = 50, k = 0.1)
+
+plot(t_all, ode1(X0 = 300, t.total = t_all, g = g, k = k), type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(300,500)) 
 lines(results1[,1], results1[,2],  col=3)
 lines(results2[,1], results2[,2],  col=4)
@@ -74,7 +78,7 @@ legend("bottomright", inset=0.02, title="Time dynamics",
        legend = c("Analytical", "Euler: dt=1", "Euler: dt=0.1"),
        col=2:4, lty=1, cex=0.8)
 
-plot(t_all, ode1(300, t_all), type = "l", col=2,
+plot(t_all, ode1(300, t_all, g, k), type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(10,14), ylim=c(425,450)) 
 lines(results1[,1], results1[,2],  col=3)
 lines(results2[,1], results2[,2],  col=4)
@@ -89,7 +93,7 @@ Given a small $\Delta t$, we can express $X(t+\Delta t)$ by Taylor expansion
 X(t+\Delta t) = X(t) + \frac{dX}{dt}\Delta t + O(\Delta t^2) \tag{3}
 \end{equation}
 
-Here, the term $O(\Delta t^2)$ summarizes the least significant term of the above expression, as $\Delta t \rightarrow 0$. In other word, it gives the error of the expansion. From equations (1) and (3), we will directly obtain the formula of Euler method in equation (2). Thus, the error of Euler method is at the level of $O(\Delta t^2)$. The same approach can also be applied to estimate the errors of different numerical methods.
+Here, the term $O(\Delta t^2)$ summarizes the least significant term of the above expression, as $\Delta t \rightarrow 0$. In other word, it gives the error of the expansion. From Equations ( (1) and (3), we will directly obtain the formula of Euler method in Equation (2). Thus, the error of Euler method is at the level of $O(\Delta t^2)$. The same approach can also be applied to estimate the errors of different numerical methods.
 
 # Code efficiency
 
@@ -97,13 +101,14 @@ There are existing packages, such as deSolve, to perform numerical integration i
 
 ```{r}
 library(deSolve)  # a general ode solver
+# params take the g and k in a vector of size 2
 dy_deSolve <- function(t, y, parms) { # modified derivative function for deSolve
-  return(list(50 - 0.1*y))
+  return(list(parms[1] - parms[2]*y))
 }
 t_all_3 = seq(0, 80, 1)
-results3 = ode(y = 300, times = t_all_3, func = dy_deSolve, parms = NULL, method = "euler")
+results3 = ode(y = 300, times = t_all_3, func = dy_deSolve, parms = c(50, 0.1), method = "euler")
 t_all_4 = seq(0, 80, 0.1)
-results4 = ode(y = 300, times = t_all_4, func = dy_deSolve, parms = NULL, method = "euler")
+results4 = ode(y = 300, times = t_all_4, func = dy_deSolve, parms = c(50, 0.1), method = "euler")
 plot(results3[,1], results3[,2], type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(300,500)) 
 lines(results4[,1], results4[,2],  col=3)
@@ -145,7 +150,6 @@ subroutine ode_1g_euler(x0,dt,nsteps,results)
   enddo
   
 end subroutine ode_1g_euler
-
 ```
 
 The above Fortran function uses a simple iteration and no array/matrix during the integration. The matrix "results" is only used for outputs and plotting. If the detailed time trajectory is not required, I would recommend not saving (t, x) for every step, which will further improve the code. 
@@ -176,18 +180,18 @@ library(microbenchmark)  # use microbenchmark library for timing
 X0 = 300
 dt = 0.01
 t_total = 80.0
-my_benchmark = microbenchmark(euler_ours = Euler_single(dX, X0, t_total, dt),
-               euler_desolve = {t_all = seq(0,t_total,dt); ode(y = X0, times = t_all, func = dy_deSolve, parms = NULL, method = "euler")},
+my_benchmark = microbenchmark(euler_ours = Euler(dX, X0, t_total, dt, g, k),
+               euler_desolve = {t_all = seq(0,t_total,dt); ode(y = X0, times = t_all, func = dy_deSolve, parms = c(g, k), method = "euler")},
                euler_fortran = {nsteps = as.integer(t_total/dt); res = matrix(data=0, nrow=2, ncol=nsteps);outcomes = .Fortran("ode_1g_euler",as.double(X0),as.double(dt), as.integer(nsteps), res);rbind(c(0.,X0),t(outcomes[[4]]))},
                times = 10, unit = "s")  
 microbenchmark:::autoplot.microbenchmark(my_benchmark)
 ```
 
-# Second order approximation
+# Second order approximation: Heun method
 
-In the Euler method, the derivative is approximated as a constant for the interval $t \rightarrow t+\Delta t$. It usually works well when $\Delta t$ is small and the derivative function is "steady". Otherwise, higher order approximation is required. 
+In the Euler method, the derivative is approximated as a constant for the interval $t \rightarrow t+\Delta t$. It usually works well when $\Delta t$ is small and the derivative function is "steady". Otherwise, higher order approximation is required.
 
-Here, we introduce the second order Runge-Kutta method (also called Heun's method), as illustrated in the following Figure.
+Here, we introduce a second order method, named Heun's method, as illustrated in the following Figure.
 
 <center>![Figure 1](extra/data/02B/fig2.png){width=600}</center>
 <br>
@@ -211,7 +215,7 @@ We can show that the error of the algorithm is $O(\Delta t^3)$. By Taylor expans
 \begin{aligned}
 X(t + \Delta t) &= X(t) + \frac{dX(t)}{dt}\Delta t + \frac{1}{2}\frac{d^2X(t)}{dt^2}\Delta t^2 + O(\Delta t^3)\\
 &= X(t) + f(X,t)\Delta t+ \frac{1}{2}\frac{df(X,t)}{dt}\Delta t^2 + O(\Delta t^3)
-\end{aligned} \tag{1}
+\end{aligned} \tag{4}
 \end{equation}
 
 Because
@@ -220,7 +224,7 @@ Because
 \begin{aligned}
 \frac{df}{dt} &= \frac{\partial f}{\partial t} + \frac{\partial f}{\partial X}\frac{dX}{dt} \\
 &= \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}
-\end{aligned} \tag{2}
+\end{aligned} \tag{5}
 \end{equation}
 
 And,
@@ -229,10 +233,10 @@ And,
 \begin{aligned}
 k_2 &= f(X+f(X)\Delta t, t + \Delta t) \Delta t \\
 &= f(X,t) \Delta t + \frac{\partial f(X,t)}{\partial X}f(X)\Delta t^2 + \frac{\partial f(X,t)}{\partial t}\Delta t^2 + O(\Delta t^3)
-\end{aligned} \tag{3}
+\end{aligned} \tag{6}
 \end{equation}
 
-From equations (1) - (3), we find
+From Equations (4) - (6), we find
 
 \begin{equation}
 \begin{aligned}
@@ -241,11 +245,11 @@ From equations (1) - (3), we find
 \end{aligned}
 \end{equation}
 
-Below is the implementation of the second order Runge-Kutta algorithm (RK2) in R. 
+This concludes the proof of the Heun method. Below shows its implementation in R. 
 
 ```{r}
-# 2nd order Runge-Kutta (RK2)
-RK2 <- function(derivs, X0, t.total, dt){
+# 2nd order ODE integrator: Heun method
+Heun <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
   # X0: initial condition
   # t.total: total simulation time, assuming t starts from 0 at the beginning
@@ -255,10 +259,42 @@ RK2 <- function(derivs, X0, t.total, dt){
   X_all = numeric(n_all)
   X_all[1] = X0
   for (i in 1:(n_all-1)) {
-    k1 = dt * derivs(t_all[i],X_all[i])
+    k1 = dt * derivs(t_all[i],X_all[i], ...)
     xb = X_all[i] + k1
-    k2 = dt * derivs(t_all[i+1],xb)
+    k2 = dt * derivs(t_all[i+1],xb, ...)
     X_all[i+1] = X_all[i] + (k1+k2)/2
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+## 2nd-order Runge-Kutta method (RK2)
+
+RK2 is another 2nd order method, also known as the midpoint method. The method take a "trail" step to the midpoint of the interval then compute the "real" step across the whole interval.
+
+\begin{equation}
+\begin{aligned}
+k_1 &= f(X(t), t) \Delta t \\
+k_2 &= f(X(t) + \frac{1}{2}k_1, t + \frac{1}{2}\Delta t) \Delta t \\
+X(t+\Delta t) &= X(t) + k_2 
+\end{aligned}\tag{7}
+\end{equation}
+
+```{r}
+# 2nd order Runge-Kutta (RK2)
+RK2 <- function(derivs, X0, t.total, dt, ...){
+  # derivs: the function of the derivatives 
+  # X0: initial condition
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    k1 = dt * derivs(t_all[i],X_all[i],...)
+    k2 = dt * derivs(t_all[i] + dt/2, X_all[i] + k1/2,...)
+    X_all[i+1] = X_all[i] + k2
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
 }
@@ -275,12 +311,12 @@ k_2 &= f(X + \frac{k_1}{2}, t + \frac{\Delta t}{2}) \Delta t \\
 k_3 &= f(X + \frac{k_2}{2}, t + \frac{\Delta t}{2}) \Delta t \\
 k_4 &= f(X + k_3, t + \Delta t) \Delta t \\
 X(t+\Delta t) &= X(t) + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}
-\end{aligned}
+\end{aligned}\tag{8}
 \end{equation}
 
 ```{r}
 # 4th order Runge-Kutta (RK4)
-RK4 <- function(derivs, X0, t.total, dt){
+RK4 <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
   # X0: initial condition
   # t.total: total simulation time, assuming t starts from 0 at the beginning
@@ -293,10 +329,10 @@ RK4 <- function(derivs, X0, t.total, dt){
     t_0= t_all[i]
     t_0.5 = t_0 + 0.5*dt
     t_1 = t_0 + dt
-    k1 = dt * derivs(t_0,X_all[i])
-    k2 = dt * derivs(t_0.5,X_all[i] + k1/2)
-    k3 = dt * derivs(t_0.5,X_all[i] + k2/2)
-    k4 = dt * derivs(t_1,X_all[i] + k3)
+    k1 = dt * derivs(t_0,X_all[i], ...)
+    k2 = dt * derivs(t_0.5,X_all[i] + k1/2, ...)
+    k3 = dt * derivs(t_0.5,X_all[i] + k2/2, ...)
+    k4 = dt * derivs(t_1,X_all[i] + k3, ...)
     X_all[i+1] = X_all[i] + (k1+2*k2+2*k3+k4)/6
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
@@ -318,6 +354,7 @@ rmsd <- function(array1, array2) {
 # Comparison
 dt_all = seq(0.1,1,0.1)
 errors_Euler = array(0,dim=length(dt_all))
+errors_Heun = array(0,dim=length(dt_all))
 errors_RK2 = array(0,dim=length(dt_all))
 errors_RK4 = array(0,dim=length(dt_all))
 
@@ -325,26 +362,29 @@ ind = 0
 for(dt in dt_all){
   t_all = seq(0,80,dt)    # time points to compute
   
-  results_ode = ode1(300,t_all) # ode1 is defined above -- exact solutions
-  results_RK2 = RK2(dX, 300, 80, dt) # dX is defined above,  dX/dt = g - k * X
-  results_RK4 = RK4(dX, 300, 80, dt) 
-  results_Euler = Euler_single(dX, 300, 80, dt)   #Euler_single is defined above
+  results_ode = ode1(300,t_all, g, k) # ode1 is defined above -- exact solutions
+  results_Heun = Heun(dX, 300, 80, dt, g, k) # dX is defined above,  dX/dt = g - k * X
+  results_RK2 = RK2(dX, 300, 80, dt, g, k) 
+  results_RK4 = RK4(dX, 300, 80, dt, g, k) 
+  results_Euler = Euler(dX, 300, 80, dt, g, k)   #Euler is defined above
   
   ind = ind + 1
+  errors_Heun[ind] = rmsd(results_ode, results_Heun[,2])
   errors_RK2[ind] = rmsd(results_ode, results_RK2[,2])
   errors_RK4[ind] = rmsd(results_ode, results_RK4[,2])
   errors_Euler[ind] = rmsd(results_ode, results_Euler[,2])
-  errors_RK2[ind];errors_Euler[ind]
+#  errors_RK2[ind];errors_Euler[ind]
 }
 
-plot(dt_all, errors_RK2, type = "p", col = 2, 
+plot(dt_all, errors_Heun, type = "p", col = 2, 
      log="y", xlab ="dt (Minute)", ylab = "RMSD", xlim = c(0,1), ylim = c(10**(-10), 10))
-points(dt_all, errors_RK4, col = 3)
-points(dt_all, errors_Euler, col = 4)
+points(dt_all, errors_RK2, pch = 3, col = 3)
+points(dt_all, errors_RK4, col = 4)
+points(dt_all, errors_Euler, col = 5)
 
 legend("bottomright", inset=0.02, title="Errors", 
-       legend = c("RK2", "RK4", "Euler"),
-       col=2:4, pch=1, cex=0.8)
+       legend = c("Heun", "RK2", "RK4", "Euler"),
+       col=2:5, pch=c(1,3,1,1), cex=0.8)
 ```
 
 The above comparison demonstrates that RK4 can be a few orders of magnitude more accurate than RK2, while RK2 is a few orders of magnitude more accurate than the Euler method. RK4 requires four derivative evaluations for each step; RK2 requires two; the Euler method just one. However, compared to the Euler method, RK4 or RK2 can use much larger time step size without sacrificing the accuracy, therefore more efficient overall. In the shared library ("extra/src/sub_ode_1g.so"), we also provide the Fortran functions for RK2 and RK4. 
@@ -358,12 +398,83 @@ nsteps = as.integer(t_total/dt)
 res = matrix(data = 0, nrow=2, ncol=nsteps)
 results6 = .Fortran("ode_1g_rk4",as.double(X0),as.double(dt), as.integer(nsteps), res)
 a = rbind(c(0.,X0),t(results6[[4]]))
-results7 = RK4(dX, 300, 80, 0.1) 
-results8 = RK2(dX, 300, 80, 0.1) 
-results9 = Euler_single(dX, 300, 80, 0.1)
-results10 = ode1(300,seq(0,t_total,dt)) # exact solutions
+results7 = RK4(dX, 300, 80, 0.1, g, k) 
+results8 = RK2(dX, 300, 80, 0.1, g, k) 
+results9 = Euler(dX, 300, 80, 0.1, g, k)
+results10 = ode1(300,seq(0,t_total,dt), g, k) # exact solutions
 rmsd(a[,2], results7[,2])  # Compare RK4 in Fortran with RK4 in R
 rmsd(a[,2], results8[,2])  # Compare RK4 in Fortran with RK2 in R
 rmsd(a[,2], results9[,2])  # Compare RK4 in Fortran with Euler in R
 rmsd(a[,2], results10)  # Compare RK4 in Fortran with the exact solution
 ```
+
+# Backward Euler method
+
+If we rewrite Equation (2) by $h = \Delta t$, $X_n = X(t)$, and $X_{n+1} = X(t+\Delta t)$, we obtain
+
+$$X_{n+1} = X_n + hf(X_n, t) \tag{9}$$
+The Euler method is an explicit method, as the right hand side of Equation (9) is independent to $X_{n+1}$. However, the forward method may be unstable. In this model, we have 
+
+$$X_{n+1} = X_n + h(g-kX_n) = hg + (1-hk)X_n $$
+The issue shows up when the time step $h > \frac{1}{k}$ (why?). 
+
+```{r}
+g = 50; k = 10; t.total = 4
+t_all = seq(0,t.total, 0.1)
+result_euler = Euler(derivs = dX, X0 = 3, t.total = t.total, dt = 0.2, g = g, k = k)
+# Compute the analytically solution
+result_exact = cbind(t_all, ode1(X0 = 3, t.total = t_all, g = g, k = k))
+
+# Plotting the outcomes
+plot(result_euler[,1], result_euler[,2], type = "l", col=2,
+    xlab="t", ylab="X", xlim=c(0,t.total), ylim=c(2,8)) 
+lines(result_exact[,1], result_exact[,2], col=3)
+legend("bottomright", inset=0.02, 
+       legend = c("Euler dt=0.2","Exact"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+The Backward Euler method takes the formula:
+
+\begin{equation}
+X_{n+1} = X_n + hf(X_{n+1}, t_{n+1}) \tag{10}.
+\end{equation}
+
+As $X_{n+1}$ appears in both sides of the equation, the Backward Euler method is an implicit method. One way to solve $X_{n+1}$ is by Newton's method or one can iteratively apply Equation (9) to find converged $X_{n+1}$.
+
+In this case, however, $f(N_{n+1},t_{n+1}) = g - kX_{n+1}$. Thus,
+
+$$ X_{n+1} = \frac{X_n + hg}{1 + hk}$$
+```{r}
+# Backward Euler for the gene expression model
+# Note that ellipsis (...) is used ot pass any argument to the function. 
+Euler_backward_1g <- function(t0, X0, t.total, dt, g, k){
+  # t0: initial time
+  # X0: initial condition
+  # t.total: total simulation time
+  # dt: time step size 
+  # g, k: parameters
+  t_all = seq(t0, t.total, by=dt)
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  X_all[1] = X0
+  for (i in 1:(n_all-1)) {
+    X_all[i+1] = (X_all[i]+dt*g)/(1 + dt*k)
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+
+
+# Run Euler backward simulation
+result_euler_backward = Euler_backward_1g(t0 = 0, X0 = 3, t.total = t.total, dt = 0.2, g = g, k = k)
+
+# Plotting the outcomes
+plot(result_euler_backward[,1], result_euler_backward[,2], type = "l", col=2,
+    xlab="t", ylab="X", xlim=c(0,t.total), ylim=c(2,8)) 
+lines(result_exact[,1], result_exact[,2], col=3)
+legend("bottomright", inset=0.02, 
+       legend = c("Euler backward dt=0.2","Exact"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+Still not very accurate, but at least more stable.

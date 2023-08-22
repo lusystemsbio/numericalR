@@ -2,7 +2,7 @@
 title: 'Part 2: Ordinary differential equations'
 subtitle: "F. Exercises"
 author: "Mingyang Lu"
-date: "10/26/2021"
+date: "08/16/2023"
 output:
   html_document:
     toc: yes
@@ -13,15 +13,38 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Fourth order Runge-Kutta 
+# 1. Adams-Bashforth Method
 
-In part 2B Equation (6), we show a more accurate numerical integrator of ODEs: the fourth order Runge-Kutta method, or RK4. Please proof the method and calculate its accuracy in terms of $O(\Delta t)$
+The Adams-Bashforth Method is a two-step method for ODE integration. It requires to know both data points for $t_n$ and $t_{n+1}$.
 
-# Hysteresis
+\begin{equation}
+N_{n+2} = N_{n+1} + \frac{3}{2}hf(t_{n+1}, N_{n+1}) - \frac{1}{2}hf(t_n, N_n)
+\end{equation}
 
-Consider the circuit with one self-activating gene, described by Equation (1) in Part 2D. Simulate the circuit by gradually increasing $k$ from 0.1 to 0.2, starting from the steady state when $k = 0.1$. Also simulate for another time the same circuit by gradually decreasing $k$ from 0.2 to 0.1, starting from the steady state when $k = 0.2$. Find the similarity and differences of the two time trajectories, *i.e.*, $X(t)$. 
+$h = \Delta t$ is the time step size. Starting from the data point for $t_0$, we first apply Euler method for one time step to obtain the data point for $t_1$. We then can apply the Adams-Bashforth method iteratively afterwards for $t_2$, $t_3$, *etc*.
 
-# Anorther bifurcation analysis
+**(a)** Proof the Adams-Bashforth method and show that it is second order (,which means that its accuracy is at $O(\Delta t^3)$. You will need to use Taylor expansion (for a one-variable function and a two-variable function) and the formula of a total derivative:
 
-Consider the circuit with one self-inhibiting gene, described by Equation (1) in Part 2E. Now, we would like to plot a bifurcation diagram for the circuit dynamics by selecting the time delay $\tau$ as the control parameter. For each $\tau$, simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the control parameter $\tau$.
+$$\frac{df(X,t)}{dt} = \frac{\partial f}{\partial t} + \frac{\partial f}{\partial X}\frac{dX}{dt} $$
 
+**(b)** Use the exponential growth model as an example. Apply the Adams-Bashforth method and compare the ODE simulation with the exact solution from an analytical calculation. To evaluate the performance, you will need to vary different time step sizes and compute 
+
+  (1). The RMSD between the simulation and the exact solution. 
+  
+  (2). The CPU time cost for the method for different time step sizes. (*e.g.*, using microbenchmark)
+  
+# 2. Fourth order Runge-Kutta 
+
+In part 2B Equation (8), we show a more accurate numerical integrator of ODEs: the fourth order Runge-Kutta method, or RK4. Please proof the method and calculate its accuracy in terms of $O(\Delta t)$
+
+# 3. Hysteresis
+
+Consider a gene circuit with one self-activating gene, described by the following ODE. 
+
+$$\frac{dX}{dt} = 10 + 45\frac{X^4}{X^4+200^4} - kX$$
+
+In this problem, we will explore a phenomenon called hysteresis, where the system's behavior depends on its history.
+
+**(1)** Simulate, with any ODE integrator of your choice (*e.g.*, RK4), the gene expression dynamics of the circuit by gradually increasing $k$ from 0.1 to 0.2, starting from the steady state when $k = 0.1$. 
+
+**(2)** Simulate the gene expression dynamics of the same circuit by gradually decreasing $k$ from 0.2 to 0.1, starting from the steady state when $k = 0.2$. Find the similarity and differences of the two time trajectories, *i.e.*, $X(t)$. (Hint: you can plot $k$ vs. $X$ for both time trajectories altogether and visually inspect their relationship.)

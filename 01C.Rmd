@@ -1,8 +1,8 @@
 ---
 title: "Part 1: Introduction to R Programming"
-subtitle: "C. Exercises"
+subtitle: "C. Numerical methods"
 author: "Mingyang Lu"
-date: "10/12/2021"
+date: "08/16/2023"
 output: 
   html_document:
     toc: true
@@ -13,61 +13,139 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Radius of gyration
+A [Wikipedia](https://en.wikipedia.org/wiki/Numerical_method) definition of numerical method says: 
+*In numerical analysis, a numerical method is a mathematical tool designed to solve numerical problems. The implementation of a numerical method with an appropriate convergence check in a programming language is called a numerical algorithm.*
 
-In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
+Here are two examples of numerical methods.
+
+# Babylonian Method for finding square roots
+
+Starting from an initial guess $x_1 > 0$, we perform a series of improved guesses iteratively according to the following formula:
+
+$$x_{n+1} = \frac{1}{2} (x_n + \frac{a}{x_{n}})$$
+The stopping criteria is:
+
+$$ |x_{n+1}^2 - a| < \epsilon$$
+,where \espilon is a small positive number, representing the tolerance. 
+
+Here is an implementation of the Babylonian method.
 
 ```{r}
-if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
-  install.packages("bio3d")   # if not, install "bio3d"
+# The Babylonian method for finding square root
+# a: a positive real number; we will solve the square root of a.
+# x1: the initial guess of the solution. x1 should be positive too.
+# epsilon: a small positive number for the tolerance.
+
+babylonian <- function(a, x1, epislon = 1e-6) {
+  if(a <= 0 || x1 <= 0 ){
+    print("a and x1 should be both positive!")
+    return(0)
+  }else{
+    x = x1
+    i = 0
+    while(abs(x*x - a) > epislon){
+      i = i + 1
+      x = (x + a/x)/2
+    }
+    print(paste0("Number of iterations: ", i))
+    return(x)
+  }
 }
-library(bio3d)
+
+babylonian(2,1)
+babylonian(2,100)
+babylonian(2,200)
 ```
 
-The package bio3d allows users to download and process protein structures from Protein Data Bank (PDB).
+# Cubic spline interpolation
+
+Consider a series $n+1$ points $(x_0, y_0)$, $(x_1, y_1)$, ... , $(x_n, y_n)$ to interpolate. For two points $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$, we define a cubic polynomial
+
+$$y_i(x) = a_i  x^3 + b_i x^2 + c_i x + d_i \tag {1}$$
+To satisfy the boundary conditions, we have
+
+$$ y_i(x_i) = y_{i+1}(x_i) \tag {2}$$
+$$ \frac{dy_i}{dx}(x_i) = \frac{dy_{i+1}}{dx}(x_i) \tag {3}$$
+$$ \frac{d^2y_i}{dx^2}(x_i) = \frac{d^2y_{i+1}}{dx^2}(x_i) \tag {4}$$
+Usually we also need another two boundary conditions, *e.g.*, for zero second derivatives for the end points (aka natural boundary condition).
+
+$$ \frac{d^2y_0}{dx^2}(x_0) = \frac{d^2y_{n-1}}{dx^2}(x_n) = 0 \tag {5}$$
+
+Below is a small data set of three points for average temperatures at different latitudes. 
 
 ```{r}
-mystructure <- read.pdb("7l3u")  # load online data
-coord <- mystructure$atom
-class(coord)
-head(coord)
+x = c(5, 15, 25) 
+y = c(-3.02,-3.07, -3.17)
+plot(x,y, xlab = "Latitude", ylab = "Average temperature", type = "b", col = "red", lwd = 0.5)
 ```
 
-The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
-Here, the radius of gyration $R_g$ is defined as:
+In this simple case, $n = 3$. From Equations (1) and (2),
 
-$$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j(\mathbf{r_j}-\mathbf{\overline{r}})^2}{\sum_{j=1}^{N}m_j}}$$
+$$y_0 = a_0  x_0^3 + b_0 x_0^2 + c_0 x_0 + d_0 $$
 
-where $\mathbf{r_j}$ is the coordinate of atom $j$ (*i.e.*, x, y, and z values), $m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. $m_j$ depends on the atom type, which can be found in the above data frame in the "elesy" column.
+$$y_1 = a_0  x_1^3 + b_0 x_1^2 + c_0 x_1 + d_0 $$
 
-$\mathbf{\overline{r}}$ is defined as
+$$y_1 = a_1  x_1^3 + b_1 x_1^2 + c_1 x_1 + d_1 $$
+$$y_2 = a_1  x_2^3 + b_1 x_2^2 + c_1 x_2 + d_1 $$
+From Equations (1) and (3),
 
-$$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
+$$3 a_0  x_1^2 + 2 b_0 x_1 + c_0 = 3 a_1  x_1^2 + 2 b_1 x_1 + c_1 $$
+From Equations (1) and (4),
 
-Hint: try the following for the usage of atom2mass
+$$6 a_0  x_1 + 2 b_0 = 6 a_1  x_1 + 2 b_1 $$
+From Equations (1) and (5),
+
+$$6 a_0  x_0 + 2 b_0 = 6 a_1  x_2 + 2 b_1 = 0 $$
+
+
+These all lead to a system of linear equations
+
+\def\A{
+\begin{pmatrix}
+      a_0 \\ b_0 \\ c_0 \\ d_0 \\ a_1 \\ b_1 \\ c_1 \\ d_1
+\end {pmatrix}}
+
+\def\C{
+\begin{pmatrix}
+       y_0 \\ y_1 \\ y_1 \\ y_2 \\ 0 \\ 0 \\ 0 \\ 0
+\end {pmatrix}}
+
+\def\B{
+\begin{pmatrix}
+       x_0^3 & x_0^2 & x_0 & 1 & 0 & 0 & 0 & 0 \\
+       x_1^3 & x_1^2 & x_1 & 1 & 0 & 0 & 0 & 0 \\
+       0 & 0 & 0 & 0 & x_1^3 & x_1^2 & x_1 & 1 \\
+       0 & 0 & 0 & 0 & x_2^3 & x_2^2 & x_2 & 1 \\
+       3 x_1^2 & 2 x_1 & 1 & 0 & -3 x_1^2 & -2 x_1 & -1 & 0 \\
+       6 x_1 & 2 & 0 & 0 & -6 x_1 & -2 & 0 & 0 \\
+       6 x_0 & 2 & 0 & 0 & 0 & 0 & 0 & 0 \\
+       0 & 0 & 0 & 0 & 6 x_2 & 2 & 0 & 0 
+\end {pmatrix}}
+
+\begin{equation}
+\B \A = \C  \tag{6}
+\end{equation}
+
+Here's an implementation of Equation (6) in R
 
 ```{r}
-  ?atom2mass
+vec_c = c(y[1], y[2], y[2], y[3], 0, 0, 0, 0) # the vector from the right hand side of Equation (6)
+
+a = matrix(c(x[1]**3, x[1]**2, x[1], 1, 0, 0, 0, 0,
+             x[2]**3, x[2]**2, x[2], 1, 0, 0, 0, 0,
+             0, 0, 0, 0, x[2]**3, x[2]**2, x[2], 1,
+             0, 0, 0, 0, x[3]**3, x[3]**2, x[3], 1,
+             3*x[2]**2, 2*x[2], 1, 0, -3*x[2]**2, -2*x[2],-1, 0,
+             6*x[2], 2, 0, 0, -6*x[2], -2, 0, 0,
+             6*x[1], 2, 0, 0, 0, 0, 0, 0,
+             0, 0, 0, 0, 6*x[3], 2, 0, 0), nrow = 8, byrow = TRUE)
+
+vec_p = solve(a, vec_c) #  the solution vector (parameters for cubic spline)
+
+plot(x,y, xlab = "Latitude", ylab = "Average temperature", type = "b", col = "red", lwd = 0.5)
+curve(vec_p[1]*x**3+ vec_p[2]*x**2 + vec_p[3]*x + vec_p[4], from = x[1], to = x[2], add = TRUE, lwd = 1.5, col = "black")
+curve(vec_p[5]*x**3+ vec_p[6]*x**2 + vec_p[7]*x + vec_p[8], from = x[2], to = x[3], add = TRUE, lwd = 1.5, col = "blue")
+legend("bottomleft", inset=.02, legend = c("Linear", "Cubic spline 1", "Cubic spline 2"), 
+       col = c("red", "black", "blue"), lty = 1, cex = 0.8)
 ```
-
-# Stirling's approximation
-
-Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute the following quantity for large n:
-
-$$\ln n!=\sum_{j=1}^{n}\ln j$$
-
-Create R functions using the following methods: 
-
-* (1) Iteration with for loop in R; 
-* (2) Use vector operations in R; 
-* (3) Use Apply family functions (such as apply, lapply, *etc.*) in R; 
-* (4) Use C or Fortran subroutines/functions. 
-
-Benchmark these methods with microbenchmark.
-
-In mathematics, there is famous formula called Stirling's approximation.
-
-$$\ln n! \approx n\ln n - n$$
-Plot the relative difference of the left hand side and the right hand side, *.i.e.*,
-$$1-\frac{n\ln - n}{\ln n!}$$
-as the function $n$. 
+ 

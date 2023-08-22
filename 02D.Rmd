@@ -1,8 +1,8 @@
 ---
 title: 'Part 2: Ordinary differential equations'
-subtitle: "D. Bifurcation"
+subtitle: "D. Stability"
 author: "Mingyang Lu"
-date: "10/29/2021"
+date: "10/26/2021"
 output:
   html_document:
     toc: yes
@@ -13,261 +13,253 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Stability of steady states 
 
-# Intro
+We start the discussion with the circuit of a constitutively expressed gene, whose dynamics is governed by the rate equation (Equation (1) from Part 2A):
 
-Let us continue our discussion on the circuit of one self-activating gene (Equations (7) - (8) in Part 2A). When we vary the values of $k$, as we learned from Part 2C, the circuit can have either one steady state (monostable) or three steady states (bistable as there are two stable states). To get a more complete picture of the system, we consider $k$ as a control parameter, and plot the curve of steady states $X_s$ as the function of $k$. This is called 1-dimensional bifurcation diagram. Let us discuss how we obtain such as curve numerically. We consider the following rate equation with $X$ as the state variable and $k$ as the control parameter.
+$$ \frac{dX}{dt} = f(X) = g - kX \tag{1}$$
+
+The steady states of a dynamical system must satisfy the condition $\frac{dX}{dt} = 0$. In this case, there is one and only one steady state: $X_s = \frac{g}{k}$. Now, let us evaluate the stability of the steady state. In general, a steady state is stable, if, after a small perturbation $X \rightarrow X + \Delta X$ , the system goes back to the same steady state; otherwise, the steady state is unstable.
+
+We separate the right hand side of Equation (1) into $g$ and $kX$ and plot them as the function of $X$ below.
+
+```{r}
+g = 50; k = 0.1
+X_all = seq(400, 600, 1)
+plot(X_all, array(g,dim=length(X_all)), type = "l", col =1,
+    xlab="X (nM)", ylab="Rates", xlim=c(400,600), ylim=c(40,60)) 
+lines(X_all, k * X_all,  col=2)
+legend("bottomright", inset=0.02, legend = c("g", "kX"),
+       col=1:2, lty=1, cex=0.8)
+
+```
+
+The intersect of the two curves represents the steady state, where the level of the steady state $X_s = 500$ nM. Now, consider a small perturbation to increase $X$ to $X + \Delta X$ ($\Delta X > 0$). The black curve $y=g$ stays constant, while the red curve $y=kX$ slightly increases. That means $\frac{dX}{dt} < 0$. Therefore, $X$ level will decrease in next time steps. Similarly, if we make a small perturbation to decrease $X$ to $X - \Delta X$. We find 
+$\frac{dX}{dt} > 0$ and $X$ levels will increase right after. Therefore, the steady state $X_s$ is a stable state. In math,
 
 \begin{equation}
-\frac{dX}{dt} = f(X,k) = 10 + 45\frac{X^4}{X^4+200^4} - kX \tag{1}
+  X_s \text{is} 
+    \begin{cases}
+    stable & \frac{df(X)}{dX} < 0 \\
+    unstable & \frac{df(X)}{dX} \geq 0 
+    \end{cases} \tag{2}
 \end{equation}
 
-``` {r}
-derivs_k <- function(X, k) {
-  return(10 + 45 * (1- 1/(1+(X/200)**4)) - k*X)
-}
-```
+We will discuss about unstable steady states later. Here, in this case, $\frac{df(X)}{dX} = -k$, which is negative. Thus, $X_s$ is a stable steady state. Indeed, in Part 2A, we have shown that the system reaches to the same steady state $X_s = 500$ nM, no matter which initial condition is selected (First plot in Part 2A). 
 
-# Direct method: find all roots
-
-The most straightforward way is to uniformly sample $k$ values and, for each $k$, identify all roots $X_s$ for $f(X,k)=0$. The following shows an implementation of such method using an R package rootSolve. We also check stability of steady states according to $\frac{df}{dX}$. It works very well for this example. However, it may fail in some situations, as finding all roots for a nonlinear function s not guaranteed. Compared to other methods, this method should be slower but more stable.
-
-``` {r}
-library(rootSolve)
-dx = 0.1  # used to estimate the derivatives of f(X) near the steady states
-k_all = as.list(seq(0.1,0.2, by = 0.001))    # k to sample
-results = lapply(k_all, function(k) {     # use lapply, instead of for loop
-  roots = uniroot.all(derivs_k, k = k, interval = c(0, 800)) # find all roots 
-  return(cbind(rep(k, each=length(roots)),  # result matrix: k
-               roots,    # roots
-               -sign(derivs_k(X = roots+dx, k = k))))   # 1: stable; 2: unstable
-})
-results = do.call(rbind, results)   # rbind all result matrices for all ks
-
-plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= (3 - results[,3])/2,
-    xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
-legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
-```
-
-The bifurcation curve clearly shows how the dynamical behavior of the circuit changes with respect to the changes in $k$. There are two turning points of the bifurcation curve. The first one is at around $k = 0.125$, where one of the stable steady states and the unstable steady state has very close $X$ values. The second one is at around $k = 0.170$. These two points are called bifurcation points. The system is monostable when $k$ is smaller than the $k$ value of the first bifurcation point. In this regime, the $X$ steady state level is relatively high. When $k$ is between the $k$ values of the two bifurcation points, the system is bistable, with two stable steady states of both high and low $X$ levels. When $k$ is higher than the $k$ value of the second bifurcation point, the system becomes monostable again, with one stable steady state of relatively low $X$ level. This type of bifurcation is called saddle-node bifurcation.
-
-# Method 2: Get bifurcation curve by simulations
-
-The second method does not require to solve all roots of $f(X,k)$. Instead, we will utilize the properties of steady states to map all steady states for different $k$. We will start with $k = 0.1$ and simulate the ODE using a random initial condition. Once we reach the steady state, we will record $k$ and $X$. Then, we will increase $k$ by a small step $\Delta k$ and simulate the ODE again with the previous steady state as the initial condition. We will repeat the process until we reach a bifurcation point. This can be determined when the new steady state $X_s$ is very different (compared to previous changes) or nonexistent (that could happen when we compute the unstable state, see below) from the steady state of the previous $k$. (Please also note that this approach should work well for the saddle-node bifurcation in this example, but may not work well for other types of bifurcation.) At this point, we will start another cycle by decreasing $k$ instead. To reach the unstable steady states, we will simulate a modified ODE:
-
-$$ \frac{dX}{dt} = -f(X,k) \tag{2}$$
-This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using Equation (2). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
-
-``` {r}
-derivs_k_deSolve <- function(t, X, k) {   # the derivative function should be in the deSolve format
-  return(list(10 + 45 * (1- 1/(1+(X/200)**4)) - k*X))
-}
-derivs_k_deSolve_minus <- function(t, X, k) {   #  dX/dt = - f(X)
-  return(list(-(10 + 45 * (1- 1/(1+(X/200)**4)) - k*X)))
-}
-
-search_bifurcation <- function(para_start, para_range, init, d_para, forward = TRUE, if_stable = TRUE) {
-  
-  if(forward){
-    para_all = seq(para_start, para_range[2], by = d_para)
-  } else {
-    para_all = seq(para_start, para_range[1], by = -d_para)
-  }
-  
-  if(if_stable) {
-    df <- function(t, X, k) derivs_k_deSolve(t, X, k)
-  }else {
-    df <- function(t, X, k) derivs_k_deSolve_minus(t, X, k)
-  }
-  
-  #### two model parameters for this example
-  gap = 100.0     # the stop criterion for bifurcation point: when Delta X changes more than gap when k increases a little, the system undergo catastrophe.
-  t_max = 1000.0   # max simulation time
-  
-  results = matrix(NA, nrow = length(para_all), ncol = 2)
-  X_init = init
-  ind = 0
-  for (k in para_all) {
-    X_new = runsteady(y=X_init, time = c(0, t_max), func=df, parms=k)$y 
-    if((ind != 0) & (abs(X_new - X_init) > gap)){
-      break
-    }else{
-      ind = ind + 1
-      results[ind,] = c(k, X_new)
-      X_init = X_new
-    }
-  }
-  return(na.omit(results))
-}
-
-### below we search for the three segments of bifurcation curve. This can be further automated. 
-dk = 0.001
-k_range = c(0.1, 0.2)
-results1 = search_bifurcation(0.1, k_range, 0, dk, T, T)
-k_next = tail(results1,1)[1]
-X_init_next = tail(results1,1)[2]
-results2 = search_bifurcation(k_next, k_range, X_init_next , dk, F, F)
-k_next = tail(results2,1)[1]
-X_init_next = tail(results2,1)[2]
-results3 = search_bifurcation(k_next, k_range, X_init_next , dk, T, T)
-
-plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
-points(results1[,1], results1[,2], pch = 1, cex = 0.3, col = 1)
-points(results3[,1], results3[,2], pch = 1, cex = 0.3, col = 1)
-points(results2[,1], results2[,2], pch = 1, cex = 0.3, col = 2)
-legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
-```
-
-The implementation is quite tedious but illustrates well the concept behind it. It can potentially find all solutions. However, like many numerical methods, it is challenging to devise a robust function to find bifurcation diagrams for a generic system. In particular, the choice of the numerical parameters (gap & t_max) would affect the performance of the method. (Try to adjust these parameters, and evaluate the outcomes.)
-
-# Method 3: numerical continuation
-
-The most widely used and generally applicable method is numerical continuation. Our goal is to find $X(k)$ to satisfy 
-
-$$ f(X, k) = 0 $$
-Take partial derivatives with respect to $X$ and $k$, we get
-
-$$ \frac{\partial f}{\partial X}\Delta X + \frac{\partial f}{\partial k}\Delta k = 0 $$
-Thus,
-
-$$ \frac{dX}{dk} \equiv h(X,k) = -\frac{\frac{\partial f}{\partial k}}{\frac{\partial f}{\partial X}} \tag{2}$$
-The expression is defined as a function h, which will be used later. Therefore, starting from a steady state $X$ for a specific $k$, we can obtain the slope of the bifurcation curve $\frac{dX}{dk}$ from equation (2). This allows us to find the initial guess of the next ($k$, $X$) point. 
+Now, let us consider the circuit with a self-inhibiting gene, whose dynamics is governed by
 
 \begin{equation}
-\begin{cases} k_{new} = k + \Delta k \\
-              X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
+\frac{dX}{dt} = g(X) - kX  \tag{3}
 \end{equation}
 
-We can then use a correction method, such as Newton's method, to find the nearby solution. For Newton's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. 
+,where $g(X) = g_0 + g_1 H^{inh}(X)$ (see Equations (10 - 11) in Part 2A).
 
-$$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
+We separate the right hand side of Equation (2) into $g(X)$ and $kX$ and plot them as the function of $X$ below. 
 
-Thus,
-
-$$\Delta X = - \frac{f(X_0)}{f'(X_0)} \tag{4}$$
-Numerically, we perform the following calculation iteratively:
-
-$$ X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} $$
-, until $|f(X_{n+1})|<\epsilon$, where $\epsilon$ is a small constant. Below shows the implementation of Newton's method for the current system. It will be used as the correction method for numerical continuation.
-
-
-``` {r}
-dfdX <- function(X, k){    
-    x_frac = (X/200)**4
-    return( 180 /X * x_frac/(1+x_frac)**2 - k)
+```{r}
+g_0 = 10; g_1 = 60; k = 0.1; X0 = 200; n = 4
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(1/(1+a))
 }
+X_all = seq(0, 600, 1)
+plot(X_all, g_0 + g_1 * hill_inh(X_all, X0, n), type = "l", col =1,
+    xlab="X (nM)", ylab="Rates", xlim=c(0,600), ylim=c(0,70)) 
+lines(X_all, k * X_all,  col=2)
+legend("top", inset=0.02, legend = c("g(X)", "kX"),
+       col=1:2, lty=1, cex=0.8)
 
-find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
-  while(abs(func(X, parms)) > error){
-    f = func(X, parms)
-    X = X - f/dfunc(X, parms)
-    if((X-X_range[1])*(X-X_range[2]) > 0) break  # a check to avoid infinite loop, no debug steps are provided here for simplification
-  }
-  return(X)
-}
-
-find_root_Newton(500, derivs_k, dfdX, 0.1, c(0, 800))   # monostable, one root
-find_root_Newton(500, derivs_k, dfdX, 0.15, c(0, 800))   # bistable, first root near 500
-find_root_Newton(100, derivs_k, dfdX, 0.15, c(0, 800))  # another root near 100
-find_root_Newton(150, derivs_k, dfdX, 0.15, c(0, 800))  # the last root (unstable) near 150
 ```
 
-Now, we implement the numerical continuation method by uniformly varying $k$. 
+The above plot shows an example of such two curves, who intersect exactly once. Therefore the circuit has only one steady state. It is possible to show that the circuit can only have one steady state, disregarding the choice of the model parameters. Similar to the first example, we can find that the steady state is also stable from either plotting or evaluation of Equation (2). Note that since $H^{inh}$ monotonically decreases as $X$ increases, thus its derivative with respect to $X$ is always negative.
+
+Let us also compute $\frac{df(X)}{dX}$. Note that we use vector operations for high efficiency.
 
 ``` {r}
-# partial derivatives of f, see equation (1) for the expression of f 
-dfdk <- function(X, k) return(-X)
-#dfdX see the above code block
-
-X_init = 0
-k_range = c(0.1, 0.2)
-dk = 0.001
-nmax_cycle = (k_range[2] - k_range[1])/dk + 1
-
-results = matrix(NA, nrow = nmax_cycle, ncol = 3)
-cycle = 1
-k = 0.1
-X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # initial X from ODE simulation
-results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
-while((k - k_range[1]) * (k - k_range[2]) <= 0) {   # check if k is in the range of [k_min, k_max]
-  slope = -dfdk(X_new, k)/dfdX(X_new, k)  # directly compute the slope of the bifurcation curve
-  # in this implementation, slope can be infinity near a bifurcation point
-  k = k + dk
-  X_init = X_new + dk * slope
-  
-  X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, parms=k, X_range = c(0, 800)) # root from Newton's method
-#  X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # an alternative way: root from ODE simulation
-  cycle = cycle + 1
-
-  results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
+f_1g_self_inh <- function(X) {
+   return(10 + 60 * hill_inh(X, 200, 4))
 }
 
-plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
-points(results[,1], results[,2], pch = 1, cex = 0.3, col = 1)
-legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
+cal_dfdx <- function(X_all, dt, derivs) {
+  f_all = derivs(X_all)  # f(X)
+  f_all_shift_by_one = c(f_all[-1], 0) #f(X+dx)
+  return((f_all_shift_by_one - f_all)/dt) # df/dX = (f(X+dx) - f(X))/dt
+}
+
+X_all = seq(0,600,0.1)
+dfdX = cal_dfdx(X_all, 0.1, f_1g_self_inh)
+
+X_all_corrected = seq(0.05,600-0.05,0.1)   # correct Xs, think why
+plot(X_all_corrected, head(dfdX, -1), type = "l", col =1,
+    xlab="X (nM)", ylab="df/dX", xlim=c(0,600), ylim=c(-0.4,0.1)) 
+abline(0,0,lty=2)  # add a horizontal line
 ```
 
-We can see that the algorithm works very well until it reaches to a bifurcation point, where the slope is infinity. It is also a little bit cumbersome to control the direction to move (the same slope can corresponds to two different directions). Thus, we only get a part of the bifurcation curve. 
+# Multi-stability
 
-To improve the method, we describe the bifurcation curve as the function of arc length $s$, instead of the control parameter $k$. Previously we aim to find $X(k)$, but here we will find $X(s)$ and $k(s)$.
-
-<center> ![Figure 1](./extra/data/02D/fig1.png){width=50%} </center>
-<br/>
+The third example is the circuit with a self-activating gene, whose dynamics is governed by
 
 \begin{equation}
-  \Delta s^2 = \Delta k^2 + \Delta X^2 \\
-  \Delta X = h \Delta k
+\frac{dX}{dt} = g(X) - kX 
 \end{equation}
 
-Therefore, we get
+,where $g(X) = g_0 + g_1 H^{ex}(X)$ (see Equations (7 - 8) in Part 2A).
 
-\begin{equation}
-\begin{cases} \Delta k = \pm \frac{1}{\sqrt{1 + h^2}} \Delta s \\
-              \Delta X = h \Delta k \end{cases} \tag{5}
-\end{equation}
+Again, we plot $g(X)$ and $kX$. In the plot below, we vary the value of $k$ and fix the rest of the parameters. 
 
-,where $h(X,k) = \frac{dX}{dk}$ can be computed according to Equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in Equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
+```{r}
+g_0 = 10; g_1 = 45; k = 0.1; X0 = 200; n = 4
+hill_ex <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(a/(1+a))
+}
+X_all = seq(0, 600, 1)
+plot(X_all, g_0 + g_1 * hill_ex(X_all, X0, n), type = "l", col =1,
+    xlab="X (nM)", ylab="Rates", xlim=c(0,600), ylim=c(0,60)) 
+lines(X_all, k * X_all, col=2)
+lines(X_all, 0.15 * X_all, col=3)
+lines(X_all, 0.2 * X_all, col=4)
+legend("topleft", inset=0.02, legend = c("g(X)", "kX (k = 0.1)", "kX (k = 0.15)", "kX (k = 0.2)"),
+       col=1:4, lty=1, cex=0.8)
+```
+
+When $k = 0.1$ or $k = 0.2$, there is one intersection of the two curves $g(X)$ and $kX$, so the circuit has one steady state. When $k = 0.15$, there are three intersections, so the circuit has three steady states. From stability analysis, we can show the leftmost and the rightmost steady states are stable, while the middle steady state is unstable. We call this property of dynamical systems *multistability*.
+
+We can intuitively understand the states of the self-activating circuit as follows. When $X$ is low, there is no sufficient $X$ product for transcription factor binding. Thus, the transcription rate is low, and $X$ is kept at a low level. When $X$ is sufficiently high, $X$ binds to the promoter of itself most of time. Thus, the transcription rate is high, and $X$ stays at a high level. This explains why the circuit can have two stable states at the same time.
+
+We can also simulate the ODE with different initial conditions. The plot below shows that the time trajectories converge to the two stable steady states. We can also clearly observe that $X$ of the unstable state is somewhere between 150 nM to 200 nM.
 
 ``` {r}
-X_init = 0
-k_range = c(0.1, 0.2)
-ds = 0.3    # step size for the arc length
-nmax_cycle = 10000
-
-results = matrix(NA, nrow = nmax_cycle, ncol = 3)
-cycle = 1
-k = 0.1
-step_k_previous = 1   # initial step_k is positive
-step_X_previous = 0
-X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # initial X from ODE simulation
-results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
-while(((k - k_range[1]) * (k - k_range[2]) <= 0) & (cycle < nmax_cycle)) {
-  h = -dfdk(X_new, k)/dfdX(X_new, k)  
-  
-  step_k = ds/sqrt(1+h**2)
-  step_X = step_k*h
-  
-  if((step_k_previous * step_k + step_X_previous * step_X) < 0) {  # the direction of change should be the same along the search
-    step_k = - step_k
-    step_X = - step_X
-  }
-  step_k_previous = step_k
-  step_X_previous = step_X
-  
-  k = k + step_k
-  X_init = X_new + step_X
-  
- X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, parms=k, X_range = c(0, 800)) # root from Newton's method
-  
-  cycle = cycle + 1
-  results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
+library(deSolve)
+dy_deSolve_1g_self_act<- function(t, y, parms) { # modified derivative function for deSolve
+  return(list(10 + 45 * hill_ex(y, 200, 4) - 0.15*y))
 }
-results = na.omit(results)
+t_all = seq(0, 80, 0.1)
+X0_all = seq(50,400,50) ## all initial conditions
+legend_text = paste0("X0 = ", X0_all)
+plot(NULL, xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(0,500)) 
+ind = 1
+for(X in X0_all){
+  ind = ind + 1
+  results = ode(y = X, times = t_all, func = dy_deSolve_1g_self_act, parms = NULL, method = "rk4")
+  lines(results[,1], results[,2],  col=ind)
+}
 
-plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
-points(results[,1], results[,2], pch = 1, cex = 0.3, col = (3-results[,3])/2)
-legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
+legend("bottomright", inset=0.02, title="Initial conditions", 
+       legend = legend_text, col=2:9, lty=1, cex=0.8)
+```
+
+Again, we can also learn the stability of steady states from the $\frac{df(X)}{dX}$ curve.
+
+``` {r}
+f_1g_self_act <- function(X) {
+  return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)
+}
+
+X_all = seq(0,500,0.1)
+dfdX = cal_dfdx(X_all, 0.1, f_1g_self_act)
+X_all_corrected = seq(0.05,500-0.05,0.1)  
+
+plot(X_all_corrected, head(dfdX, -1), type = "l", col =1,
+    xlab="X (nM)", ylab="df/dX", xlim=c(0,500), ylim=c(-0.2,0.2)) 
+abline(0,0,lty=2) 
+```
+
+# Effective potential
+
+The concept of potential energy is widely used in science. In particular, for a molecular system, one can write down the potential functions to describe molecular interactions. However, a dynamical system describing a gene regulatory circuit is non-equilibrium in nature. For those systems, energy is not well defined. Nevertheless, it is possible to define *effective potential* for a gene circuit. 
+
+For a one-variable system, we can make an analogy between circuit dynamics governed by the rate equation 
+
+$$ \frac{dX}{dt} = f(X)$$
+with an overdamped particle in one dimension (1D). For the overdamped particle, $X$ represents its position in 1D, $-f(X)$ is the force, $\frac{dX}{dt}$ represents the velocity of the particle. Here, velocity is proportional to the force for an overdamped system. Therefore, we can define the potential function
+
+$$ U(X) = -\int_{X_0}^X f(x)dx + U(X_0) $$
+We will illustrate how to obtain the effective potential with numerical integration for the circuit with one self-activating gene. We set $U(X_0 = 0) = 0$. A common numerical method to integrate a function is by the trapezoidal rule.
+
+$$ \int_{X_0}^X f(x)dx = \sum_{x=X_0}^{X-\Delta x}\frac{f(x) + f(x+ \Delta x)}{2}\Delta x$$
+or
+
+$$ U(X+\Delta x) = U(X) - \frac{f(X) + f(X+ \Delta x)}{2}\Delta x $$
+The first method uses a for loop to obtain U(X)
+
+``` {r}
+# define f(X)
+f <- function(X) {
+  return(10 + 45 * hill_ex(X, 200, 4) - 0.15*X)
+}
+# now integrate f(X) with the trapezoidal rule
+cal_int <- function() {
+  ntot = 5000
+  dx = 0.1
+  U_all = array(0, dim = ntot + 1)
+  X = 0
+  U_all[1] =  - (f(0) + (f(dx)))/2*dx
+  for(i in 1:ntot) {
+    X = X + dx
+    U_all[i+1] = U_all[i] - (f(X) + (f(X+dx)))/2*dx
+  }
+  return(U_all)
+}
+
+X_all = seq(0, 500, 0.1)   # generate all Xs in an array
+U1 = cal_int()
+plot(X_all, U1, type = "l",  col =1,
+    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
+```
+
+From the potential, there are two basins at around 100 nM and 300 nM, which are exactly the two stable steady states, and a barrier at around 200 nM, which is the unstable steady state. This provides an intuitive way to characterize a dynamical system with multistability. In addition, it also gives some ideas about how *stable* each state is. Here, the right basin has lower effective potential than the left basin. When there is sufficient gene expression noise, the system may transit from one stable state to another stable state. The effective potential also illustrates how *easy* it is to make such a transition. More details will be discussed in Parts 4 (Stochastic differential equations) & 6 (Monte Carlo simulations).
+
+Now, let us do the numerical integration again in R, but using only vector operations.
+
+```{r}
+cal_int_vector <- function(X_all) {
+  f_all = f(X_all)   # generate all f(X)
+  f_all_shift_by_one = c(f_all[-1],0.)   # another array containing f(X+dx), except for the last point
+  f_all = (f_all + f_all_shift_by_one)*0.1/2   # each integrated part
+  return(-cumsum(f_all))   # perform cumulative sum
+}
+
+X_all = seq(0, 500, 0.1)   # generate all Xs in an array
+U2 = cal_int_vector(X_all)
+plot(X_all, U2, type = "l",  col =1,
+    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
 
 ```
 
-The above implementation works great in this example. It also works reasonably well without the correction method (find_root_Newton). However, numerical continuation may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue, *.e.g.*, [Halley's method](https://en.wikipedia.org/wiki/Halley%27s_method).
+We benchmark the efficiency of the two methods. The vector approach is the clear winner. 
+
+``` {r}
+library(microbenchmark)  # use microbenchmark library for timing
+my_benchmark = microbenchmark(
+               integration_normal = {U1 = cal_int()},
+               integration_vector = {X_all = seq(0,500,0.1);U2 = cal_int_vector(X_all)},
+               times = 10, unit = "s")  
+microbenchmark:::autoplot.microbenchmark(my_benchmark)
+
+```
+
+Finally, we show the effective potential for $k = 0.2 \text{Minute}^{-1}$.
+
+``` {r}
+f <- function(X) {
+  return(10 + 45 * hill_ex(X, 200, 4) - 0.2*X)
+}
+X_all = seq(0, 500, 0.1)   # generate all Xs in an array
+U2 = cal_int_vector(X_all)
+plot(X_all, U2, type = "l",  col =1,
+    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,500))
+```
+
+And the effective potential for $k = 0.1 \text{Minute}^{-1}$ .
+
+``` {r}
+f <- function(X) {
+  return(10 + 45 * hill_ex(X, 200, 4) - 0.1*X)
+}
+X_all = seq(0, 600, 0.1)   # generate all Xs in an array
+U2 = cal_int_vector(X_all)
+plot(X_all, U2, type = "l",  col =1,
+    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,600))
+```

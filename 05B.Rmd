@@ -1,8 +1,8 @@
 ---
-title: "Part 5: Partial differential equations"
-subtitle: "B. Reaction-diffusion systems"
+title: "Part 5: Molecular dynamics"
+subtitle: "B. Orbital motions"
 author: "Mingyang Lu"
-date: "2/14/2023"
+date: "08/18/2023"
 output: 
   html_document:
     toc: true
@@ -13,239 +13,208 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Reaction-diffusion equations
+# Modeling an orbital motion
 
-If we now use $u(x,t)$ as the state variable and add another term $f(u,t)$ to the diffusion equation, 
-
-$$\frac{\partial u(X,t)}{\partial t} = f(u,t) + D \frac{\partial^2 u(X,t)}{\partial X^2} \tag{1} $$
-
-Equation (1) is called reaction-diffusion equation. $f(u, t)$ represents the reaction term, which we commonly used in a chemical rate equation
-
-$$\frac{du}{dt} = f(u, t) \tag{2}$$
-
-When $f(u, t)$ vanishes, Equation (1) becomes the PDE for a pure diffusion process. 
-
-# Fisher's equation
-
-If we consider a logistic growth as the reaction, Equation (2) for $u(X, t)$ becomes 
-
-$$\frac{\partial u}{\partial t} = ru(1-\frac{u}{B}) + D \frac{\partial^2 u}{\partial X^2} \tag{3} $$
-
-$u$ is the population size, and $B$ is the carrying capacity. This is Fisher's equation, first proposed by Ronald Fisher in 1934. Below is a slightly modified PDE integrator to model reaction-diffusion systems. We use the Dirichlet boundary condition here (zero $u$ at the boundary).
+From now on, we will only use velocity Verlet method for solving Newton's equation of motion. We generalize the method for systems of multiple variables. These systems can have a particle in 2D or 3D, or multiple particles. 
 
 ```{r}
-## PDE integration with the finite difference method for a generic reaction-diffusion system
-pde_fd_reaction_diffusion <- function(derivs, ngrid, dX, dt, D, t0, t.total, p0, ...) {
-  #derivs: derivative function
-  #ngrid: number of grid points
-  #dX: X step size
-  #dt: time step size
-  #D: diffusion constant
-  #t0: initial time
-  #t.total: total simulation time
-  #p0: initial condition: P(X,t = t0)
-  
-  t_all = seq(t0, t.total, by = dt)
+# Velocity Verlet method for high dimensional systems (2D, 3D, or multiple particles)
+velocity_verlet_generic <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: a vector of initial position x
+  # v0: a vector of initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(t0, t.total, by=dt)
   nt_all = length(t_all)
-  factor = D/dX**2*dt
-  p = p0
-  for (i in seq_len(nt_all-1)){
-    p_plus_one = c(p[-1], 0) # a vector, P(X+dX) for all Xs, 0 is added to specify the boundary conditions
-    p_minus_one = c(0, p[1:(ngrid-1)])  # a vector, P(X-dX) for all Xs, 0 is added to specify the boundary conditions
-    f = sapply(p, function(X) return (derivs(t_all[i],X, ...)))
-    p = p + f*dt + factor * (p_plus_one + p_minus_one - 2 * p) # finite difference to update all P(X,t)
+  nx = length(x0)
+  x_all = matrix(0, nrow = nt_all, ncol = nx)
+  v_all = matrix(0, nrow = nt_all, ncol = nx)
+  x_all[1,] = x0
+  v_all[1,] = v0 
+  for (i in 1:(nt_all-1)) {
+    v_half = v_all[i,] + 0.5 * dt * f(t_all[i], x_all[i,],...)
+    x_all[i+1,] = x_all[i,] + dt * v_half
+    v_all[i+1,] = v_half + 0.5 * dt * f(t_all[i+1], x_all[i+1,],...)
   }
-  return(p)
+  return(cbind(t_all, x_all, v_all))   # the output is a matrix of t, x, v for all time steps
 }
 ```
 
-Here, we set a constant $u$ at some center grids as the initial condition of the system. We can observe a bidirectional traveling wave at a constant velocity until the wave reaches to the boundary. 
+In this new example, a 2D-particle is driven by a gravitational force from the center (*e.g.*, Earth)
 
-```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-r = 0.64; B = 75
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = c(0:(ngrid-1))*dX  # X values for each grid point
-
-u0 = numeric(ngrid)
-u0[(ngrid/2 - 2): (ngrid/2+2)] = 50
-
-fisher <- function(t, u, r, B) return(r*u*(1-u/B))
-
-plot(X_all, u0, type="l", col=1, xlab="X", ylab="u", xlim=c(0,100), ylim=c(0,100)) 
-
-u_1 = u0
-for (i in 1:5){
-   u_1 = pde_fd_reaction_diffusion(derivs = fisher, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                t0 = 0, t.total = 5, p0 = u_1, r = r, B = B) 
-   lines(X_all,u_1, col=i+1)
-}
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
-```
-
-For a constant initial condition from the very left end of the system, the traveling wave is towards the right direction.
-
-```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-r = 0.64; B = 75
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = c(0:(ngrid-1))*dX  # X values for each grid point
-
-u0 = numeric(ngrid) 
-u0[1:5] = 50  # five grids with a constant u
-
-fisher <- function(t, u, r, B) return(r*u*(1-u/B))
-
-plot(X_all, u0, type="l", col=1, xlab="X", ylab="u", xlim=c(0,100), ylim=c(0,100)) 
-
-u_1 = u0
-for (i in 1:10){
-   u_1 = pde_fd_reaction_diffusion(derivs = fisher, ngrid = ngrid, dX = dX, dt = dt, D = D, 
-                                t0 = 0, t.total = 5, p0 = u_1, r = r, B = B) 
-   lines(X_all,u_1, col=i+1)
-}
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:11),
-       col=1:11, lty=1, cex=0.8)
-```
-
-Ronald Fisher used the Fisher's equation to explain the spread of advantage genes in a population. His study has become the foundation of population genetics. In the model of genetics, $u$ (after a variable scaling to remove $B$) represents the frequency of the mutant gene, $x$ is the spatial location, $r$ is the intensity of the selection in favor of the mutant, and $D$ is the rate of diffusion per generation. This model exhibits a traveling wave, which explains the spread of the advantage genes within a population.
-
-# Fokker-Planck equation
-
-A stochastic differential equation (SDE) in the following form
-
-$$\frac{dX}{dt} = f(X,t) + \sqrt{2D(X,t)}\eta(t) \tag{4} $$ 
-, where $\eta (t)$ represents a Gaussian white noise, is equivalent to the Fokker-Planck equation:
-
-$$\frac{\partial P}{\partial t} = -\frac{\partial (fP)}{\partial X}  + \frac{\partial^2 (DP)}{\partial X^2} \tag{5} $$
-A Fokker-Planck equation is similar to a reaction-diffusion equation, but the variable $P$ represents the probability as the function of $X$ and $t$. The diffusion equation is also a special case of the Fokker-Planck equation when $f=0$.
-
-Similar to the diffusion equation, a Fokker-Planck equation can also be integrated by the finite difference method. From Equations (6-7) in [Part 05A](./05A.html), for any function $F(X,t)$, we have
-
-$$  \frac{F(X + \Delta X, t) - F(X-\Delta X, t)}{2\Delta X} = \frac{\partial F(X,t)}{\partial X} + O(\Delta X^2) \tag{6}$$
-This demonstrates that $\frac{\partial F(X,t)}{\partial X}$ can be approximated by  $\frac{F(X + \Delta X, t) - F(X-\Delta X, t)}{2\Delta X}$. Thus, the PDE integration can be achieved by the following formula (for simplification, we assume $D(X,t)$ as a constant):
+$$f(r) = \frac{G}{r} \tag{3}$$
+$G$ is a constant. The direction of the force is from the particle to the center. We can write the $x$ and $y$ components of the force, $f_x$ and $f_y$, as
 
 \begin{equation}
-\begin{aligned}
-P(X, t+\Delta t) = P(X, t) &- \frac{f(X + \Delta X, t)P(X + \Delta X, t) - f(X-\Delta X, t)P(X-\Delta X, t)}{2\Delta X} \Delta t \\
-                           &+ D \frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2} \Delta t
-\end{aligned} \tag{7}
+\begin{cases}
+  f_x(x, y) = - \frac{Gx}{r^2} \tag{4}\\
+  f_y(x, y) = - \frac{Gy}{r^2} 
+\end{cases}
 \end{equation}
- 
+
 ```{r}
-## PDE integration with the finite difference method for a generic Fokker-Planck equation (constant D)
-pde_fd_fokker_planck <- function(derivs, ngrid, X_all, dX, dt, D, t0, t.total, p0, ...) {
-  #derivs: derivative function
-  #ngrid: number of grid points
-  #X_all: X for all grid points
-  #dX: X step size
-  #dt: time step size
-  #D: diffusion constant
-  #t0: initial time
-  #t.total: total simulation time
-  #p0: initial condition: P(X,t = t0)
+# gravitational force in 2D
+f_g2d <- function(t, x, G){
+  # x: a vector of size two: x, y positions
+  r2 = x[1]**2 + x[2]**2
+  return(-x*G/r2)
+}
+
+results_g2d = velocity_verlet_generic(f = f_g2d, t0 = 0, x0 = c(4, 0), v0 = c(0, 1), t.total = 100, dt = 0.1, G = 1)
+plot(results_g2d[,1], results_g2d[,2], type = "l", col=2,
+    xlab="t", ylab="position", xlim=c(0,100), ylim=c(-8,8)) 
+lines(results_g2d[,1], results_g2d[,3], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("x","y"),
+       col=c(2,4), lty=1, cex=0.8)
+```
+
+```{r,fig.width = 5, fig.height = 5.5}
+plot(results_g2d[,2], results_g2d[,3], type = "l", col=1,
+    xlab="x", ylab="y", xlim=c(-8,8), ylim=c(-8,8)) 
+```
+
+```{r}
+results_g2d2 = velocity_verlet_generic(f = f_g2d, t0 = 0, x0 = c(2, 2), v0 = c(-1, 1), t.total = 1000, dt = 0.1, G = 1)
+plot(results_g2d2[,1], results_g2d2[,2], type = "l", col=2,
+    xlab="t", ylab="position", xlim=c(0,100), ylim=c(-8,8)) 
+lines(results_g2d2[,1], results_g2d2[,3], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("x","y"),
+       col=c(2,4), lty=1, cex=0.8)
+```
+
+``` {r,fig.width = 5, fig.height = 5}
+plot(results_g2d2[,2], results_g2d2[,3], type = "l", col=1,
+    xlab="x", ylab="y", xlim=c(-8,8), ylim=c(-8,8)) 
+```
+
+# Three-body problem
+
+We then consider two particles of equal masses in 2D, a system that can be described by 4 variables.   
+
+``` {r,fig.width = 5, fig.height = 5.5}
+# two particles in 2D with gravitational forces
+f_2body_2d <- function(t, x, G){
+  # x: a vector of size six: (x1, y1, x2, y2)
+  r12_2 = (x[1] - x[3])**2 + (x[2] - x[4])**2
   
-  t_all = seq(t0, t.total, by = dt)
-  nt_all = length(t_all)
-  factor = D/dX**2*dt # scaling factor for the diffusion term
-  factor_2 = dt/2/dX # sacling factor for the drift term
-  p = p0
-  for (i in seq_len(nt_all-1)){
-    p_plus_one = c(p[-1], 0) # a vector, P(X+dX) for all Xs, 0 is added to specify the boundary conditions
-    p_minus_one = c(0, p[1:(ngrid-1)])  # a vector, P(X-dX) for all Xs, 0 is added to specify the boundary conditions
-    f = sapply(X_all, function(X) return (derivs(t_all[i],X, ...)))
-    fp = f*p
-    fp_plus_one = c(fp[-1],0)
-    fp_minus_one = c(0, fp[1:(ngrid-1)])
-    p = p - factor_2 * (fp_plus_one - fp_minus_one)+ factor * (p_plus_one + p_minus_one - 2 * p)
-  }
-  return(p)
+  f1_x = (x[3]-x[1])/r12_2
+  f1_y = (x[4]-x[2])/r12_2
+  f2_x = (x[1]-x[3])/r12_2
+  f2_y = (x[2]-x[4])/r12_2
+
+  return(G*c(f1_x, f1_y, f2_x, f2_y))
 }
+
+set.seed(1)  # we use random initial conditions
+
+results_2body = velocity_verlet_generic(f = f_2body_2d, t0 = 0, x0 = runif(4, -5, 5), v0 = runif(4, -0.3, 0.3),
+                                        t.total = 1000, dt = 0.1, G = 1)
+plot(results_2body[,2], results_2body[,3], type = "l", col=2,
+    xlab="x", ylab="y")
+lines(results_2body[,4], results_2body[,5], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("1","2"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-We applied the above function on Brownian dynamics under a harmonic potential and constant noise (Ornstein–Uhlenbeck process). 
+The time trajectories contain patterns but with a constant shift, because of a non-zero total momentum. To eliminate the constant shift (consider that the system is in another reference with a constant velocity), we can shift the velocities with constant values, so that the system has zero total momentum.
 
-$$\frac{\partial P}{\partial t} = -\frac{\partial (-kXP)}{\partial X}  + D\frac{\partial^2 P}{\partial X^2} \tag{8}$$
-
-```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.01
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
-
-u0 = numeric(ngrid)
-u0[(ngrid/2 - 2): (ngrid/2+2)] = 1
-u0 = u0/sum(u0)
-
-spring <- function(t, X, k) return(-k*X)
-
-plot(X_all, u0, type="l", col=1, xlab="X", ylab="u", xlim=c(-50,50), ylim=c(0,0.1)) 
-u_1 = u0
-for (i in 1:5){
-   u_1 = pde_fd_fokker_planck(derivs = spring, ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, 
-                                t0 = 0, t.total = 40, p0 = u_1, k = k) 
-   lines(X_all,u_1, col=i+1)
+``` {r,fig.width = 5, fig.height = 5.5}
+# velocity is shifted to remove net changes 
+center_v <- function(v, ndim){
+  # v: a vector of velocities 
+  # ndim: dimension of the system
+  v_mat = matrix(v, ncol = ndim, byrow = T)
+  v_means = colMeans(v_mat)
+  return(v - v_means)  # different sizes, the shorter vector iterates
 }
-points(X_all, sqrt(k/2/pi/D)*exp(-k*X_all**2/2/D), col = 1)
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
+
+set.seed(1)  # we use random initial conditions
+v0 = runif(4, -0.3, 0.3)
+
+results_2body = velocity_verlet_generic(f = f_2body_2d, t0 = 0, x0 = runif(4, -5, 5), v0 = center_v(v0,2),
+                                        t.total = 1000, dt = 0.1, G = 1)
+plot(results_2body[,2], results_2body[,3], type = "l", col=2,
+    xlab="x", ylab="y")
+lines(results_2body[,4], results_2body[,5], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("1","2"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-In the above simulation, the $P$ is localized at the center $X$ initially and converge to a Gaussian distribution. When using a stiffer spring, $P$ converges to a narrower Gaussian. It can be shown the steady state solution of Equation (8) ($\frac{\partial P}{\partial t} =0$) is
+An R package *gganimate* allows to generate movies of time trajectories! (Commented as they are slow to execute)
 
-$$P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}e^{-\frac{kX^2}{2D}} \tag{9}$$
-In the plot, the dots represent the theoretical values of $P_{ss}(X)$.
+``` 
+{r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+library(gganimate)
+npoints = nrow(results_2body)
+results_2body_dframe = data.frame(t = results_2body[,1], x = c(results_2body[,2],results_2body[,4]),
+                                  y = c(results_2body[,3],results_2body[,5]),
+                                  particle = c(rep("1", npoints), rep("2", npoints)))
 
-```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
-
-u0 = numeric(ngrid)
-u0[(ngrid/2 - 2): (ngrid/2+2)] = 1
-u0 = u0/sum(u0)
-
-spring <- function(t, X, k) return(-k*X)
-
-plot(X_all, u0, type="l", col=1, xlab="X", ylab="u", xlim=c(-50,50), ylim=c(0,0.1)) 
-u_1 = u0
-for (i in 1:5){
-   u_1 = pde_fd_fokker_planck(derivs = spring, ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, 
-                                t0 = 0, t.total = 20, p0 = u_1, k = k) 
-   lines(X_all,u_1, col=i+1)
-}
-points(X_all, sqrt(k/2/pi/D)*exp(-k*X_all**2/2/D), col = 1)
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
+p = ggplot(results_2body_dframe, aes(x = x, y = y, colour = particle)) + 
+  geom_point(aes(colour = particle), show.legend = FALSE, size = 5,alpha = 0.7) + labs(x = "x", y = "y") +
+  scale_color_manual(values = c("1" = "red", "2" = "blue"))
+p
+anim = p + transition_time(t, range = c(0, 50)) + labs(title = "t: {frame_time}")
+anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
+anim_save("2-body.gif", animation = anim)
 ```
 
-$P$ also converges to the same distribution when starting from a different initial condition (uniform distribution).
 
-```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
+Now we consider three particles of equal masses in 2D, a system that can be described by 6 variables.   
 
-u0 = rep(1, ngrid)
-u0 = u0/sum(u0)
-
-spring <- function(t, X, k) return(-k*X)
-
-plot(X_all, u0, type="l", col=1, xlab="X", ylab="u", xlim=c(-50,50), ylim=c(0,0.1)) 
-u_1 = u0
-for (i in 1:5){
-   u_1 = pde_fd_fokker_planck(derivs = spring, ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, 
-                                t0 = 0, t.total = 30, p0 = u_1, k = k) 
-   lines(X_all,u_1, col=i+1)
+``` {r,fig.width = 5, fig.height = 5.5}
+# three particles in 2D with gravitational forces
+f_3body_2d <- function(t, x, G){
+  # x: a vector of size six: (x1, y1, x2, y2, x3, y3)
+  r12_2 = (x[1] - x[3])**2 + (x[2] - x[4])**2
+  r13_2 = (x[1] - x[5])**2 + (x[2] - x[6])**2
+  r23_2 = (x[3] - x[5])**2 + (x[4] - x[6])**2
+  
+  f1_x = (x[3]-x[1])/r12_2 + (x[5]-x[1])/r13_2 
+  f1_y = (x[4]-x[2])/r12_2 + (x[6]-x[2])/r13_2 
+  f2_x = (x[1]-x[3])/r12_2 + (x[5]-x[3])/r23_2 
+  f2_y = (x[2]-x[4])/r12_2 + (x[6]-x[4])/r23_2 
+  f3_x = (x[1]-x[5])/r13_2 + (x[3]-x[5])/r23_2 
+  f3_y = (x[2]-x[6])/r13_2 + (x[4]-x[6])/r23_2 
+  return(G*c(f1_x, f1_y, f2_x, f2_y, f3_x, f3_y))
 }
-points(X_all, sqrt(k/2/pi/D)*exp(-k*X_all**2/2/D), col = 1)
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
+
+set.seed(1)  # we use random initial conditions
+v0 = runif(6, -0.01, 0.01)
+
+results_3body = velocity_verlet_generic(f = f_3body_2d, t0 = 0, x0 = runif(6, -5, 5), v0 = center_v(v0, 3),
+                                        t.total = 1000, dt = 0.1, G = 1)
+plot(results_3body[,2], results_3body[,3], type = "l", col="red",
+    xlab="x", ylab="y")
+lines(results_3body[,4], results_3body[,5], col="orange")
+lines(results_3body[,6], results_3body[,7], col="blue")
+legend("topright", inset=0.02, 
+       legend = c("1","2", "3"),
+       col=c("red","orange","blue"), lty=1, cex=0.8)
 ```
 
-Q: How does $P(X,t)$ change when using Neumann boundary condition? What happens when $D$ is a function of $X$ (*i.e.*, state-dependent)?
+Animations too (Commented as they are slow to execute)
+
+```
+{r,fig.width = 5, fig.height = 5}
+
+npoints = nrow(results_3body)
+results_3body_dframe = data.frame(t = results_3body[,1], x = c(results_3body[,2],results_3body[,4], results_3body[,6]),
+                                  y = c(results_3body[,3],results_3body[,5], results_3body[,7]),
+                                  particle = c(rep("1", npoints), rep("2", npoints), rep("3", npoints)))
+
+p = ggplot(results_3body_dframe, aes(x = x, y = y, colour = particle)) + 
+  geom_point(aes(colour = particle), show.legend = FALSE, size = 5,alpha = 0.7) + labs(x = "x", y = "y") +
+  scale_color_manual(values = c("1" = "red", "2" = "orange", "3" = "blue"))
+p
+anim = p + transition_time(t, range = c(0, 300)) + labs(title = "t: {frame_time}")
+anim = animate(anim, fps = 20, nframes = 300, end_pause = 0, rewind = F)
+anim_save("3-body.gif", animation = anim)
+````

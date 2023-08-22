@@ -1,0 +1,106 @@
+---
+title: "Part 3: Phase plane"
+subtitle: "H. Exercises"
+author: "Mingyang Lu"
+date: "08/17/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Numerical continuation for 2D bifurcation
+
+We consider the same toggle switch circuit, described in details in Parts 3ABEFG. The goal here is the reproduce the bifurcation curves from Part 3E using numerical continuation. From math, we will identify a curve that satisfy Equation (1) -- there are two equations and three variables.
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = f_X(X, Y, \lambda) = 0 \\
+              \frac{dY}{dt} = f_Y(X, Y, \lambda) = 0 \end{cases} \tag{1}
+\end{equation}
+
+Taking partial derivatives with respect to $X$, $Y$, and $\lambda$, we get
+
+\def\A{
+\begin{pmatrix}
+      \Delta X \\
+      \Delta Y 
+\end {pmatrix}}
+
+\def\B{
+\begin{pmatrix}
+      f_X \\
+      f_Y 
+\end {pmatrix}}
+
+\begin{equation}
+\begin{cases} \frac{\partial f_X}{\partial X}\Delta X + \frac{\partial f_X}{\partial Y}\Delta Y + \frac{\partial f_X}{\partial \lambda}\Delta \lambda = 0  \\
+              \frac{\partial f_Y}{\partial X}\Delta X + \frac{\partial f_Y}{\partial Y}\Delta Y + \frac{\partial f_Y}{\partial \lambda}\Delta \lambda = 0 \end{cases}
+\end{equation}
+
+Taking the matrix form, we have
+
+$$ \mathbf{J} \A + \frac{\partial}{\partial \lambda}\B \Delta \lambda = 0 \tag{2}$$
+
+$\mathbf{J}$ is the Jacobian matrix, $\mathbf{\Delta X} = \A$, $\mathbf{f} = \B$. So, Equation (2) becomes
+
+$$ \mathbf{J}\mathbf{\Delta X}  + \frac{\partial}{\partial \lambda}\mathbf{f} \Delta \lambda = 0 \tag{3}$$
+Thus, we will obtain
+
+$$ \frac{d\mathbf{X}}{d\lambda}  = - \mathbf{J}^{-1}\frac{\partial}{\partial \lambda}\mathbf{f} \tag{4}$$
+Equation (4) is a generalization of Equation (2) in Part 2E. From $\frac{d\mathbf{X}}{d\lambda}$, we can compute changes in $\lambda$, $X$ and $Y$ along the bifurcation curve.
+
+Implement the algorithm, and calculate the bifurcation curves in Part 3E.
+
+# 2. A flip-flop gene circuit
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 1](./extra/data/03H/fig1.png){width=20%} </center>
+<br/>
+
+$X$ actives $Y$, and $Y$ inhibit $X$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\ 
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{5}
+\end{equation}
+
+Explore the behavior of the system with the phase plane analysis. 
+
+(1) How many steady states the circuit can have?
+
+(2) What are the stability property of the steady states?
+
+# 3. A toggle switch circuit with self-activating genes
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 2](./extra/data/03H/fig2.png){width=20%} </center>
+<br/>
+
+$X$ can both inhibit $Y$ and activate $X$; $Y$ can both inhibit $X$ and activate $Y$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = (g_{X0} + g_{X1}\frac{(X/X_{0X})^{n_{XX}}}{1+(X/X_{0X})^{n_{XX}}})\frac{1}{1+(Y/Y_{0X})^{n_{YX}}} - k_XX \\
+              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases}
+\end{equation}
+
+In the ODEs, $g_{X0}$, $g_{X1}$, $X_{0X}$, $Y_{0Y}$, $Y_{0X}$, $X_{0Y}$, $n_{XX}$, $n_{YX}$, $n_{YY}$, $n_{XY}$, $k_X$, and $k_Y$ are all parameters. 
+
+Explore the behavior of the system computationally with the phase plane analysis. You can choose any numerical methods we have discussed. Find an example (*i.e.*, a set of parameters) where the system allows a total of five steady states (three of them are stable).
+
+For this particular case, find an appropriate range of each coordinate of the phase plane and grid points, and 
+
+**(1)** plot the vector field (you can choose to plot either vectors or unit vectors; also pay attention to the scaling factor of the vectors to make the plot legible.); 
+
+**(2)** plot nullclines;
+
+**(3)** numerically obtain the coordinates of the steady states; 
+
+**(4)** for each steady state, find the eigenvalues of the Jacobian matrix and determine its stability;
+
+**(5)** plot a bifurcation diagram to show the changes of the steady-state levels of $X$ with respect to a control parameter $k_X$. 

@@ -1,0 +1,471 @@
+---
+title: "Part 8: Monte Carlo Simulations"
+subtitle: "B. Metropolis algorithm"
+author: "Mingyang Lu"
+date: "08/20/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Markov Chain
+
+A Markov Chain or Markov process is a stochastic model describing a sequence of possible events in which the probability of each event depends only on the state attained in the previous event. For example, random walk is a typical Markov Chain, where a left or right move is randomly picked in each step. 
+
+### A Weather model
+
+We consider a simple weather model with two discrete states: "sunny" and "rainy". In each step, the weather has a chance to stay in the same state and a chance to switch to the other state. As the probability for the state transitions only depends on the current state, the system is described by a Markov Chain. The state diagram below illustrates the transition probability of the weather model.
+
+<center> ![Figure 1](./extra/data/08B/fig1.png){width=40%} </center>
+
+### Markov Chain simulation
+
+We can perform a Markov Chain simulation on the weather model. We will need to define a transition matrix, $T$, in which the element in the $i$th row and $j$th column is the probability of the transition from state $i$ to state $j$. Note that the row sums of the matrix need to be all one, because of a 100% for the total probability. For each step, we can use a random number from a uniform distribution to determine which transition to occur. The process can be repeated for many iterations. Below shows the implementation. 
+
+```{r}
+markov_weather <- function(x0, nstep) {
+  # x0: initial state
+  # nstep: number of simulation steps
+  # output: state trajectory (a vector of size nstep + 1)
+  # states (binary): 1: "Sunny"; 2: "Rainy"
+  # transition matrix, 1st row: 1 -> 1; 1 -> 2; 2nd row: 2 -> 1; 2 -> 2.
+  transit = matrix(c(0.9, 0.1, 0.5, 0.5), nrow = 2, byrow = T)
+  
+  x = numeric(nstep+1)
+  x[1] = x0
+  for(i in seq(1:nstep)){
+    r = runif(1)
+    if(r < transit[x[i],1]){
+      x[i+1] = 1
+    }else{
+      x[i+1] = 2
+    }
+  }
+  return(x)
+}
+
+set.seed(1)
+nstep = 10^4
+results_weather  = markov_weather(x0 = 2, nstep = nstep)
+plot(0:1000, results_weather[1:1001], type = "l", col = 2, xlab = "Step", ylab = "State", yaxt='n', ylim = c(0.7, 2.3))
+axis(side=2, at=c(1,2))
+```
+
+From the model trajectory, there is a longer waiting time for the transition from state 1 ("Sunny") to state 2 ("Raniny").
+
+Q: how to write a function to simulate a Markov Chain with more than two states?
+
+From the trajectory, we can compute the probability of the weather in each state. Here, we use the *cumsum* function to obtain the state probabilities computed from different number of steps. 
+
+```{r}
+p_sunny = cumsum(results_weather == 1)/cumsum(rep(1, length(results_weather)))
+p_rainy = cumsum(results_weather == 2)/cumsum(rep(1, length(results_weather)))
+plot(seq_len(nstep + 1), p_sunny, type = "l", col = 2, xlab = "Step", ylab = "Probability", ylim = c(0,1))
+lines(seq_len(nstep + 1), p_rainy, col = 4)
+legend("right", c("Sunny", "Rainy"), col = c(2, 4), lty = c(1,1))
+tail(p_sunny, 1); tail(p_rainy, 1)
+```
+
+### Steady-state probability distribution
+
+There is another way (which is more efficient) to compute the probability distribution of the weather states. Suppose we start with the rainy state (state 2), thus the initial probability distribution is $p_0 = (0, 1)$. The probability distribution for step $i+1$ is
+
+$$p_{i+1} = p_i T \tag{1}$$
+where $T$ is the transition matrix. Here, the right hand side of Equation (1) has an operation of matrix multiplication. 
+
+```{r}
+markov_weather_prob <- function(p0, nstep) {
+  # p0: initial state probability -- (0, 1) means the initial condition is "2"
+  # nstep: number of simulation steps
+  # output: trajectory of state probability (matrix, row: steps; col: probability for states "1" and "2"
+  # states (binary): 1: "Sunny"; 2: "Rainy"
+  # transition matrix, 1st row: 1 -> 1; 1 -> 2; 2nd row: 2 -> 1; 2 -> 2.
+  transit = matrix(c(0.9, 0.1, 0.5, 0.5), nrow = 2, byrow = T)
+  
+  p = matrix(0, nrow = nstep+1, ncol = 2)
+  p[1,] = p0
+  for(i in seq(1:nstep)){
+    p[i+1,] = p[i,] %*% transit
+  }
+  return(p)
+}
+
+nstep = 100
+prob_weather  = markov_weather_prob(p0 = c(0,1), nstep = nstep)
+p_ss = prob_weather[nstep + 1,]
+plot(seq_len(nstep + 1), prob_weather[,1], type = "l", col = 2, xlab = "Step", ylab = "Probability", ylim = c(0,1))
+lines(seq_len(nstep + 1), prob_weather[,2], col = 4)
+legend("right", c("Sunny", "Rainy"), col = c(2, 4), lty = c(1,1))
+p_ss
+```
+
+As shown in the plot, the probability distribution $p_i$ quickly reaches to a constant probability distribution -- a steady-state probability distribution $p_{ss}$ (also called stationary distribution). $p_{ss}$ is close to the probability distribution obtained from the previous Markov Chain simulation.
+
+A Markov Chain has a unique steady-state distribution if the model satisfies the following two criteria:
+
+* Irreducible: any state is reachable from any other state eventually (*i.e.*, the expected number of steps is finite).
+* Aperiodic: the system does not return to the same state at fixed intervals (*e.g.*, not returning to the "sunny" state deterministically every 5 steps).
+
+Systems satisfying the above criteria are called *ergodic*, an important requirement for Markov Chain Monte Carlo.
+
+# Metropolis-Hastings algorithm
+
+A Markov Chain Monte Carlo (MCMC) is a method to sample a probability distribution by constructing a Markov Chain. Here, the steady-state distribution of the Markov Chain is the desired probability distribution. The most popular MCMC method is the Metropolis-Hastings algorithm.
+
+The Metropolis-Hastings algorithm also requires additional condition, called *detailed balance*, in that
+
+$$T(x \rightarrow x') P(x) = T(x' \rightarrow x) P(x'). \tag{2}$$
+$T(x \rightarrow x')$ represents the transition probability from a state $x$ to another state $x'$. $P(x)$ is the probability of state $x$ -- the desired probability distribution to sample. 
+
+Note that, for a steady-state $P(x)$, according to the probability conservation,
+
+$$\sum_{x'}{T(x \rightarrow x') P(x)} = \sum_{x'}{T(x' \rightarrow x) P(x')}. \tag{3} $$
+Under the condition of detailed balance as shown in Equation (2), Equation (3) is always satisfied. However, for a steady-state condition as shown in Equation (3), detailed balance is not guaranteed. Thus, detailed balance condition is stronger. Detailed balance is valid for an equilibrium system. 
+
+In the Metropolis-Hastings algorithm, a Markov Chain is constructed as follows. First, we propose a transition from $x$ to $x'$ with a proposal distribution $g(x \rightarrow x')$ (a move set). Here, $g$ can be very different from $T$. 
+
+Second, the proposed move is accepted according to the acceptance probability
+
+$$a  = min(1, \frac{P(x')g(x' \rightarrow x)}{P(x)g(x \rightarrow x')}). \tag{4}$$
+Third, if the proposal is accepted, the next $x$ becomes $x'$; otherwise, next $x$ stays the same $x$. 
+
+It can be shown that the constructed Markov Chain as the unique steady-state probability distribution of $P(x)$. 
+
+### The weather model revisited
+
+Let's consider the weather model again. We wish to sample the weather states according to the steady-state probability distribution. However, we would not sample the states according to the actual transition matrix (as in the Markov Chain model), but according to the Metropolis-Hastings algorithm. 
+
+We set $g(1 \rightarrow 2) = g(2 \rightarrow 1) = 1$. Thus,
+
+$$a  = min(1, \frac{P(x')}{P(x)}). \tag{5}$$
+
+```{r}
+metropolis_weather <- function(x0, p_ss, nstep) {
+  # x0: initial state
+  # p_ss: steady-state probability distribution (a vector of 2 elements)
+  # nstep: number of simulation steps
+  # output: state trajectory (a vector of size nstep + 1)
+  # states (binary): 1: "Sunny"; 2: "Rainy"
+  # transition matrix in this case is even unknown
+  
+  x = numeric(nstep+1)
+  x[1] = x0
+  for(i in seq(1:nstep)){
+    xnew = 3 - x[i]  # 1 -> 2; 2 -> 1;
+    a = min(1, p_ss[xnew]/p_ss[x[i]])
+    if(runif(1) < a){
+      x[i+1] = xnew
+    }else{
+      x[i+1] = x[i]
+    }
+  }
+  return(x)
+}
+
+set.seed(1)
+nstep = 10^4
+results_weather2  = metropolis_weather(x0 = 2, p_ss = p_ss, nstep = nstep)
+plot(0:1000, results_weather2[1:1001], type = "l", col = 2, xlab = "Step", ylab = "State", yaxt='n', ylim = c(0.7, 2.3))
+axis(side=2, at=c(1,2))
+```
+
+The state transition properties look different from the weather model. However, the state probability distribution is well preserved, as shown below.
+
+```{r}
+p_sunny2 = cumsum(results_weather2 == 1)/cumsum(rep(1, length(results_weather2)))
+p_rainy2 = cumsum(results_weather2 == 2)/cumsum(rep(1, length(results_weather2)))
+plot(seq_len(nstep + 1), p_sunny2, type = "l", col = 2, xlab = "Step", ylab = "Probability", ylim = c(0,1))
+lines(seq_len(nstep + 1), p_rainy2, col = 4)
+legend("right", c("Sunny", "Rainy"), col = c(2, 4), lty = c(1,1))
+```
+
+We can check the transition probability from the sampling trajectory.
+
+```{r}
+cal_transit <- function(x_all){
+  nstep = length(x_all) - 1
+  n = length(unique(results_weather2))
+  transit = matrix(0, nrow = n, ncol = n) # save counts of state transitions
+  for(i in seq(1:nstep)){
+    transit[x_all[i], x_all[i+1]] = transit[x_all[i], x_all[i+1]] + 1
+  }
+  total_counts = rowSums(transit)
+  transit = transit/total_counts
+  return(transit)
+}
+cal_transit(results_weather)  # transition matrix of the Markov chain model
+cal_transit(results_weather2) # transition matrix of the metropolis sampling
+```
+
+### Sampling a Gaussian distribution
+
+As a second example, we illustrate how Metropolis-Hastings algorithm samples a Gaussian distribution $P(x) \sim e^{-x^2}$. In the implementation below, we start from the origin ($x=0$). In each iteration, we propose a move $x' = x + dx$, where the move step $dx$ is sampled randomly from a uniform distribution, $(-dx_{max}, dx_{max})$. Here, $dx_{max}$ is the maximum magnitude of $dx$. Such a choice of $dx$ ensures the ergodic condition and $g(x' \rightarrow x) = g(x \rightarrow x')$. Thus,
+
+$$a  = min(1, \frac{P(x')}{P(x)}) = min(1, e^{-x'^2+x^2}). \tag{6}$$
+
+Below shows the implementation of this MCMC sampling. From the simulation, we compare the histogram of sampled $x$ with the actual distribution $P(x)$ (red curve). We monitor the number of accepted moves, from which we can obtain the acceptance rate.
+
+```{r}
+metropolis_exp <- function(nstep, dx_max){
+  # nstep: number of steps
+  # dx_max: maximum step size (chosen from a uniform distribution)
+  x = numeric(nstep+1)
+  x[1] = 0  #initial x from the origin
+  num_accept = 0
+  for(i in 1:nstep){
+    dx = runif(n = 1, min = -dx_max, max = dx_max)
+    xnew = x[i] + dx
+    a = min(1, exp(-xnew**2+x[i]**2))
+    if(runif(1) < a){
+      x[i+1] = xnew
+      num_accept = num_accept + 1
+    }else{
+      x[i+1] = x[i]
+    }
+  }
+  print(paste0("Acceptance rate", num_accept/nstep))
+  return(x)
+}
+
+set.seed(1)
+nstep = 10^4
+x_sample = seq(-3,3,by = 0.1)
+breaks = seq(-5,5,by = 0.1)
+results_exp = metropolis_exp(nstep = nstep, dx_max = 0.1)
+hist(results_exp, freq = F, breaks = breaks)
+lines(x_sample, dnorm(x_sample, mean = 0, sd = sqrt(0.5)), col = 2)
+results_exp = metropolis_exp(nstep = nstep, dx_max = 0.5)
+hist(results_exp, freq = F, breaks = breaks)
+lines(x_sample, dnorm(x_sample, mean = 0, sd = sqrt(0.5)), col = 2)
+results_exp = metropolis_exp(nstep = nstep, dx_max = 2.0)
+hist(results_exp, freq = F, breaks = breaks)
+lines(x_sample, dnorm(x_sample, mean = 0, sd = sqrt(0.5)), col = 2)
+results_exp = metropolis_exp(nstep = nstep, dx_max = 10.0)
+hist(results_exp, freq = F, breaks = breaks)
+lines(x_sample, dnorm(x_sample, mean = 0, sd = sqrt(0.5)), col = 2)
+```
+
+We chose different move step sizes in the above applications. A larger move step would decrease the acceptance rate but increase the range of $x$ sampling. Too large or too small move step sizes would reduce the efficiency of the sampling. In this case, the sampling results are much better when the acceptance rate is around 50%.
+
+The application here is quite straightforward. But the Metropolis-Hastings algorithm becomes very powerful when modeling more complex systems where the properties of state transitions are hard to be described.
+
+### 1D Ising model
+
+Ising model is a model of ferromagnetism in physics. It was widely used as a toy model for studying multi-body interactions and multi-stability. We consider an array of lattice in 1D, where each lattice site $i$ is occupied by a spin $s_i$ with two states: +1 (upward spin) and -1 (downward spin). Here, the spins represent magnetic dipole moments of atomic "spins". 
+
+<center> ![Figure 2](./extra/data/08B/fig2.png){width=40%} </center>
+
+The total energy of the Ising model with $n$ spins is
+
+$$ E = - \sum_{i=1}^{n-1}{Js_i s_{i+1}} \tag{7}$$
+
+Only two spins next to each other (*e.g.*, $s_i$ and $s_{i+1}$) can interact. Their energy is negative (favored) when the two spins have the same signs, and the energy is positive (disfavored) when the two spins have the opposite signs. See below for the code to calculate the total energy of the Ising model.
+
+```{r}
+# compute the total energy of the spins
+e_ising <- function(J, x){
+  # J: interaction strength
+  # x: states of the spins (1 or -1) -- a vector
+  x_shift = c(x[-1], 0)
+  e = - sum(x * x_shift)*J
+  return(e)
+}
+```
+
+Q: How does the function compute the total energy? One can also use a periodic boundary condition. How to achieve this?
+
+### Sampling a Boltzmann distribution
+
+For a system in equilibrium at a constant temperature $T$, the probability of the system in a certain state follows a Boltzmann distribution:
+
+$$p \sim e^{-\frac{E}{kT}}, \tag{8}$$
+
+where $k$ is the Boltzmann constant. Here, we set $k=1$ and scaled $T$. We can use Metropolis-Hastings algorithm to sample the states of the Ising model following a Boltzmann distribution. We propose a "move" by randomly selecting spin and flipping the sign. The proposed move is accepted if
+
+$$a  = min(1, \frac{P(x')}{P(x)}) = min(1, e^{-(E_{x'} - E_x)/T}). \tag{9}$$
+
+```{r}
+# metropolis sampling based on a Boltzmann distribution
+metropolis_ising_1st <- function(nstep, n, J, T){
+  # nstep: number of steps
+  # n: number of spins (one dimensional)
+  # J: interaction strength
+  # T: temperature (after scaling)
+  x = matrix(0, nrow = (nstep + 1), ncol = n)  # states
+  e = numeric(nstep + 1) # total energy
+  x[1, ] = sample(c(-1, 1), size = n, replace = T) # random initial condition
+  e[1] = e_ising(J, x[1,])
+  num_accept = 0
+  for(i in 1:nstep){
+    k = sample(x = n, size = 1) # randomly select a spin
+    xnew = x[i,]
+    xnew[k] = -xnew[k]  # flip the spin
+    enew = e_ising(J, xnew)
+    a = min(1, exp(-(enew - e[i])/T))
+    if(runif(1) < a){
+      x[i+1,] = xnew
+      e[i+1] = enew
+      num_accept = num_accept + 1
+    }else{
+      x[i+1,] = x[i,]
+      e[i+1] = e[i]
+    }
+  }
+  print(paste0("Acceptance rate ", num_accept/nstep))
+  return(list(x = x, e = e))
+}
+set.seed(1)
+nstep = 10^3
+results_ising = metropolis_ising_1st(nstep = nstep, n = 10, J = 1, T = 1)
+plot(0:nstep, results_ising$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
+```
+
+The acceptance rate is around 20%. The MCMC method samples the state(s) of minimum energy (*i.e.*, -9) and other states back and forth. 
+
+Q: We use $T = 1$. How does the acceptance rate change when the temperature increases or decreases? How does the acceptance rate change when changing $J$?
+
+### A more efficient implementation
+
+There are two places where we can improve the efficiency of the implementation. 
+
+First, since the spin interactions are local, we just need to compute the differences in energy by only considering the affected energy terms. For a flip in spin $i$, the energy difference between the new and previous states is
+
+$$\Delta E = \begin{cases}
+  2Js_1s_2  & i = 1 \\
+  2Js_{n-1}s_n & i = n \\
+  2Js_{i-1}s_i + 2Js_is_{i+1} & otherwise
+\end{cases}. \tag{10}$$
+
+Here, all $s_i$ terms are the current states of the spins (not the states from the proposed move).
+
+Q: Could you explain how Equation (10) computes the energy differences?
+
+```{r}
+# compute the energy differences for a move with a flip in the spin i
+de_ising <- function(J,x,n,i){
+  # J: interaction strength
+  # x: states of the spins (1 or -1) -- a vector
+  # i: the spin with a flip
+  if(i == 1){
+    de = 2*J*x[1]*x[2]
+  }else if(i == n){
+    de = 2*J*x[n-1]*x[n]
+  }else{
+    de = 2*J*x[i]*(x[i-1] + x[i+1])
+  }
+  return(de)
+}
+
+# testing to check if dE is computed properly
+set.seed(1)
+n = 10
+J = 1
+x = sample(c(-1, 1), size = n, replace = T) 
+e0 = e_ising(J, x)
+for(i in 1:n){
+  x1 = x
+  x1[i] = -x1[i]
+  e1 = e_ising(J, x1)
+  de = de_ising(J, x, n, i)
+  print(c(i, e1 - e0, de))
+}
+```
+
+In a more complex system, one may consider to create a *neighbor list* to save the indices for those that are required for updating interaction/energy terms. 
+
+Second, the acceptance probability doesn't need to be computed (which requires an evaluation of an exponential function) when the energy difference is negative (favored). Thus, when $\Delta E < 0$ the proposed move is accepted. When $\Delta E > 0$, the acceptance probability is $e^{-\frac{\Delta E}{T}}$.
+
+```{r}
+# metropolis sampling based on a Boltzmann distribution (an improved version)
+metropolis_ising_improved <- function(nstep, n, J, T){
+  # nstep: number of steps
+  # n: number of spins (one dimensional)
+  # J: interaction strength
+  # T: temperature (after scaling)
+  x = matrix(0, nrow = (nstep + 1), ncol = n)  # states
+  e = numeric(nstep + 1) # total energy
+  x[1, ] = sample(c(-1, 1), size = n, replace = T) # random initial condition
+  e[1] = e_ising(J, x[1,])
+  num_accept = 0
+  for(i in 1:nstep){
+    k = sample(x = n, size = 1) # randomly select a spin
+    de = de_ising(J, x[i,], n, k)
+    if((de < 0) || (runif(1) <  exp(-de/T))){
+      x[i+1,] = x[i,]
+      x[i+1,k] = -x[i+1,k] # flip the spin
+      e[i+1] = e[i] + de
+      num_accept = num_accept + 1
+    }else{
+      x[i+1,] = x[i,]
+      e[i+1] = e[i]
+    }
+  }
+  print(paste0("Acceptance rate ", num_accept/nstep))
+  return(list(x = x, e = e))
+}
+
+set.seed(1)
+nstep = 3*10^3
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 1)
+print(paste0("Mean energy: ",mean(results_ising$e)))
+num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
+
+par(mar = c(5, 5, 3, 5))
+plot(0:nstep, results_ising$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
+par(new = TRUE)
+plot(0:nstep, num_1, type = "l", col = 4, lty = 2, axes = F, xlab = "", ylab = "")
+axis(side = 4)
+mtext("# of +1 Spins", side = 4, line = 3)
+legend("topright", c("Total energy", "Spin states"),
+       col = c(2, 4), lty = c(1, 2), cex = 0.5)
+```
+
+In the above plot, blue trajectory shows the number of spins with the state +1. It's clear that the system has two states corresponding to the lowest total energy $E = -9$: one with ten +1 spins, and the other with zero +1 spin (ten -1 spins). The Metropolis-Hastings algorithm can sample states of various energy levels under constant temperature $T = 1$, and various states of the same energy.
+
+For a lower temperature $T = 0.3$, it becomes much harder to undergo state transitions towards a higher energy state. Thus, the algorithm mostly samples one of the lowest energy state (*e.g*, in this case, the one with ten +1 spins).
+
+Q: Try the Metropolis-Hastings simulations for a few initial conditions. Do you always get the same outcome?
+
+The above code also computes the mean energy from the MCMC sampling. This calculation is called an ensemble average, which is equivalent to an time average for an equilibrium system, as long as a sufficiently large number of samples are used in the calculation.
+
+```{r}
+set.seed(1)
+nstep = 3*10^3
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 0.3)
+print(paste0("Mean energy: ",mean(results_ising$e)))
+num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
+
+par(mar = c(5, 5, 3, 5))
+plot(0:nstep, results_ising$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
+par(new = TRUE)
+plot(0:nstep, num_1, type = "l", col = 4, lty = 2, axes = F, xlab = "", ylab = "")
+axis(side = 4)
+mtext("# of +1 Spins", side = 4, line = 3)
+legend("topright", c("Total energy", "Spin states"),
+       col = c(2, 4), lty = c(1, 2), cex = 0.5)
+
+```
+
+For a higher temperature $T = 3$, it becomes much harder to sample the lowest energy state. Most sampled energy states are in the middle range. 
+
+```{r}
+set.seed(1)
+nstep = 10^3
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 3)
+print(paste0("Mean energy: ",mean(results_ising$e)))
+num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
+
+par(mar = c(5, 5, 3, 5))
+plot(0:nstep, results_ising$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
+par(new = TRUE)
+plot(0:nstep, num_1, type = "l", col = 4, lty = 2, axes = F, xlab = "", ylab = "")
+axis(side = 4)
+mtext("# of +1 Spins", side = 4, line = 3)
+legend("topright", c("Total energy", "Spin states"),
+       col = c(2, 4), lty = c(1, 2), cex = 0.5)
+```

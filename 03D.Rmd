@@ -1,124 +1,603 @@
 ---
-title: "Part 3: Phase plane"
-subtitle: "D. Separatrix"
+title: 'Part 3: Phase plane'
+subtitle: "D. Practice: predator-prey model"
 author: "Mingyang Lu"
-date: "11/08/2021"
-output: 
+date: "08/17/2023"
+output:
   html_document:
-    toc: true
-    toc_depth: 3
+    toc: yes
+    toc_depth: 4
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In the previous section, we show typical dynamical analysis based on phase plane for two-variable non-linear dynamical systems. In the case of toggle switch gene circuit, the vector field and time trajectories indicates that there are two basins. A term named separatrix is a curve in the phase plane that defines the boundary of the basins. Starting from any initial condition from one side of the separatrix will always lead to the corresponding steady state (attractor). Usually it is non-trivial to obtain separatrix in general. But for certain cases like saddle-node systems, there is an easy trick to obtain the separatrix.
+In this section, we will model predator-prey relationship. The system is described by the classic Lotka-Volterra model.
 
-We again consider the following ODEs,
+# Lotka-Volterra model
 
-\begin{equation}
-\begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
-              \frac{dY}{dt} = f_Y(X,Y) \end{cases}
-\end{equation}
-
-But now we modify both equations by changing the sign only:
+The system is described by:
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = -f_X(X,Y) \\
-              \frac{dY}{dt} = -f_Y(X,Y) \end{cases}
+\begin{cases} \frac{dN}{dt} = f(N,C) = N (a - bP) \\
+              \frac{dP}{dt} = g(N,C) = P (cN -d)  \tag{1} \end{cases}
 \end{equation}
 
-We first plot the vector field of the modified ODEs in the phase plane.
 
-``` {r,fig.width = 5, fig.height = 5}
-library(ggplot2)
-hill_inh <- function(X,X0,n) {
-  a = (X/X0)**n
-  return(1/(1+a))
+# ODE simulation
+
+We first define the derivative function. Here, we allow $a$, $b$, $c$, and $d$ as four explicit parameters.
+
+``` {r}
+derivs_LV <- function(t, Xs, a, b, c, d) { # derivatives of the Lotka-Volterra model
+  N = Xs[1]
+  P = Xs[2]
+  dNdt = N * (a- b*P)
+  dPdt = P * (c*N - d)
+  return(c(dNdt, dPdt))
 }
-
-derivs_ts_revised <- function(t, Xs) {
-  X = Xs[1]
-  Y = Xs[2]
-  dxdt = -(5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X)
-  dydt = -(4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y)
-  return(c(dxdt, dydt))
-}
-
-X_all = seq(0, 600, by=20)   # all X grids
-Y_all = seq(0, 650, by=20)   # all Y grids
-XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
-
-results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
-  v = derivs_ts_revised(0, Xs)
-  v_norm = v / sqrt(v[1]**2 + v[2]**2)
-  return(c(Xs, v_norm))})) # generate all vector field data
-colnames(results_unit) = c("X", "Y", "dX", "dY")
-
-p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
-  geom_segment(aes(xend=X+20*dX, yend=Y+20*dY), arrow = arrow(length = unit(0.05,"in")))
-p1 
 ```
 
-Now, the middle stead state remains a saddle point. But instead of being *"repulsive"*, the vectors point towards the middle steady state along the direction of the three steady states. Once reaching the steady state, the vectors point outwards along the boundary, which is the separatrix. Thus, we can sample points around the saddle point as the initial conditions for the modified ODEs to numerical obtain the separatrix.
+We will use the RK4 integrator to simulate the ODEs defined by Equation (1). 
 
-``` {r, fig.width = 5, fig.height = 5}
-# 4th order Runge-Kutta (RK4)
-RK4_2D <- function(derivs, init, t.total, dt){
+```{r}
+# 4th order Runge-Kutta (RK4) for a generic multi-variable system, see Part 3A
+RK4_generic <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
-  # init: initial condition in c(X0, Y0)
+  # X0: initial condition, a vector of multiple variables
   # t.total: total simulation time, assuming t starts from 0 at the beginning
   # dt: time step size 
   t_all = seq(0, t.total, by=dt)
   n_all = length(t_all)
-  X_all = matrix(0, nrow = n_all, ncol = 2)
-  X_all[1,] = init 
+  nx = length(X0)
+  X_all = matrix(0, nrow = n_all, ncol = nx)
+  X_all[1,] =  X0
   for (i in 1:(n_all-1)) {
     t_0= t_all[i]
     t_0.5 = t_0 + 0.5*dt
     t_1 = t_0 + dt
-    k1 = dt * derivs(t_0,X_all[i,])
-    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2)
-    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2)
-    k4 = dt * derivs(t_1,X_all[i,] + k3)
+    k1 = dt * derivs(t_0,X_all[i,],...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2,...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2,...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3,...)
     X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
 }
-
-derivs_ts_orig <- function(t, Xs) {
-  X = Xs[1]
-  Y = Xs[2]
-  dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
-  dydt = 4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y
-  return(c(dxdt, dydt))
-}
-
-set.seed(77)   # set the seed for the random number generator, remove this line to generate more random initial conditions
-t.total = 100
-dt  = 0.01
-X_range = c(0,600)
-Y_range = c(0,650)
-
-X_init_all = array(runif(20, 0, 600), dim = c(10,2)) # generate 10 random initial conditions
-for(i in seq_len(nrow(X_init_all))){
-  results = RK4_2D(derivs_ts_orig, X_init_all[i,], t.total, dt)
-  colnames(results) = c("t", "X", "Y")
-  p1 = p1 + geom_path(data=as.data.frame(results), aes(x=X, y=Y), color = "blue")
-}
-X_init_all = array(runif(20, -1, 1), dim = c(10,2)) # generate 10 random initial conditions
-
-for(i in seq_len(nrow(X_init_all))){
-  X_init = X_init_all[i,] + c(189.96888, 126.64398)
-  results = RK4_2D(derivs_ts_revised, X_init, t.total, dt)
-  results = results[which(((results[,2] - X_range[1])*(results[,2] - X_range[2]) <0) &
-          ((results[,3] - Y_range[1])*(results[,3] - Y_range[2]) < 0)),] # filter points outside of the plotting area
-  colnames(results) = c("t", "X", "Y")
-  p1 = p1 + geom_path(data=as.data.frame(results), aes(x=X, y=Y), color = "red")
-}
-
-p1 + xlim(0, 600) + ylim(0, 650)
 ```
 
-In the above plot, the trajectories representing the separatrix (red) are shown together with the vector field of the modified ODEs (black) and the trajectories of the original ODEs (blue). We can observe that the blue lines never go across the red line. 
+We set $a = d = 1$, $b = 0.03$, and  $c = 0.02$
+
+If we start the simulation from the initial condition ${X(t = 0)} = (2, 0)$, 
+
+``` {r}
+a = 1; b = 0.03; c = 0.02; d = 1
+X0_1 = c(2, 0)  # start from N = 2, P = 0, 
+results_LV_1 = RK4_generic(derivs = derivs_LV, X0 = X0_1, t.total = 10, dt = 0.01, a, b, c, d)
+plot(results_LV_1[,1], results_LV_1[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,10), ylim=c(0,100))
+lines(results_LV_1[,1], results_LV_1[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+With no predator, prey follows exponential growth.
+
+If we start the simulation from the initial condition ${X(t = 0)} = (0, 100)$, 
+
+``` {r}
+X0_2 = c(0, 100)  # start from N = 0, P = 100, 
+results_LV_2 = RK4_generic(derivs = derivs_LV, X0 = X0_2, t.total = 10, dt = 0.01, a, b, c, d)
+plot(results_LV_2[,1], results_LV_2[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,10), ylim=c(0,100))
+lines(results_LV_2[,1], results_LV_2[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+With no prey, predator follows exponential decay.
+
+If we start the simulation from the initial condition ${X(t = 0)} = (30, 10)$, 
+
+``` {r}
+X0_3 = c(30, 10)  # start from N = 30, P = 10, 
+results_LV_3 = RK4_generic(derivs = derivs_LV, X0 = X0_3, t.total = 50, dt = 0.01, a, b, c, d)
+plot(results_LV_3[,1], results_LV_3[,2], type = "l", col=2,
+    xlab="t", ylab="Levels", xlim=c(0,50), ylim=c(0,150))
+lines(results_LV_3[,1], results_LV_3[,3], type = "l", col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("N", "P"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+When both predator and prey exist, the system generates oscillations. 
+
+Here we explore a few different initial conditions and plot the time trajectories in a plane plane of $N$ and $P$.
+
+``` {r,fig.width = 6, fig.height = 5}
+# Another three initial conditions
+X0_4 = c(40, 20)
+X0_5 = c(30, 25)
+X0_6 = c(20, 40)
+
+# A total of four initial conditions to consider
+IC_all = rbind(X0_3, X0_4, X0_5, X0_6)
+legend_IC = apply(IC_all, 1, paste, collapse = ",")
+
+results_LV_4 = RK4_generic(derivs = derivs_LV, X0 = X0_4, t.total = 50, dt = 0.01, a, b, c, d)
+results_LV_5 = RK4_generic(derivs = derivs_LV, X0 = X0_5, t.total = 50, dt = 0.01, a, b, c, d)
+results_LV_6 = RK4_generic(derivs = derivs_LV, X0 = X0_6, t.total = 50, dt = 0.01, a, b, c, d)
+colnames(results_LV_4) = c("t", "N", "P")
+colnames(results_LV_5) = c("t", "N", "P")
+colnames(results_LV_6) = c("t", "N", "P")
+
+plot(IC_all[,1], IC_all[,2], type = "p", pch = 16, col = 1,
+    xlab="N", ylab="P", xlim=c(0,150), ylim=c(0,100))
+lines(results_LV_3[,2], results_LV_3[,3], type = "l", col=2)
+lines(results_LV_4[,2], results_LV_4[,3], type = "l", col=3)
+lines(results_LV_5[,2], results_LV_5[,3], type = "l", col=4)
+lines(results_LV_6[,2], results_LV_6[,3], type = "l", col=5)
+
+legend("topright", title = "Initial conditions", inset=0.02, 
+       legend = legend_IC,
+       col=2:5, lty=1, cex=0.8)
+```
+
+# Vector field
+
+The directions of changes of an ODE system can be represented by vectors in the phase plane.
+
+\begin{equation}
+\begin{cases} V_X = \frac{dX}{dt}  \\
+              V_Y = \frac{dY}{dt} \end{cases}
+\end{equation}
+
+``` {r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+
+N_all = seq(0, 150, by=10)   # all N grids
+P_all = seq(0, 100, by=10)   # all P grids
+NP_all = expand.grid(N_all, P_all)   # all combinations of N and P
+
+results = t(apply(NP_all, MARGIN=1, function(Xs) {return(c(Xs, derivs_LV(0, Xs, a, b, c, d)))})) # generate all vector field data
+colnames(results) = c("N", "P", "dN", "dP")
+
+scale = 0.1
+ggplot(data=as.data.frame(results), aes(x=N, y=P)) + 
+  geom_segment(aes(xend=N+scale*dN, yend=P+scale*dP), arrow = arrow(length = unit(0.05,"in")))
+
+```
+
+We can choose to plot the unit vectors of the vector field to highlight the directions. 
+
+``` {r,fig.width = 5, fig.height = 5, warning = FALSE}
+
+results_unit = t(apply(NP_all, MARGIN=1, function(Xs) {
+  v = derivs_LV(0, Xs, a, b, c, d)
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate unit vector
+colnames(results_unit) = c("N", "P", "dN", "dP")
+
+scale = 3
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=N, y=P)) + 
+  geom_segment(aes(xend=N+scale*dN, yend=P+scale*dP), arrow = arrow(length = unit(0.05,"in")))
+
+colnames(results_LV_3) = c("t", "N", "P")
+p1 + guides(color="none") + 
+   geom_path(data = as.data.frame(results_LV_3), aes(x=N, y=P, colour = 1), size=1) 
+```
+
+Below we choose different initial conditions and, for each, simulate the time trajectory and plot it in the same phase plane.
+
+``` {r,fig.width = 6, fig.height = 5, warning = FALSE}
+p2 = p1 + guides(color=guide_legend("ICs")) +
+   geom_path(data = as.data.frame(results_LV_3), aes(x=N, y=P, colour = legend_IC[1]), size=1) +
+   geom_path(data = as.data.frame(results_LV_4), aes(x=N, y=P, colour = legend_IC[2]), size=1) +
+   geom_path(data = as.data.frame(results_LV_5), aes(x=N, y=P, colour = legend_IC[3]), size=1) +
+   geom_path(data = as.data.frame(results_LV_6), aes(x=N, y=P, colour = legend_IC[4]), size=1) 
+p2
+```
+# Nullclines
+
+Another powerful method to evaluate the behavior of a nonlinear dynamical system is the techniques of nullcline analysis. A nullcline corresponds to the steady state condition of one of the two ODEs: (1) $\frac{dX}{dt} = 0$ and (2) $\frac{dY}{dt} = 0$. In the Lotka-Volterra model, the N-nullcline satisfies 
+
+$N = 0$ or $P = \frac{a}{b}$;
+
+The P-nullcline satisfies
+
+$P = 0$ or $N = \frac{d}{c}$.
+
+We add the two nullclines to the phase plane. The intersections of the N-nullcline and P-nullcline are the steady states of the system.
+
+\begin{equation}
+\begin{cases} \frac{dN}{dt} = 0 \\
+              \frac{dP}{dt} = 0 \end{cases}
+\end{equation}
+
+
+In this case, since each nullcline has two line segments, pay attention that only the intersections of lines in different colors can be steady states. Here, the first steady state $X_1 = (0, 0)$ and the second steady state $X_2 = (\frac{d}{c}, \frac{a}{b})$ (black dots in the following plot).
+
+
+``` {r,fig.width = 6.3, fig.height = 5, warning = FALSE}
+# Vector field + Nullclines + Steady states
+p3 = p1 + 
+  geom_hline(aes(yintercept = a/b, color = "N-nullcline")) +
+  geom_vline(aes(xintercept = 0, color = "N-nullcline")) +
+  geom_vline(aes(xintercept = d/c, color = "P-nullcline")) +
+  geom_hline(aes(yintercept = 0, color = "P-nullcline")) + 
+  geom_point(aes(x=0, y=0, colour="Steady states"), size = 3) + 
+  geom_point(aes(x=d/c, y=a/b, colour="Steady states"), size = 3) 
+
+# Plus a time trajectroy
+p3 +  geom_path(data = as.data.frame(results_LV_3), aes(x=N, y=P, color = "Trajectory"), size=1) +
+  scale_colour_manual(values = c("red", "blue", "black", "orange"))
+```
+
+# Stability of a steady state
+
+For each steady state, we perturb the state of the system slightly away from the steady state. Pay attention that the state variables $N$ and $P$ need to be non-negative. 
+
+```{r}
+results_LV_ss1 = RK4_generic(derivs = derivs_LV, X0 = c(10, 12), t.total = 10, dt = 0.01, a, b, c, d)
+colnames(results_LV_ss1) = c("t", "N", "P")
+results_LV_ss2 = RK4_generic(derivs = derivs_LV, X0 = c(d/c + 3, a/b - 4), t.total = 10, dt = 0.01, a, b, c, d)
+colnames(results_LV_ss2) = c("t", "N", "P")
+# Plus a time trajectory
+p3 +  geom_path(data = as.data.frame(results_LV_ss1), aes(x=N, y=P, color = "Trajectory"), size=1) +
+   geom_path(data = as.data.frame(results_LV_ss2), aes(x=N, y=P, color = "Trajectory"), size=1) +
+  scale_colour_manual(values = c("red", "blue", "black", "orange"))
+```
+
+In the case of the steady state $X_1$, a small perturbation leads to an oscillatory trajectory away from $X_1$, so $X_1$ is unstable. In the case of the steady state $X_2$, a small perturbation leads to an orbit around $X_2$, so $X_2$ is a center. 
+
+### Stability analysis using the Jacobian
+
+We can also compute the stability of a steady state without performing perturbation simulations. We will need to evaluate the Jacobian matrix of the ODEs:
+
+\def\B{
+\begin{pmatrix}
+      \frac{\partial f}{\partial N} & \frac{\partial f}{\partial P} \\
+      \frac{\partial g}{\partial N} & \frac{\partial g}{\partial P}
+\end {pmatrix}}
+
+\begin{equation}
+\mathbf{J} = \B
+\end{equation}
+
+Instead of using the analytical forms of the Jacobian matrix, we will estimate it numerically from the rate equations. The stability of a steady state can be determined by the eigenvalues of the Jacobian matrix according to following table. Note that the eigenvalues of a Jacobian matrix are not necessarily real numbers. 
+
+| Conditions | Stability |
+|-------|---------|
+| $\lambda_1 < 0$ & $\lambda_2 < 0$ | Stable |
+| $\lambda_1 \geq 0$ &  $\lambda_2 \geq 0$ | Unstable |
+| $\lambda_1 \lambda_2 < 0$ | Saddle point |
+| $Re(\lambda_1) < 0$ & $Re(\lambda_2) < 0$ | Stable spiral |
+| $Re(\lambda_1) \geq 0$ & $Re(\lambda_2) \geq 0$ | Unstable spiral |
+
+```{r}
+# A generic function to check stability for a 2D ODE sytem
+stability_2D <- function(derivs, ss, ...) { # ss is a vector of steady state values X_S, Y_S
+  delta = 0.001
+  f_current = derivs(0,ss, ...)   # f(x,y) this is computed, just in case it is not exactly 0
+  f_plus_dx = derivs(0,ss + c(delta,0), ...) # f(x+dx, y)
+  f_plus_dy = derivs(0,ss + c(0, delta), ...) # f(x, y+dx)
+  
+  # finite difference to approximate Jacobian
+  dfxdx = (f_plus_dx[1] - f_current[1])/delta
+  dfxdy = (f_plus_dy[1] - f_current[1])/delta
+  dfydx = (f_plus_dx[2] - f_current[2])/delta
+  dfydy = (f_plus_dy[2] - f_current[2])/delta
+  
+  jacobian = array(c(dfxdx, dfydx, dfxdy, dfydy), c(2,2))
+  lambda = eigen(jacobian)$values
+  if(class(lambda[1]) == "complex") {
+    if(Re(lambda[1]) < 0){
+      stability = 4   # stable spiral
+    }else{
+      stability = 5   # unstable spiral
+    }
+  }
+  else{
+    if((lambda[1] < 0) & (lambda[2] <0)){
+      stability = 1   # stable 
+    }else if((lambda[1] >= 0) & (lambda[2] >= 0)){
+      stability = 2   # unstable 
+    }else{
+      stability = 3   # saddle
+    }
+  }
+  return(stability)
+}
+
+```
+
+We apply this method to the current model.
+
+``` {r}
+ss_all = rbind(c(0, 0), c(d/c, a/b))
+
+ss_with_stability =  t(apply(ss_all, MARGIN = 1, function(ss) {
+                          return(c(ss,stability_2D(derivs = derivs_LV, ss = ss, a, b, c, d)))}))
+colnames(ss_with_stability) = c("N", "P", "Stability")
+ss_with_stability
+
+```
+
+Here, "3" means a saddle point (a type of unstable steady state), and "5" means an unstable spiral (a center is classified into this category).
+
+# Model fitting
+
+We consider the following data set of lynx/hare populations in 1900-1920 as collected by the Hudson Bay Company. 
+
+
+``` {r}
+lvdata = data.frame(
+         year = seq(1900,1920,by=1),
+         hare = c(30, 47.2, 70.2, 77.4, 36.3, 20.6, 18.1, 21.4, 22, 25.4, 27.1, 40.3, 57, 76.6, 52.3, 19.5, 11.2, 7.6, 14.6, 16.2, 24.7),
+         lynx = c(4, 6.1, 9.8, 35.2, 59.4, 41.7, 19, 13, 8.3, 9.1, 7.4, 8, 12.3, 19.5, 45.7, 51.1, 29.7, 15.8, 9.7, 10.1, 8.6)
+)
+knitr::kable(lvdata, col.names = c("Year", "Hare (x1000)", "Lynx (x1000)"))
+
+```
+
+
+We plot the time trajectory for both species:
+
+```{r}
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(lvdata$year, lvdata$lynx, type = "b", pch=19, col=3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare", "Lynx"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+Or in the phase plane
+
+``` {r,fig.width = 5, fig.height = 5}
+plot(lvdata$hare, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="Hare x(1000)", ylab="Lynx x(1000)", xlim=c(0,100), ylim=c(0,100))
+```
+
+Now, the goal is to find the optimal parameters $a$, $b$, $c$, $d$ of the Lotka-Volterra model that best fit the data set. We consider two way to do so: (1) error minimization; (2) linear regression.
+
+### Error minimization
+
+We define the error function as the sum of squares of differences (SSD) between the simulated levels and the levels from the data set. Starting from here, we use a vector *p* to represent all parameters.
+
+```{r}
+# Sum of square of differences (SSD)
+ssd <- function(array1, array2) {
+  diff = array1 - array2
+  return(sum(diff * diff))
+}
+
+cal_error <- function(derivs,data_exp, func_error, nsteps = 10, p){  
+    # derivs defines the ODEs 
+    # data_exp provides the data set; 
+    # nsteps specifies the number of time steps per unit time (integer)
+    # dt gives the time step for the ODE integrator : dt = 1/nstep
+      #(nstep = 1, dt = 1 means that data fitting for every time step)
+      #(nstep = 10, dt = 0.1 means that data fitting for every 10 time steps)
+      #(nstep = 100, dt = 0.01 means that data fitting for every 100 time steps)
+    # func_error computes the errors, it must take two arrays to compare
+    # p is the vector of all parameters c(a, b, c, d)
+    t.total = NROW(data_exp) - 1
+    dt = 1/nsteps
+    X0 = data_exp[1,]   # the first data point as the initial condition
+    sim = RK4_generic(derivs = derivs, X0 = X0, t.total = t.total, dt = dt, 
+                         a = p[1], b = p[2], c = p[3], d = p[4])
+    data_sim = sim[seq(1,NROW(sim),by = nsteps),2:3]
+    
+    return(func_error(data_exp[,1], data_sim[,1]) + func_error(data_exp[,2], data_sim[,2]))
+}
+```
+
+Note that, in the error function, the ODE simulation is done by integration of multiple time steps per unit time (Year). Compared to the implementation with one step per unit time, this allows more accurate simulations but slower optimization. 
+
+Taking any initial guess of the four parameters, we can compute the error of the model:
+
+``` {r}
+data_LV = cbind(lvdata$hare, lvdata$lynx)
+p0 = c(0.5, 0.02, 0.02, 0.5)
+cal_error(derivs = derivs_LV, data_exp = data_LV, func_error = ssd, nsteps = 10, p = p0)
+```
+
+We then perform nonlinear minimization of the error function with respect to the parameters $a$, $b$, $c$ and $d$. An easy way to do so is by an R function *nlm*. We will need to wrap the original *cal_error* to a new function *f*, in such as way that the four parameters are the only arguments. Note that nonlinear minimization by *nlm* is based on Newton's method, therefore it can find a local minimum, but not the global minimum. We need to have a good initial guess to get a reasonable fitting. 
+
+```{r}
+f <- function(p) {
+  return(cal_error(derivs = derivs_LV, data_exp = data_LV, func_error = ssd, nsteps = 10, p))
+}
+
+p0 = c(0.5, 0.02, 0.02, 0.5)
+f(p0)
+fitted = nlm(f = f, p = p0)
+
+p = fitted$estimate
+f(p)
+```
+
+
+
+```{r}
+
+results_simu = RK4_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p[1], b = p[2], c = p[3], d = p[4])
+
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu[,1] + 1900, results_simu[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(lvdata$year, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu[,1] + 1900, results_simu[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+``` {r,fig.width = 5, fig.height = 5}
+plot(lvdata$hare, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="Hare x(1000)", ylab="Lynx x(1000)", xlim=c(0,100), ylim=c(0,100))
+lines(results_simu[,2], results_simu[,3], type = "l", col = 3)
+```
+
+### Linear regression
+
+In the Lotka-Volterra model, the ODEs are linear functions of the four parameters. Therefore, with a little approximation, one can convert the model fitting problem into a linear regression problem. 
+
+Consider the ODEs:
+
+$$ \frac{dx_i}{dt} = \sum_{j} {a_{ij}g_{ij}(x_1, ... , x_n)}$$
+
+Replace the left hand side of the above equation with finite difference. We have
+
+$$ \frac{x_i(t+\Delta t) - x_i(t-\Delta t)}{2\Delta t} = \sum_{j} {a_{ij}g_{ij}(x_1, ... , x_n)}$$
+
+As all $x_i(t)$ are known from the data (despite of very discrete data points), and functions $g_{ij}$ are known from the Lotka-Volterra model. Thus, we can perform linear regression with respect to all parameters $a_{ij}$ using linear equations for all variables $x_i$ at all time points $t$. In this implementation, we omit the first and the last time points to allow the obove time derivative evaluation.
+
+```{r}
+N_all = lvdata$hare
+P_all = lvdata$lynx
+tot = length(N_all)
+#dndt = a * N + b * (-N*P)
+term_dndt = (N_all[3:tot] - N_all[1:(tot-2)])/2
+term_n = N_all[2:(tot-1)]
+term_minus_np = -N_all[2:(tot-1)]*P_all[2:(tot-1)]
+
+data_n = data.frame(term_dndt = term_dndt, term_n = term_n, term_minus_np = term_minus_np)
+model_n = lm(term_dndt ~ term_n + term_minus_np - 1, data_n)
+model_n$coefficients
+
+#dpdt = c* (N*P) - d * P
+term_dpdt = (P_all[3:tot] - P_all[1:(tot-2)])/2
+term_np = N_all[2:(tot-1)]*P_all[2:(tot-1)]
+term_minus_p = -P_all[2:(tot-1)]
+
+data_p = data.frame(term_dpdt = term_dpdt, term_np = term_np, term_minus_p = term_minus_p)
+model_p = lm(term_dpdt ~ term_np + term_minus_p - 1, data_p)
+model_p$coefficients
+```
+
+```{r}
+p0 = c(model_n$coefficients, model_p$coefficients)
+f(p0)
+
+```
+
+
+```{r}
+
+results_simu2 = RK4_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p0[1], b = p0[2], c = p0[3], d = p0[4])
+
+plot(lvdata$year, lvdata$hare, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu2[,1] + 1900, results_simu2[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(lvdata$year, lvdata$lynx, type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(1900,1920), ylim=c(0,100))
+lines(results_simu2[,1] + 1900, results_simu2[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+Linear regression gives deterministic results. The obtained parameter set does not work very well because of errors in derivative evaluation by finite difference. At least, this simple regression gives a good initial guess for nonlinear minimization.
+
+``` {r}
+fitted = nlm(f = f, p = p0)
+
+p = fitted$estimate
+f(p)
+```
+
+### A test on a simulated data with more time points
+
+It is reasonable to hypothesize that the errors come from the finite difference approximation. To test that, we generate a data set from the simulated trajectory. We pick one point every three time steps (Readers can choose different values).
+
+``` {r}
+seed = 12
+my_data <- results_simu[seq(1, NROW(results_simu),by = 3),]   # data extracted from the simulations
+nrow_my = NROW(my_data)
+noise = 0
+my_data[,2:3] = my_data[,2:3] + matrix(runif(nrow_my*2, -noise, noise), nrow = nrow_my, ncol = 2) # add noise
+my_data[which(my_data < 0)] = 0   # negative numbers set to zeros
+
+plot(my_data[,1], my_data[,2], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(my_data[,1], my_data[,3], type = "b", pch=15, col=3)
+
+```
+
+Note that we provide an option to add a random perturbation to each data point. However, in the analysis below, we turn the noise option off by setting the noise level to be zero. Readers can try the analyses with different levels of noise.
+
+We now repeat the whole regression analysis with this simulated data.
+
+```{r}
+N_all = my_data[,2]
+P_all = my_data[,3]
+tot = length(N_all)
+#dndt = a * N + b * (-N*P)
+term_dndt = (N_all[3:tot] - N_all[1:(tot-2)])/0.3/2 # be careful of the calculation for delta t
+term_n = N_all[2:(tot-1)]
+term_minus_np = -N_all[2:(tot-1)]*P_all[2:(tot-1)]
+
+data_n = data.frame(term_dndt = term_dndt, term_n = term_n, term_minus_np = term_minus_np)
+model_n = lm(term_dndt ~ term_n + term_minus_np - 1, data_n)
+model_n$coefficients
+
+#dpdt = c* (N*P) - d * P
+term_dpdt = (P_all[3:tot] - P_all[1:(tot-2)])/0.3/2
+term_np = N_all[2:(tot-1)]*P_all[2:(tot-1)]
+term_minus_p = -P_all[2:(tot-1)]
+
+data_p = data.frame(term_dpdt = term_dpdt, term_np = term_np, term_minus_p = term_minus_p)
+model_p = lm(term_dpdt ~ term_np + term_minus_p - 1, data_p)
+model_p$coefficients
+```
+
+```{r}
+p1 = c(model_n$coefficients, model_p$coefficients)
+f(p1)
+```
+
+```{r}
+results_simu3 = RK4_generic(derivs = derivs_LV, X0 = data_LV[1,], t.total = 20, dt = 0.1, 
+                              a = p1[1], b = p1[2], c = p1[3], d = p1[4])
+
+plot(my_data[,1], my_data[,2], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(results_simu3[,1], results_simu3[,2], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Hare_data", "Hare_simu"),
+       col=2:3, lty=1, cex=0.8)
+
+plot(my_data[,1], my_data[,3], type = "b", pch=15, col=2,
+    xlab="t", ylab="Levels", xlim=c(0,20), ylim=c(0,100))
+lines(results_simu3[,1], results_simu3[,3], type = "l", col = 3)
+
+legend("topright", inset=0.02, 
+       legend = c("Lynx_data", "Lynx_simu"),
+       col=2:3, lty=1, cex=0.8)
+```
+
+As shown from the results, linear regression works much better if not perfect.

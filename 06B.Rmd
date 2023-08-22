@@ -1,0 +1,220 @@
+---
+title: "Part 6: Stochastic differential equations"
+subtitle: "B. Brownian motion"
+author: "Mingyang Lu"
+date: "08/18/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Brownian motion in 1D
+
+We consider a particle moving randomly along a line. The particle initially starts from the origin ($x(t=0)=0$). For every time step $t \rightarrow t + \Delta t$, the particle moves towards the left or right for a fixed step $\Delta x$ (*aka* move step). This is a typical Brownian motion in 1D, which we can write a stochastic simulation to model. Below shows two implementations of the simulation, one with a for loop (similar to ODE integration) and the other with only vector operations. The latter one is concise and elegant, but may not applicable to more complex situations. These two implementations generate essentially the same results.
+
+```{r}
+# A simulation of Brownian motion in 1D
+brownian <- function(t.total, dt, dx) {
+# t.total: total simulation time
+# dt: time step size
+# dx: step size of the movement
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  
+  x_all[1] = 0   # initial position at 0
+  for(i in 1:(n_all-1)){
+    x_all[i+1] = x_all[i] + dx * sample(x = c(-1,1), size = 1)
+  }
+  return(cbind(t_all, x_all))
+}
+
+# A simulation of Brownian motion in 1D
+brownian_concise <- function(t.total, dt, dx) {
+# t.total: total simulation time
+# dt: time step size
+# dx: step size of the movement
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = sample(x = c(-1,1), size = n_all, replace = T)
+  x_all = cumsum(x_all)*dx
+  return(cbind(t_all, x_all))
+}
+```
+
+For this example, we set $\Delta t = 1$ and $\Delta x = 1$. We perform the simulation of the 1D Brownian motion for 1000 times and plot the first ten time trajectories. 
+
+```{r}
+set.seed(12)
+t.total = 1000; dt = 1; dx = 1; nrep = 1000   # nrep: total number of simulations
+nplot = 10 # plot the first ten simulations
+results_bm_1d = replicate(nrep, brownian(t.total, dt, dx))  # perform multiple simulations
+# Note that,  although the above line just replicates the same simulation process,
+# they generate very different results, due to different RNGs. 
+# You can also try brownian_concise, which is essentially the same
+
+plot(NULL, xlab="t", ylab="x",
+      xlim=c(0,1000), ylim=c(-70,70))
+
+for(i in seq_len(nplot)){
+  lines(results_bm_1d[,1,i], results_bm_1d[,2,i], type = "l", col = i)
+}
+```
+
+# Statistical evaluation of an ensemble of time trajectories
+
+```{r}
+t_ind = seq(1, 1000, by = 100)   # time points to be evaluated
+bm_1d_formatted = data.frame(t = c(results_bm_1d[t_ind,1,]), x = c(results_bm_1d[t_ind, 2, ]))  # a dataframe for boxplot
+boxplot(x ~ t, data = bm_1d_formatted, xlab = "t", ylab = "x",ylim = c(-100, 100))
+```
+
+As shown in the box plot, the mean $x$ remains zero, and the variance of $x$ increases when $t$ increases. For each sample $t$, the distribution of $x$ is approximately a Gaussian. In fact, $P(x)$ is a binomial distribution and becomes Gaussian for a very large number of steps. Also see [central limit theorem](https://en.wikipedia.org/wiki/Central_limit_theorem) for another explanation. The width of the Gaussian becomes larger for larger $t$. 
+
+Q: is it okay to use larger $\Delta t$ in the simulation?
+
+```{r,fig.width = 3, fig.height = 3}
+nt = length(t_ind)
+t_sample = results_bm_1d[t_ind, 1, 1]  # all sampled t 
+mean_x = numeric(nt)
+var_x = numeric(nt)
+ind = 0
+for (i in t_ind){
+  ind = ind + 1
+  x = results_bm_1d[i, 2, ]
+  hist(x, freq = F, xlab = "x", xlim = c(-100, 100), main = paste0("t =", t_sample[ind]))
+  mean_x[ind] = mean(x)
+  var_x[ind] = mean(x*x)
+}
+```
+
+From the theory, we know that the variance $<x^2> = 2Dt$, where the diffusion constant for a one dimensional system:
+
+$$D = \lim_{\Delta t \rightarrow 0}\frac{\Delta x^2}{2\Delta t}. \tag{3}$$ 
+
+Using the many simulations, we can also compute the mean and variance of $x$ for different sampled $t$s. We roughly obtained $<x^2>  = t$, although there is still some slight deviations from the theory. In this case, $D = 0.5$. More simulations need to be performed to obtain better statistics.
+
+```{r}
+plot(t_sample, mean_x, col = 1, xlab = "t", ylab = "Values", xlim = c(0,910), ylim = c(0, 1000))
+points(t_sample, var_x, col = 2)
+abline(a = 0, b = 0, col = 3)
+abline(a = 0, b = 1, col = 4)
+legend("topleft", inset= 0.02, legend = c("mean", "variance", "Theory mean (y = 0)", "Theory variance (y = t)"), 
+       col=c(1:4), pch = c(1,1, NA, NA), lty = c(NA, NA, 1, 1))
+```
+
+Q: how to confirm that slope of the curve $D = \frac{\Delta x^2}{2\Delta t}$ from the simulations of Brownian motions?
+
+Next, instead of using discrete steps to model the Brownian motion, we draw move steps from a Gaussian distribution with the same mean (*.i.e.*, 0) and standard deviation (*i.e.*, 1).
+
+```{r}
+# A simulation of Brownian motion in 1D with Gaussian steps
+brownian_gaussian_steps <- function(t.total, dt, dx) {
+# t.total: total simulation time
+# dt: time step size
+# dx: step size of the movement (SD of the Gaussian distribution)
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  
+  x_all[1] = 0   # initial position at 0
+  for(i in 1:(n_all-1)){
+    x_all[i+1] = x_all[i] + rnorm(1, mean=0, sd=dx) 
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+t.total = 1000; dt = 1; dx = 1; nrep = 1000   # nrep: total number of simulations
+results_bm_1d_gaussian = replicate(nrep, brownian_gaussian_steps(t.total, dt, dx)) 
+
+t_ind = seq(1, 1000, by = 100)   # time points to be evaluated
+bm_1d_gaussian_formatted = data.frame(t = c(results_bm_1d_gaussian[t_ind,1,]), 
+                                      x = c(results_bm_1d_gaussian[t_ind,2, ]))  # a dataframe for boxplot
+boxplot(x ~ t, data = bm_1d_gaussian_formatted, xlab = "t", ylab = "x", ylim = c(-100, 100))
+```
+
+There is no difference in the statistics from the new simulations when using Gaussian distributions to sample the move steps.
+
+
+# Brownian motion in 2D
+
+We can generalize the simulation to two dimensional Brownian motion. Here, we sample move steps from a Gaussian distribution. 
+
+```{r,fig.width = 8, fig.height = 8}
+# A simulation of Brownian motion in 1D with Gaussian steps
+brownian_2d <- function(t.total, dt, dx) {
+# t.total: total simulation time
+# dt: time step size
+# dx: a numric vector of size two. Step size of the movement in x and y (SD of the Gaussian distribution)
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = matrix(0, ncol = 2, nrow = n_all)
+  
+  x_all[0,1] = c(0,0)   # initial position at (0,0)
+  for(i in 1:(n_all-1)){
+    step = rnorm(n = 2, mean = 0, sd = 1) * dx
+    x_all[i+1,] = x_all[i,] + step 
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+t.total = 10000; dt = 1; dx = c(1,1)
+results_bm_2d = brownian_2d(t.total, dt, dx)
+
+plot(results_bm_2d[,2], results_bm_2d[,3], type = "l", col = 2,
+     xlab="x", ylab="y", xlim=c(-70,70), ylim=c(-70,70))
+```
+
+Q: think about how to evaluate the statistics of the system.
+
+# Wiener process
+
+A more precise description of the Brownian motion is by the Wiener process $W_t$, which has been widely used for modeling a continuous time stochastic process. A wiener process has the following properties:
+
+**(1)** $W_0 = 0$
+
+**(2)** $W$ has independent increments: for every $t >0$, the future increments $W_{t+h} - W_t$, are independent of the past values $W_s$, where $h\geq 0$ and $s <t$.
+
+**(3)** $W$ has Gaussian increments: $W_{t+h} - W_t$ is normally distributed with mean 0 and variance $h$: $W_{t+h} - W_t \sim \mathcal{N}(0, h)$.
+
+**(4)** $W$ has continuous paths: $W_t$ is continuous in $t$.
+
+Our previous function *brownian_gaussian_steps* is essentially a Wiener process, as $\Delta t = 1$ and $sd(\Delta x) = 1$. We revise the function slightly for modeling a wiener process, where we input *dt* and the diffusion constant *D*.
+
+```{r}
+# A simulation of Brownian motion in 1D with for Wiener process
+brownian_wiener <- function(t.total, dt, D) {
+# t.total: total simulation time
+# dt: time step size
+# D: diffusion constant
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  
+  step = sqrt(2*D*dt)  # this is critical! a common mistake is to take sd_dt = dt
+  
+  x_all[1] = 0   # initial position at 0
+  for(i in 1:(n_all-1)){
+    x_all[i+1] = x_all[i] + rnorm(1, mean=0, sd=step) 
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+t.total = 1000; dt = 10; D = 0.5; nrep = 1000   # nrep: total number of simulations
+results_bm_1d_wiener = replicate(nrep, brownian_wiener(t.total, dt, D)) 
+
+t_ind = seq(1, 100, by = 10)   # time points to be evaluated
+bm_1d_wiener_formatted = data.frame(t = c(results_bm_1d_wiener[t_ind,1,]), 
+                                      x = c(results_bm_1d_wiener[t_ind,2, ]))  # a dataframe for boxplot
+boxplot(x ~ t, data = bm_1d_wiener_formatted, xlab = "t", ylab = "x", ylim = c(-100, 100))
+```
+
+Here, we use a much larger time step size $dt = 10$, but it works well (similar statistics) as long as we use move steps from a Gaussian distribution as described in the Wiener process. However, we usually still need to use a small time step size in stochastic simulations when there are other deterministic processes to be considered in a similar (similar to an ODE). We will introduce stochastic differential equation (SDE) next.

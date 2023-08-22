@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Now with the two nullclines, we can find all steady states by the intersections of the two curves. We will discuss the numerical methods to identify all steady states and the way to determine their stability.
 
-### Find intersections
+# Find intersections
 
 We consider two curves $A$ and $B$, each of which is specified by a series of 2D vectors, *i.e.*, $(\mathbf{A_1}, \mathbf{A_2}, ...,\mathbf{A_n}, \mathbf{A_{n+1}}, ...)$ for $A$ and  $(\mathbf{B_1}, \mathbf{B_2}, ...,\mathbf{B_n}, \mathbf{B_{n+1}}, ...)$ for $B$. Here, $\mathbf{A_n}$ represents the coordinates of the nth point along the curve $A$, *i.e.*, $(X(A_n), Y(A_n))$. The data frames null1_cont and null2_cont obtained in Part 3A are examples of the two curves. Now, we consider the four points $\mathbf{A_n}$, $\mathbf{A_{n+1}}$, $\mathbf{B_n}$ and $\mathbf{B_{n+1}}$, as shown in the figure below. The curve between two consecutive points can be approximated as a straight line. We will numerically evaluate (1) whether an intersection is formed by the two segments and if so (2) the coordinate of the intersection.
 
@@ -114,15 +114,28 @@ ss_all
 This approach works fine. However, it is very slow, as it has to go through all pairs of line segments. To address this issue, we can search along of the first nullcline $\frac{dX}{dt}=0$, and check for sign flipping of $\frac{dY}{dt}$ between two consecutive points. Similarly, we can search along the second nullcline $\frac{dY}{dt}=0$, and check for sign flipping of $\frac{dX}{dt}$ between two consecutive points. Once we find those cases, we then identify the intersection value for any of the combinations. 
 
 ``` {r}
-f_null1 <- function(X, Y) {       # dX/dt
-  return(5 + 50/(1+(Y/100)**4) - 0.1 * X)
-}
-f_null2 <- function(X, Y) {       # dY/dt
-  return(4 + 40/(1+(X/150)**4) - 0.12 * Y)
+# the same derivative function as the one in Part 3A
+hill_inh <- function(X,X0,n) {
+  a = (X/X0)**n
+  return(1/(1+a))
 }
 
-dxdt = f_null1(null2_cont[,1], null2_cont[,2])  #dX/dt along the nullcline dY/dt = 0
-dydt = f_null2(null1_cont[,1], null1_cont[,2])  #dY/dt along the nullcline dX/dt = 0
+derivs_ts <- function(t, Xs) {
+  X = Xs[1]
+  Y = Xs[2]
+  dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
+  dydt = 4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y
+  return(c(dxdt, dydt))
+}
+
+#dX/dt along the nullcline dY/dt = 0
+dxdt_y_null = apply(null2_cont, MARGIN = 1, function(Xs) {
+  d = derivs_ts(0, Xs)
+  return(d[1])})
+#dY/dt along the nullcline dX/dt = 0
+dydt_x_null = apply(null1_cont, MARGIN = 1, function(Xs) {
+  d = derivs_ts(0, Xs)
+  return(d[2])})
 
 find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
   small = 10^-3    # small is used to allow some tolerance of numerical errors in detecting sign flipping
@@ -135,14 +148,14 @@ find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
   return(t(results[1:2,which(results[3,] == 1)]))
 }
 
-ss_all = find_intersection_all_fast(null1_cont, null2_cont, dxdt, dydt)
+ss_all = find_intersection_all_fast(null1_cont, null2_cont, dxdt_y_null, dydt_x_null)
 ss_all
 
 ```
 
 The above two methods give the same results. But the second method is way faster.
 
-### Stability
+# Stability
 
 We will now explore the stability of the identified steady states.
 
@@ -194,14 +207,18 @@ We now set $\Delta X(t) = \delta x e^{\lambda t}$, where $\delta x$ and $\lambda
 This is a typical eigenvalue problem. The solutions of $\lambda$ are the eigenvalues. Now, we implement this calculation. Instead of using the analytical forms of the Jacobian matrix, we will estimate it numerically from the rate equations.
 
 ```{r}
-stability <- function(func_fx, func_fy, ss) { # ss is a vector of steady state values X_S, Y_S
+# A generic function to check stability for a 2D ODE sytem
+stability_2D <- function(derivs, ss, ...) { # ss is a vector of steady state values X_S, Y_S
   delta = 0.001
-  func_fx_current = func_fx(ss[1], ss[2])   # this is computed, just in case it is not exactly 0
-  func_fy_current = func_fy(ss[1], ss[2])  
-  dfxdx = (func_fx(ss[1]+delta, ss[2]) - func_fx_current)/delta
-  dfxdy = (func_fx(ss[1], ss[2]+delta) - func_fx_current)/delta
-  dfydx = (func_fy(ss[1]+delta, ss[2]) - func_fy_current)/delta
-  dfydy = (func_fy(ss[1], ss[2]+delta) - func_fy_current)/delta
+  f_current = derivs(0,ss, ...)   # f(x,y) this is computed, just in case it is not exactly 0
+  f_plus_dx = derivs(0,ss + c(delta,0), ...) # f(x+dx, y)
+  f_plus_dy = derivs(0,ss + c(0, delta), ...) # f(x, y+dx)
+  
+  # finite difference to approximate Jacobian
+  dfxdx = (f_plus_dx[1] - f_current[1])/delta
+  dfxdy = (f_plus_dy[1] - f_current[1])/delta
+  dfydx = (f_plus_dx[2] - f_current[2])/delta
+  dfydy = (f_plus_dy[2] - f_current[2])/delta
   
   jacobian = array(c(dfxdx, dfydx, dfxdy, dfydy), c(2,2))
   lambda = eigen(jacobian)$values
@@ -225,12 +242,12 @@ stability <- function(func_fx, func_fy, ss) { # ss is a vector of steady state v
 }
 
 ss_with_stability =  t(apply(ss_all, MARGIN = 1, function(ss) {
-                          return(c(ss,stability(f_null1, f_null2, ss)))}))
+                          return(c(ss,stability_2D(derivs = derivs_ts, ss = ss)))}))
 colnames(ss_with_stability) = c("X", "Y", "Stability")
 ss_with_stability
 ```
 
-The stability of a steady state can be determined by the eigenvalues according to following table. Note that the eigenvalues of a Jacobian matrix are not necessarily real numbers. See Part 3F for a few other examples of gene circuits with different types of steady-state stability.
+The stability of a steady state can be determined by the eigenvalues according to following table. Note that the eigenvalues of a Jacobian matrix are not necessarily real numbers. See Part 3G for a few other examples of gene circuits with different types of steady-state stability.
 
 | Conditions | Stability |
 |-------|---------|

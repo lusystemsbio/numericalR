@@ -2,7 +2,7 @@
 title: "Part 3: Phase plane"
 subtitle: "A. Nullclines"
 author: "Mingyang Lu"
-date: "11/03/2021"
+date: "08/17/2023"
 output: 
   html_document:
     toc: true
@@ -43,27 +43,28 @@ derivs_ts <- function(t, Xs) {
 }
 ```
 
-We can simulate the dynamics of $X$ and $Y$ with 4th order Runge-Kutta (RK4). The function RK4_2D for a system with two variables is very similar to the function RK4 in Part 2B. Now, the time trajectory is stored in a matrix called X_all.
+We can simulate the dynamics of $X$ and $Y$ with 4th order Runge-Kutta (RK4). The function RK4_generic is a generic version of RK4 for a multi-variable system, very similar to the function RK4 in Part 2B. Now, the time trajectory is stored in a matrix called X_all.
 
 ```{r}
-# 4th order Runge-Kutta (RK4)
-RK4_2D <- function(derivs, init, t.total, dt){
+# 4th order Runge-Kutta (RK4) for a generic multi-variable system
+RK4_generic <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
-  # init: initial condition in c(X0, Y0)
+  # X0: initial condition, a vector of multiple variables
   # t.total: total simulation time, assuming t starts from 0 at the beginning
   # dt: time step size 
   t_all = seq(0, t.total, by=dt)
   n_all = length(t_all)
-  X_all = matrix(0, nrow = n_all, ncol = 2)
-  X_all[1,] = init 
+  nx = length(X0)
+  X_all = matrix(0, nrow = n_all, ncol = nx)
+  X_all[1,] =  X0
   for (i in 1:(n_all-1)) {
     t_0= t_all[i]
     t_0.5 = t_0 + 0.5*dt
     t_1 = t_0 + dt
-    k1 = dt * derivs(t_0,X_all[i,])
-    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2)
-    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2)
-    k4 = dt * derivs(t_1,X_all[i,] + k3)
+    k1 = dt * derivs(t_0,X_all[i,],...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2,...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2,...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3,...)
     X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
@@ -76,7 +77,7 @@ t.total = 100
 dt  = 0.01
 plot(NULL, xlab="t (Minute)", ylab="Levels (nM)", xlim=c(0,80), ylim=c(0,650)) 
 for(i in seq_len(nrow(X_init_all))){
-  results = RK4_2D(derivs_ts, X_init_all[i,], t.total, dt)
+  results = RK4_generic(derivs = derivs_ts, X0 = X_init_all[i,], t.total = t.total, dt = dt)
   lines(results[,1], results[,2], col = 1)
   lines(results[,1], results[,3], col = 2)
 }
@@ -93,7 +94,7 @@ A powerful way to characterize the dynamic behavior of such a two-variable syste
 ``` {r, fig.width = 5, fig.height = 5}
 plot(NULL, xlab="X (nM)", ylab="Y (nM)", xlim=c(0,600), ylim=c(0,650)) 
 for(i in seq_len(nrow(X_init_all))){
-  results = RK4_2D(derivs_ts, X_init_all[i,], t.total, dt)
+  results = RK4_generic(derivs = derivs_ts, X0 = X_init_all[i,], t.total = t.total, dt = dt)
   lines(results[,2], results[,3], col = 1)
 }
 ``` 
@@ -152,11 +153,11 @@ $$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY = 0 \tag{2} $$
 
 The curve for an equation like $f_X(X, Y) = 0$ can be obtain numerically, as we will discussed very soon. But for this relatively simple example, we can get the curve right away by *separation of variables*.
 
-From equation (1), we can move $k_XX$ to the right hand side, and we have
+From Equation (1), we can move $k_XX$ to the right hand side, and we have
 
 $$X(Y)  = \frac{g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}}}{k_X} \tag{3}$$
 
-Similarly, from equation (2), we can also get
+Similarly, from Equation (2), we can also get
 
 $$ Y(X) = \frac{g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}}{k_Y} \tag{4} $$
 
@@ -179,8 +180,8 @@ null1 = nullcline1(Y_all)
 null2 = nullcline2(X_all)
 
 p1 +
-  geom_line(data = as.data.frame(null1), aes(x=X, y=Y, colour = "dX/dt=0"), size=1) + 
-  geom_line(data = as.data.frame(null2), aes(x=X, y=Y, colour = "dY/dt=0"), size=1) 
+  geom_path(data = as.data.frame(null1), aes(x=X, y=Y, colour = "dX/dt=0"), size=1) + 
+  geom_path(data = as.data.frame(null2), aes(x=X, y=Y, colour = "dY/dt=0"), size=1) 
 
 ``` 
 
@@ -207,7 +208,7 @@ contour(X_all, Y_all, z_Y, levels = 0, col = 3, add = TRUE, drawlabels = F)
 
 ### Numerical continuation
 
-Another approach is the numerical continuation, which we have already applied in the bifurcation analysis in Part 2D. In that previous analysis, we identify the bifurcation curve that satisfies $f(X, k) = 0$. Similarly, we will identify the nullcline curve that satisfies $f_X(X, Y) = 0$ (and the other one that obeys $f_Y(X, Y) = 0$). Here, we can choose $Y$ as the control parameter and find $X(Y)$ (that's what we will do below). Of course, it is also fine to choose $X$ as the control parameter and find $Y(X)$. 
+Another approach is the numerical continuation, which we have already applied in the bifurcation analysis in Part 2E. In that previous analysis, we identify the bifurcation curve that satisfies $f(X, k) = 0$. Similarly, we will identify the nullcline curve that satisfies $f_X(X, Y) = 0$ (and the other one that obeys $f_Y(X, Y) = 0$). Here, we can choose $Y$ as the control parameter and find $X(Y)$ (that's what we will do below). Of course, it is also fine to choose $X$ as the control parameter and find $Y(X)$. 
 
 ``` {r,fig.width = 5, fig.height = 5}
 f_null1 <- function(X, Y) {       # f_X(X, Y)
@@ -242,9 +243,10 @@ find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
 }
 
 # 4th order Runge-Kutta (RK4) for 1D
-# simplified to (1) only output steady-state X or final X, 
+# This function issimplified to 
+# (1) only output steady-state X or final X, 
 # (2) derivative is not the function of t in this implementation, thus some t-dependent parts are simplified
-RK4_1D_steady <- function(derivs, X0, params, t.total, dt){
+RK4_1D_steady <- function(derivs, X0, t.total, dt, ...){
   # derivs: the function of the derivatives 
   # X0: initial condition
   # t.total: total simulation time, assuming t starts from 0 at the beginning
@@ -253,13 +255,13 @@ RK4_1D_steady <- function(derivs, X0, params, t.total, dt){
   t = 0
   X = X0
   while(t <= t.total){
-    df = derivs(X, params)
+    df = derivs(X, ...)
     if(abs(df) < error) break
   
     k1 = dt * df
-    k2 = dt * derivs(X + k1/2, params)
-    k3 = dt * derivs(X + k2/2, params)
-    k4 = dt * derivs(X + k3, params)
+    k2 = dt * derivs(X + k1/2, ...)
+    k3 = dt * derivs(X + k2/2, ...)
+    k4 = dt * derivs(X + k3, ...)
     
     X = X + (k1+2*k2+2*k3+k4)/6
     t = t + dt
@@ -312,13 +314,15 @@ Y_range = c(0, 650)
 # the initial X,Y need to be provided, here we manually selected them with an initial simulation
 X_init_guess_null1 = 500
 Y_init_guess_null1 = 1
-X_init_null1 = RK4_1D_steady(f_null1, X_init_guess_null1, Y_init_guess_null1, 1000, 0.01)  # start from ~ (550, 1)
+X_init_null1 = RK4_1D_steady(derivs = f_null1, X0 = X_init_guess_null1, Y = Y_init_guess_null1, 
+                             t.total = 1000, dt = 0.01)  # start from ~ (550, 1)
 null1_cont = nullcline_numcont(f_null1, dfdX_null1, dfdY_null1, X_range, Y_range, 
                                X_init = X_init_null1, Y_init = Y_init_guess_null1, direct = 1, step_arc = 3)
 
 X_init_guess_null2 = 1
 Y_init_guess_null2 =366.6 
-X_init_null2 = RK4_1D_steady(f_null2, X_init_guess_null2, Y_init_guess_null2, 1000, 0.01)   # start from ~ (8,366.6)
+X_init_null2 = RK4_1D_steady(derivs = f_null2, X0 = X_init_guess_null2, Y = Y_init_guess_null2, 
+                             t.total = 1000, dt = 0.01)   # start from ~ (8,366.6)
 null2_cont = nullcline_numcont(f_null2, dfdX_null2, dfdY_null2, X_range, Y_range, 
                                X_init = X_init_null2, Y_init = Y_init_guess_null2, direct = -1, step_arc = 3)
 plot(NULL, xlab="X", ylab="Y", xlim=X_range, ylim=Y_range)
@@ -327,7 +331,7 @@ points(null2_cont[,1], null2_cont[,2], pch = 1, cex = 0.3, col = 3)
 legend("topright", inset=0.02, legend = c("dX/dt=0", "dY/dt=0"), col=2:3, lty=1, cex=0.8)
 ```
 
-The core code is equivalent to the code for 1-variable bifurcation analysis in Part 2D. It looks lengthy and somewhat cumbersome, as the boundary of two variables and the initial direction of nullclines need to be specified. Again, the readers can try the algorithm without the correction method by *find_root_Newton*. One issue about the above code is the lack of divergent check of the functions and Jacobians. 
+The core code is equivalent to the code for 1-variable bifurcation analysis in Part 2E. It looks lengthy and somewhat cumbersome, as the boundary of two variables and the initial direction of nullclines need to be specified. Again, the readers can try the algorithm without the correction method by *find_root_Newton*. One issue about the above code is the lack of divergent check of the functions and Jacobians. 
 
 ``` {r}
 save(null1_cont, null2_cont, file = "./extra/data/03A/null_03A.RData")    # we save the data for 03B

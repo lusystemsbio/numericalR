@@ -2,7 +2,7 @@
 title: "Part 1: Introduction to R Programming"
 subtitle: "A. Basics of R"
 author: "Mingyang Lu"
-date: "10/12/2021"
+date: "08/16/2023"
 output: 
   html_document:
     toc: true
@@ -257,3 +257,39 @@ means
 means2 = colMeans(mat)   # an alternative way to compute column means
 means2
 ```
+
+## Usage of ellipsis in R funcitons
+When defining an R function, you may use ellipsis (*i.e.*, ...) to pass any argument to the function. This is especially useful when the function calls another function with varying number of arguments. For example, 
+
+```{r}
+## a function without using ellipsis
+func_main <- function(a, b, c){
+  return(a + b + c)
+}
+
+func_main(a = 1, b = 2.4, c = 0.6)
+ 
+## a function where an argument of the function is the name of another function, func_2nd
+## ellipsis ... is used to pass arguments for func_2nd
+func_main2 <- function(a, func_2nd, ...){
+  return(a + func_2nd(...))
+}
+
+## Usage case 1
+func1 <- function(d, e){
+  return(d + e)
+}
+func_main2(a = 1, func_2nd = func1, d = 2.4, e = 0.6)
+
+## Usage case 2
+func2 <- function(f, g, h, i){
+  return(f+g+h*i)
+}
+func_main2(a = 1, func_2nd = func2, f = 10, g = 20, h = 1, i = -3)
+
+## Wrong usages
+#func_main2(a = 1, func_2nd = func2, f = 10, g = 20, h = 1) 
+#func_main2(a = 1, func_2nd = func2, d = 2.4, e = 0.6) 
+```
+
+Make sure that all arguments passed through ellipsis are the same whenever ellipsis is used in body of the function. Thus, in the usage case 2 above, the code doesn't work if only f, g, h are passed to func2. It doesn't work either if, for example, d and e are passed to func2.

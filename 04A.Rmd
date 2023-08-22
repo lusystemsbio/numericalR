@@ -1,154 +1,153 @@
 ---
-title: "Part 4: Stochastic differential equations"
-subtitle: "A. Euler–Maruyama method"
+title: 'Part 4: Systems with time delays'
+subtitle: "A. Delayed differential equations"
 author: "Mingyang Lu"
-date: "11/11/2021"
-output: 
+date: "08/17/2023"
+output:
   html_document:
-    toc: true
-    toc_depth: 2
+    toc: yes
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Brownian dynamics 
+# Intro
 
-We previous described that an ODE like $\frac{dX}{dt} = f(X)$ is analogous to an overdamped dynamics of a one-dimensional particle. In physics, random motion of particles in solution can be described by Brownian dynamics, governed by a stochastic differential equation (SDE):
+Many dynamical systems involve processes with time delays. Such a time-delay system can be described by rate equations containing functions of previous time points. This type of differential equations is called delay differential equations (DDEs). 
 
-$$\frac{dX}{dt} = f(X) + \sqrt{2D(X)}\eta(t) \tag{1}$$
-Compared to the ODE, SDE has an additional term $\eta(t)$, describing the stochastic contribution to the derivatives of $X$. The most common type of noise is called Gaussian white noise, which by definition is a random signal having equal intensity at different frequencies. $D(X)$ represents the level of noise (in physics we know $D$ has the meaning of the diffusion constant). $\eta(t)$ of a Gaussian white noise satisfies
+We consider again the exponential growth model, but now the rate equation depends on $N$ an earlier time point $t - \tau$:
 
-\begin{equation}
-\begin{cases} <\eta(t)> = 0  \\
-              <\eta(t)\eta(t')> = \delta (t-t')  \tag{2} \end{cases}
-\end{equation}
+$$\frac{dN}{dt} = r N(t-\tau) \tag {1}$$
+Here, $N$ is the population size, $t$ is time, $\tau$ is a constant time delay. We consider $\tau = 1$ here. Unlike ODEs where an initial condition (*i.e.*, $N(t_0)$ here) needs to be specified, the DDE in Equation (1) requires $N(t)$ for $t \in [t_0-\tau, t_0]$. If a time-delay system has an steady state $N_s$, $N_s$ needs to be a time-independent constant. Thus, the condition of steady states is the same as that for the ODE without time delays. Same method can be used to identify steady state solutions. However, the stability of the system may change because of the delays.
 
-Here, the symbol $<.>$ means the average operation. $<\eta(t)\eta(t')>$ is a correlation function ([see here for more details](https://en.wikipedia.org/wiki/Correlation_function_(statistical_mechanics))), and \delta (t-t') is the [Dirac delta function](https://en.wikipedia.org/wiki/Dirac_delta_function) of $t-t'$. $\delta (t-t')$ is normalized, and it is nonzero only when $t-t'$ approaches to zero. 
+# Euler method for DDE
 
-SDE is widely applicable to many fields in Science and Engineering, such as stochastic model of stock market, noise in biological phenomena, chemical and metabolic reactions, etc. So, it is important to know how to numerically solve SDE. We will illustrate SDE simulations in the context of Brownian dynamics in current section and gene expression noise of gene circuits in later sections. 
+We consider the DDE in Equation (1) and $N(t - \tau) = N_0$ for $t \leq \tau$. (Be careful, this seems intuitive but may cause issues as the derivatives of the solutions are discontinuous. Because of the discontinuity of the time trajectories, DDE offen is ill defined. One needs to be cautious when interpreting the simulation results of DDE.) The most generic way to simulate a DDE is to generate time steps and $N$ solutions for the whole interval $t \in [-\tau, t_{max}]$. $N(t-\tau)$ can be retrieve anytime during the integration. This is not the most efficient numerical method, due to high storage requirement for saving the whole trajectory (Q: think how to make it more efficient, see the section **Method of steps**).
 
-# Euler–Maruyama method
-
-The SDE in Equation (1) can also be expressed as 
-
-$$dX = f(X)dt + \sqrt{2D(X)}dW \tag{3}$$
-
-Here, $W$ a Wiener process (continuous-time stochastic process). 
-
-We can numerically solve the SDE by
-
-$$X_{n+1} = X_n + f(X_n)\Delta t + \sqrt{2D(X_n)} \Delta W_n \tag{4}$$
-$\Delta W_n$ represents normal random variables with mean zero and variance $\Delta t$. ($<\Delta W_n^2> = \Delta t$) This is called Euler-Maruyama method, an extension of the Euler method for ODEs to SDEs. Now, we show the implementation in R. 
+The function function *dN_delays* specifies the derivative function for a system with a constant time delay. Note that we supply $N$ for both current time *N* and previous time *N_old*. 
 
 ```{r}
-# SDE_Euler_single is a generic function of Euler-Maruyama method for a single SDE, similar to Euler_single from Part 02B
-SDE_Euler_single <- function(derivs, noise, para, X0, t.total, dt){
+# derivative function for delay exponential growth model
+# t: time
+# N: population size of the current time N(t)
+# N_old: population size of the previous time N(t-tau). 
+#        We will use the DDE integrator to specify the constant time delay.
+# r: parameter, growth rate
+dN_delays <- function(t, N, N_old, r) {
+   return(r*N_old)
+}
+```
+
+The DDE integrator would be adjusted from an ODE integrator to take data from previous time points. Here, we show an implementation using the Euler method.
+
+$$N_{n+1} = N_n + h*f(t_n, N_n, N_{n-d}) \tag {2}$$
+
+Here, $n - d$ represents the index of the time step for delays. 
+
+```{r}
+# Euler method for DDEs with a constant time delay
+DDE_Euler <- function(derivs, t0, X0, t.total, dt, tau, ...){
   # derivs: the function of the derivatives 
-  # noise: the function of the noise term 
+  # t0: initial time
   # X0: initial condition
-  # para: pass-in parameters
-  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # t.total: total simulation time
   # dt: time step size 
-  t_all = seq(0, t.total, by=dt)
+  # tau: a constant time delay 
+  # (this illustrate will not work for cases using multiple time delays)
+  t_all = seq(t0-tau, t.total, by=dt)   # save data for all previous time points too
   n_all = length(t_all)
   X_all = numeric(n_all)
-  X_all[1] = X0
-  dW_all = rnorm(n_all, mean=0, sd=sqrt(dt))  # all dW terms, rnorm generate random variables from normal distribution
-  for (i in 1:(n_all-1)) {
-    t = t_all[i]
-    X = X_all[i]
-    X_all[i+1] = X + dt * derivs(t, X, para) + dW_all[i] * noise(t, X, para)
+  
+  n_delay = as.integer(tau/dt) # number of delay time steps
+  X_all[1:(n_delay+1)] = X0   # a constant initial condition between t in [-tau, t.total]
+  
+  for (i in (n_delay+1):(n_all-1)) {
+    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i],X_all[i-n_delay],...)
   }
-  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+  return(cbind(t_all, X_all))   # the output is a matrix of t & N(t) for all time steps
 }
 ```
 
-Note that in the implementation, all random variables $\Delta W$ are generated altogether. This step is more efficient in R, compared to the way to generate them in each step. However, it requires a lot more memory to do so, therefore not ideal for long simulations. The best approach is to use compiled functions with Fortran and C.
+We set $r = -0.3$. It's a typical exponential decay. 
 
-A common mistake by a beginner is to add $\sqrt{2D(X)}$ to the $f(X)$ term and integrate with the ODE version of the Euler method. This is wrong, as the variance of the random variables is now $\Delta t^2$ instead of $\Delta t$. 
+```{r}
+r1 = - 0.3
+results_1 = DDE_Euler(derivs = dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = r1)
 
-Now we will apply the Euler-Maruyama method to a few SDEs. We first consider a simple Brownian motion, where $f(X) = 0$.
+plot(results_1[,1], results_1[,2], xlab="t", ylab="N", xlim=c(-1,40), ylim=c(0,1),
+     type = "l", col=2)
+legend("topright", inset=0.02, legend = "r = -0.3", col=2, lty=1, cex=0.8)
+```
 
-``` {r}
-fx_zero <- function(t, X, para) return(0)
-noise <- function(t, X, D) return(sqrt(2*D)) # D is a variable to represent noise levels, 
-set.seed(1)
+When $r$ is slightly larger than a critical point $\pi/2$, the system exhibits a damping oscillation. Note that $N$ would be negative in this model, which is unrealistic to represent the population size.
 
-plot(NULL, xlab="t", ylab="X", xlim=c(0,200), ylim=c(-150,150)) 
-for(i in seq_len(10)) {
-  results = SDE_Euler_single(fx_zero, noise, para = 10, 0, 200, 0.01) # D = 10
-  lines(results[,1], results[,2],  col=i)
+```{r}
+r2 = - 1.4
+results_2 = DDE_Euler(derivs = dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = r2)
+
+plot(results_2[,1], results_2[,2], xlab="t", ylab="N", xlim=c(-1,40), ylim=c(-1,1),
+     type = "l", col=2)
+legend("topright", inset=0.02, legend = "r = -1.4", col=2, lty=1, cex=0.8)
+```
+
+When $r$ is slightly smaller than a critical point $\pi/2$, the system exhibits an increasing oscillation.
+
+```{r}
+r3 = - 1.7
+results_3 = DDE_Euler(derivs = dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = r3)
+
+plot(results_3[,1], results_3[,2], xlab="t", ylab="N", xlim=c(-1,40), ylim=c(-10,11),
+     type = "l", col=2)
+legend("topleft", inset=0.02, legend = "r = -1.7", col=2, lty=1, cex=0.8)
+```
+
+# A 2nd order DDE integrator (Heun's method)
+
+For a better performance, we convert a second order ODE integrator, **the Heun's method**, for modeling DDE. The Heun's method is very similar to 2nd order Runge-Kutta but uses only integer time steps. So it's much convenient to convert the ODE integrator to the DDE version using Heun's method.
+
+\begin{equation}
+\begin{aligned}
+k_1 &= h*f(t_n, N_n, N_{n-d}) \\
+N_{n+1} &= N_n + k_1 \\
+k_2 &= h*f(t_{n+1}, N_{n+1}, N_{n+1-d}) \\
+N_{n+1} &= N_n + (k_1+k_2)/2
+\end{aligned}\tag{3}
+\end{equation}
+
+```{r}
+# Heun's method for DDEs with a constant time delay
+DDE_Heun <- function(derivs, t0, X0, t.total, dt, tau, ...){
+  # derivs: the function of the derivatives 
+  # t0: initial time
+  # X0: initial condition
+  # t.total: total simulation time
+  # dt: time step size 
+  # tau: a constant time delay 
+  # (this illustrate will not work for cases using multiple time delays)
+  t_all = seq(t0-tau, t.total, by=dt)   # save data for all previous time points too
+  n_all = length(t_all)
+  X_all = numeric(n_all)
+  
+  n_delay = as.integer(tau/dt) # number of delay time steps
+  X_all[1:(n_delay+1)] = X0   # a constant initial condition between t in [-tau, 0]
+  
+  for (i in (n_delay+1):(n_all-1)) {
+    k1 = dt * derivs(t_all[i],X_all[i],X_all[i-n_delay],...)
+    X_all[i+1] = X_all[i] + k1   # X_all_i+1 is first assigned here, so that the function works for tau = 0
+    k2 = dt * derivs(t_all[i+1],X_all[i+1], X_all[i+1-n_delay],...)
+    X_all[i+1] = X_all[i] + (k1+k2)/2
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & N(t) for all time steps
 }
+
+results_3_2 = DDE_Heun(derivs = dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = r3)
+
+plot(results_3[,1], results_3[,2], xlab="t", ylab="N", xlim=c(-1,40), ylim=c(-11,12),
+     type = "l", col=2)
+lines(results_3_2[,1], results_3_2[,2], col = 3)
+legend("topleft", inset=0.02, legend = c("Euler", "Heun"), col=c(2,3),lty=1, cex=0.8)
 ```
 
-We plotted the stochastic time trajectories for ten simulations. They all look very different. In theory, the variance of $X$ equals to $2Dt$. However, numerically testing this relation requires a lot more simulations, so that robust statistics can be reached. 
-
-Let's consider another example: Brownian dynamics under a harmonic potential and constant noise. Here, the Brownian particle is tethered to a spring. According to Hooke's law, $f(X) = - kX$. $k$ is the spring constant, which we set to 1 for simplification. This type of system is also called Ornstein–Uhlenbeck process. 
-
-$$\frac{dX}{dt} = -X + \sqrt{2D}\eta(t) \tag{5}$$
-
-```{r}
-fx <- function(t, X, para) return(-X)
-
-set.seed(1)    # Students can try different RNG seed
-D_all = c(100, 25, 1)
-results1 = SDE_Euler_single(fx, noise, para = D_all[1], 0, 100, 0.01)
-results2 = SDE_Euler_single(fx, noise, para = D_all[2], 0, 100, 0.01)
-results3 = SDE_Euler_single(fx, noise, para = D_all[3], 0, 100, 0.01)
-
-plot(NULL, xlab="t", ylab="X", xlim=c(0,100), ylim=c(-30,30)) 
-lines(results1[,1], results1[,2],  col=2)
-lines(results2[,1], results2[,2],  col=3)
-lines(results3[,1], results3[,2],  col=4)
-legend("bottomright", inset=0.02, title="D", 
-       legend = c(paste0(D_all)),
-       col=2:4, lty=1, cex=0.8)
-```
-
-In the above simulations, we plot the stochastic dynamics for three different noise levels. Unlike the Brownian motion, the dynamics of $X$ here fluctuate around 0 with deviations proportional to the noise level $D$. The larger the $D$, the noisier the $X$ is.
-
-``` {r}
-plot(D_all, c(var(results1[,2]), var(results2[,2]), var(results3[,2])), type = "p", xlab = "D", ylab = "Variance")
-abline(a=0, b = 1, col = 1)
-```
-
-In theory, we know that $<x^2>=\frac{D}{k}$. In the above test, we can find that the simulation results still deviate from the theoretical values. That is because the simulation is not long enough to reach robust statistics. An efficient SDE integrator is required to achieve that. We will leave the detailed evaluation as an exercise. 
-
-# Simulation with package sde
-
-An R package called *sde* can perform SDE simulations fairly easily. Below shows an example of such analysis for the second example (Brownian motion under a harmonic potential).
-
-```{r, message=FALSE}
-library(sde)
-```
-
-```{r}
-d = expression (-x)
-s = expression (sqrt(2*100))
-
-results_sde = sde.sim(X0 = 0, N = 10000, delta = 0.01, drift = d, sigma = s, method = "euler")
-plot(results_sde)
-```
-
-Benchmark is also perform to evaluate the speed of our simulator and sde package. To my surprise, our simple implementation is more than ten times faster. It could be because
-
-(1) Our version didn't use complex data structure in the simulation loop.
-
-(2) The function rnorm is very efficient to generate random numbers from normal distribution.
-
-(3) Generating all random numbers altogether also helps. 
-
-(4) expression() function, although convenient, could be slow.
-
-Certainly, using compiled language will be the most efficient way, and we will need it to compute statistics. We will discuss this more in Part 4C.
-
-```{r, message=FALSE}
-library(microbenchmark)  # benchmark
-my_benchmark = microbenchmark(ours = SDE_Euler_single(fx, noise, para = 100, 0, 100, 0.01),
-               sde = sde.sim(X0 = 0, N = 10000, delta = 0.01, drift = d, sigma = s, method = "euler"),
-               times = 10, unit = "s")  
-microbenchmark:::autoplot.microbenchmark(my_benchmark)
-```
-
+The time trajectories from the two methods become more different in later time points, with the Euler trajectory slightly overshooting. 

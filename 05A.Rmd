@@ -1,8 +1,8 @@
 ---
-title: "Part 5: Partial differential equations"
-subtitle: "A. Modeling diffusion"
+title: "Part 5: Molecular dynamics"
+subtitle: "A. Integrators for second order ODEs"
 author: "Mingyang Lu"
-date: "11/18/2021"
+date: "08/18/2023"
 output: 
   html_document:
     toc: true
@@ -13,186 +13,292 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Diffusion equation
+We will discuss the numerical methods for integrating Newton's equation of motion.
 
-In the previous section, we have discussed how to model Brownian motion with an SDE. For a 1-variable system
+$$ \frac{d^2}{dt^2}x(t) = F(x,t )/m = f(x,t) \tag{1}$$
+Here, $x$ represents the position of a particle, and $t$ represents time. $F$ is a function of $x$, representing the force to the particle, and $m$ is the mass. We use $f$ to simplify the expression of Equation (1).
 
-$$\frac{dX}{dt} = \sqrt{2D}\eta(t) \tag{1} $$
-
-With an SDE, we describe the time dynamics of $X$. The resulted time trajectories are stochastic in nature. To understand the statistical behavior of the system, we can evaluate the mean and standard deviation of $X$. For a multi-stable system, we can also compute the transition rates between basins. 
-
-Now, we will consider a different but complimentary approach, where instead we characterize the probability distribution of the system at a particular $X$ by the diffusion equation:
-
-$$\frac{\partial P(X,t)}{\partial t} = D \frac{\partial^2 P(X,t)}{\partial X^2} \tag{2} $$
-
-Equation (2) is different from the differential equations discussed in the previous sections, in that $P$ is a function of two variables $X$ and $t$. The term $\frac{\partial P}{\partial t}$ is a partial derivative, defined as
-
-
-$$\frac{\partial P(X,t)}{\partial t} = \lim_{\Delta t \to 0} \frac{P(X, t+\Delta t) - P(X, t)}{\Delta t} \tag{3}$$
-When evaluating the partial derivative, we only vary $t$ and keep $X$ constant.
-
-# Finite difference method
-
-Now we will explore numerical methods to solve a PDE like Equation (2). Finite difference method is the most straightforward approach. For example, the left hand side of Equation (2) can be numerically computed by Equation (3) when $\Delta t$ is small enough. By Taylor expansion of $P(X, t+\Delta t)$, we have
-
-$$P(X, t+\Delta t) = P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial t^2} \Delta t^2 + O(\Delta t^3) \tag{4}$$
-
-From Equation (4), 
-
-$$  \frac{P(X, t+\Delta t) - P(X, t)}{\Delta t} = \frac{\partial P(X,t)}{\partial t} + O(\Delta t) \tag{5}$$
-
-In other words, this approach gives the error of $\frac{\partial P(X,t)}{\partial t}$ at the level of $O(\Delta t)$.
-
-Now, let us consider the right hand side of Equation (2), where we encounter a second partial derivative. Using Taylor expansions,
-
-$$P(X + \Delta X, t) = P(X, t) + \frac{\partial P(X,t)}{\partial X} \Delta X + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial X^2} \Delta X^2 + \frac{1}{6}\frac{\partial^3 P(X,t)}{\partial X^3} \Delta X^3 + O(\Delta X^4) \tag{6}$$
-
-$$P(X - \Delta X, t) = P(X, t) - \frac{\partial P(X,t)}{\partial X} \Delta X + \frac{1}{2}\frac{\partial^2 P(X,t)}{\partial X^2} \Delta X^2 - \frac{1}{6}\frac{\partial^3 P(X,t)}{\partial X^3} \Delta X^3 + O(\Delta X^4) \tag{7}$$
-
-From Equations (6) and (7), we have
-
-
-$$  \frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2} = \frac{\partial^2 P(X,t)}{\partial X^2} + O(\Delta X^2) \tag{8}$$
-
-This demonstrates that $\frac{\partial^2 P(X,t)}{\partial X^2}$ can be approximated by  $\frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2}$.
-
-Together with Equations (5) and (2), we obtain
+Newton's equation of motion can also be written in the following form:
 
 \begin{equation}
-\begin{aligned}
-P(X, t+\Delta t) &= P(X, t) + \frac{\partial P(X,t)}{\partial t} \Delta t \\
- &= P(X, t) + D \frac{\partial^2 P(X,t)}{\partial X^2} \Delta t  \\
- &= P(X, t) + D \frac{P(X + \Delta X, t) + P(X-\Delta X, t) - 2P(X, t)}{\Delta X^2} \Delta t
-\end{aligned} \tag{9}
+\begin{cases}
+  \frac{dv}{dt} = f \tag{2}\\
+  \frac{dx}{dt} = v 
+\end{cases}
 \end{equation}
 
-This is similar to the Euler method for ODEs. We can apply this to any $X$ for a given time $t$ to obtain $P(X, t)$ for the next time point $t + \Delta t$. Because of the factor $\frac{\Delta t}{\Delta X^2}$, the distances between two adjacent grid points cannot to be small (why?). One can also use the 2nd order Runge-Kutta method for the time integration (think how).
+# Modeling a harmonic oscillator
 
-To fully solve $P(X, t)$ for any given $X$ and $t$, we also need to specify the boundary conditions and the initial conditions. For the boundary condition, we set $P(X, t) = 0$ for any boundary grid points, where $X = -l/2$ or $X = l/2$, $l$ is the size of the system. A boundary condition with specified values of $P$ is called [Dirichlet boundary condition](https://en.wikipedia.org/wiki/Dirichlet_boundary_condition).
+Harmonic oscillator is a simple model, where
 
-Here is the implementation of the finite difference method.
+$$ f(x) = - kx$$
+```{r}
+# force of a harmonic oscillator
+f_ho <- function(t, x, k){
+  return(-k*x)
+}
+```
+
+# Euler method
+
+Similar to the Euler method for first-order ODEs, the Euler method can be applied to integrate second-order ODEs iteratively as follows.
+
+$$v_{n+1} = v_n + hf_n  $$
+$$x_{n+1} = x_n + hv_n  $$
 
 ```{r}
-## PDE integration with the finite difference method for a diffusion equation
-pde_fd_diffusion <- function(ngrid, X_all, dX, dt, D, t0, t.total, p0) {
-  #ngrid: number of grid points
-  #X_all: X values for each grid point
-  #dX: X step size
-  #dt: time step size
-  #D: diffusion constant
-  #t0: initial time
-  #t.total: total simulation time
-  #p0: initial condition: P(X,t = t0)
-  
-  t_all = seq(t0, t.total, by = dt)
-  nt_all = length(t_all)
-  factor = D/dX**2*dt
-  p = p0
-  for (i in seq_len(nt_all-1)){
-    p_plus_one = c(p[-1], 0) # a vector, P(X+dX) for all Xs, 0 is added to specify the boundary conditions
-    p_minus_one = c(0, p[1:(ngrid-1)])  # a vector, P(X-dX) for all Xs, 0 is added to specify the boundary conditions
-    p = p + factor * (p_plus_one + p_minus_one - 2 * p) # finite difference to update all P(X,t)
+# Euler method
+euler_md <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: initial position x
+  # v0: initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(t0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  v_all = numeric(n_all)
+  x_all[1] = x0
+  v_all[1] = v0
+  for (i in 1:(n_all-1)) {
+    v_all[i+1] = v_all[i] + dt * f(t_all[i], x_all[i],...)
+    x_all[i+1] = x_all[i] + dt * v_all[i]
   }
-  return(p)
+  return(cbind(t_all, x_all, v_all))   # the output is a matrix of t, x, v for all time steps
 }
+
+# Run Euler simulation 1, dt = 0.01
+dt1 = 0.01; k = 0.1
+result_ho_euler = euler_md(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt1, k = k)
+
+# Plotting the outcomes
+plot(result_ho_euler[,1], result_ho_euler[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_euler[,1], result_ho_euler[,3], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-# Diffusion from the center
-
-We consider an initial condition, where $P(X=0, t = 0) = 1$. This means that at $t = 0$, the system always starts from the origin $X=0$. Here is a simulation of this diffusion model.
+We can observe reasonable harmonic oscillations in the simulation when the time step size is small. However, if we choose a larger time step size, now the trajectory drifts away.
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
+# Run Euler simulation 2, dt = 0.1
+dt2 = 0.1
+result_ho_euler2 = euler_md(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt2, k = k)
 
-p0 = numeric(ngrid) # state variable: a vector of P(X,t) for all grids at time t
-p0[(ngrid+1)/2] = 1 # specify the initial condition, P = 1 for the center point
-
-plot(X_all, p0, type="l", col=1, xlab="X", ylab="P", xlim=c(-50,50), ylim=c(0,0.05)) 
-p_now = p0
-for (i in 1:5){
-  p_now = pde_fd_diffusion(ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, t0 = 0, t.total = 50, p0 = p_now) 
-  lines(X_all,p_now, col=i+1)
-}
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
+# Plotting the outcomes
+plot(result_ho_euler2[,1], result_ho_euler2[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_euler2[,1], result_ho_euler2[,3], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-For a small fixed $t$, $P(X,t)$ is a Gaussian distribution. Now, we evaluate mean $X$, $<X>$, and the standard deviation of $X$, $\sigma(X) = \sqrt{<X^2>-<X>^2}$. 
-
-\begin{equation}
-\begin{cases} <X(t)> = \frac{\sum_i{P(X_i,t) X_i}}{\sum_i{P(X_i, t)}} \\
-              <X^2(t)> = \frac{\sum_i{P(X_i,t) X_i^2}}{\sum_i{P(X_i, t)}} \tag{10} \end{cases}
-\end{equation}
-
-Pay attention to the mean and standard deviation functions below.
+We can compute the massic energy (energy per unit mass) $e = \frac{1}{2}kx^2 +  \frac{1}{2}v^2$.
 
 ```{r}
-meanX <- function(p, X) {
-  return(p %*% X / sum(p))
-}
-sdX <- function(p, X) {
-  var = p %*% X**2 / sum(p)
-  return(sqrt(var - meanX(p,X)**2))
+# Compute massic energy
+energy_ho <- function(result, k) { 
+  # result: matrix of simulation outputs, (columns: t, x, v)
+  # k: spring constant
+  potential_e = 0.5*k*result[,2]**2
+  kinetic_e =  0.5*result[,3]**2
+  return(potential_e + kinetic_e)
 }
 
-num_sim = 100
-meanX_all = numeric(num_sim)
-sdX_all = numeric(num_sim)
-p_tot_all = numeric(num_sim)
-
-p_now = p0
-for(i in 1:num_sim){
-  p_now = pde_fd_diffusion(ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, t0 = 0, t.total = 10, p0 = p_now) 
-  meanX_all[i] = meanX(p_now,X_all)
-  sdX_all[i] = sdX(p_now,X_all)
-  p_tot_all[i] = sum(p_now)
-}
-t_all = 10 * c(1:num_sim)
-
-plot(t_all,p_tot_all, type="p", col=1, xlab="t", ylab="Total P", xlim=c(1,len*10), ylim=c(0,1)) 
-plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="<X>", xlim=c(1,len*10), ylim=c(-5,5)) 
-plot(t_all,sdX_all**2, type="p", col=1, xlab="t", ylab=bquote(sigma(X)^2), xlim=c(1,len*10), ylim=c(0,500), mgp=c(2.5,1,0)) 
-curve(x*D*2, add = TRUE)
+# Plotting the energy
+plot(result_ho_euler[,1],  energy_ho(result_ho_euler, k), type = "l", col=2, 
+     xlab="t", ylab="E", xlim=c(0,100), ylim=c(0,6)) 
+lines(result_ho_euler2[,1], energy_ho(result_ho_euler2, k), col=4)
+legend("topleft", inset=0.02, 
+       legend = c("dt = 0.01","dt = 0.1"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-The results show that $sd(X)^2 ~ t$ for small $t$. When the probability distribution $P(X,t)$ becomes nonzero near the boundary, the $sd^2$ increases smaller than $t$. (Think why the total probability decreases over time)
+The massic energy is clearly not conserved for Euler simulations with large time step sizes. For smaller time step sizes, the energy has much less changes, but still not a constant. 
 
-# Diffusion from the left
+### Symplectic Euler method
 
-Now we consider another initial condition, where $P(X < 0, t = 0) = 1$. This means that at $t = 0$, the system starts from the left side of the $X$ axis. Here is a simulation of this diffusion model.
+There are two important properties for a good MD integrator: perservation of the symplectic form which ensures energy conservation, and time reversibility which ensures to have reverse motions. The Euler method is not symplectic and not time reversible. A very small adjustment to the Euler method would make the method symplectic but not time reversible.
 
+$$v_{n+1} = v_n + hf_n  $$
+$$x_{n+1} = x_n + hv_{n+1}  $$
+I will leave its implementation and analysis to the readers.
+
+# Leapfrog method
+
+The leapfrog method is a second order integrator for Newton's equation of motion. It requires to compute $v$ at half time steps. 
+
+$$x_{n+1} = x_n + hv_{n+1/2}  $$
+$$v_{n+3/2}  = v_{n+1/2}  + hf_{n+1} $$
+The leapfrog algorithm requires the initial condition $x_0$ and $v_{1/2}$. The latter can be approximated by
+
+$$ v_{1/2} = v_0 + \frac{1}{2}hf_0$$
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-ngrid = as.integer(len/dX)+1  # number of grid points
-X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
-
-p0 = numeric(ngrid) # state variable: a vector of P(X,t) for all grids at time t
-p0[1:(ngrid+1)/2] = 1 # specify the initial condition, P = 1 for the whole left side. Note that P is not normalized to 1
-
-plot(X_all, p0, type="l", col=1, xlab="X", ylab="P", xlim=c(-50,50), ylim=c(0,1)) 
-p_now = p0
-for (i in 1:5){
-  p_now = pde_fd_diffusion(ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, t0 = 0, t.total = 50, p0 = p_now) 
-  lines(X_all,p_now, col=i+1)
+# Leapfrog method
+leapfrog <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: initial position x
+  # v0: initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(t0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  v_all = numeric(n_all) # we still save v in the same way, but it should be for n+1/2
+  x_all[1] = x0
+  v_all[1] = v0 + 0.5*dt*f(t_all[1], x_all[1],...)  # approximation for a half step
+  for (i in 1:(n_all-1)) {
+    x_all[i+1] = x_all[i] + dt * v_all[i]
+    v_all[i+1] = v_all[i] + dt * f(t_all[i+1], x_all[i+1],...)
+  }
+  return(cbind(t_all, x_all, v_all))   # the output is a matrix of t, x, v for all time steps
 }
-legend("topright", title = "Iterations", inset=0.02, 
-       legend = paste0(1:6),
-       col=1:6, lty=1, cex=0.8)
+
+# Run Leapfrog simulation 1, dt = 0.01
+result_ho_leapfrog = leapfrog(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt1, k = k)
+
+# Plotting the outcomes
+plot(result_ho_leapfrog[,1], result_ho_leapfrog[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_leapfrog[,1] + 0.5*dt1, result_ho_leapfrog[,3], col=4) # note a half time shift for v
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
+
+# Run leapfrog simulation 2, dt = 0.1
+result_ho_leapfrog2 = leapfrog(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt2, k = k)
+
+# Plotting the outcomes
+plot(result_ho_leapfrog2[,1], result_ho_leapfrog2[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_leapfrog2[,1] + 0.5*dt2, result_ho_leapfrog2[,3], col=4) # note a half time shift for v
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
+
+# Plotting the energy
+plot(result_ho_leapfrog[,1],  energy_ho(result_ho_leapfrog, k), type = "l", col=2, 
+     xlab="t", ylab="E", xlim=c(0,100), ylim=c(0,6)) 
+lines(result_ho_leapfrog2[,1], energy_ho(result_ho_leapfrog2, k), col=4)
+legend("topleft", inset=0.02, 
+       legend = c("dt = 0.01","dt = 0.1"),
+       col=c(2,4), lty=1, cex=0.8)
 ```
 
-We observe the diffusion from the left to the right over time.
+In leapfrog simulations, the massic energy does not drift even for large time step sizes. Note there is a small issue in the energy calculation, as the leapfrog method saves $x_n$ and $v_{n+1/2}$, not $x$ and $v$ for the same time points. Because of that, you will find small oscillatory deviation of massic energy when the time step size is large.
 
-# Other types of boundary conditions
+# Velocity Verlet method
 
-We have introduced a type of boundary condition where the boundary points have zero probability. There are many other types of boundary conditions. Different boundary conditions usually result different dynamical behaviors. 
+The leapfrog method does not provide $x$ and $v$ for the same time points. A simple way to address that is to integrate $v$ for two half steps.
 
-One common type of boundary condition for a PDE is Neumann boundary condition, where we set $\frac{\partial P}{\partial X}(X, t) = 0$ for both $X = -l/2$ and $X = l/2$. This boundary condition would ensure no probability flux outside the system. Since
+$$v_{n+1/2}  = v_{n} + \frac{1}{2}hf_n $$
+$$x_{n+1} = x_n + hv_{n+1/2}  $$
+$$v_{n+1}  = v_{n+1/2}  + \frac{1}{2}hf_{n+1} $$
+```{r}
+# Velocity Verlet method
+velocity_verlet <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: initial position x
+  # v0: initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(t0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  v_all = numeric(n_all)
+  x_all[1] = x0
+  v_all[1] = v0 
+  for (i in 1:(n_all-1)) {
+    v_half = v_all[i] + 0.5 * dt * f(t_all[i], x_all[i],...)
+    x_all[i+1] = x_all[i] + dt * v_half
+    v_all[i+1] = v_half + 0.5 * dt * f(t_all[i+1], x_all[i+1],...)
+  }
+  return(cbind(t_all, x_all, v_all))   # the output is a matrix of t, x, v for all time steps
+}
 
-$$\frac{\partial P}{\partial X}(X, t) = \frac{P(X + \Delta X, t) - P(X, t)}{\Delta X} = 0$$
+# Run Velocity Verlet simulation 1, dt = 0.01
+result_ho_vv = velocity_verlet(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt1, k = k)
 
-Thus, we set $P(X,t)$ at a boundary point same as the $P(X,t)$ for the nearby grid point. The readers can implement this boundary condition for the diffusion models that we have described here and check what would be the differences of the diffusion dynamics. We leave this as an exercise.
+# Plotting the outcomes
+plot(result_ho_vv[,1], result_ho_vv[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_vv[,1], result_ho_vv[,3], col=4) # note a half time shift for v
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
 
-A third type is a periodic boundary condition. For grid points ${X_i}$ for $i = 1,2 ...n$, we set $P(X_0) = P(X_n)$ and $P(X_{n+1}) = P(X_1)$. This will allow us to compute the needed partial derivatives for PDEs. This type of boundary conditions will be illustrated in [Part 05C](./05C.html).
+# Run Velocity Verlet simulation 2, dt = 0.1
+result_ho_vv2 = velocity_verlet(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt2, k = k)
+
+# Plotting the outcomes
+plot(result_ho_vv2[,1], result_ho_vv2[,2], type = "l", col=2,
+    xlab="t", ylab="values", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_vv2[,1], result_ho_vv2[,3], col=4) # note a half time shift for v
+legend("topleft", inset=0.02, 
+       legend = c("x","v"),
+       col=c(2,4), lty=1, cex=0.8)
+
+# Plotting the energy
+plot(result_ho_vv[,1],  energy_ho(result_ho_vv, k), type = "l", col=2, 
+     xlab="t", ylab="E", xlim=c(0,100), ylim=c(0,6)) 
+lines(result_ho_vv2[,1], energy_ho(result_ho_vv2, k), col=4)
+legend("topleft", inset=0.02, 
+       legend = c("dt = 0.01","dt = 0.1"),
+       col=c(2,4), lty=1, cex=0.8)
+```
+
+With velocity Verlet, massic energy is conserved regardless of different time step sizes. 
+
+### Position Verlet method
+
+Similar to velocity Verlet method, one can also do position Verlet by integrating $x$ for two half steps. I will leave it for students to think about how to do it.
+
+# Verlet method
+
+If velocity is not needed as an output, we can use the Verlet method, which integrates only $x$.
+
+$$x_{n+2} = 2x_{n+1} - x_{n} + h^2F_{n+1}$$
+(Think why this works.)
+
+For the first step, $x_1$ can be computed by:
+
+$$x_1 = x_0 + hv_0 + \frac{1}{2}h^2f_0$$
+```{r}
+# Verlet method
+verlet <- function(f, t0, x0, v0, t.total, dt, ...){
+  # f:  2nd derivative function
+  # t0: initial time
+  # x0: initial position x
+  # v0: initial velocity v
+  # t.total: total simulation time
+  # dt: time step size 
+  t_all = seq(t0, t.total, by=dt)
+  n_all = length(t_all)
+  x_all = numeric(n_all)
+  x_all[1] = x0
+  x_all[2] = x0 + dt * v0 + 0.5 * dt * dt * f(t_all[1], x_all[1],...)
+  for (i in 2:(n_all-1)) {
+    x_all[i+1] = 2*x_all[i] - x_all[i-1] + dt * dt * f(t_all[i], x_all[i],...)
+  }
+  return(cbind(t_all, x_all))   # the output is a matrix of t, x for all time steps
+}
+
+# Run Velocity Verlet simulation 1, dt = 0.01
+result_ho_v = verlet(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt1, k = k)
+# Run Velocity Verlet simulation 2, dt = 0.1
+result_ho_v2 = verlet(f = f_ho, t0 = 0, x0 = 1, v0 = 2, t.total = 100, dt = dt2, k = k)
+
+# Plotting the outcomes (only x)
+plot(result_ho_v[,1], result_ho_v[,2], type = "l", col=2,
+    xlab="t", ylab="x", xlim=c(0,100), ylim=c(-10,10)) 
+lines(result_ho_v2[,1], result_ho_v2[,2], col=4)
+legend("topleft", inset=0.02, 
+       legend = c("dt = 0.01","dt = 0.1"),
+       col=c(2,4), lty=1, cex=0.8)
+```
