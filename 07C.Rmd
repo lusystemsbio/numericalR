@@ -73,7 +73,7 @@ g(u,v,t) &= \mu (1-u^2v) \\
 
 Here, $v$ serves as a substrate that activates $u$, and, by doing so, $v$ is in turn depleted by $u$.
 
-<center> ![Figure 1](./extra/data/05C/fig1.png){width=20%} </center>
+<center> ![Figure 1](./extra/data/07C/fig1.png){width=20%} </center>
 <br/>
 
 The model has two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns. Pattern formation occurs for the situation of faster $v$ diffusion and large $\mu$.
@@ -185,7 +185,7 @@ g(u,v,t) &= \mu (u^2 - v) \\
 
 Here, $u$ serves as an activator, and $v$ as an inhibitor. The activator can activate itself and the inhibitor, while the inhibitor can suppress both. Similar to the previous model, $v$ diffuses much faster than $u$ (*a.k.a*, self enhancement and long-range inhibition). 
 
-<center> ![Figure 2](./extra/data/05C/fig2.png){width=20%} </center>
+<center> ![Figure 2](./extra/data/07C/fig2.png){width=20%} </center>
 <br/>
 
 There are also two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the system generates patterns too. Here, $u$ and $v$ are synchronized in space. 
