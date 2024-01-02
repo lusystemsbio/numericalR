@@ -1,0 +1,7 @@
+id,atom,mass,size,backbone
+1,N,14,1.2,True
+2,CA,12,1.4,True
+3,CB,12,1.4,False
+4,C,12,1.4,True
+5,O,16,1.1,True
+6,S,32,1.6,False

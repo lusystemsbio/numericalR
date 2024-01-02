@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1. Radius of gyration
 
-In this exercise, we will compute radius of gyration of a protein structure. First, install a package named bio3d.  
+In this exercise, we will calculate the radius of gyration of a protein structure. Begin by installing a package named bio3d. If the package does not exist, install it using the following code:
 
 ```{r}
 if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package exists
@@ -24,7 +24,7 @@ if(! "bio3d" %in% rownames(installed.packages())) {      # check if the package 
 library(bio3d)
 ```
 
-The package bio3d allows users to download and process protein structures from Protein Data Bank (PDB).
+The bio3d package facilitates the download and processing of protein structures from the Protein Data Bank (PDB).
 
 ```{r}
 mystructure <- read.pdb("7l3u")  # load online data
@@ -33,30 +33,47 @@ class(coord)
 head(coord)
 ```
 
-The above code reads the PDB file for the protein named 7L3U and accesses the atomic coordinate information. Start from the data frame coord, and compute radius of gyration of the structure.
-Here, the radius of gyration $R_g$ is defined as:
+The provided code reads the PDB file for the protein named 7L3U, extracting atomic coordinate information into the coord data frame. Starting from this data frame, compute the radius of gyration of the protein structure.
+The radius of gyration $R_g$ is defined by the formula:
 
 $$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j \Delta \mathbf{r_j} \cdot \Delta \mathbf{r_j}}{\sum_{j=1}^{N}m_j}}$$
 
-where $\mathbf{r_j}$ is the coordinate of atom $j$ (*i.e.*, x, y, and z values), $m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. $m_j$ depends on the atom type, which can be found in the above data frame in the "elesy" column.
+Here, $\mathbf{r_j}$ represents the coordinates of atom $j$ (*i.e.*, x, y, and z values), $m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. The atomic mass $m_j$ depends on the atom type, which can be found in the "elesy" column of the coord data frame.
 
-$\mathbf{\overline{r}}$ is defined as
+The center of mass $\mathbf{\overline{r}}$ is defined as:
 
 $$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j}$$
-$\Delta \mathbf{r_j}$ is defined as
+The displacement vector $\Delta \mathbf{r_j}$ is defined as:
 
 $$\Delta \mathbf{r_j} = \mathbf{r_j} - \mathbf{\overline{r}}$$
 
-Hint: Pay attention the dot product operation ($\cdot$) in the definition of $R_g$. Try the following for the usage of atom2mass
+Hint: Pay attention the dot product operation ($\cdot$) in the definition of $R_g$. Utilize the atom2mass function for obtaining atomic masses.
 
 ```{r}
   ?atom2mass
 ```
 
+# 2. Gene expression analysis
 
-# 2. Stirling's approximation
+You are provided with a gene expression dataset (derived from GSE17708) representing the expression levels of various genes across different samples. Your task is to perform summary statistics, filtering least variable genes, and gene expression correlations. The following block of R scripts read the data from a data file in the CSV format.
 
-Part B shows how to benchmark code performance with microbenchmark. Here, we will benchmark more using the same approach. We would like to compute $\ln n!$. For small $n$, this can be done with the following code:
+```{r}
+exp_data <- read.csv(file='./extra/data/01D/exp_data.csv', row.names = 1) # Read the gene expression data, 1st column as the row names (gene names)
+class(exp_data) # exp_data is a Data Frame type
+dim(exp_data)  # dimension of exp_data, 500 genes, 26 conditions
+```
+
+In exp_data, each row represents a gene, and each column represents the expression levels across different samples. 
+
+**2.1 Summary Statistics.** Write R scripts to compute summary statistics for each sample, including mean expression, median expression, and standard deviation. Create a bar plot to visually depict the mean and standard deviation for each sample.
+
+**2.2 Subsetting.** Compose R scripts to filter out genes from the dataset whose standard deviations are less than 0.5. Present the count of remaining genes in the data after the subsetting process (you should obtain less than 50 genes).
+
+**2.3 Gene Expression Correlations.** Write R scripts to conduct Pearson's correlations between the gene expression profiles of any two genes in the subsetted dataset. Identify and showcase the top 10 most correlated gene pairs.
+
+# 3. Stirling's approximation
+
+In Part B, we explored benchmarking code performance using the microbenchmark package. Now, let's further delve into benchmarking by computing $\ln n!$. While the provided code efficiently calculates $\ln n!$ for small values of $n$, it encounters limitations for large values (e.g., 1000) (think why;no need to answer).
 
 ```{r}
 ln_fact <- function(n) {
@@ -65,22 +82,30 @@ ln_fact <- function(n) {
 ln_fact(10)
 ```
 
-However, for large $n$ (*e.g.*, 1000), this method fails (think why?). In this case, we can express $\ln n!$ as the following. 
+For larger $n$, we can express $\ln n!$ using the summation:
 
 $$f(n) = \ln n!=\sum_{j=1}^{n}\ln j$$
 
-**2.1** Create R functions to compute $f$ as the function of $n$ using the following methods: 
+**3.1 Benchmarking.** Develop R functions to compute $f(n)$ for different values of $n$ using the following methods:
 
-* (1) Iteration with for loop in R; 
-* (2) Use vector operations in R; 
-* (3) Use Apply family functions (such as apply, lapply, *etc.*) in R; 
-* (4) Use C or Fortran subroutines/functions. 
+(1) Iteration with a for loop in R;
+(2) Utilize vectorization in R;
+(3) Employ Apply family functions (such as apply, lapply, etc.) in R;
+(4) Incorporate C or Fortran subroutines/functions.
 
-Benchmark these methods with microbenchmark.
+Benchmark the performance of these methods using microbenchmark.
 
-**2.2** In mathematics, there is famous formula called Stirling's approximation.
+**3.2 Deviations of the Stirling's approximation.** In mathematics,a famous formula known as Stirling's approximation is present:
 
 $$\ln n! \approx n\ln n - n$$
-Plot the relative difference of the left hand side and the right hand side, *.i.e.*,
+Plot the relative difference of the left-hand side and the right-hand side, *.i.e.*,
 $$1-\frac{n\ln - n}{\ln n!}$$
-as the function $n$. 
+as a function of $n$. You can employ any method from **2.1** to compute $\ln n!$.
+
+# 4. Prime numbers
+
+Consider the concept of prime numbers, which are positive integers not divisible by any integer greater than one. In this problem, we aim to develop a function for determining whether a given integer is prime.
+
+**4.1** Create a function that checks if a provided integer is a prime number. The function should take an integer as an argument and return a logical value. Specifically, it should output TRUE if the given number is prime and FALSE otherwise. To achieve this, employ a loop to examine divisibility from two up to the square root of the given number.
+
+**4.2** Apply the newly created function to test all integers up to 100, identifying and outputting all prime numbers discovered.

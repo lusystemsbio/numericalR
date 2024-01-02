@@ -122,15 +122,16 @@ g(X) = g_0 + g_1 H^{ex}(X)  \tag{7}
 , where $g_0$ is the basal transcription rate (the lowest transcription rate), $g_0+g_1$ is the maximum transcription rate, $H^{ex}(X)$ is the excitatory Hill function with expression
 
 \begin{equation}
-H^{ex}(X) \equiv \frac{(X/X_0)^{n_X}}{1+(X/X_0)^{n_X}}  \tag{8}
+H^{ex}(X) \equiv \frac{(X/X_{th})^{n_X}}{1+(X/X_{th})^{n_X}}  \tag{8}
 
 \end{equation}
 
 , $X_0$ is the threshold level of $X$ and $n^X$ is the Hill coefficient. $H^{ex}$ is nonlinear, with a minimum of 0 when $X=0$ and a maximum of 1 when $X\to\infty$. $H^{ex}$ is commonly used to describe protein interactions, transcription factor-DNA binding, *etc.*. The plot below shows the curves of the excitatory Hill function for different Hill coefficients. 
 
 ``` {r}
-hill_ex <- function(X,X0,n) {
-  a = (X/X0)**n
+hill_ex <- function(X,X_th,n) {# inhibitory Hill function
+# X_th: Hill threshold, n: Hill coefficient
+  a = (X/X_th)**n
   return(a/(1+a))
 }
 
@@ -139,7 +140,7 @@ n_all = seq_len(5)
 my_col = seq_len(5) 
 my_label = paste0(n_all) 
 
-plot(NULL, xlab="X/X0", ylab="Excitatory Hill function", xlim=c(0,3), ylim=c(0,1.05))
+plot(NULL, xlab="X/Xth", ylab="Excitatory Hill function", xlim=c(0,3), ylim=c(0,1.05))
 for(i in seq_len(5)){
   lines(X_all,hill_ex(X_all,1, n_all[i]), col=my_col[i])
 }
@@ -171,7 +172,7 @@ g(X) = g_0 + g_1 H^{inh}(X)  \tag{10}
 $H^{inh}(X)$ is the inhibitory Hill function with expression
 
 \begin{equation}
-H^{inh}(X) \equiv \frac{1}{1+(X/X_0)^{n_X}}  \tag{11}
+H^{inh}(X) \equiv \frac{1}{1+(X/X_{th})^{n_X}}  \tag{11}
 \end{equation}
 
 By definition, $H^{inh}(X) \equiv 1- H^{ex}(X)$.
@@ -179,12 +180,13 @@ By definition, $H^{inh}(X) \equiv 1- H^{ex}(X)$.
 The plot below shows the curves of the inhibitory Hill function for different Hill coefficients.
 
 ``` {r}
-hill_inh <- function(X,X0,n) {
-  a = (X/X0)**n
+hill_inh <- function(X,X_th,n) {# inhibitory Hill function
+# X_th: Hill threshold, n: Hill coefficient
+  a = (X/X_th)**n
   return(1/(1+a))
 }
 
-plot(NULL, xlab="X/X0", ylab="Inhibitory Hill function", xlim=c(0,3), ylim=c(0,1.05))
+plot(NULL, xlab="X/Xth", ylab="Inhibitory Hill function", xlim=c(0,3), ylim=c(0,1.05))
 for(i in seq_len(5)){
   lines(X_all,hill_inh(X_all,1, n_all[i]), col=my_col[i])
 }
@@ -208,8 +210,8 @@ Lastly, we show another gene circuit containing two transcription factors $X$ an
 Here, $X$ is an inhibitor of gene $Y$, while $Y$ is an inhibitor of gene $X$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
-              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{13}
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}} - k_XX \\
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}} - k_YY \end{cases} \tag{13}
 \end{equation}
 
 In this case, the system is described by two coupled ordinary differential equations, the solutions to which are in the form of $X(t)$ and $Y(t)$. As there are two variables $X$ and $Y$, more sophisticated tools are required to understand this type of dynamical systems. We will discuss about it in Part 3. 

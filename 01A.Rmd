@@ -292,4 +292,4 @@ func_main2(a = 1, func_2nd = func2, f = 10, g = 20, h = 1, i = -3)
 #func_main2(a = 1, func_2nd = func2, d = 2.4, e = 0.6) 
 ```
 
-Make sure that all arguments passed through ellipsis are the same whenever ellipsis is used in body of the function. Thus, in the usage case 2 above, the code doesn't work if only f, g, h are passed to func2. It doesn't work either if, for example, d and e are passed to func2.
+Make sure that all arguments passed through ellipsis are the same whenever ellipsis is used in the body of the function. Thus, in the usage case 2 above, the code doesn't work when only f, g, h are passed to func2. It doesn't work either when, for example, d and e are passed to func2.

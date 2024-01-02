@@ -30,21 +30,29 @@ derivs_k <- function(X, k) {
 
 # Method 1: (direct method) find all roots
 
-The most straightforward way is to uniformly sample $k$ values and, for each $k$, identify all roots $X_s$ for $f(X,k)=0$. The following shows an implementation of such method using an R package rootSolve. We also check stability of steady states according to $\frac{df}{dX}$. It works very well for this example. However, it may fail in some situations, as finding all roots for a nonlinear function s not guaranteed. Compared to other methods, this method should be slower but more stable.
+The most straightforward way is to uniformly sample $k$ values and, for each $k$, identify all roots $X_s$ for $f(X,k)=0$. The following shows an implementation of such method using an R package rootSolve. We also check stability of steady states according to $\frac{df}{dX}$. It works very well for this example. However, it may fail in some situations, as finding all roots for a nonlinear function s not guaranteed. Compared to other methods, this method should be slower but more stable. The implementation below uses a for loop, which clearly shows how it works. One can also use lapply instead of a for loop. 
 
 ``` {r}
 library(rootSolve)
 dx = 0.1  # used to estimate the derivatives of f(X) near the steady states
-k_all = as.list(seq(0.1,0.2, by = 0.001))    # k to sample
-results = lapply(k_all, function(k) {     # use lapply, instead of for loop
+k_all = seq(0.1,0.2, by = 0.001)    # all k values to be sampled
+results = matrix(0, nrow = length(k_all)*3, ncol = 3)  # Define a sufficiently large matrix to save k & steady-state X
+ind = 0
+for(k in k_all) {
   roots = uniroot.all(derivs_k, k = k, interval = c(0, 800)) # find all roots 
-  return(cbind(rep(k, each=length(roots)),  # result matrix: k
-               roots,    # roots
-               -sign(derivs_k(X = roots+dx, k = k))))   # 1: stable; 2: unstable
-})
-results = do.call(rbind, results)   # rbind all result matrices for all ks
+  for(x in roots){
+    ind = ind + 1
+    if(sign(derivs_k(X = x+dx, k = k)) < 0) { # df/dX < 0, stable
+      stability = 1
+    }else{
+      stability = 2
+    }
+    results[ind,] = c(k, x, stability) 
+  }
+}
+results = results[1:ind,]
 
-plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= (3 - results[,3])/2,
+plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= results[,3],
     xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
 ```
@@ -58,67 +66,96 @@ The second method does not require to solve all roots of $f(X,k)$. Instead, we w
 $$ \frac{dX}{dt} = -f(X,k) \tag{2}$$
 This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using Equation (2). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
 
-``` {r}
-derivs_k_deSolve <- function(t, X, k) {   # the derivative function should be in the deSolve format
-  return(list(10 + 45 * (1- 1/(1+(X/200)**4)) - k*X))
-}
-derivs_k_deSolve_minus <- function(t, X, k) {   #  dX/dt = - f(X)
-  return(list(-(10 + 45 * (1- 1/(1+(X/200)**4)) - k*X)))
+The pseudocode of this algorithm is:
+
+Start:
+
+* Initial $k = k_1 = 0.1$.
+
+* A random initial condition of $X = X_0$.
+
+* Initial direction to sample $k$: increasing ($d_1 = 1$)
+
+* $i = 1$
+
+While $k_i < 0.2$:  (An iteration)
+
+1. From the initial condition $X_{i-1}$, simulate $\frac{dX}{dt} = d_i f(X, k_i)$ until a stable steady state $X_i$ is reached.
+
+2. Record $k_i$ and $X_i$.
+
+3. If $i \ne 1$ AND $X_i$ is very different from $X_{i-1}$:
+
+   $d_{i+1} = -d_i$ (A bifurcation point is reached, reverse direction to sample $k$).
+   
+4. $k_{i+1} = k_i + d_{i+1} \Delta k$. (Next $k$)
+
+5. $i = i + 1$
+
+In Step 1, when sampling along the reverse direction of $k$, $\frac{dX}{dt} = - f(X, k)$ will converge to an unstable steady state in the original ODE. 
+
+```{r}
+# Define the derivative function
+# k: control parameter; d: 1 - stable steady state; 2 - unstable steady state
+derivs_k_deSolve <- function(t, X, params) {
+  with(as.list(c(X, params)), {
+    return(list(d*(10 + 45 * (1 - 1 / (1 + (X / 200)^4)) - k * X)))
+})
 }
 
-search_bifurcation <- function(para_start, para_range, init, d_para, forward = TRUE, if_stable = TRUE) {
-  
-  if(forward){
-    para_all = seq(para_start, para_range[2], by = d_para)
-  } else {
-    para_all = seq(para_start, para_range[1], by = -d_para)
-  }
-  
-  if(if_stable) {
-    df <- function(t, X, k) derivs_k_deSolve(t, X, k)
-  }else {
-    df <- function(t, X, k) derivs_k_deSolve_minus(t, X, k)
-  }
-  
-  #### two model parameters for this example
-  gap = 100.0     # the stop criterion for bifurcation point: when Delta X changes more than gap when k increases a little, the system undergo catastrophe.
-  t_max = 1000.0   # max simulation time
-  
-  results = matrix(NA, nrow = length(para_all), ncol = 2)
-  X_init = init
-  ind = 0
-  for (k in para_all) {
-    X_new = runsteady(y=X_init, time = c(0, t_max), func=df, parms=k)$y 
-    if((ind != 0) & (abs(X_new - X_init) > gap)){
-      break
+# Algorithm parameters
+gap = 100.0     # the stop criterion for a bifurcation point: when Delta X changes larger than the threshold value (gap) when k increases a little, the system undergoes catastrophe.
+t_max = 1000.0   # Maximum ODE simulation time
+dk = 0.001 # k step size 
+dX = 1 # make a small step in X to estimate df/dX, a small step to perturb X0
+
+# Initialize parameters
+k = 0.1
+X0 = runif(1, 100, 600)  # Random initial condition of X
+d = 1
+ind = 1 # Record the index of steady states
+
+# Initialize results storage
+results = matrix(data = NA, nrow = 1000, ncol = 3)
+
+while (k < 0.2) {
+  # Simulate until a stable steady state is reached
+  Xi = runsteady(y=X0, time = c(0, t_max), func=derivs_k_deSolve, parms=c(k=k, d=d))$y 
+
+  # Check for bifurcation point, switch the sampling direction of k.
+  if (ind > 1 && abs(Xi - X0) > gap) {
+    d = -d
+    # Update k 
+    k = k + d * dk
+    # Update X0, with slight perturbation along the same direction from X0 to Xi in the current step
+    X0 = X0 + dX * sign(Xi-X0)
+  } else{
+    # Determine stabiity of the steady state
+    f_x_plus_dx = derivs_k_deSolve(t = 0, X = Xi+dX, params = c(k = k, d = 1))[[1]]
+    if(sign(f_x_plus_dx) < 0) { # df/dX < 0, stable
+      stability = 1
     }else{
-      ind = ind + 1
-      results[ind,] = c(k, X_new)
-      X_init = X_new
+      stability = 2
     }
+    
+    # record the steady state
+    results[ind,] = c(k, Xi, stability) 
+    
+    # Update k and the initial X for the next iteration
+    k = k + d*dk
+    X0 = Xi
+    # Update iteration counter
+    ind = ind + 1
   }
-  return(na.omit(results))
+
 }
 
-### below we search for the three segments of bifurcation curve. This can be further automated. 
-dk = 0.001
-k_range = c(0.1, 0.2)
-results1 = search_bifurcation(0.1, k_range, 0, dk, T, T)
-k_next = tail(results1,1)[1]
-X_init_next = tail(results1,1)[2]
-results2 = search_bifurcation(k_next, k_range, X_init_next , dk, F, F)
-k_next = tail(results2,1)[1]
-X_init_next = tail(results2,1)[2]
-results3 = search_bifurcation(k_next, k_range, X_init_next , dk, T, T)
-
-plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
-points(results1[,1], results1[,2], pch = 1, cex = 0.3, col = 1)
-points(results3[,1], results3[,2], pch = 1, cex = 0.3, col = 1)
-points(results2[,1], results2[,2], pch = 1, cex = 0.3, col = 2)
-legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
+# Plot the bifurcation diagram
+plot(results[,1], results[,2], pch = 1, cex = 0.3, col = results[,3],
+     xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
 ```
 
-The implementation is quite tedious but illustrates well the concept behind it. It can potentially find all solutions. However, like many numerical methods, it is challenging to devise a robust function to find bifurcation diagrams for a generic system. In particular, the choice of the numerical parameters (gap & t_max) would affect the performance of the method. (Try to adjust these parameters, and evaluate the outcomes.)
+The implementation works well to obtain all steady states of any $k$. However, like many numerical methods, it is challenging to devise a robust function to find bifurcation diagrams for a generic system. In particular, the choice of the numerical parameters (gap, t_max, dX) would affect the performance of the method. (Try to adjust these parameters, and evaluate the outcomes.)
 
 # Method 3: numerical continuation
 
@@ -148,8 +185,7 @@ $$\Delta X = - \frac{f(X_0)}{f'(X_0)} \tag{4}$$
 Numerically, we perform the following calculation iteratively:
 
 $$ X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} $$
-, until $|f(X_{n+1})|<\epsilon$, where $\epsilon$ is a small constant. Below shows the implementation of Newton's method for the current system. It will be used as the correction method for numerical continuation.
-
+, until $|f(X_{n+1})|<\epsilon$, where $\epsilon$ is a small constant. Below shows the implementation of Newton's method for the current system (the find_root_Newton function).  The function is used to find roots for different initial conditions and control parameters.
 
 ``` {r}
 dfdX <- function(X, k){    
@@ -157,19 +193,26 @@ dfdX <- function(X, k){
     return( 180 /X * x_frac/(1+x_frac)**2 - k)
 }
 
-find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
-  while(abs(func(X, parms)) > error){
-    f = func(X, parms)
-    X = X - f/dfunc(X, parms)
-    if((X-X_range[1])*(X-X_range[2]) > 0) break  # a check to avoid infinite loop, no debug steps are provided here for simplification
+# Implementation of the Newton's method to find a root of func
+find_root_Newton <- function(X, func, dfunc, X_range, error = 10^-3, ...) {
+  #X: Initial guess of X
+  #func: function f(X,...)
+  #dfunc: df/dX
+  #X_range: lower and upper limits of root X. If X is outside of the range, the algorithm stops.
+  f = func(X, ...)
+  while(abs(f) > error){
+    X = X - f/dfunc(X, ...)
+    if((X-X_range[1])*(X-X_range[2]) > 0) break  # Check if X is in within X_range; 
+    # This would avoid potential infinite loop; When this occurs, the Newton's method doesn't converge.
+    f = func(X, ...)
   }
   return(X)
 }
 
-find_root_Newton(500, derivs_k, dfdX, 0.1, c(0, 800))   # monostable, one root
-find_root_Newton(500, derivs_k, dfdX, 0.15, c(0, 800))   # bistable, first root near 500
-find_root_Newton(100, derivs_k, dfdX, 0.15, c(0, 800))  # another root near 100
-find_root_Newton(150, derivs_k, dfdX, 0.15, c(0, 800))  # the last root (unstable) near 150
+find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = 0.1)   # monostable, one root
+find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = 0.15)   # bistable, first root near 500
+find_root_Newton(100, derivs_k, dfdX, c(0, 800), k = 0.15)  # another root near 100
+find_root_Newton(150, derivs_k, dfdX, c(0, 800), k = 0.15)  # the last root (unstable) near 150
 ```
 
 Now, we implement the numerical continuation method by uniformly varying $k$. 
