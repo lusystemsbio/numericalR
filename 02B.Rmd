@@ -37,51 +37,49 @@ Therefore, we can start from the initial condition $X(t = 0)$ and iteratively ap
 Now, we will show how the Euler method works in R. 
 
 ```{r}
-ode1 <- function(X0, t.total, g, k) {   # analytical solutions, see Part 2A
-  return(X0 + (g/k - X0)*(1-exp(-k*t.total)))
-}
-t_all = seq(0, 80, 0.1)    # time points to plot
-
-dX <- function(t, X, g, k) { # define derivative function, Equation (1)
-  return(g - k*X)
+ode1 <- function(X0, t.total, g, k) { # Define an analytical solution for the ODE, see Part 2A
+  return(X0 + (g/k - X0) * (1 - exp(-k * t.total)))
 }
 
-# Euler is a generic function of Euler method for a single ODE 
-# Note that ellipsis (...) is used ot pass any argument to the function. 
-Euler <- function(derivs, X0, t.total, dt, ...){
-  # derivs: the function of the derivatives 
-  # X0: initial condition
-  # t.total: total simulation time, assuming t starts from 0 at the beginning
-  # dt: time step size 
-  t_all = seq(0, t.total, by=dt)
+t_all = seq(0, 80, 0.1) # Time points for integration and plotting
+
+dX <- function(t, X, g, k) { # Define the derivative function for the ODE, see Equation (1)
+  return(g - k * X)
+}
+
+# Euler is a generic function of Euler method for simulating ODE numerically
+# The function works for a 1-variable system
+# Note that ellipsis (...) is used to pass one or multiple parameters to the function. 
+Euler <- function(derivs, X0, t.total, dt, ...) {
+  t_all = seq(0, t.total, by = dt)
   n_all = length(t_all)
   X_all = numeric(n_all)
   X_all[1] = X0
-  for (i in 1:(n_all-1)) {
-    X_all[i+1] = X_all[i] + dt * derivs(t_all[i],X_all[i], ...)
+  
+  for (i in 1:(n_all - 1)) {
+    X_all[i + 1] = X_all[i] + dt * derivs(t_all[i], X_all[i], ...)
   }
-  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+  
+  return(cbind(t_all, X_all))  # Output matrix of t & X(t) for all time steps
 }
 
-# model parameters
+# Model parameters
 g = 50
 k = 0.1
 
+# Numerical solution using Euler method with different time step sizes
+# Readers need to check the format of the output matrix
 results1 = Euler(derivs = dX, X0 = 300, t.total = 80, dt = 1, g = 50, k = 0.1)
 results2 = Euler(derivs = dX, X0 = 300, t.total = 80, dt = 0.1, g = 50, k = 0.1)
 
-plot(t_all, ode1(X0 = 300, t.total = t_all, g = g, k = k), type = "l", col=2,
-    xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(300,500)) 
-lines(results1[,1], results1[,2],  col=3)
-lines(results2[,1], results2[,2],  col=4)
-legend("bottomright", inset=0.02, title="Time dynamics", 
+# Plotting
+plot(t_all, ode1(X0 = 300, t.total = t_all, g = g, k = k), type = "l", col = 2,
+     xlab = "t (Minute)", ylab = "X (nM)", xlim = c(0, 80), ylim = c(300, 500)) 
+lines(results1[, 1], results1[, 2], col = 3)
+lines(results2[, 1], results2[, 2], col = 4)
+legend("bottomright", inset = 0.02, title = "Time dynamics", 
        legend = c("Analytical", "Euler: dt=1", "Euler: dt=0.1"),
-       col=2:4, lty=1, cex=0.8)
-
-plot(t_all, ode1(300, t_all, g, k), type = "l", col=2,
-    xlab="t (Minute)", ylab="X (nM)", xlim=c(10,14), ylim=c(425,450)) 
-lines(results1[,1], results1[,2],  col=3)
-lines(results2[,1], results2[,2],  col=4)
+       col = 2:4, lty = 1, cex = 0.8)
 ```
 
 In this example, when time step size $\Delta t$ is 0.1, Euler method gives a very nice approximation to the analytical solution of $X(t)$. When $\Delta t$ is 1, there are some significant differences when $t$ is around 10. Here, the blue and red curves are very close to each other.
@@ -100,15 +98,24 @@ Here, the term $O(\Delta t^2)$ summarizes the least significant term of the abov
 There are existing packages, such as deSolve, to perform numerical integration in R. Below shows the implementation of the same system for two different time step sizes 1 and 0.1. The outcomes is exactly same as those from our own implementation above.
 
 ```{r}
-library(deSolve)  # a general ode solver
-# params take the g and k in a vector of size 2
-dy_deSolve <- function(t, y, parms) { # modified derivative function for deSolve
+library(deSolve)  # A generic ODE solver
+
+
+# Define the modified derivative function for deSolve
+# Argument params takes g and k in a vector of size 2
+dy_deSolve <- function(t, y, parms) { 
   return(list(parms[1] - parms[2]*y))
 }
+
+# Time points for plotting 
 t_all_3 = seq(0, 80, 1)
-results3 = ode(y = 300, times = t_all_3, func = dy_deSolve, parms = c(50, 0.1), method = "euler")
 t_all_4 = seq(0, 80, 0.1)
+
+# Solving ODE using deSolve with Euler method
+results3 = ode(y = 300, times = t_all_3, func = dy_deSolve, parms = c(50, 0.1), method = "euler")
 results4 = ode(y = 300, times = t_all_4, func = dy_deSolve, parms = c(50, 0.1), method = "euler")
+
+# Plotting
 plot(results3[,1], results3[,2], type = "l", col=2,
     xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(300,500)) 
 lines(results4[,1], results4[,2],  col=3)
@@ -362,18 +369,17 @@ ind = 0
 for(dt in dt_all){
   t_all = seq(0,80,dt)    # time points to compute
   
-  results_ode = ode1(300,t_all, g, k) # ode1 is defined above -- exact solutions
-  results_Heun = Heun(dX, 300, 80, dt, g, k) # dX is defined above,  dX/dt = g - k * X
-  results_RK2 = RK2(dX, 300, 80, dt, g, k) 
-  results_RK4 = RK4(dX, 300, 80, dt, g, k) 
-  results_Euler = Euler(dX, 300, 80, dt, g, k)   #Euler is defined above
+  results_ode = ode1(X0 = 300, t.total = t_all, g = g, k = k) # exact solutions
+  results_Heun = Heun(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k) # dX/dt = g - k * X
+  results_RK2 = RK2(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
+  results_RK4 = RK4(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
+  results_Euler = Euler(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
   
   ind = ind + 1
   errors_Heun[ind] = rmsd(results_ode, results_Heun[,2])
   errors_RK2[ind] = rmsd(results_ode, results_RK2[,2])
   errors_RK4[ind] = rmsd(results_ode, results_RK4[,2])
   errors_Euler[ind] = rmsd(results_ode, results_Euler[,2])
-#  errors_RK2[ind];errors_Euler[ind]
 }
 
 plot(dt_all, errors_Heun, type = "p", col = 2, 
@@ -398,10 +404,10 @@ nsteps = as.integer(t_total/dt)
 res = matrix(data = 0, nrow=2, ncol=nsteps)
 results6 = .Fortran("ode_1g_rk4",as.double(X0),as.double(dt), as.integer(nsteps), res)
 a = rbind(c(0.,X0),t(results6[[4]]))
-results7 = RK4(dX, 300, 80, 0.1, g, k) 
-results8 = RK2(dX, 300, 80, 0.1, g, k) 
-results9 = Euler(dX, 300, 80, 0.1, g, k)
-results10 = ode1(300,seq(0,t_total,dt), g, k) # exact solutions
+results7 = RK4(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
+results8 = RK2(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
+results9 = Euler(derivs = dX, X0 = 300, t.total = 80, dt = dt, g = g, k = k)
+results10 = ode1(X0 = 300, t.total = seq(0,t_total,dt), g = g, k = k) # exact solutions
 rmsd(a[,2], results7[,2])  # Compare RK4 in Fortran with RK4 in R
 rmsd(a[,2], results8[,2])  # Compare RK4 in Fortran with RK2 in R
 rmsd(a[,2], results9[,2])  # Compare RK4 in Fortran with Euler in R
@@ -447,7 +453,6 @@ In this case, however, $f(N_{n+1},t_{n+1}) = g - kX_{n+1}$. Thus,
 $$ X_{n+1} = \frac{X_n + hg}{1 + hk}$$
 ```{r}
 # Backward Euler for the gene expression model
-# Note that ellipsis (...) is used ot pass any argument to the function. 
 Euler_backward_1g <- function(t0, X0, t.total, dt, g, k){
   # t0: initial time
   # X0: initial condition

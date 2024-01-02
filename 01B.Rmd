@@ -19,19 +19,19 @@ For example, one should use factors when possible, as they are good for statisti
 # Avoid growing vectors
 The following code is extremely slow for large n.
 ```{r}
-n = 10
-v = c()
-for(i in seq_len(n)){
-  v = c(v, i**2)
+n = 10 # Set the value of n to 10
+v = c() # Create an empty vector v
+for (i in seq_len(n)) { # Use a for loop to iterate from 1 to n
+  v = c(v, i^2) # Append the square of i to vector v
 }
-v
+v # Print the resulting vector v
 ```
 A better way creates an array of final length first.
 ```{r}
 n = 10
-v = numeric(n)
-for(i in seq_len(n)) {
-  v[i] = i**2
+v = numeric(n) # Create a numeric vector v of length n filled with zeros
+for (i in seq_len(n)) {
+  v[i] = i^2 # Assign the square of i to the corresponding element in the vector v
 }
 v
 ```
@@ -39,8 +39,9 @@ v
 # Vectorize codes
 An even better approach is the following. It uses vector operations instead.
 ```{r}
-v = seq_len(n)
-v = v*v
+n = 10
+v = seq_len(n) # Generate a sequence from 1 to n
+v = v * v # Square each element in the vector v
 v
 ```
 
@@ -48,32 +49,50 @@ Iteration is commonly used in programming. Unfortunately, iteration, *e.g.*, usi
 
 $$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}}$$
 ``` {r}
+# Initialize variables
 my_sum = 0
 my_sum2 = 0
 num = 100
-for (i in seq_len(num)) {
+
+for (i in seq_len(num)) { # Loop through a sequence from 1 to num
   my_sum = my_sum + i
-  my_sum2 = my_sum2 + i*i
+  my_sum2 = my_sum2 + i^2
 }
-my_mean = my_sum/num
-my_sd = sqrt(my_sum2/num - my_mean**2)
-my_mean; my_sd
+
+# Calculate mean and standard deviation
+my_mean = my_sum / num
+my_sd = sqrt(my_sum2 / num - my_mean^2)
+
+# Print the mean and standard deviation
+my_mean
+my_sd
 ```
 While the above code is typical for C or Fortran, a better approach for R is to use vector operations. 
 ```{r}
-v = seq_len(num)
+num = 100 # Define num
+v = seq_len(num) # Create a sequence from 1 to num
+
+# Calculate mean, variance, and standard deviation
 my_mean = mean(v)
-my_variance = mean(v*v)
-my_sd = sqrt(my_variance - my_mean**2)
-my_mean; my_sd
+my_variance = mean(v^2)
+my_sd = sqrt(my_variance - my_mean^2)
+
+# Print the mean and standard deviation
+my_mean
+my_sd
 ```
 Apply can be used to perform operations for columns (or rows) of a matrix.
 ```{r}
-mat = matrix(rnorm(16), nrow = 4)    # generating a random matrix of 4 x 4
+library(MASS) # Load the necessary library for matrix operations
+
+mat = matrix(rnorm(16), nrow = 4) # Generate a random matrix of size 4x4
+
+# Calculate means, means squared, and standard deviations
 means = apply(mat, 2, mean)
-means2 = apply(mat*mat, 2, mean)
-sd = sqrt(means2 - means*means)
-sd
+means2 = apply(mat * mat, 2, mean)
+sd = sqrt(means2 - means^2)
+
+sd # Print the standard deviations
 ```
 
 In statistics, a lightly different definition is typically used.
