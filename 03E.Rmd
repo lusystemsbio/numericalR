@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Generating bifurcation diagram
 
-In this part, we will integrate what we have discussed in the Parts 4AB. The goal is to generate bifurcation diagrams to characterize the dynamical behavior of the toggle switch circuit. To generate a bifurcation diagram, we first need to specify a control parameter. We will plot bifurcation for the steady states of the circuit as the function of the control parameter. We will need to (1) choose the value of the control parameter; (2) identify nullclines; (3) find the steady states by the intersections of the two nullclines; (4) find the stability; (5) repeat 1 - 4 until we reconstruct the bifurcation diagram.
+In this part, we will integrate what we have discussed in the Parts 3AB. The goal is to generate bifurcation diagrams to characterize the dynamical behavior of the toggle switch circuit. To generate a bifurcation diagram, we first need to specify a control parameter. We will plot bifurcation for the steady states of the circuit as the function of the control parameter. We will need to (1) choose the value of the control parameter; (2) identify nullclines; (3) find the steady states by the intersections of the two nullclines; (4) find the stability; (5) repeat 1 - 4 until we reconstruct the bifurcation diagram.
 
 Here, we consider the same toggle switch circuit but with slightly modified parameters. The rate equations have two variables $X$ and $Y$ and two parameters $g_X$ and $k$.
 
@@ -90,7 +90,7 @@ find_intersection <- function(lineA, lineB, nA, nB) {
     # 3rd element: 1 means found, 0 means not found
   }
   else{
-    intersection = c(0,0,0)
+    intersection = c(alpha,beta,0)
   }
   return(intersection)
 }

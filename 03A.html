@@ -359,7 +359,8 @@ display: none;
 
 <div id="TOC">
 <ul>
-<li><a href="#a-system-with-two-variables" id="toc-a-system-with-two-variables">A system with two variables</a>
+<li><a href="#a-two-variable-toggle-switch-circuit" id="toc-a-two-variable-toggle-switch-circuit">A two-variable toggle
+switch circuit</a>
 <ul>
 <li><a href="#ode-simulations" id="toc-ode-simulations">ODE
 simulations</a></li>
@@ -379,27 +380,28 @@ method</a></li>
 two variables and apply them to model a gene circuit with two genes. We
 will focus on phase plane analysis for a visual characterization of
 nonlinear dynamical systems.</p>
-<div id="a-system-with-two-variables" class="section level1">
-<h1>A system with two variables</h1>
+<div id="a-two-variable-toggle-switch-circuit" class="section level1">
+<h1>A two-variable toggle switch circuit</h1>
 <p>We first model the toggle switch circuit with two genes <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, whose dynamics can be described by a
 set of two ODEs below (<em>i.e.</em>, Equation (13) in Part 2A).</p>
 <p><span class="math display">\[\begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{X_0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}}
-- k_XX \\
-              \frac{dY}{dt} = g_{Y_0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}
-- k_YY \end{cases}
+\begin{cases} \frac{dX}{dt} = g_{X0} +
+g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}} - k_XX \\
+              \frac{dY}{dt} = g_{Y0} +
+g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}} - k_YY \end{cases}
 \end{equation}\]</span></p>
 <div id="ode-simulations" class="section level3">
 <h3>ODE simulations</h3>
 <p>Below shows functions to compute the derivatives of the toggle switch
 circuit. For illustration, the kinetic parameters of the circuit are
 hard coded in the script.</p>
-<pre class="r"><code>hill_inh &lt;- function(X,X0,n) {
-  a = (X/X0)**n
+<pre class="r"><code>hill_inh &lt;- function(X,X_th,n) { # inhibitory Hill function
+# X_th: Hill threshold, n: Hill coefficient
+  a = (X/X_th)**n
   return(1/(1+a))
 }
 
-derivs_ts &lt;- function(t, Xs) {
+derivs_ts &lt;- function(t, Xs) {  # Calculate derivative function for a toggle switch circuit
   X = Xs[1]
   Y = Xs[2]
   dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
@@ -516,10 +518,10 @@ two nullclines for (1) <span class="math inline">\(\frac{dX}{dt} =
 0\)</span> and (2) <span class="math inline">\(\frac{dY}{dt} =
 0\)</span>. In the current example, the first nullcline satisfies</p>
 <p><span class="math display">\[f_X(X, Y) = g_{X0} +
-g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX = 0  \tag{1} \]</span> The second
-one satisfies</p>
+g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}} - k_XX = 0  \tag{1} \]</span> The
+second one satisfies</p>
 <p><span class="math display">\[ f_Y(X, Y) = g_{Y0} +
-g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY = 0 \tag{2} \]</span></p>
+g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}} - k_YY = 0 \tag{2} \]</span></p>
 <p>The curve for an equation like <span class="math inline">\(f_X(X, Y)
 = 0\)</span> can be obtain numerically, as we will discussed very soon.
 But for this relatively simple example, we can get the curve right away
@@ -527,10 +529,10 @@ by <em>separation of variables</em>.</p>
 <p>From Equation (1), we can move <span class="math inline">\(k_XX\)</span> to the right hand side, and we
 have</p>
 <p><span class="math display">\[X(Y)  = \frac{g_{X0} +
-g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}}}{k_X} \tag{3}\]</span></p>
+g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}}}{k_X} \tag{3}\]</span></p>
 <p>Similarly, from Equation (2), we can also get</p>
 <p><span class="math display">\[ Y(X) = \frac{g_{Y0} +
-g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}}{k_Y} \tag{4} \]</span></p>
+g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}}}{k_Y} \tag{4} \]</span></p>
 <p>The first nullcline (Equation (3)) can also be expression as <span class="math inline">\(Y(X)\)</span>. Although we don’t have to, as <span class="math inline">\(X(Y)\)</span> is sufficient to characterize the
 nullcline curve numerically.</p>
 <pre class="r"><code>X_all = seq(0, 600, by=1)   # all X grids
@@ -615,12 +617,18 @@ dfdY_null2 &lt;- function(X, Y) {
   return(-0.12)
 }
 
-# Newton&#39;s Method
-find_root_Newton &lt;- function(X, func, dfunc, parms, X_range, error = 10^-3) {
-  while(abs(func(X, parms)) &gt; error){
-    f = func(X, parms)
-    X = X - f/dfunc(X, parms)
-    if((X-X_range[1])*(X-X_range[2]) &gt; 0) break 
+# Newton&#39;s Method (single variable)
+find_root_Newton &lt;- function(X, func, dfunc, X_range, error = 10^-3, ...) {
+  #X: Initial guess of X
+  #func: function f(X,...)
+  #dfunc: df/dX
+  #X_range: lower and upper limits of root X. If X is outside of the range, the algorithm stops.
+  f = func(X, ...)
+  while(abs(f) &gt; error){
+    X = X - f/dfunc(X, ...)
+    if((X-X_range[1])*(X-X_range[2]) &gt; 0) break  # Check if X is in within X_range; 
+    # This would avoid potential infinite loop; When this occurs, the Newton&#39;s method doesn&#39;t converge.
+    f = func(X, ...)
   }
   return(X)
 }
@@ -681,7 +689,7 @@ nullcline_numcont &lt;- function(func, dfdX, dfdY, X_range, Y_range, X_init, Y_i
     Y = Y + step_Y
     X_init = X_new + step_X
     
-    X_new = find_root_Newton(X=X_init, func=func, dfunc=dfdX, parms=Y, X_range = X_range) 
+    X_new = find_root_Newton(X=X_init, func=func, dfunc=dfdX, X_range = X_range, Y = Y) 
     
     cycle = cycle + 1
     results[cycle,] = c(X_new, Y)

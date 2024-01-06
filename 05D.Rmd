@@ -1,5 +1,5 @@
 ---
-title: 'Part 4: Systems with time delays'
+title: "Part 5: Molecular dynamics"
 subtitle: "D. Exercises"
 author: "Mingyang Lu"
 date: "08/18/2023"
@@ -49,6 +49,6 @@ The first term is the Lennard Jones potential between any two atoms. The second 
 
 **(1)** Write a function to compute the total force for each atom.
 
-**(2)** Write a code to perform a dynamics simulation of the box of the $N_{total}=15$ molecules using the velocity Verlet method. We consider the mass of each atom $m_i = 1$ (thus can be omitted), and $l_bond = 1$.
+**(2)** Write a code to perform a dynamics simulation of the box of the $N_{total}=15$ molecules using the velocity Verlet method. We consider the mass of each atom $m_i = 1$ (thus can be omitted), and $l_{bond} = 1$.
 
 **(3)** Simulate the system for a sufficiently long time and compute the radial distribution function. 

@@ -86,15 +86,24 @@ find_intersection <- function(lineA, lineB, nA, nB) {
 lineA = array(c(0,1,2,0,0,0), c(3,2)) 
 lineB = array(c(0.5,0.5,0.5,1,-1,-3), c(3,2))
 
-find_intersection(lineA, lineB, 1, 1)
-find_intersection(lineA, lineB, 1, 2)
-find_intersection(lineA, lineB, 2, 2)
+# Plotting lines in R
+plot(lineA, type='l', col='red', lwd=2, pch=16, ylim=c(min(lineA[,2], lineB[,2]), max(lineA[,2], lineB[,2])),
+     xlab='X', ylab='Y')
+lines(lineB, type='l', col='blue', lwd=2, pch=16)
+points(lineA, col='red', pch=16)
+points(lineB, col='blue', pch=16)
+
+# Adding labels and legend
+legend('topright', legend=c('Line A', 'Line B'), col=c('red', 'blue'), lty=1, lwd=2, pch=16)
+
+find_intersection(lineA, lineB, 1, 1) # Intersect at (0.5, 0)
+find_intersection(lineA, lineB, 1, 2) # No intersection
+find_intersection(lineA, lineB, 2, 2) # No intersection
 ```
 
 We can then find all intersections by running the find_intersection function through all possible line segments, as shown in the code below.
 
 ``` {r}
-
 find_intersection_all <- function(lineA, lineB) {
   lineA_ind = seq_len(nrow(lineA)-1) 
   lineB_ind = seq_len(nrow(lineB)-1) 
@@ -108,13 +117,12 @@ load("./extra/data/03A/null_03A.Rdata")
 
 ss_all = find_intersection_all(null1_cont, null2_cont)
 ss_all
-
 ```
 
 This approach works fine. However, it is very slow, as it has to go through all pairs of line segments. To address this issue, we can search along of the first nullcline $\frac{dX}{dt}=0$, and check for sign flipping of $\frac{dY}{dt}$ between two consecutive points. Similarly, we can search along the second nullcline $\frac{dY}{dt}=0$, and check for sign flipping of $\frac{dX}{dt}$ between two consecutive points. Once we find those cases, we then identify the intersection value for any of the combinations. 
 
 ``` {r}
-# the same derivative function as the one in Part 3A
+# Same derivative function from Part 3A
 hill_inh <- function(X,X0,n) {
   a = (X/X0)**n
   return(1/(1+a))

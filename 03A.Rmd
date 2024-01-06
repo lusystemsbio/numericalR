@@ -15,13 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In Part 3, we will generalize what we learn from Part 2 to ODEs with two variables and apply them to model a gene circuit with two genes. We will focus on phase plane analysis for a visual characterization of nonlinear dynamical systems.
 
-# A system with two variables
+# A two-variable toggle switch circuit
 
 We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynamics can be described by a set of two ODEs below (*i.e.*, Equation (13) in Part 2A). 
 
 \begin{equation}
-\begin{cases} \frac{dX}{dt} = g_{X_0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\
-              \frac{dY}{dt} = g_{Y_0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY \end{cases}
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}} - k_XX \\
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}} - k_YY \end{cases}
 \end{equation}
 
 ### ODE simulations
@@ -29,12 +29,13 @@ We first model the toggle switch circuit with two genes $X$ and $Y$, whose dynam
 Below shows functions to compute the derivatives of the toggle switch circuit. For illustration, the kinetic parameters of the circuit are hard coded in the script. 
 
 ``` {r}
-hill_inh <- function(X,X0,n) {
-  a = (X/X0)**n
+hill_inh <- function(X,X_th,n) { # inhibitory Hill function
+# X_th: Hill threshold, n: Hill coefficient
+  a = (X/X_th)**n
   return(1/(1+a))
 }
 
-derivs_ts <- function(t, Xs) {
+derivs_ts <- function(t, Xs) {  # Calculate derivative function for a toggle switch circuit
   X = Xs[1]
   Y = Xs[2]
   dxdt = 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X
@@ -146,20 +147,20 @@ p1
 
 Another convenient way to evaluate the behavior of a nonlinear dynamical system is the techniques of nullcline analysis. A nullcline corresponds to the steady state condition of one ODE. Thus, there are two nullclines for (1) $\frac{dX}{dt} = 0$ and (2) $\frac{dY}{dt} = 0$. In the current example, the first nullcline satisfies 
 
-$$f_X(X, Y) = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX = 0  \tag{1} $$
+$$f_X(X, Y) = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}} - k_XX = 0  \tag{1} $$
 The second one satisfies
 
-$$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}} - k_YY = 0 \tag{2} $$
+$$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}} - k_YY = 0 \tag{2} $$
 
 The curve for an equation like $f_X(X, Y) = 0$ can be obtain numerically, as we will discussed very soon. But for this relatively simple example, we can get the curve right away by *separation of variables*.
 
 From Equation (1), we can move $k_XX$ to the right hand side, and we have
 
-$$X(Y)  = \frac{g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}}}{k_X} \tag{3}$$
+$$X(Y)  = \frac{g_{X0} + g_{X1}\frac{1}{1+(Y/Y_{th})^{n_Y}}}{k_X} \tag{3}$$
 
 Similarly, from Equation (2), we can also get
 
-$$ Y(X) = \frac{g_{Y0} + g_{Y1}\frac{1}{1+(X/X_0)^{n_X}}}{k_Y} \tag{4} $$
+$$ Y(X) = \frac{g_{Y0} + g_{Y1}\frac{1}{1+(X/X_{th})^{n_X}}}{k_Y} \tag{4} $$
 
 The first nullcline (Equation (3)) can also be expression as $Y(X)$. Although we don't have to, as $X(Y)$ is sufficient to characterize the nullcline curve numerically. 
 
@@ -232,12 +233,18 @@ dfdY_null2 <- function(X, Y) {
   return(-0.12)
 }
 
-# Newton's Method
-find_root_Newton <- function(X, func, dfunc, parms, X_range, error = 10^-3) {
-  while(abs(func(X, parms)) > error){
-    f = func(X, parms)
-    X = X - f/dfunc(X, parms)
-    if((X-X_range[1])*(X-X_range[2]) > 0) break 
+# Newton's Method (single variable)
+find_root_Newton <- function(X, func, dfunc, X_range, error = 10^-3, ...) {
+  #X: Initial guess of X
+  #func: function f(X,...)
+  #dfunc: df/dX
+  #X_range: lower and upper limits of root X. If X is outside of the range, the algorithm stops.
+  f = func(X, ...)
+  while(abs(f) > error){
+    X = X - f/dfunc(X, ...)
+    if((X-X_range[1])*(X-X_range[2]) > 0) break  # Check if X is in within X_range; 
+    # This would avoid potential infinite loop; When this occurs, the Newton's method doesn't converge.
+    f = func(X, ...)
   }
   return(X)
 }
@@ -298,7 +305,7 @@ nullcline_numcont <- function(func, dfdX, dfdY, X_range, Y_range, X_init, Y_init
     Y = Y + step_Y
     X_init = X_new + step_X
     
-    X_new = find_root_Newton(X=X_init, func=func, dfunc=dfdX, parms=Y, X_range = X_range) 
+    X_new = find_root_Newton(X=X_init, func=func, dfunc=dfdX, X_range = X_range, Y = Y) 
     
     cycle = cycle + 1
     results[cycle,] = c(X_new, Y)
