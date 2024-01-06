@@ -45,6 +45,30 @@ $$\frac{dX}{dt} = 10 + 45\frac{X^4}{X^4+200^4} - kX$$
 
 In this problem, we will explore a phenomenon called hysteresis, where the system's behavior depends on its history.
 
-**(1)** Simulate, with any ODE integrator of your choice (*e.g.*, RK4), the gene expression dynamics of the circuit by gradually increasing $k$ from 0.1 to 0.2, starting from the steady state when $k = 0.1$. 
+**(1)** Simulate, with an ODE integrator of your choice (*e.g.*, RK4), the gene expression dynamics of the circuit by gradually increasing $k$ from 0.1 to 0.2 for a duration of $t_{tot} = 1000$, starting from the steady state when $k = 0.1$. Plot X(t). *Hint:* to simulate the circuit with uniformly increasing $k$, you can define the derivative function $f(X, t) =  10 + 45\frac{X^4}{X^4+200^4} - kX$, where $k = 0.1 + 0.1*t/t_{tot}$. 
 
-**(2)** Simulate the gene expression dynamics of the same circuit by gradually decreasing $k$ from 0.2 to 0.1, starting from the steady state when $k = 0.2$. Find the similarity and differences of the two time trajectories, *i.e.*, $X(t)$. (Hint: you can plot $k$ vs. $X$ for both time trajectories altogether and visually inspect their relationship.)
+**(2)** Simulate the gene expression dynamics of the same circuit by gradually decreasing $k$ from 0.2 to 0.1 for a duration of $t_{tot} = 1000$, starting from the steady state when $k = 0.2$. Plot X(t). *Hint:* think what to do for the simulation with uniformly decreasing $k$.
+
+**(3)** Plot $X(k)$ for the above two time trajectories together with the bifurcation diagram obtained from Part 02E. Briefly describe your observations.
+
+# 4. Another bifurcation 
+
+We consider a gene circuit model related to the one discussed in Part 02E, described by the following ODE.
+
+\begin{equation}
+\frac{dX}{dt} = f(X,g) = 10 + g\frac{X^4}{X^4+200^4} - 0.15X 
+\end{equation}
+
+Here, $g$ is the control parameter in the range of (0, 100). Plot the bifurcation diagram of the steady-state $X$ as the function of the control parameter $g$. 
+
+# 5. The Spruce Budworm model 
+
+The spruce budworm, an insect inhabiting spruce-fir forests in the USA and Canada, typically maintains low population levels. However, there are intermittent surges in budworm populations that inflict significant damage on the forests. If we consider the intrinsic growth of budworm populations in isolation, they adhere to the logistic growth model. An additional factor in the dynamics of budworm involves predation by birds. Consequently, we can characterize the dynamics of the budworm using the following equation.
+
+$$ \frac{dN}{dt} = rN(1-\frac{N}{K}) - \frac{\rho N}{N+A}$$
+We choose the following parameters: growth rate $r = 0.2$, carrying capability $K=1000$, and half saturation population of predation $A = 250$. Explore the bifurcation diagram of the spruce budworm population ($N$) by varying the predation parameter $\rho$. From the bifurcation plot, identify regions of stability, bifurcation points, and the emergence of different population dynamics. 
+
+Hint: see if you can obtain this following bifurcation diagram.
+
+<center> ![Figure 1](./extra/data/02F/fig1.png){width=70%} </center>
+<br/>

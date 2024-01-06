@@ -33,8 +33,8 @@ We first plot the vector field of the modified ODEs in the phase plane.
 
 ``` {r,fig.width = 5, fig.height = 5}
 library(ggplot2)
-hill_inh <- function(X,X0,n) {
-  a = (X/X0)**n
+hill_inh <- function(X,Xth,n) {
+  a = (X/Xth)**n
   return(1/(1+a))
 }
 
@@ -102,16 +102,18 @@ dt  = 0.01
 X_range = c(0,600)
 Y_range = c(0,650)
 
-X_init_all = array(runif(20, 0, 600), dim = c(10,2)) # generate 10 random initial conditions
-for(i in seq_len(nrow(X_init_all))){
-  results = RK4_generic(derivs_ts_orig, X_init_all[i,], t.total, dt)
+# Simulations of the original system
+X_init_1 = array(runif(20, 0, 600), dim = c(10,2)) # generate 10 random initial conditions
+for(i in seq_len(nrow(X_init_1))){
+  results = RK4_generic(derivs_ts_orig, X_init_1[i,], t.total, dt)
   colnames(results) = c("t", "X", "Y")
   p1 = p1 + geom_path(data=as.data.frame(results), aes(x=X, y=Y), color = "blue")
 }
-X_init_all = array(runif(20, -1, 1), dim = c(10,2)) # generate 10 random initial conditions
 
-for(i in seq_len(nrow(X_init_all))){
-  X_init = X_init_all[i,] + c(189.96888, 126.64398)
+# Simulation to find separatrix
+X_init_2 = array(runif(20, -1, 1), dim = c(10,2)) # generate 10 random initial conditions
+for(i in seq_len(nrow(X_init_2))){
+  X_init = X_init_2[i,] + c(189.96888, 126.64398)
   results = RK4_generic(derivs_ts_revised, X_init, t.total, dt)
   results = results[which(((results[,2] - X_range[1])*(results[,2] - X_range[2]) <0) &
           ((results[,3] - Y_range[1])*(results[,3] - Y_range[2]) < 0)),] # filter points outside of the plotting area

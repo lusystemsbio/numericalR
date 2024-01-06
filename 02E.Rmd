@@ -175,6 +175,8 @@ The expression is defined as a function h, which will be used later. Therefore, 
               X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
 \end{equation}
 
+## Newton's method
+
 We can then use a correction method, such as Newton's method, to find the nearby solution. For Newton's method, we solve $f(X) = 0$ starting from an initial guess at $X_0$. 
 
 $$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
@@ -214,43 +216,49 @@ find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = 0.15)   # bistable, first r
 find_root_Newton(100, derivs_k, dfdX, c(0, 800), k = 0.15)  # another root near 100
 find_root_Newton(150, derivs_k, dfdX, c(0, 800), k = 0.15)  # the last root (unstable) near 150
 ```
+## An implementation of the continuation method
 
 Now, we implement the numerical continuation method by uniformly varying $k$. 
 
 ``` {r}
-# partial derivatives of f, see Equation (1) for the expression of f 
+# Define the partial derivative df/dk; see Equation (1) for the expression of f 
 dfdk <- function(X, k) return(-X)
-#dfdX see the above code block
+#dfdX was defined earlier
 
-X_init = 0
-k_range = c(0.1, 0.2)
-dk = 0.001
-nmax_cycle = (k_range[2] - k_range[1])/dk + 1
+# Algorithm parameters
+X_init = 0 # Initial condition of X
+k_range = c(0.1, 0.2) # Range of parameter k
+dk = 0.001 # Step size for parameter k
+nmax_cycle = (k_range[2] - k_range[1])/dk + 1 # Maximum number of cycles
 
-results = matrix(NA, nrow = nmax_cycle, ncol = 3)
+results = matrix(NA, nrow = nmax_cycle, ncol = 3) # Create a matrix to store results
 cycle = 1
 k = 0.1
-X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # initial X from ODE simulation
+
+X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=c(k,d))$y  # Obtain initial steady-state X from ODE simulation
 results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
-while((k - k_range[1]) * (k - k_range[2]) <= 0) {   # check if k is in the range of [k_min, k_max]
-  slope = -dfdk(X_new, k)/dfdX(X_new, k)  # directly compute the slope of the bifurcation curve
+
+while((k - k_range[1]) * (k - k_range[2]) <= 0) {   # Check if k is in the range of [k_min, k_max]
+  slope = -dfdk(X_new, k)/dfdX(X_new, k)  # Compute the slope of the bifurcation curve (Equation 4)
   # in this implementation, slope can be infinity near a bifurcation point
   k = k + dk
   X_init = X_new + dk * slope
   
-  X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, parms=k, X_range = c(0, 800)) # root from Newton's method
-#  X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # an alternative way: root from ODE simulation
+  X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, X_range = c(0, 800), k = k) # Correction using Newton's method
   cycle = cycle + 1
 
-  results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
+  results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k))) # Store results
 }
 
+# Plot the bifurcation diagram
 plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
 points(results[,1], results[,2], pch = 1, cex = 0.3, col = 1)
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
 ```
 
 We can see that the algorithm works very well until it reaches to a bifurcation point, where the slope is infinity. It is also a little bit cumbersome to control the direction to move (the same slope can corresponds to two different directions). Thus, we only get a part of the bifurcation curve. 
+
+## An improved continuation method using arc length
 
 To improve the method, we describe the bifurcation curve as the function of arc length $s$, instead of the control parameter $k$. Previously we aim to find $X(k)$, but here we will find $X(s)$ and $k(s)$.
 
@@ -272,17 +280,20 @@ Therefore, we get
 ,where $h(X,k) = \frac{dX}{dk}$ can be computed according to Equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in Equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
 
 ``` {r}
-X_init = 0
-k_range = c(0.1, 0.2)
-ds = 0.3    # step size for the arc length
-nmax_cycle = 10000
+# Algorithm parameters
+X_init = 0 # Initial condition of X
+k_range = c(0.1, 0.2) # Range of parameter k
+ds = 0.3    # Step size for the arc length
+nmax_cycle = 10000 # Maximum number of cycles
 
-results = matrix(NA, nrow = nmax_cycle, ncol = 3)
+results = matrix(NA, nrow = nmax_cycle, ncol = 3)  # Create a matrix to store results
 cycle = 1
 k = 0.1
+d = 1
 step_k_previous = 1   # initial step_k is positive
 step_X_previous = 0
-X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=k)$y  # initial X from ODE simulation
+
+X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=c(k,d))$y  # Obtain initial steady-state X from ODE simulation
 results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
 while(((k - k_range[1]) * (k - k_range[2]) <= 0) & (cycle < nmax_cycle)) {
   h = -dfdk(X_new, k)/dfdX(X_new, k)  
@@ -300,7 +311,7 @@ while(((k - k_range[1]) * (k - k_range[2]) <= 0) & (cycle < nmax_cycle)) {
   k = k + step_k
   X_init = X_new + step_X
   
- X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, parms=k, X_range = c(0, 800)) # root from Newton's method
+ X_new = find_root_Newton(X=X_init, func=derivs_k, dfunc=dfdX, X_range = c(0, 800), k = k) # Correction using Newton's method
   
   cycle = cycle + 1
   results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
@@ -310,7 +321,6 @@ results = na.omit(results)
 plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600))
 points(results[,1], results[,2], pch = 1, cex = 0.3, col = (3-results[,3])/2)
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
-
 ```
 
 The above implementation works great in this example. It also works reasonably well without the correction method (find_root_Newton). However, numerical continuation may suffer from the divergent issue of Newton's method when the system is near a bifurcation point. In such cases, $f'(X)$ is close to zero. There are methods to alleviate this issue, *.e.g.*, [Halley's method](https://en.wikipedia.org/wiki/Halley%27s_method).
