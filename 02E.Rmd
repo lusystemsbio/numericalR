@@ -234,6 +234,7 @@ nmax_cycle = (k_range[2] - k_range[1])/dk + 1 # Maximum number of cycles
 results = matrix(NA, nrow = nmax_cycle, ncol = 3) # Create a matrix to store results
 cycle = 1
 k = 0.1
+d = 1
 
 X_new = runsteady(y=X_init,func=derivs_k_deSolve, parms=c(k,d))$y  # Obtain initial steady-state X from ODE simulation
 results[cycle,] = c(k, X_new, -sign(dfdX(X_new, k)))
