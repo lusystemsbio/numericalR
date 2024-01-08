@@ -7,6 +7,8 @@
 
 # User-specific files
 .Ruserdata
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
 
 # Example code in package build process
 *-Ex.R
