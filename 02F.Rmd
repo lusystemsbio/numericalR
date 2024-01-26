@@ -15,23 +15,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # 1. Adams-Bashforth Method
 
-The Adams-Bashforth Method is a two-step method for ODE integration. It requires to know both data points for $t_n$ and $t_{n+1}$.
+The Adams-Bashforth Method is a two-step technique designed for the integration of a single-variable Ordinary Differential Equation (ODE) of $N(t)$. At each iteration, the method requires knowledge of two data points, represented as ($t_n$, $N_n$) and ($t_{n+1}$, $N_{n+1}$), to compute ($t_{n+2}$, $N_{n+2}$).
+
+The iterative formula of the Adams-Bashforth Method is expressed as follows:
 
 \begin{equation}
-N_{n+2} = N_{n+1} + \frac{3}{2}hf(t_{n+1}, N_{n+1}) - \frac{1}{2}hf(t_n, N_n)
+N_{n+2} = N_{n+1} + \frac{3}{2}hf(t_{n+1}, N_{n+1}) - \frac{1}{2}hf(t_n, N_n) 
 \end{equation}
 
-$h = \Delta t$ is the time step size. Starting from the data point for $t_0$, we first apply Euler method for one time step to obtain the data point for $t_1$. We then can apply the Adams-Bashforth method iteratively afterwards for $t_2$, $t_3$, *etc*.
+$h = \Delta t$ is the time step size. Starting from the initial condition $N_0$, we initiate the process by employing the Euler method for a single step to obtain the next point $N_1$. Subsequently, the Adams-Bashforth method is applied iteratively to compute $N_2$, $N_3$, *etc*.
 
 **(a)** Proof the Adams-Bashforth method and show that it is second order (,which means that its accuracy is at $O(\Delta t^3)$. You will need to use Taylor expansion (for a one-variable function and a two-variable function) and the formula of a total derivative:
 
 $$\frac{df(X,t)}{dt} = \frac{\partial f}{\partial t} + \frac{\partial f}{\partial X}\frac{dX}{dt} $$
+**(b)** Provide a pseudocode for the Adams-Bashforth method.
 
-**(b)** Use the exponential growth model as an example. Apply the Adams-Bashforth method and compare the ODE simulation with the exact solution from an analytical calculation. To evaluate the performance, you will need to vary different time step sizes and compute 
+**(c)** Implement the Adams-Bashforth method. Utilize an existing ODE integrator from numericalR as a template, modifying the code to define a function for the Adams-Bashforth method.
 
-  (1). The RMSD between the simulation and the exact solution. 
+**(d)** Employ the exponential growth model as an example. Apply the Adams-Bashforth method and compare the ODE simulation with the exact solution obtained through analytical calculation. To assess performance, vary time step sizes and compute:
+
+  (1). The Root Mean Square Deviation (RMSD) between the simulation and the exact solution.
   
-  (2). The CPU time cost for the method for different time step sizes. (*e.g.*, using microbenchmark)
+  (2). The CPU time cost for the method for different time step sizes, for instance, utilizing microbenchmark in R or timeit in Python)
   
 # 2. Fourth order Runge-Kutta 
 

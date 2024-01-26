@@ -164,7 +164,7 @@ t_all = seq(0, 80, 0.1) # Time sequence for which output is needed
 X0_all = seq(50,400,50) ## all initial conditions, each leads to a different simulation
 
 legend_text = paste0("X0 = ", X0_all)
-plot(NULL, xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(0,500))  # Initiaze plotting
+plot(NULL, xlab="t (Minute)", ylab="X (nM)", xlim=c(0,80), ylim=c(0,500))  # Initialize plotting
 ind = 1
 for(X in X0_all){
   # ODE simulation per initial condition
