@@ -55,7 +55,7 @@ Hint: Pay attention the dot product operation ($\cdot$) in the definition of $R_
 
 # 2. Gene expression analysis
 
-You are provided with a gene expression dataset (derived from GSE17708) representing the expression levels of various genes across different samples. Your task is to perform summary statistics, filtering least variable genes, and gene expression correlations. The following block of R scripts read the data from a data file in the CSV format.
+You are provided with a gene expression dataset (derived from GEO:GSE17708) representing the expression levels of various genes across different samples. Your task is to perform summary statistics, filtering least variable genes, and gene expression correlations. The following block of R scripts read the data from a data file in the CSV format.
 
 ```{r}
 exp_data <- read.csv(file='./extra/data/01D/exp_data.csv', row.names = 1) # Read the gene expression data, 1st column as the row names (gene names)
@@ -67,13 +67,13 @@ In exp_data, each row represents a gene, and each column represents the expressi
 
 **2.1 Summary Statistics.** Write R scripts to compute summary statistics for each sample, including mean expression, median expression, and standard deviation. Create a bar plot to visually depict the mean and standard deviation for each sample.
 
-**2.2 Subsetting.** Compose R scripts to filter out genes from the dataset whose standard deviations are less than 0.5. Present the count of remaining genes in the data after the subsetting process (you should obtain less than 50 genes).
+**2.2 Filtering.** Compose R scripts to filter out genes from the dataset whose standard deviations are less than 0.5. Present the count of remaining genes in the data after the subsetting process (you should obtain less than 50 genes).
 
 **2.3 Gene Expression Correlations.** Write R scripts to conduct Pearson's correlations between the gene expression profiles of any two genes in the subsetted dataset. Identify and showcase the top 10 most correlated gene pairs.
 
 # 3. Stirling's approximation
 
-In Part B, we explored benchmarking code performance using the microbenchmark package. Now, let's further delve into benchmarking by computing $\ln n!$. While the provided code efficiently calculates $\ln n!$ for small values of $n$, it encounters limitations for large values (e.g., 1000) (think why;no need to answer).
+In Part B, we explored benchmarking code efficiency using the microbenchmark package. Now, let's further delve into benchmarking by computing $\ln n!$. While the provided code efficiently calculates $\ln n!$ for small values of $n$, it encounters limitations for large values (e.g., 1000) (think why).
 
 ```{r}
 ln_fact <- function(n) {
@@ -86,16 +86,16 @@ For larger $n$, we can express $\ln n!$ using the summation:
 
 $$f(n) = \ln n!=\sum_{j=1}^{n}\ln j$$
 
-**3.1 Benchmarking.** Develop R functions to compute $f(n)$ for different values of $n$ using the following methods:
+**3.1 Benchmarking.** Develop R functions to compute $f(n)$ for a large $n$ using the following methods:
 
 (1) Iteration with a for loop in R;
 (2) Utilize vectorization in R;
 (3) Employ Apply family functions (such as apply, lapply, etc.) in R;
 (4) Incorporate C or Fortran subroutines/functions.
 
-Benchmark the performance of these methods using microbenchmark.
+Benchmark code efficiency of these methods using microbenchmark.
 
-**3.2 Deviations of the Stirling's approximation.** In mathematics,a famous formula known as Stirling's approximation is present:
+**3.2 Deviations of the Stirling's approximation.** In mathematics, a famous formula known as Stirling's approximation is present:
 
 $$\ln n! \approx n\ln n - n$$
 Plot the relative difference of the left-hand side and the right-hand side, *.i.e.*,

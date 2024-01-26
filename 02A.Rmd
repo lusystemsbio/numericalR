@@ -126,7 +126,7 @@ H^{ex}(X) \equiv \frac{(X/X_{th})^{n_X}}{1+(X/X_{th})^{n_X}}  \tag{8}
 
 \end{equation}
 
-, $X_0$ is the threshold level of $X$ and $n^X$ is the Hill coefficient. $H^{ex}$ is nonlinear, with a minimum of 0 when $X=0$ and a maximum of 1 when $X\to\infty$. $H^{ex}$ is commonly used to describe protein interactions, transcription factor-DNA binding, *etc.*. The plot below shows the curves of the excitatory Hill function for different Hill coefficients. 
+, $X_{th}$ is the threshold level of $X$ and $n^X$ is the Hill coefficient. $H^{ex}$ is nonlinear, with a minimum of 0 when $X=0$ and a maximum of 1 when $X\to\infty$. $H^{ex}$ is commonly used to describe protein interactions, transcription factor-DNA binding, *etc.*. The plot below shows the curves of the excitatory Hill function for different Hill coefficients. 
 
 ``` {r}
 hill_ex <- function(X,X_th,n) {# inhibitory Hill function

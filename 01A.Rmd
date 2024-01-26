@@ -54,11 +54,11 @@ a*a # a multiplies a
 a**2 # square of a, which gives the same value as the previous one
 b = 3.0 + 4.0i  # complex number; assignment to b
 Mod(b) # The modulus of b
-c = (3 + 4 == 7)   # logical; c is TRUE
-!c   # not c, which is FALSE
-d = "Monday"  # character
-class(d)  # show the data type of d
-nchar(d)  # number of characters in a string
+d = (3 + 4 == 7)   # logical; d is TRUE
+!d   # not d, which is FALSE
+e = "Monday"  # character
+class(e)  # show the data type of e
+nchar(e)  # number of characters in a string
 ```
 
 ## Vectors
@@ -122,7 +122,7 @@ rowSums(mat)   # An alternative way to do row sum
 apply(mat, 2, sum)   # column sum
 colSums(mat)  # An alternative way to do column sum
 ```
-There are other apply-like functions, such as lappy, sappy, tapply, *etc.* [Check here for more details.](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family)
+There are other apply-like functions, such as lapply, sapply, tapply, *etc.* [Check here for more details.](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family)
 
 ## Functions
 ```{r}
@@ -258,7 +258,7 @@ means2 = colMeans(mat)   # an alternative way to compute column means
 means2
 ```
 
-## Usage of ellipsis in R funcitons
+## Usage of ellipsis in R functions
 When defining an R function, you may use ellipsis (*i.e.*, ...) to pass any argument to the function. This is especially useful when the function calls another function with varying number of arguments. For example, 
 
 ```{r}
