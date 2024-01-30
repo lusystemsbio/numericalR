@@ -1,0 +1,157 @@
+---
+title: "Part 3: Phase plane"
+subtitle: "I. Exercises"
+author: "Mingyang Lu"
+date: "08/17/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Numerical continuation for 2D bifurcation
+
+We consider the same toggle switch circuit, described in details in Parts 3ABEFG. The goal here is the reproduce the bifurcation curves from Part 3E using numerical continuation. From math, we will identify a curve that satisfy Equation (1) -- there are two equations and three variables.
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = f_X(X, Y, \lambda) = 0 \\
+              \frac{dY}{dt} = f_Y(X, Y, \lambda) = 0 \end{cases} \tag{1}
+\end{equation}
+
+Taking partial derivatives with respect to $X$, $Y$, and $\lambda$, we get
+
+\def\A{
+\begin{pmatrix}
+      \Delta X \\
+      \Delta Y 
+\end {pmatrix}}
+
+\def\B{
+\begin{pmatrix}
+      f_X \\
+      f_Y 
+\end {pmatrix}}
+
+\begin{equation}
+\begin{cases} \frac{\partial f_X}{\partial X}\Delta X + \frac{\partial f_X}{\partial Y}\Delta Y + \frac{\partial f_X}{\partial \lambda}\Delta \lambda = 0  \\
+              \frac{\partial f_Y}{\partial X}\Delta X + \frac{\partial f_Y}{\partial Y}\Delta Y + \frac{\partial f_Y}{\partial \lambda}\Delta \lambda = 0 \end{cases}
+\end{equation}
+
+Taking the matrix form, we have
+
+$$ \mathbf{J} \A + \frac{\partial}{\partial \lambda}\B \Delta \lambda = 0 \tag{2}$$
+
+$\mathbf{J}$ is the Jacobian matrix, $\mathbf{\Delta X} = \A$, $\mathbf{f} = \B$. So, Equation (2) becomes
+
+$$ \mathbf{J}\mathbf{\Delta X}  + \frac{\partial}{\partial \lambda}\mathbf{f} \Delta \lambda = 0 \tag{3}$$
+Thus, we will obtain
+
+$$ \frac{d\mathbf{X}}{d\lambda}  = - \mathbf{J}^{-1}\frac{\partial}{\partial \lambda}\mathbf{f} \tag{4}$$
+Equation (4) is a generalization of Equation (2) in Part 2E. From $\frac{d\mathbf{X}}{d\lambda}$, we can compute changes in $\lambda$, $X$ and $Y$ along the bifurcation curve.
+
+Implement the algorithm, and calculate the bifurcation curves in Part 3E.
+
+# 2. A flip-flop gene circuit
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 1](./extra/data/03H/fig1.png){width=20%} </center>
+<br/>
+
+$X$ actives $Y$, and $Y$ inhibit $X$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = g_{X0} + g_{X1}\frac{1}{1+(Y/Y_0)^{n_Y}} - k_XX \\ 
+              \frac{dY}{dt} = g_{Y0} + g_{Y1}\frac{(X/X_0)^{n_Y}}{1+(X/X_0)^{n_X}} - k_YY \end{cases} \tag{5}
+\end{equation}
+
+Explore the behavior of the system with the phase plane analysis. 
+
+(1) How many steady states the circuit can have?
+
+(2) What are the stability property of the steady states?
+
+# 3. A toggle switch circuit with self-activating genes
+
+Consider a gene circuit of two transcription factors $X$ and $Y$:
+
+<center> ![Figure 2](./extra/data/03I/fig1.png){width=20%} </center>
+<br/>
+
+$X$ can both inhibit $Y$ and activate $X$; $Y$ can both inhibit $X$ and activate $Y$. We consider the chemical rate equations of the system for the levels of $X$ and $Y$ as:
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = (g_{X0} + g_{X1}\frac{(X/X_{0X})^{n_{XX}}}{1+(X/X_{0X})^{n_{XX}}})\frac{1}{1+(Y/Y_{0X})^{n_{YX}}} - k_XX \\
+              \frac{dY}{dt} = (g_{Y0} + g_{Y1}\frac{(Y/Y_{0Y})^{n_{YY}}}{1+(Y/Y_{0Y})^{n_{YY}}})\frac{1}{1+(X/X_{0Y})^{n_{XY}}} - k_YY \end{cases}
+\end{equation}
+
+In the ODEs, $g_{X0}$, $g_{X1}$, $X_{0X}$, $Y_{0Y}$, $Y_{0X}$, $X_{0Y}$, $n_{XX}$, $n_{YX}$, $n_{YY}$, $n_{XY}$, $k_X$, and $k_Y$ are all parameters. 
+
+Explore the behavior of the system computationally with the phase plane analysis. You can choose any numerical methods we have discussed. Find an example (*i.e.*, a set of parameters) where the system allows a total of five steady states (three of them are stable).
+
+For this particular case, find an appropriate range of each coordinate of the phase plane and grid points, and 
+
+**(1)** plot the vector field (you can choose to plot either vectors or unit vectors; also pay attention to the scaling factor of the vectors to make the plot legible.); 
+
+**(2)** plot nullclines;
+
+**(3)** numerically obtain the coordinates of the steady states; 
+
+**(4)** for each steady state, find the eigenvalues of the Jacobian matrix and determine its stability;
+
+**(5)** plot a bifurcation diagram to show the changes of the steady-state levels of $X$ with respect to a control parameter $k_X$. 
+
+# 4. The FitzHugh-Nagumo model 
+
+The FitzHugh-Nagumo model is a simplified two-variable model for excitable systems, often used to describe the dynamics of neurons. The model consists of two ordinary differential equations (ODEs), as follows. 
+
+\begin{equation}
+\begin{cases} \frac{dv}{dt} = v - \frac{v^3}{3} - w + I \\
+              \frac{dw}{dt} = \frac{1}{\tau}(v + a - bw) \end{cases}
+\end{equation}
+
+Here, $v$ represents the membrane potential of the neuron, $w$ is a recovery variable, $I$ is the input current, $\tau$ is a time constant, and $a$ and $b$ are the other two parameters. We set $a = .7$, $b = 0.8$, and $\tau = 12.5$.
+
+**(1)** Implement the FitzHugh-Nagumo model in a numerical solver (e.g., RK4). From ODE simulations, explore how changing $I$ affects the dynamical behavior of the system.
+
+**(2)** Plot the phase plane of the FitzHugh-Nagumo system for $I=0.5$. Plot nullclines, draw the vector field, and determine the steady states of the system. 
+
+**(3)** Numerically compute the bifurcation diagrams. Here, we consider $I$ as the control parameter, varied in the range of (-1.5, 1.5). For the y-axis of the bifurcation diagram, explore the following options: (1) the steady-state values of $v$ or $w$; (2) the maximum and minimum values of $v$ or $w$.
+
+# 5. The Spruce Budworm model revisited
+
+We revisit the Spruce Budworm model (see also Part 2F), but this time we describe it as two interacting populations -- the spruce budworms (prey, denoted as $W$) and their natural enemies (predators, denoted as $P$). The ODEs are:
+
+\begin{equation}
+\begin{cases} \frac{dW}{dt} = rW(1-\frac{W}{K}) - aWP \\
+              \frac{dP}{dt} = -kP + bWP \end{cases}
+\end{equation}
+
+Here, $W$ is the population of spruce budworms, $P$ is the population of predators, $r$ is the intrinsic growth rate of $W$, $K$ is the carrying capabity of $W$, $a$ is the rate at which $P$ reduces $W$, $k$ is the death rate of $P$, $b$ is the rate at which $W$ increases the $P$. We set $r = 0.1$, $K = 1$, $a = 0.02$, $k = 0.2$, and $b = 0.01$.
+
+**(1)** Implement the two-variable Sprunce Budworm model in a numerical solver (e.g., RK4). Simulate the population dynamics over time for various initial conditions. Observe and describe the behavior of the $W$ and $P$ populations.
+
+**(2)** Perform phase plane analysis. Plot nullclines, draw the vector field, and determine the steady states of the system. 
+
+**(3)** Explore the bifurcation diagram of the spruce budworm population $W$ as $a$ is varied.
+
+# 6. Chaotic system
+
+Consider a Lorenz system, commonly described as
+
+\begin{cases} \frac{dx}{dt} = \sigma (y - x) \\
+              \frac{dy}{dt} = x (\rho - z) - y\\
+              \frac{dz}{dt} = xy - \beta z) \end{cases}
+
+
+$\sigma$, $\rho$, and $\beta$ are the parameters of the system. The objective here is to study bifurcation diagram of its dynamical behavior as parameters are varied. 
+
+**(1)** Implement the ODEs of the Lorenz system to allow ODE simulations. 
+
+**(2)** We consider constant $\sigma = 10$ and $\beta = 8/3$ and $\rho$ as the control parameter. For each $\rho$ in the range of 20 to 400, perform ODE simulations for a fixed duration of 1000 unit time. Plot the final $z$ levels as the function of $\rho$. 
+
+**(3)** From the bifurcation diagram, identify regions of stability, bifurcation points, and transitions in the Lorenz system as $\rho$ is varied.
