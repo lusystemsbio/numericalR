@@ -414,7 +414,7 @@ kx_all = expand.grid(k_all, X_all)   # all combinations of k and X
 
 results = t(apply(kx_all, MARGIN=1, function(Xs) 
   {return(c(Xs, derivs_k(Xs[2], Xs[1])))}
-  )) # generate all vector field data
+  )) # generate all derivatives
 
 z = array(results[,3], dim = c(nk, nx))
 
@@ -491,9 +491,9 @@ contour_segment_bilinear <- function(x_all, y_all, z, ind_x, ind_y, npoints = 20
       y2 = y_all[ind_y + 1]
       
       x_points = seq(from = x1, to = x2, by = (x2-x1)/npoints) # sample x points
-      f_x_y1 = (x2 - x_points)*f11 + (x_points - x1)*f21  # equation (3)
-      f_x_y2 = (x2 - x_points)*f12 + (x_points - x1)*f22  # equation (3)
-      y_points = (f_x_y1*y2 - f_x_y2*y1)/(f_x_y1 - f_x_y2) # equation (4)
+      f_x_y1 = (x2 - x_points)*f11 + (x_points - x1)*f21  # equation (4)
+      f_x_y2 = (x2 - x_points)*f12 + (x_points - x1)*f22  # equation (4)
+      y_points = (f_x_y1*y2 - f_x_y2*y1)/(f_x_y1 - f_x_y2) # equation (5)
       
       ind_keep = which((y_points - y1)*(y2 - y_points) > 0) # check whether y points are within (y1, y2)
       points_keep = cbind(x_points[ind_keep], y_points[ind_keep])
@@ -604,7 +604,7 @@ find_root_Newton(150, derivs_k, dfdX, c(0, 800), k = 0.15)  # the last root (uns
 Now, we implement the numerical continuation method by uniformly varying $k$. 
 
 ``` {r}
-# Define the partial derivative df/dk; see Equation (1) for the expression of f 
+# Define partial derivatives df/dk, see equation (1) for the expression of f
 dfdk <- function(X, k) return(-X)
 #dfdX was defined earlier
 
@@ -639,6 +639,7 @@ plot(NULL, xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21
 points(results[,1], results[,2], pch = 1, cex = 0.3, col = 1)
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
 ```
+
 
 We can see that the algorithm works very well until it reaches to a bifurcation point, where the slope is infinity. It is also a little bit cumbersome to control the direction to move (the same slope can corresponds to two different directions). Thus, we only get a part of the bifurcation curve. 
 

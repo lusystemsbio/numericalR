@@ -45,7 +45,7 @@ RK4_generic <- function(derivs, X0, t.total, dt, ...){
 
 # A two-gene circuit with a negative feedback loop
 
-<center> ![Figure 2](./extra/data/03H/fig1.png){width=20%} </center>
+<center> ![Figure 1](./extra/data/03H/fig1.png){width=20%} </center>
 
 In this gene circuit, $X$ activates $Y$, and $Y$ represses $X$. The gene expression dynamics of this circuit can be modeled by a set of ODEs
 
