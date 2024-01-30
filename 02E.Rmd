@@ -2,11 +2,11 @@
 title: 'Part 2: Ordinary differential equations'
 subtitle: "E. Bifurcation"
 author: "Mingyang Lu"
-date: "10/29/2021"
+date: "01/29/2024"
 output:
   html_document:
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -28,7 +28,35 @@ derivs_k <- function(X, k) {
 }
 ```
 
-# Method 1: (direct method) find all roots
+The bifurcation diagram can be described by
+
+$$f(X, k) = 0$$
+
+# Method 1: Seperation of variables
+
+In this special case, along the bifurcation curve, $k$ can be expressed as a function of $X$:
+
+$$ k = \frac{10}{X} + 45\frac{X^3}{X^4+200^4} $$
+
+We can plot the curve numerically as follows.
+
+```{r}
+func_k <- function(X){
+  return(10/X+45*X**3/(X**4+200**4))
+}
+
+X_all = seq(50, 600, by=5)   # all Y grids, note that we avoid X = 0
+k_all = func_k(X_all)
+
+plot(k_all, X_all, xlab = "k", ylab = "X", type = "p", col = 2, 
+     xlim = c(0.09, 0.21), ylim  = c(0, 600))
+```
+
+The bifurcation curve clearly shows how the dynamical behavior of the circuit changes with respect to the changes in $k$. There are two turning points of the bifurcation curve. The first one is at around $k = 0.125$, where one of the stable steady states and the unstable steady state has very close $X$ values. The second one is at around $k = 0.170$. These two points are called bifurcation points. The system is monostable when $k$ is smaller than the $k$ value of the first bifurcation point. In this regime, the $X$ steady state level is relatively high. When $k$ is between the $k$ values of the two bifurcation points, the system is bistable, with two stable steady states of both high and low $X$ levels. When $k$ is higher than the $k$ value of the second bifurcation point, the system becomes monostable again, with one stable steady state of relatively low $X$ level. This type of bifurcation is called saddle-node bifurcation.
+
+# Method 2: (direct method) Find all roots
+
+## Using uniroot.all function from rootSolve
 
 The most straightforward way is to uniformly sample $k$ values and, for each $k$, identify all roots $X_s$ for $f(X,k)=0$. The following shows an implementation of such method using an R package rootSolve. We also check stability of steady states according to $\frac{df}{dX}$. It works very well for this example. However, it may fail in some situations, as finding all roots for a nonlinear function s not guaranteed. Compared to other methods, this method should be slower but more stable. The implementation below uses a for loop, which clearly shows how it works. One can also use lapply instead of a for loop. 
 
@@ -51,20 +79,234 @@ for(k in k_all) {
   }
 }
 results = results[1:ind,]
+num_total = ind
 
 plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= results[,3],
     xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
 legend("topright", inset=0.02, legend = c("Stable", "Unstable"), col=1:2, lty=1, cex=0.8)
 ```
 
-The bifurcation curve clearly shows how the dynamical behavior of the circuit changes with respect to the changes in $k$. There are two turning points of the bifurcation curve. The first one is at around $k = 0.125$, where one of the stable steady states and the unstable steady state has very close $X$ values. The second one is at around $k = 0.170$. These two points are called bifurcation points. The system is monostable when $k$ is smaller than the $k$ value of the first bifurcation point. In this regime, the $X$ steady state level is relatively high. When $k$ is between the $k$ values of the two bifurcation points, the system is bistable, with two stable steady states of both high and low $X$ levels. When $k$ is higher than the $k$ value of the second bifurcation point, the system becomes monostable again, with one stable steady state of relatively low $X$ level. This type of bifurcation is called saddle-node bifurcation.
+But the found solutions are not aligned in the right sequence yet.
 
-# Method 2: Get bifurcation curve by simulations
+```{r}
+plot(results[,1], results[,2], type = "l", pch = 1, cex = 0.3, col= 2,
+    xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
+```
+
+### Reordering points along the curve
+
+We can reorder the points in the right sequence by the following script. Here, we start from the leftmost point (with the smallest x value). Then, we iteratively find the closest unused point until all points are used.
+
+```{r}
+m = as.matrix(dist(results[,1:2])) # pair-wise distances of any two points
+m = 1/m  # inverse distance values (why?)
+sequence = integer(num_total)  # index sequence to be generated
+if_unused = rep(1, num_total) # 1: unused, 0: used
+
+ind_current = 1
+point_current = which.min(results[,1])  #minimum x as the staring point
+sequence[ind_current] = point_current
+if_unused[point_current] = 0
+
+while (!all(sequence > 0)){
+  point_current = which.max(m[,point_current] * if_unused) # Find the closest point as the next point
+  ind_current = ind_current + 1
+  sequence[ind_current] = point_current
+  if_unused[point_current] = 0
+}
+
+plot(results[sequence,1], results[sequence,2], type = "l", pch = 1, cex = 0.3, col= 2,
+    xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
+```
+
+## Bisection method
+
+We can numerically find the solutions of $X$ without using rootSolve. Below shows the implementation of the bisection method.
+
+```{r}
+# Bisection method
+# f: function of f(x).
+# interval: a vector containing the end-points of the interval to be searched for the root.
+# epsilon: a small positive number for the tolerance.
+bisection <- function(f, interval, epsilon = 10^-6, ...) {  
+  x_min = interval[1]
+  f1 = f(x_min)
+  x_max = interval[2]
+  f2 = f(x_max)
+  
+  if(abs(f1) < epsilon) return(x_min)
+  if(abs(f2) < epsilon) return(x_max)
+  if(f1*f2 > 0) {
+    return(NA)
+  }else{
+    while(f1*f2 < 0){
+      x_mid = (x_min + x_max)/2
+      f3 = f(x_mid)
+      if(abs(f3) < epsilon){
+        return(x_mid)
+      }else{
+        if(f1*f3 > 0){
+          f1 = f3
+          x_min = x_mid
+        }else{
+          f2 = f3
+          x_max = x_mid 
+        }
+      }
+    }
+  }
+}
+
+k = 0.12
+bisection(f = function(X){return(derivs_k(X, k))}, interval = c(0,600))  # one solution
+
+k = 0.15
+bisection(f = function(X){return(derivs_k(X, k))}, interval = c(0, 600))  # three solutions, but can only find one
+
+k = 0.2
+bisection(f = function(X){return(derivs_k(X, k))}, interval = c(0, 600))  # one solution
+```
+
+As shown above, the bisection method is a good method to find a root of a nonlinear function within a specified interval. If the signs of the function at two ends are different, there must be a root in the interval. However, if the signs at two ends are same, there might still be roots. but the bisection method can not find them. Newton's method is another choice, but it does not guarantee to find the root within the interval. Both methods can not find multiple roots.
+
+### Find all roots using the bisection method
+
+To find all roots, one needs to sample small intervals and then use bisection method to refine the solution.
+
+```{r}
+# f: function name of f(x)
+# method: function name of the root finding algorithm ("bisection", "false_position")
+# interval: a vector containing the end-points of the interval to be searched for the root.
+# resolution: a numeric to specify the searching window
+all_roots_bracketing <- function(f, method, interval, resolution = 10^-2, ...) {
+  x_all = seq(from = interval[1], to = interval[2], by = resolution*(interval[2]-interval[1]))
+  n_all = length(x_all)-1
+  root_all = numeric(n_all)
+  n_roots = 0
+  for(i in seq_len(n_all)){
+    root = method(f, c(x_all[i], x_all[i+1]))
+    if(!is.na(root)){
+      n_roots = n_roots + 1
+      root_all[n_roots] = root
+    }
+  }
+  if(n_roots == 0){
+    return(NA)
+  }else{
+    return(unique(root_all[1:n_roots]))
+  }
+}
+```
+
+### Find points along the curve
+
+Application to find the curve of $f(X, k) = 0$.
+
+```{r}
+k_all = seq(0.1, 0.2, by=0.001)   # all k grids
+results = matrix(0, ncol = 2, nrow = length(k_all)*3) ## assuming at most 3 X solutions for each k, saving (X, k)
+
+ind = 1
+for(k in k_all){
+  roots = all_roots_bracketing(f = function(X){return(derivs_k(X,k))}, method = bisection, 
+                               interval = c(0,600), resolution = 10^-2)
+  num_X = length(roots)
+  if(num_X > 0){
+    results[ind:(ind+num_X-1),1] = k
+    results[ind:(ind+num_X-1),2] = roots
+    ind = ind + num_X
+  }
+}
+num_total = ind - 1
+results = results[1:num_total,]
+
+plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= 2,
+    xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
+```
+
+The last step for reordering is the same as the previous implementation, and it is omitted here.
+
+## False position method
+
+The false position method is almost the same as the bisection method. Instead of using the middle point, the false position method uses the x-intercept of the line connecting $f(x)$ at the endpoints of the interval. 
+
+$$x_{new} = \frac{x_{min}f(x_{max}) - x_{max}f(x_{min})}{f(x_{max})-f(x_{min})} \tag{2}$$
+The false position method can be faster than the bisection method. Both methods find a root within the specified interval.
+
+```{r}
+# False position method
+# f: function of f(x).
+# interval: a vector containing the end-points of the interval to be searched for the root.
+# epsilon: a small positive number for the tolerance.
+false_position <- function(f, interval, epsilon = 10^-6, ...) {  
+  x_min = interval[1]
+  f1 = f(x_min)
+  x_max = interval[2]
+  f2 = f(x_max)
+  
+  if(abs(f1) < epsilon) return(x_min)
+  if(abs(f2) < epsilon) return(x_max)
+  if(f1*f2 > 0) {
+    return(NA)
+  }else{
+    while(f1*f2 < 0){
+      x_new = (f2*x_min - f1*x_max)/(f2 - f1)
+      f3 = f(x_new)
+      if(abs(f3) < epsilon){
+        return(x_new)
+      }else{
+        if(f1*f3 > 0){
+          f1 = f3
+          x_min = x_new
+        }else{
+          f2 = f3
+          x_max = x_new
+        }
+      }
+    }
+  }
+}
+
+k = 0.12
+false_position(f = function(X){return(derivs_k(X, k))}, interval = c(0,600))  # one solution
+
+k = 0.15
+false_position(f = function(X){return(derivs_k(X, k))}, interval = c(0, 600))  # three solutions, but can only find one -- actually a different one from the outcome of the bisection method
+
+k = 0.2
+false_position(f = function(X){return(derivs_k(X, k))}, interval = c(0, 600))  # one solution
+```
+
+```{r}
+k_all = seq(0.1, 0.2, by=0.001)   # all k grids
+results = matrix(0, ncol = 2, nrow = length(k_all)*3) ## assuming at most 3 X solutions for each k, saving (X, k)
+
+ind = 1
+for(k in k_all){
+  roots = all_roots_bracketing(f = function(X){return(derivs_k(X,k))}, method = false_position, 
+                               interval = c(0,600), resolution = 10^-2)
+  num_X = length(roots)
+  if(num_X > 0){
+    results[ind:(ind+num_X-1),1] = k
+    results[ind:(ind+num_X-1),2] = roots
+    ind = ind + num_X
+  }
+}
+num_total = ind - 1
+results = results[1:num_total,]
+
+plot(results[,1], results[,2], type = "p", pch = 1, cex = 0.3, col= 2,
+    xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)", xlim=c(0.09, 0.21), ylim=c(0,600)) 
+```
+
+In this example, we found no apparent improvement over the bisection method.
+
+# Method 3: Get bifurcation curve by simulations
 
 The second method does not require to solve all roots of $f(X,k)$. Instead, we will utilize the properties of steady states to map all steady states for different $k$. We will start with $k = 0.1$ and simulate the ODE using a random initial condition. Once we reach the steady state, we will record $k$ and $X$. Then, we will increase $k$ by a small step $\Delta k$ and simulate the ODE again with the previous steady state as the initial condition. We will repeat the process until we reach a bifurcation point. This can be determined when the new steady state $X_s$ is very different (compared to previous changes) or nonexistent (that could happen when we compute the unstable state, see below) from the steady state of the previous $k$. (Please also note that this approach should work well for the saddle-node bifurcation in this example, but may not work well for other types of bifurcation.) At this point, we will start another cycle by decreasing $k$ instead. To reach the unstable steady states, we will simulate a modified ODE:
 
-$$ \frac{dX}{dt} = -f(X,k) \tag{2}$$
-This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using Equation (2). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
+$$ \frac{dX}{dt} = -f(X,k) \tag{3}$$
+This trick allows us to obtain the unstable steady state from ODE simulations, as the unstable state becomes stable state using Equation (3). We will repeat the same procedure, until we reach the maximum $k = 0.2$. Below shows the implementation.
 
 The pseudocode of this algorithm is:
 
@@ -157,7 +399,147 @@ plot(results[,1], results[,2], pch = 1, cex = 0.3, col = results[,3],
 
 The implementation works well to obtain all steady states of any $k$. However, like many numerical methods, it is challenging to devise a robust function to find bifurcation diagrams for a generic system. In particular, the choice of the numerical parameters (gap, t_max, dX) would affect the performance of the method. (Try to adjust these parameters, and evaluate the outcomes.)
 
-# Method 3: numerical continuation
+# Method 4. Contour method
+
+## Using contour function
+
+We define $z(x,y) := f(x,y)$, which generates a landscape $z$ for a plane of $x$ and $y$. The contour method finds the curve of $f(x, y) = 0$ by finding the contour line of $z = 0$. A typical contour algorithm requires the input of $f$ values for grid points of $x$ and $y$. In R, one can use the function *contour*. See below for the implementation. Contour method is very powerful and stable. But it may fail to obtain the whole solution curve(s) if the solution has a branching structure. In this case, our function $f(X, k)$ is a function of $X$ and $k$.
+
+```{r}
+k_all = seq(0.1, 0.2, by=0.001)   # all k grids
+X_all = seq(0, 600, by=5)   # all X grids
+nk = length(k_all)
+nx = length(X_all)
+kx_all = expand.grid(k_all, X_all)   # all combinations of k and X
+
+results = t(apply(kx_all, MARGIN=1, function(Xs) 
+  {return(c(Xs, derivs_k(Xs[2], Xs[1])))}
+  )) # generate all vector field data
+
+z = array(results[,3], dim = c(nk, nx))
+
+contour(k_all, X_all, z, levels = 0, col = 2, xlab = "k", ylab = "X", drawlabels = F)
+```
+
+## Bilinear interpolation
+
+Solving a contour line can be achieved by interpolating functions of two variables. We want to find $f(x,y)$ where $x$ is bounded by two grid points $x_1$ and $x_2$, and $y$ is bounded by two grid points $y_1$ and $y_2$. A solution of $f(x,y) = 0$ can be found in the square of four grid points if the signs of the grid points are not all same. (why?) 
+
+In the bilinear interpolation method, we first do linear interpolation in the x-direction:
+
+\begin{equation}
+\begin{cases} f(x, y_1) = \frac{x_2 - x}{x_2 - x_1}f(x_1, y_1) + \frac{x - x_1}{x_2 - x_1}f(x_2, y_1)  \tag{4}\\
+              f(x, y_2) = \frac{x_2 - x}{x_2 - x_1}f(x_1, y_2) + \frac{x - x_1}{x_2 - x_1}f(x_2, y_2)  \end{cases}
+\end{equation}
+
+From here, we do linear interpolate in the y-direction. 
+
+\def\mat{
+\begin{pmatrix}
+      f(x_1, y_1) & f(x_1, y_2)\\
+      f(x_2, y_1) & f(x_2, y_2)
+\end {pmatrix}}
+
+\def\yvec{
+\begin{pmatrix}
+      y_2 - y \\
+      y - y_1
+\end {pmatrix}}
+
+\def\xvec{
+\begin{pmatrix}
+      x_2 - x & x - x_1
+\end {pmatrix}}
+
+\begin{equation}
+\begin{split}
+  f(x,y) & = \frac{y_2 - y}{y_2 - y_1}f(x, y_1) + \frac{y - y_1}{y_2 - y_1}f(x, y_2) \\
+         & = \frac{1}{(x_2 - x_1)(y_2 - y_1)} \xvec \mat \yvec 
+\end{split}
+\end{equation}
+
+The bilinear interpolation has been widely used in many areas, including imaging processing.
+
+The solution of $f(x,y) = 0$ would be 
+
+$$y = \frac{f(x,y_1)y_2 - f(x,y_2)y_1}{f(x,y_1) - f(x,y_2)} \tag{5}$$
+
+Equation (5) is very similar to the false position method. To implement this algorithm, we first generate grid points and evaluate the function $f(x,y)$. We iterate through all squares with $f$ of different signs at the end points, and for each, we linearly sample $x$ within the square and compute $y$ using Equations (4) and (5). Below is a simple implementation to this method.
+
+```{r}
+# generate contour segment (points) by the bilinear interpolation method
+# x_all: x grid points
+# y_all: y grid points
+# z: matrix of f(x, y) 
+# ind_x: x index of the square of (ind_x, ind_x + 1), (ind_y, ind_y + 1)
+# ind_y: y index of the square of (ind_x, ind_x + 1), (ind_y, ind_y + 1)
+# npoints: max number of points to be generated along the contour line for each square
+contour_segment_bilinear <- function(x_all, y_all, z, ind_x, ind_y, npoints = 20){
+  f11 = z[ind_x, ind_y]
+  f21 = z[ind_x + 1, ind_y]
+  f12 = z[ind_x, ind_y + 1]
+  f22 = z[ind_x + 1, ind_y + 1]
+  
+  all_points = c(f11, f21, f12, f22)
+  
+  if(length(unique(sign(all_points))) == 1){ # all the same sign, no solution
+    return()
+  }else{
+      x1 = x_all[ind_x]
+      x2 = x_all[ind_x + 1]
+      y1 = y_all[ind_y]
+      y2 = y_all[ind_y + 1]
+      
+      x_points = seq(from = x1, to = x2, by = (x2-x1)/npoints) # sample x points
+      f_x_y1 = (x2 - x_points)*f11 + (x_points - x1)*f21  # equation (3)
+      f_x_y2 = (x2 - x_points)*f12 + (x_points - x1)*f22  # equation (3)
+      y_points = (f_x_y1*y2 - f_x_y2*y1)/(f_x_y1 - f_x_y2) # equation (4)
+      
+      ind_keep = which((y_points - y1)*(y2 - y_points) > 0) # check whether y points are within (y1, y2)
+      points_keep = cbind(x_points[ind_keep], y_points[ind_keep])
+      return(c(t(points_keep)))
+  }
+}
+```
+
+The following shows the application to $f(X,k)$ for a circuit with a self-activating gene. 
+
+```{r}
+k_all = seq(0.1, 0.2, by=0.001)   # all k grids
+X_all = seq(0, 600, by=5)   # all X grids
+nk = length(k_all)
+nx = length(X_all)
+kx_all = expand.grid(k_all, X_all)   # all combinations of k and X
+
+results = t(apply(kx_all, MARGIN=1, function(Xs) 
+  {return(c(Xs, derivs_k(Xs[2], Xs[1])))}
+  )) # generate all vector field data
+
+z = array(results[,3], dim = c(nk, nx)) # all f(X,k) values
+
+ind_k_all = seq_len(nk - 1) # k indices to specify squares
+ind_X_all = seq_len(nx - 1) # X indices to specify squares 
+ind_kx_all = expand.grid(ind_k_all, ind_X_all)  # k X indices to specify squares
+
+results = apply(ind_kx_all, 1, function(ind_kx) {
+  contour_segment_bilinear(x_all = k_all, y_all = X_all, z = z, ind_x = ind_kx[1], ind_y = ind_kx[2])
+})
+
+null_contour = matrix(unlist(results), ncol = 2, byrow = T)
+
+plot(null_contour[,1], null_contour[,2], type = "p", col = 2, pch = 20, cex = 0.3, 
+     xlab=parse(text="k (Minute^{-1})"), ylab="Xs (nM)",
+     xlim=c(0.09, 0.21), ylim=c(0,600)) 
+```
+
+## Bicubic interpolation
+
+Bicubic interpolation is a more advanced interpolation method to compute interpolation of a 2D landscape.
+
+$$ f(x,y) = \sum_{i=0}^3 \sum_{j=0}^3 a_{ij}x^iy^j$$
+There are 16 parameters, which can be obtained by using 4 equations from grid points, 8 partial derivatives for square edges, and 4 partial derivatives of $xy$ mixed partial derivatives at the grid points. Details of the bicubic interpolation can be found in the section "Higher Order for Smoothness: Bicubic Spline" from the book "Numerical Recipes".
+
+# Method 5: Numerical continuation
 
 The most widely used and generally applicable method is numerical continuation. Our goal is to find $X(k)$ to satisfy 
 
@@ -167,12 +549,12 @@ Take partial derivatives with respect to $X$ and $k$, we get
 $$ \frac{\partial f}{\partial X}\Delta X + \frac{\partial f}{\partial k}\Delta k = 0 $$
 Thus,
 
-$$ \frac{dX}{dk} \equiv h(X,k) = -\frac{\frac{\partial f}{\partial k}}{\frac{\partial f}{\partial X}} \tag{2}$$
-The expression is defined as a function h, which will be used later. Therefore, starting from a steady state $X$ for a specific $k$, we can obtain the slope of the bifurcation curve $\frac{dX}{dk}$ from Equation (2). This allows us to find the initial guess of the next ($k$, $X$) point. 
+$$ \frac{dX}{dk} \equiv h(X,k) = -\frac{\frac{\partial f}{\partial k}}{\frac{\partial f}{\partial X}} \tag{6}$$
+The expression is defined as a function h, which will be used later. Therefore, starting from a steady state $X$ for a specific $k$, we can obtain the slope of the bifurcation curve $\frac{dX}{dk}$ from Equation (6). This allows us to find the initial guess of the next ($k$, $X$) point. 
 
 \begin{equation}
 \begin{cases} k_{new} = k + \Delta k \\
-              X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{3}
+              X_{new} = X +  \frac{dX}{dk}\Delta k  \end{cases} \tag{7}
 \end{equation}
 
 ## Newton's method
@@ -183,7 +565,7 @@ $$f(X_0 + \Delta X) = f(X_0) + f'(X_0)\Delta X = 0$$
 
 Thus,
 
-$$\Delta X = - \frac{f(X_0)}{f'(X_0)} \tag{4}$$
+$$\Delta X = - \frac{f(X_0)}{f'(X_0)} \tag{8}$$
 Numerically, we perform the following calculation iteratively:
 
 $$ X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} $$
@@ -216,6 +598,7 @@ find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = 0.15)   # bistable, first r
 find_root_Newton(100, derivs_k, dfdX, c(0, 800), k = 0.15)  # another root near 100
 find_root_Newton(150, derivs_k, dfdX, c(0, 800), k = 0.15)  # the last root (unstable) near 150
 ```
+
 ## An implementation of the continuation method
 
 Now, we implement the numerical continuation method by uniformly varying $k$. 
@@ -275,10 +658,10 @@ Therefore, we get
 
 \begin{equation}
 \begin{cases} \Delta k = \pm \frac{1}{\sqrt{1 + h^2}} \Delta s \\
-              \Delta X = h \Delta k \end{cases} \tag{5}
+              \Delta X = h \Delta k \end{cases} \tag{9}
 \end{equation}
 
-,where $h(X,k) = \frac{dX}{dk}$ can be computed according to Equation (2). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in Equation (5) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
+,where $h(X,k) = \frac{dX}{dk}$ can be computed according to Equation (6). In this case, even when $h$ is infinity, $\Delta k$ and $\Delta X$ are small enough. The choice of $\pm$ in Equation (9) would depend on which direction we want to go. Here, we set $(\Delta k, \Delta X)$ to be in the same direction as that in the previous step.
 
 ``` {r}
 # Algorithm parameters
