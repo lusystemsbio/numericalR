@@ -163,7 +163,7 @@ See below for an application of this plotting function.
 
 # A two-gene circuit with double-negative feedback loop
 
-We next model a toggle switch circuit with two genes $X$ and $Y$. $X$ inhibits $Y$, and $Y$ inhibits $X$.
+We next model a toggle switch circuit with two genes $X$ and $Y$. $X$ suppresses $Y$, and $Y$ suppresses $X$.
 
 <center> ![Figure 2](./extra/data/02A/fig5.png) </center>
 
@@ -194,7 +194,7 @@ plot_phase_plane(func = derivs_ts, xrange = c(0, 6), yrange = c(0, 6), ngrids = 
 
 # A three-gene repressilator circuit
 
-In a repressilator circuit, $X$ inhibits $Y$, $Y$ inhibits $Z$, and $Z$ inhibits $X$. The gene expression dynamics of this circuit can be modelled by a set of ODEs
+In a repressilator circuit, $X$ suppresses $Y$, $Y$ suppresses $Z$, and $Z$ suppresses $X$. The gene expression dynamics of this circuit can be modeled by a set of ODEs
 
 \begin{equation}
 \begin{cases} \frac{dx}{dt} = \frac{g}{1+ z^3} - x \\
