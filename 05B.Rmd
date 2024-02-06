@@ -91,7 +91,7 @@ plot(results_g2d2[,2], results_g2d2[,3], type = "l", col=1,
     xlab="x", ylab="y", xlim=c(-8,8), ylim=c(-8,8)) 
 ```
 
-# Three-body problem
+# Two-body problem
 
 We then consider two particles of equal masses in 2D, a system that can be described by 4 variables.   
 
@@ -166,6 +166,7 @@ anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
 anim_save("2-body.gif", animation = anim)
 ```
 
+# Three-body problem
 
 Now we consider three particles of equal masses in 2D, a system that can be described by 6 variables.   
 

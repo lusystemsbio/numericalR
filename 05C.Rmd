@@ -238,6 +238,28 @@ xy_f = matrix(x_f, ncol = 2, byrow = TRUE)
 plot(xy_f[,1], xy_f[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0,a), ylim = c(0,a))
 ```
 
+Below is the script to generate an animation of this simulation
+
+```{r,fig.width = 3.5, fig.height = 4, fig.align='center'}
+library(ggplot2)
+library(gganimate)
+npoints = nrow(results_final)
+ind_x = seq(2, 2*ntot, 2)
+ind_y = seq(3, 2*ntot+1, 2)
+
+results_md_dframe = data.frame(t = results_final[,1], x = c(results_final[,ind_x]),
+                                  y = c(results_final[,ind_y]),
+                                  particle = as.character(c(sapply(1:ntot, function(x)
+                                    return(rep(x,npoints))))))
+
+p = ggplot(results_md_dframe, aes(x = x, y = y, colour = particle)) + 
+  geom_point(aes(colour = particle), show.legend = FALSE, size = 7, alpha = 0.7) + labs(x = "x", y = "y") 
+p
+anim = p + transition_time(t, range = c(0, 100)) + labs(title = "t: {frame_time}")
+anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
+anim_save("md.gif", animation = anim)
+```
+
 # Radial distribution function
 
 After the simulation has completed, we use the whole time trajectories of all particles to compute the radial distribution function (RDF), $g(r)$. $g(r)$ measures the probability of finding a particle at distance $r$ from a reference particle, relative to the probability of finding the same particle at $r$ in a uniform distribution. 
