@@ -37,8 +37,8 @@
 |-- 4D. Exercises |
 |5. Molecular dynamics|
 |-- 5A. [Integrators for second order ODEs](./05A.html) |
-|-- 5B. [Orbital motions](.05B.html) |
-|-- 5C. [Modeling a box of 2D particle](.05C.html) |
+|-- 5B. [Orbital motions](./05B.html) |
+|-- 5C. [Modeling a box of 2D particle](./05C.html) |
 |-- 5D. Exercises |
 |6. Stochastic differential equations|
 |-- 6A. Random number generators |
