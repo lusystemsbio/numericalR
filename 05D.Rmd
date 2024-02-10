@@ -38,17 +38,30 @@ Hint: you just need to make the spaceship travel nearby the Moon for a while. An
 
 # 2. Simulation of a box of two-atom molecules
 
-We consider $N_{tot} = 15$ identical molecules in a two-dimensional square box of size $a = 6$. Each molecule consists of two atoms connected by an elastic bond. Figure 3 illustrates such a system.
+Consider a system comprising $N_{tot} = 12$ identical molecules within a two-dimensional square box of dimensions $a = 6.25$. Each molecule consists of two atoms connected by an elastic bond, as depicted in Figure 3.
 
 <center> ![Figure 3](./extra/data/05D/two_atom.png){width=30%} </center> 
 
-We consider the following molecular potential
+The system is governed by the following molecular potential:
 
-$$U = \sum_{ij}{(\frac{12}{r_{ij}^{12}} - \frac{6}{r_{ij}^6})} + \sum_{bond}{\frac{1}{2}kl_{bond}^2} \tag{2} $$ 
-The first term is the Lennard Jones potential between any two atoms. The second term is the harmonic potential of the elastic bond for each molecule. We consider the periodic boundary condition. 
+$$U = \sum_{ij}{(\frac{1}{12r_{ij}^{12}} - \frac{1}{6r_{ij}^6})} + \sum_{ij \in bond}{\frac{1}{2}k(r_{ij}-l_{bond})^2} \tag{2} $$ 
+The first term represents the Lennard-Jones potential between any two atoms, while the second term denotes the harmonic potential of the elastic bond for each molecule. The simulation accounts for periodic boundary conditions. Additionally, each atom has a mass of $m_i = 1$, a bond length of $l_{\text{bond}} = 1.5$, and a harmonic constant of $k = 10$.
 
-**(1)** Write a function to compute the total force for each atom.
+**(a)** Designing a suitable initial condition. 
 
-**(2)** Write a code to perform a dynamics simulation of the box of the $N_{total}=15$ molecules using the velocity Verlet method. We consider the mass of each atom $m_i = 1$ (thus can be omitted), and $l_{bond} = 1$.
+A suitable initial condition involves positioning atoms such that the initial bond lengths are close to $l_{\text{bond}}$. It's advantageous to label atoms in the same molecule with consecutive indices, e.g., atoms 1 and 2 for molecule 1, atoms 3 and 4 for molecule 2, and so forth. Each atom requires modeling for both $x$ and $y$ positions. The provided initial condition (Figure 4) offers an example, but alternative configurations are permissible.
 
-**(3)** Simulate the system for a sufficiently long time and compute the radial distribution function. 
+<center> ![Figure 4](./extra/data/05D/initial.png){width=30%} </center> 
+
+**(b)** Computing total forces for each atom.
+
+A function is necessary to compute the total force acting on each atom. This computation involves evaluating the Lennard-Jones force between any two atoms and the harmonic force between atoms within the same molecule. The implementation must adhere to periodic boundary conditions, necessitating the incorporation of the minimum image convention.
+
+**(c)** Dynamics simulation using the velocity Verlet method
+
+A code segment is required to perform a dynamics simulation of the box containing the $N_{\text{total}}=12$ molecules utilizing the velocity Verlet method. This simulation must account for periodic boundary conditions.
+
+**(d)** Simulating the system and computing the 2D Radial Distribution Function (RDF)
+
+The system should be simulated over a sufficiently extended period to compute the 2D radial distribution function. NumericalR 05C illustrated how to perform MD simulations involving a box containing 25 identical particles.
+
