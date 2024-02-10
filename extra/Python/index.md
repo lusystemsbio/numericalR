@@ -31,14 +31,14 @@
 |-- 3G. [Effective potential revisited](./03G.html) |
 |-- 3H. Exercises |
 |4. Systems with time delays|
-|-- 4A. Delayed differential equations](./04A.html) |
-|-- 4B. Examples of systems with time delays](./04B.html) |
-|-- 4C. Delays from indirect interactions](./04C.html) | 
-|-- 4D. Exercises](./04D.html) |
+|-- 4A. [Delayed differential equations](./04A.html) |
+|-- 4B. [Examples of systems with time delays](./04B.html) |
+|-- 4C. Delays from indirect interactions | 
+|-- 4D. Exercises |
 |5. Molecular dynamics|
-|-- 5A. Integrators for second order ODEs |
-|-- 5B. Orbital motions |
-|-- 5C. Modeling a box of 2D particle |
+|-- 5A. [Integrators for second order ODEs](./05A.html) |
+|-- 5B. [Orbital motions](.05B.html) |
+|-- 5C. [Modeling a box of 2D particle](.05C.html) |
 |-- 5D. Exercises |
 |6. Stochastic differential equations|
 |-- 6A. Random number generators |

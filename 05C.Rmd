@@ -240,7 +240,8 @@ plot(xy_f[,1], xy_f[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0,a), ylim
 
 Below is the script to generate an animation of this simulation
 
-```{r,fig.width = 3.5, fig.height = 4, fig.align='center'}
+```
+{r,fig.width = 3.5, fig.height = 4, fig.align='center'}
 library(ggplot2)
 library(gganimate)
 npoints = nrow(results_final)
