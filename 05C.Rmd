@@ -171,6 +171,7 @@ $$ m_i\frac{d^2x_i}{dt^2} = \sum_{j\neq i}{f_x(j\rightarrow i)}  \tag{4}$$
 
 ```{r}
 # Velocity Verlet method for high dimensional systems (2D, 3D, or multiple particles)
+# Updated with periodic boundary condition
 velocity_verlet_bc <- function(f, t0, x0, v0, t.total, dt, ...){
   # f:  2nd derivative function
   # t0: initial time
@@ -222,6 +223,7 @@ v0 = init_last_step[(2*ntot+2):(4*ntot+1)]
 xy0 = matrix(x0, ncol = 2, byrow = TRUE)
 plot(xy0[,1], xy0[,2], type = 'p', xlab = "X", ylab = "Y", xlim = c(0, a), ylim = c(0,a))
 ```
+
 The plot shows the particles' positions from the last time point of the initial simulation in a 2D scatter plot. 
 
 # Final simulation for t.total = 100
