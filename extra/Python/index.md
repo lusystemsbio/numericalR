@@ -41,8 +41,8 @@
 |-- 5C. [Modeling a box of 2D particle](./05C.html) |
 |-- 5D. Exercises |
 |6. Stochastic differential equations|
-|-- 6A. Random number generators |
-|-- 6B. Brownian motion |
+|-- 6A. [Random number generators](./06A.html) |
+|-- 6B. [Brownian motion](./06B.ht) |
 |-- 6B. SDE integrators |
 |-- 6D. Stochastic state transitions |
 |-- 6E. Exercises |

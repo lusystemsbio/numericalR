@@ -227,7 +227,7 @@ X0 = c(30, 10)
 results_LV_nodelay = DDE_Heun_generic(derivs = derivs_LV_delays, t0 = 0, X0 = X0, t.total = 50, 
                        dt = 0.01, tau = 0, a, b, c, d)
 
-plot(results_LV_nodelay[,1], results_LV_nodelay[,2], xlab="t", ylab="N", xlim=c(-1,50), ylim=c(0,160),
+plot(results_LV_nodelay[,1], results_LV_nodelay[,2], xlab="t", ylab="Population", xlim=c(-1,50), ylim=c(0,160),
      type = "l", col=2)
 lines(results_LV_nodelay[,1], results_LV_nodelay[,3], col = 3)
 legend("topright", inset=0.02, legend = c("N", "P"), col=c(2,3),lty=1, cex=0.8)
@@ -236,7 +236,7 @@ legend("topright", inset=0.02, legend = c("N", "P"), col=c(2,3),lty=1, cex=0.8)
 Even with very small time delays ($\tau = 0.01$, just a delay by a single time step), the system starts to deviate from the stable oscillation. The deviation becomes even larger for larger $\tau$.
 
 ``` {r,fig.width = 5, fig.height = 5}
-# without time delay tau = 0
+# with time delay tau = 0.01
 results_LV_delay = DDE_Heun_generic(derivs = derivs_LV_delays, t0 = 0, X0 = X0, t.total = 50, 
                        dt = 0.01, tau = 0.01, a, b, c, d)
 
