@@ -543,6 +543,7 @@ omitted) and the summation from the right hand side is over all
 particles other than <span class="math inline">\(i\)</span>. A similar
 equation is needed for <span class="math inline">\(y_i\)</span>.</p>
 <pre class="r"><code># Velocity Verlet method for high dimensional systems (2D, 3D, or multiple particles)
+# Updated with periodic boundary condition
 velocity_verlet_bc &lt;- function(f, t0, x0, v0, t.total, dt, ...){
   # f:  2nd derivative function
   # t0: initial time
@@ -630,7 +631,7 @@ results_md_dframe = data.frame(t = results_final[,1], x = c(results_final[,ind_x
                                     return(rep(x,npoints))))))
 
 p = ggplot(results_md_dframe, aes(x = x, y = y, colour = particle)) + 
-  geom_point(aes(colour = particle), show.legend = FALSE, size = 4,alpha = 0.7) + labs(x = &quot;x&quot;, y = &quot;y&quot;) 
+  geom_point(aes(colour = particle), show.legend = FALSE, size = 7, alpha = 0.7) + labs(x = &quot;x&quot;, y = &quot;y&quot;) 
 p
 anim = p + transition_time(t, range = c(0, 100)) + labs(title = &quot;t: {frame_time}&quot;)
 anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
