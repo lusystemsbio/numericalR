@@ -20,13 +20,13 @@ Many dynamical systems involve processes with time delays. Such a time-delay sys
 We consider again the exponential growth model, but now the rate equation depends on $N$ an earlier time point $t - \tau$:
 
 $$\frac{dN}{dt} = r N(t-\tau) \tag {1}$$
-Here, $N$ is the population size, $t$ is time, $\tau$ is a constant time delay. We consider $\tau = 1$ here. Unlike ODEs where an initial condition (*i.e.*, $N(t_0)$ here) needs to be specified, the DDE in Equation (1) requires $N(t)$ for $t \in [t_0-\tau, t_0]$. If a time-delay system has an steady state $N_s$, $N_s$ needs to be a time-independent constant. Thus, the condition of steady states is the same as that for the ODE without time delays. Same method can be used to identify steady state solutions. However, the stability of the system may change because of the delays.
+Here, $N$ is the population size, $t$ is time, $\tau$ is a constant time delay. We consider $\tau = 1$ here. Unlike ODEs where an initial condition (*i.e.*, $N(t_0)$ here) needs to be specified, the DDE in Equation (1) requires $N(t)$ for $t \in [t_0-\tau, t_0]$. If a time-delay system has an steady state $N_s$, $N_s$ is also the steady state of the corresponding ODE with time delays. (This is because a steady state is time independent) Thus, same method for ODEs can be used to identify steady state solutions. However, the stability of the system may change because of time delays.
 
 # Euler method for DDE
 
-We consider the DDE in Equation (1) and $N(t - \tau) = N_0$ for $t \leq \tau$. (Be careful, this seems intuitive but may cause issues as the derivatives of the solutions are discontinuous. Because of the discontinuity of the time trajectories, DDE offen is ill defined. One needs to be cautious when interpreting the simulation results of DDE.) The most generic way to simulate a DDE is to generate time steps and $N$ solutions for the whole interval $t \in [-\tau, t_{max}]$. $N(t-\tau)$ can be retrieve anytime during the integration. This is not the most efficient numerical method, due to high storage requirement for saving the whole trajectory (Q: think how to make it more efficient, see the section **Method of steps**).
+We consider the DDE in Equation (1) and $N(t - \tau) = N_0$ for $t \leq \tau$. (Be careful, this seems intuitive but may cause issues as the derivatives of the solutions are discontinuous. Because of the discontinuity of the time trajectories, DDE often is ill defined. One needs to be cautious when interpreting the simulation results of DDE.) The most common way to simulate a DDE is to generate time steps and $N$ solutions for the whole interval $t \in [-\tau, t_{max}]$. $N(t-\tau)$ can be retrieve anytime during DDE integration. This is not the most efficient numerical method, due to high storage requirement for saving the whole trajectory (Q: think how to make it more efficient, see the section **Method of steps**).
 
-The function function *dN_delays* specifies the derivative function for a system with a constant time delay. Note that we supply $N$ for both current time *N* and previous time *N_old*. 
+The function *dN_delays* specifies the derivative function for a system with a constant time delay. Note that we supply $N$ for both current time *N* and previous time *N_old*. 
 
 ```{r}
 # derivative function for delay exponential growth model
@@ -40,7 +40,7 @@ dN_delays <- function(t, N, N_old, r) {
 }
 ```
 
-The DDE integrator would be adjusted from an ODE integrator to take data from previous time points. Here, we show an implementation using the Euler method.
+The DDE integrator can be modified from an ODE integrator to incorporate data from previous time points. Below, we present an implementation using the Euler method.
 
 $$N_{n+1} = N_n + h*f(t_n, N_n, N_{n-d}) \tag {2}$$
 
