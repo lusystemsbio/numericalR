@@ -46,7 +46,7 @@ DDE_Heun <- function(derivs, t0, X0, t.total, dt, tau, ...){
 
 We now consider a delay logistic growth model following
 
-$$\frac{dN}{dt} = r N(t) [1 - \frac{N(t- \tau)}{B}] \tag{4}$$
+$$\frac{dN}{dt} = r N(t) [1 - \frac{N(t- \tau)}{B}] \tag{1}$$
 $B$ is the carrying capacity. 
 
 ```{r}
@@ -114,7 +114,7 @@ legend("topright", inset=0.02, legend = c("r = 1.5"), col=2,lty=1, cex=0.8)
 
 In the third example, we consider a one-gene circuit with self-inhibition. We use a fixed time delay $\tau$ to represent the time cost to induce transcription. The rate equation of the gene circuit is
 
-$$ \frac{dX(t)}{dt} = g_0 + g_1\frac{1}{1+ (X(t-\tau)/X_{th})^n} - kX(t) \tag {5}$$
+$$ \frac{dX(t)}{dt} = g_0 + g_1\frac{1}{1+ (X(t-\tau)/X_{th})^n} - kX(t) \tag {2}$$
 
 $g_0 + g_1$ represents the maximum transcriptional rate (why?), $g_0$ is the leakage transcriptional rate, $X_{th}$ is the Hill threshold level of $X$, $n$ is the Hill coefficient, and $k$ is the degradation rate.
 

@@ -13,21 +13,30 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 1. Anorther bifurcation analysis
+# 1. Bifurcation diagram exploration considering time delay
 
-Consider the circuit with one self-inhibiting gene, described by Equation (1) in Part 4A. Now, we would like to plot a bifurcation diagram for the circuit dynamics by selecting the time delay $\tau$ as the control parameter. For each $\tau$, simulate the circuit sufficiently long so that it reaches to either the stable steady state or, in the case of oscillatory dynamics, the stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ with respect to the control parameter $\tau$.
+Consider a single-gene circuit with self-inhibition, where gene expression dynamics are delineated by a delay differential equation (DDE):
+
+$$ \frac{dX(t)}{dt} = g_0 + g_1\frac{1}{1+ (X(t-\tau)/X_{th})^n} - kX(t)$$
+$g_0 + g_1$ represents the maximum transcriptional rate, $g_0$ is the leakage transcriptional rate, $X_{th}$ is the Hill threshold level of $X$, $n$ is the Hill coefficient, and $k$ is the degradation rate. The constant $\tau$ represents a constant time delay inherent in transcriptional regulation (check NumericalR Part 4B).
+
+<center> ![Figure 1](./extra/data/02A/fig4.png){width=10%} </center>
+
+Write a script to plot a bifurcation diagram, where the circuit dynamics vary concerning the time delay$\tau$ acting as the control parameter. For each $\tau$, simulate the circuit adequately to reach either a stable steady state or, if oscillatory dynamics emerge, stable oscillations. Plot the maximum and minimum $X$ of the stable trajectory $X(t)$ concerning the control parameter $\tau$.
 
 # 2. Method of steps
 
-We will use the method of steps for simulating DDEs. In this method, we separate the whole simulation into parts of consecutive short simulations of small duration $\tau$. From the initial condition $N(t)$ for $t \in [t_0-\tau,t_0]$, we can perform a short simulation to obtain $N(t)$ for $t \in [t_0, t_0 + \tau]$. Then, we can further perform a short simulation to obtain $N(t)$ for $t \in [t_0+\tau, t_0+2\tau]$. This process can be iterated to advance time until the end of the simulation. In each iteration, only a short time trajectory needs to be saved. 
+We will use the method of steps to simulate Delay Differential Equations (DDEs). This technique involves breaking down the entire simulation into consecutive short simulations of duration $\tau$. Starting from the initial condition $N(t)$ for $t \in [t_0-\tau,t_0]$, we execute a shortt simulation to compute $N(t)$ for $t \in [t_0, t_0 + \tau]$. Subsequently, we repeat this process to calculate $N(t)$ for $t \in [t_0+\tau, t_0+2\tau]$, and continue iterating until the end of the simulation. At each iteration, only a short-time trajectory needs to be stored.
 
-<center> ![Figure 1](./extra/data/04D/steps.png){width=70%} </center>
+<center> ![Figure 2](./extra/data/04D/steps.png){width=70%} </center>
 
-**(a)** Implement the method of steps. 
+To implement the method of steps:
 
-Hint: write a function to perform an iteration of short simulation. This function takes the time trajectory from the previous iteration (or the initial condition for the first iteration) as the input and outputs the time trajectory from the current iteration. 
+**(a)** Define a function to perform an iteration of short DDE simulation. This function will take the time trajectory from the previous iteration (or the initial condition for the first iteration) as input and generate the time trajectory for the current iteration. Use Heun's method as the DDE integrator in this implementation.
 
-**(b)** Test the algorithm using the logistic growth model with time delays (see the examples in Part 4B).
+**(b)** Develop a function to conduct a complete DDE simulation using the method of steps. This function will iteratively call the function defined in **(a)**.
+
+**(c)** Test the algorithm using the logistic growth model with time delays (refer to the examples in numericalR 04B). Compare the results obtained from the method of steps with those obtained from a standard DDE numerical solver and check whether you are able to obtain the same outcomes.
 
 # 3. More on the negative feedback loops
 
