@@ -495,8 +495,9 @@ force_j2i &lt;- function(i,j, x_all, a){
   dy = dy - round(dy/a)*a 
   
   rij = sqrt(dx**2 + dy**2)
-  fxi = force(rij)*dx/rij
-  fyi = force(rij)*dy/rij
+  fij = force(rij)
+  fxi = fij*dx/rij
+  fyi = fij*dy/rij
   return(c(fxi,fyi))
 }
 
@@ -621,6 +622,8 @@ plot(xy_f[,1], xy_f[,2], type = &#39;p&#39;, xlab = &quot;X&quot;, ylab = &quot;
 <pre><code>{r,fig.width = 3.5, fig.height = 4, fig.align=&#39;center&#39;}
 library(ggplot2)
 library(gganimate)
+library(gifski)
+library(png)
 npoints = nrow(results_final)
 ind_x = seq(2, 2*ntot, 2)
 ind_y = seq(3, 2*ntot+1, 2)
@@ -634,7 +637,7 @@ p = ggplot(results_md_dframe, aes(x = x, y = y, colour = particle)) +
   geom_point(aes(colour = particle), show.legend = FALSE, size = 7, alpha = 0.7) + labs(x = &quot;x&quot;, y = &quot;y&quot;) 
 p
 anim = p + transition_time(t, range = c(0, 100)) + labs(title = &quot;t: {frame_time}&quot;)
-anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
+anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F, renderer = gifski_renderer())
 anim_save(&quot;md.gif&quot;, animation = anim)</code></pre>
 </div>
 <div id="radial-distribution-function" class="section level1">

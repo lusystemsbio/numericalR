@@ -26,7 +26,7 @@ $$x_{n+1} = \frac{1}{2} (x_n + \frac{a}{x_{n}})$$
 The stopping criteria is:
 
 $$ |x_{n+1}^2 - a| < \epsilon$$
-,where \espilon is a small positive number, representing the tolerance. 
+,where $\epsilon$ is a small positive number, representing the tolerance. 
 
 Here is an implementation of the Babylonian method.
 
@@ -36,14 +36,14 @@ Here is an implementation of the Babylonian method.
 # x1: the initial guess of the solution. x1 should be positive too.
 # epsilon: a small positive number for the tolerance.
 
-babylonian <- function(a, x1, epislon = 1e-6) {
+babylonian <- function(a, x1, epsilon = 1e-6) {
   if(a <= 0 || x1 <= 0 ){
     print("a and x1 should be both positive!")
     return(0)
   }else{
     x = x1
     i = 0
-    while(abs(x*x - a) > epislon){
+    while(abs(x*x - a) > epsilon){
       i = i + 1
       x = (x + a/x)/2
     }

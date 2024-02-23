@@ -152,6 +152,8 @@ An R package *gganimate* allows to generate movies of time trajectories! (Commen
 {r,fig.width = 5, fig.height = 5}
 library(ggplot2)
 library(gganimate)
+library(gifski)
+library(png)
 npoints = nrow(results_2body)
 results_2body_dframe = data.frame(t = results_2body[,1], x = c(results_2body[,2],results_2body[,4]),
                                   y = c(results_2body[,3],results_2body[,5]),
@@ -162,7 +164,7 @@ p = ggplot(results_2body_dframe, aes(x = x, y = y, colour = particle)) +
   scale_color_manual(values = c("1" = "red", "2" = "blue"))
 p
 anim = p + transition_time(t, range = c(0, 50)) + labs(title = "t: {frame_time}")
-anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F)
+anim = animate(anim, fps = 20, nframes = 200, end_pause = 0, rewind = F, renderer = gifski_renderer())
 anim_save("2-body.gif", animation = anim)
 ```
 
@@ -216,6 +218,6 @@ p = ggplot(results_3body_dframe, aes(x = x, y = y, colour = particle)) +
   scale_color_manual(values = c("1" = "red", "2" = "orange", "3" = "blue"))
 p
 anim = p + transition_time(t, range = c(0, 300)) + labs(title = "t: {frame_time}")
-anim = animate(anim, fps = 20, nframes = 300, end_pause = 0, rewind = F)
+anim = animate(anim, fps = 20, nframes = 300, end_pause = 0, rewind = F, renderer = gifski_renderer())
 anim_save("3-body.gif", animation = anim)
 ````
