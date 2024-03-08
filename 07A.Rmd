@@ -102,8 +102,8 @@ pde_fd_diffusion <- function(ngrid, X_all, dX, dt, D, t0, t.total, p0) {
 We consider an initial condition, where $P(X=0, t = 0) = 1$. This means that at $t = 0$, the system always starts from the origin $X=0$. Here is a simulation of this diffusion model.
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-ngrid = as.integer(len/dX)+1  # number of grid points
+l = 100; dX = 1; dt = 0.01; D = 1
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
 
 p0 = numeric(ngrid) # state variable: a vector of P(X,t) for all grids at time t
@@ -152,9 +152,9 @@ for(i in 1:num_sim){
 }
 t_all = 10 * c(1:num_sim)
 
-plot(t_all,p_tot_all, type="p", col=1, xlab="t", ylab="Total P", xlim=c(1,len*10), ylim=c(0,1)) 
-plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="<X>", xlim=c(1,len*10), ylim=c(-5,5)) 
-plot(t_all,sdX_all**2, type="p", col=1, xlab="t", ylab=bquote(sigma(X)^2), xlim=c(1,len*10), ylim=c(0,500), mgp=c(2.5,1,0)) 
+plot(t_all,p_tot_all, type="p", col=1, xlab="t", ylab="Total P", xlim=c(1,l*10), ylim=c(0,1)) 
+plot(t_all,meanX_all, type="p", col=1, xlab="t", ylab="<X>", xlim=c(1,l*10), ylim=c(-5,5)) 
+plot(t_all,sdX_all**2, type="p", col=1, xlab="t", ylab=bquote(sigma(X)^2), xlim=c(1,l*10), ylim=c(0,500), mgp=c(2.5,1,0)) 
 curve(x*D*2, add = TRUE)
 ```
 
@@ -165,14 +165,15 @@ The results show that $sd(X)^2 ~ t$ for small $t$. When the probability distribu
 Now we consider another initial condition, where $P(X < 0, t = 0) = 1$. This means that at $t = 0$, the system starts from the left side of the $X$ axis. Here is a simulation of this diffusion model.
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
-ngrid = as.integer(len/dX)+1  # number of grid points
+l = 100; dX = 1; dt = 0.01; D = 1
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
 
 p0 = numeric(ngrid) # state variable: a vector of P(X,t) for all grids at time t
-p0[1:(ngrid+1)/2] = 1 # specify the initial condition, P = 1 for the whole left side. Note that P is not normalized to 1
+p0[1:(ngrid+1)/2] = 1 # specify the initial condition, P = 1 for the whole left side.
+p0 = p0/sum(p0)
 
-plot(X_all, p0, type="l", col=1, xlab="X", ylab="P", xlim=c(-50,50), ylim=c(0,1)) 
+plot(X_all, p0, type="l", col=1, xlab="X", ylab="P", xlim=c(-50,50), ylim=c(0,0.02)) 
 p_now = p0
 for (i in 1:5){
   p_now = pde_fd_diffusion(ngrid = ngrid, X_all = X_all, dX = dX, dt = dt, D = D, t0 = 0, t.total = 50, p0 = p_now) 
@@ -195,4 +196,4 @@ $$\frac{\partial P}{\partial X}(X, t) = \frac{P(X + \Delta X, t) - P(X, t)}{\Del
 
 Thus, we set $P(X,t)$ at a boundary point same as the $P(X,t)$ for the nearby grid point. The readers can implement this boundary condition for the diffusion models that we have described here and check what would be the differences of the diffusion dynamics. We leave this as an exercise.
 
-A third type is a periodic boundary condition. For grid points ${X_i}$ for $i = 1,2 ...n$, we set $P(X_0) = P(X_n)$ and $P(X_{n+1}) = P(X_1)$. This will allow us to compute the needed partial derivatives for PDEs. This type of boundary conditions will be illustrated in [Part 05C](./05C.html).
+A third type is a periodic boundary condition. For grid points ${X_i}$ for $i = 1,2 ...n$, we set $P(X_0) = P(X_n)$ and $P(X_{n+1}) = P(X_1)$. This will allow us to compute the needed partial derivatives for PDEs. This type of boundary conditions will be illustrated in [Part 07C](./07C.html).
