@@ -34,7 +34,7 @@ $$\frac{\partial u}{\partial t} = ru(1-\frac{u}{B}) + D \frac{\partial^2 u}{\par
 $u$ is the population size, and $B$ is the carrying capacity. This is Fisher's equation, first proposed by Ronald Fisher in 1934. Below is a slightly modified PDE integrator to model reaction-diffusion systems. We use the Dirichlet boundary condition here (zero $u$ at the boundary).
 
 ```{r}
-## PDE integration with the finite difference method for a generic reaction-diffusion system
+## PDE integration with the finite difference method for reaction-diffusion equation 
 pde_fd_reaction_diffusion <- function(derivs, ngrid, dX, dt, D, t0, t.total, p0, ...) {
   #derivs: derivative function
   #ngrid: number of grid points
