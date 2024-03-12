@@ -43,7 +43,7 @@ Third, we define the reaction propensity $R_j$ as the product of its specific pr
 The following is a generic implementation of the Gillespie algorithm in R.
 
 ```{r} 
-# a generic Gillespie algorithm for one iteration
+# A generic Gillespie algorithm for one iteration
 gillespie_step <- function(t,Xs,propensity, stoichiometry,...){
   p_all = propensity(Xs, ...)  # propensity
   p_sum = sum(p_all)
@@ -87,19 +87,6 @@ ssa <- function(propensity,stoichiometry,X0,tmax,iter_max, ...){
     X_all[iter,] = Xs
   }
   return(cbind(t_all, X_all)) 
-}
-
-cal_stat <- function(results_mat) {    # results_mat: 1st column: t, 2nd - (n+1)th columns: n variables for each t
-  mat = na.omit(results_mat)
-  nt = nrow(mat)
-  nx = ncol(mat)
-  dt = mat[-1,1] - mat[1:(nt-1),1]
-  t_tot = sum(dt)
-  mean = t(mat[1:(nt-1),2:nx]) %*% dt / t_tot
-  mean2 = t(mat[1:(nt-1),2:nx])**2 %*% dt / t_tot
-  sd = sqrt(mean2 - mean**2)
-  error = sd/mean
-  return(list(mean = mean, var = var, sd = sd, error = error))
 }
 ```
 
@@ -198,7 +185,7 @@ cal_stat <- function(results_mat) {    # results_mat: 1st column: t, 2nd - (n+1)
   mean2 = t(mat[1:(nt-1),2:nx])**2 %*% dt / t_tot
   sd = sqrt(mean2 - mean**2)
   error = sd/mean
-  return(list(mean = mean, var = var, sd = sd, error = error))
+  return(list(mean = mean, sd = sd, error = error))
 }
 
 ```
@@ -219,7 +206,7 @@ plot(ss_all, c(stat1$error, stat2$error, stat3$error), type = "b", col = 2, xlab
 
 ```
 
-Now, let's consider the same systems for the above three conditions but starting from the zero initial condition. The purpose is to evaluate the decaying dynamics towards the steady state.
+Now, let's consider the same systems for the above three conditions but starting from the zero initial condition. The purpose is to evaluate the growing dynamics towards the steady state.
 
 ```{r}
 g = 100; k = 0.1
@@ -275,13 +262,13 @@ The corresponding ODE of the system is
 $$\frac{dx}{dt} = ng/n - kx = g - kx$$
 ```{r}
 # specify propensity functions
-p_func1 <- function(Xs,g,k,n) {   # Xs: current state; k1, k2 ...: parameters
+p_func2 <- function(Xs,g,k,n) {   # Xs: current state; k1, k2 ...: parameters
   x = Xs[1]
   return(c(g/n,k*x))   #output: a vector of propensity
 }
 
 # specify stoichiometry matrix
-s_func1 <- function(r_ind,g,k,n) {   # r_ind: the choice of the reaction
+s_func2 <- function(r_ind,g,k,n) {   # r_ind: the choice of the reaction
   s_matrix = cbind(c(n),    # x adds n
                c(-1))   # x subtracts 1
   return(s_matrix[,r_ind])
@@ -296,11 +283,11 @@ g = 16; k = 0.1; n = 1
 X0 = c(160)
 tmax = 1000
 iter_max = 50000
-results_1 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n) 
+results_4 = ssa(p_func2, s_func2, X0, tmax,iter_max, g = g, k = k, n = n) 
 
-plot(results_1[,1], results_1[,2], type = "s", col=2,
+plot(results_4[,1], results_4[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
-lines(results_1[,1], rep(X0,times = nrow(results_1)), col = 3)
+lines(results_4[,1], rep(X0,times = nrow(results_4)), col = 3)
 ```
 
 Now if we set $g = 16$, $k = 0.1$, and $n = 2$. The steady state level remains the same. $x(t = 0) = \bar{x} = 160$. 
@@ -310,11 +297,11 @@ g = 16; k = 0.1; n = 2
 X0 = c(160)
 tmax = 2000
 iter_max = 500000
-results_2 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n) 
+results_5 = ssa(p_func2, s_func2, X0, tmax,iter_max, g = g, k = k, n = n) 
 
-plot(results_2[,1], results_2[,2], type = "s", col=2,
+plot(results_5[,1], results_5[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
-lines(results_2[,1], rep(X0,times = nrow(results_2)), col = 3)
+lines(results_5[,1], rep(X0,times = nrow(results_5)), col = 3)
 ```
 
 We then set $g = 16$, $k = 0.1$, $n = 4$. $x(t = 0) = \bar{x} = 160$. 
@@ -324,10 +311,10 @@ g = 16; k = 0.1; n = 4
 X0 = c(160)
 tmax = 2000
 iter_max = 500000
-results_3 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n)  
-plot(results_3[,1], results_3[,2], type = "s", col=2,
+results_6 = ssa(p_func2, s_func2, X0, tmax,iter_max, g = g, k = k, n = n)  
+plot(results_6[,1], results_6[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
-lines(results_3[,1], rep(X0,times = nrow(results_3)), col = 3)
+lines(results_6[,1], rep(X0,times = nrow(results_6)), col = 3)
 ```
 
 We then set $g = 16$, $k = 0.1$, $n = 8$. $x(t = 0) = \bar{x} = 160$. 
@@ -337,21 +324,21 @@ g = 16; k = 0.1; n = 8
 X0 = c(160)
 tmax = 1000
 iter_max = 500000
-results_4 = ssa(p_func1, s_func1, X0, tmax,iter_max, g = g, k = k, n = n)  
-plot(results_4[,1], results_4[,2], type = "s", col=2,
+results_7 = ssa(p_func2, s_func2, X0, tmax,iter_max, g = g, k = k, n = n)  
+plot(results_7[,1], results_7[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(100,220))
-lines(results_4[,1], rep(X0,times = nrow(results_4)), col = 3)
+lines(results_7[,1], rep(X0,times = nrow(results_7)), col = 3)
 ```
 
 ```{r}
 n_all = c(1,2,4,8)
-stat1 = cal_stat(results_1)
-stat2 = cal_stat(results_2)
-stat3 = cal_stat(results_3)
 stat4 = cal_stat(results_4)
+stat5 = cal_stat(results_5)
+stat6 = cal_stat(results_6)
+stat7 = cal_stat(results_7)
 
-plot(n_all, c(stat1$mean, stat2$mean, stat3$mean, stat4$mean), type = "b", col = 2, xlab = "n", ylab ="Mean", xlim = c(0,8), ylim = c(0,200))
-plot(n_all, c(stat1$sd, stat2$sd, stat3$sd, stat4$sd), type = "b", col = 2, xlab = "n", ylab ="SD", xlim = c(0,8), ylim = c(0,30))
+plot(n_all, c(stat4$mean, stat5$mean, stat6$mean, stat7$mean), type = "b", col = 2, xlab = "n", ylab ="Mean", xlim = c(0,8), ylim = c(0,200))
+plot(n_all, c(stat4$sd, stat5$sd, stat6$sd, stat7$sd), type = "b", col = 2, xlab = "n", ylab ="SD", xlim = c(0,8), ylim = c(0,30))
 ```
 
 
@@ -361,7 +348,7 @@ We consider a  model of a self-inhibiting gene. The model is the same as the pre
 
 ```{r}
 # specify propensity functions
-p_func1 <- function(Xs,g0,g1,k,kon,koff) {   # Xs: current state; k1, k2 ...: parameters
+p_func3 <- function(Xs,g0,g1,k,kon,koff) {   # Xs: current state; k1, k2 ...: parameters
   d = Xs[1] #D` (0: bound; 1: unbound)
   c = Xs[2] #C  (0: unbound; 1: bound)
   m = Xs[3] #M  (number of M)
@@ -369,7 +356,7 @@ p_func1 <- function(Xs,g0,g1,k,kon,koff) {   # Xs: current state; k1, k2 ...: pa
 }
 
 # specify stoichiometry matrix
-s_func1 <- function(r_ind,g0,g1,k,kon,koff) {   # r_ind: the choice of the reaction
+s_func3 <- function(r_ind,g0,g1,k,kon,koff) {   # r_ind: the choice of the reaction
   s_matrix = cbind(c(0,0,1),    # M adds 1
                    c(0,0,-1),   # M subtracts 1
                    c(-1,1,-2),  # C adds 1, D subtracts 1, and M subtracts 2
@@ -389,22 +376,22 @@ g0 = 55; g1 = 5; k = 0.1; kon = 0.002; koff = 90
 X0 = c(1,0,300)
 tmax = 400
 iter_max = 50000
-results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+results_8 = ssa(p_func3, s_func3, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
 
 # R: almost a constant; M: noisy because of low copy number of $M$
-plot(results[,1], results[,4], type = "s", col=2,
+plot(results_8[,1], results_8[,4], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,600))
 
 # Plotting promoter occupancy
-plot(results[,1], results[,2], type = "s", col=2,
+plot(results_8[,1], results_8[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
-lines(results[,1],results[,3], type = "s", col = 3)
+lines(results_8[,1],results_8[,3], type = "s", col = 3)
 legend("bottomright", inset=0.02, legend = c("D", "C"),
        col=2:3, lty=1, cex=0.8)
 
-stat = cal_stat(results)
-stat$mean
-stat$sd
+stat8 = cal_stat(results_8)
+stat8$mean
+stat8$sd
 ```
 
 Now if we turn off the binding/unbinding ($k_{on} = k_{off} = 0$), and set $g_0 = 30$ so that the system has a similar steady state of $M$. This modified system is the same as a constitutively expressed gene.
@@ -415,22 +402,22 @@ g0 = 30; g1 = 30; k = 0.1; kon = 0.0; koff = 0
 X0 = c(1,0,300)
 tmax = 300
 iter_max = 50000
-results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+results_9 = ssa(p_func3, s_func3, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
 
 # R: almost a constant; M: noisy because of low copy number of $M$
-plot(results[,1], results[,4], type = "s", col=2,
+plot(results_9[,1], results_9[,4], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,600))
 
 # Plotting promoter occupancy
-plot(results[,1], results[,2], type = "s", col=2,
+plot(results_9[,1], results_9[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
-lines(results[,1],results[,3], type = "s", col = 3)
+lines(results_9[,1],results_9[,3], type = "s", col = 3)
 legend("bottomright", inset=0.02, legend = c("D", "C"),
        col=2:3, lty=1, cex=0.8)
 
-stat = cal_stat(results)
-stat$mean
-stat$sd
+stat9 = cal_stat(results_9)
+stat9$mean
+stat9$sd
 ```
 
 Compared to the gene with self-inhibition, the noise level ($SD(M)$) is higher. It is well established that a self-inhibition reduces gene expression noise.
@@ -443,22 +430,22 @@ g0 = 5.5; g1 = 0.5; k = 0.1; kon = 0.2; koff = 90
 X0 = c(1,0,30)
 tmax = 300
 iter_max = 50000
-results = ssa(p_func1, s_func1, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
+results_10 = ssa(p_func3, s_func3, X0, tmax,iter_max, g0=g0, g1=g1, k=k, kon=kon, koff=koff) 
 
 # R: almost a constant; M: noisy because of low copy number of $M$
-plot(results[,1], results[,4], type = "s", col=2,
+plot(results_10[,1], results_10[,4], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,60))
 
 # Plotting promoter occupancy
-plot(results[,1], results[,2], type = "s", col=2,
+plot(results_10[,1], results_10[,2], type = "s", col=2,
     xlab="Time", ylab="x", xlim=c(0,tmax), ylim=c(0,1))
-lines(results[,1],results[,3], type = "s", col = 3)
+lines(results_10[,1],results_10[,3], type = "s", col = 3)
 legend("bottomright", inset=0.02, legend = c("D", "C"),
        col=2:3, lty=1, cex=0.8)
 
-stat = cal_stat(results)
-stat$mean
-stat$sd
+stat10 = cal_stat(results_10)
+stat10$mean
+stat10$sd
 ```
 
 The stochastic dynamcis resemble oscillatory dynamics.

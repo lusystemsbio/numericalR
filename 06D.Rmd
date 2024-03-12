@@ -40,11 +40,10 @@ noise_ts <- function(t, X, b) return(b)  # b: output: c(s_X, s_Y), constant nois
 As the system has constant noise, the Euler-Maruyama method is applied here. 
 
 ```{r}
-SDE_Euler_2D <- function(derivs_2D, noise_2D, para, X0, t.total, dt){
+SDE_Euler_2D <- function(derivs_2D, noise_2D, X0, t.total, dt, ...){
   # derivs: the function of the derivatives, return a 2D vector
   # noise: the function of the noise term , return a 2D vector
   # X0: initial condition, a 2D vector of c(X0, Y0)
-  # para: pass-in parameters
   # t.total: total simulation time, assuming t starts from 0 at the beginning
   # dt: time step size 
   t_all = seq(0, t.total, by=dt)
@@ -55,7 +54,7 @@ SDE_Euler_2D <- function(derivs_2D, noise_2D, para, X0, t.total, dt){
   for (i in 1:(n_all-1)) {
     t = t_all[i]
     X = X_all[i,]
-    X = X + dt * derivs_2D(t, X, para) + dW_all[i,] * noise_2D(t, X, para)
+    X = X + dt * derivs_2D(t, X, ...) + dW_all[i,] * noise_2D(t, X, ...)
     X_all[i+1,] = pmax(0, X)   # this step alleviate the issue that X becomes negative during the intergration, Xs are no less than zero.
   }
   return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
@@ -65,10 +64,10 @@ SDE_Euler_2D <- function(derivs_2D, noise_2D, para, X0, t.total, dt){
 Now we perform a stochastic simulation.
 
 ``` {r}
-s = c(20, 20)
+b = c(20, 20)
 X_init = c(50, 200)
 set.seed(1)
-results = SDE_Euler_2D(f_ts, noise_ts, para = s, X0 = X_init, 1000, 0.01) 
+results = SDE_Euler_2D(derivs_2D = f_ts, noise_2D = noise_ts, X0 = X_init, t.total = 1000, dt = 0.01, b = b) 
 
 plot(NULL, xlab="t", ylab="Levels", xlim=c(0,1000), ylim=c(0,600)) 
 lines(results[,1], results[,2],  col=2)

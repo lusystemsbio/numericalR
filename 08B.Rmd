@@ -427,11 +427,11 @@ legend("topright", c("Total energy", "Spin states"),
 
 In the above plot, blue trajectory shows the number of spins with the state +1. It's clear that the system has two states corresponding to the lowest total energy $E = -9$: one with ten +1 spins, and the other with zero +1 spin (ten -1 spins). The Metropolis-Hastings algorithm can sample states of various energy levels under constant temperature $T = 1$, and various states of the same energy.
 
-For a lower temperature $T = 0.3$, it becomes much harder to undergo state transitions towards a higher energy state. Thus, the algorithm mostly samples one of the lowest energy state (*e.g*, in this case, the one with ten +1 spins).
-
 Q: Try the Metropolis-Hastings simulations for a few initial conditions. Do you always get the same outcome?
 
 The above code also computes the mean energy from the MCMC sampling. This calculation is called an ensemble average, which is equivalent to an time average for an equilibrium system, as long as a sufficiently large number of samples are used in the calculation.
+
+For a lower temperature $T = 0.3$, it becomes much harder to undergo state transitions towards a higher energy state. Thus, the algorithm mostly samples one of the lowest energy state (*e.g*, in this case, the one with ten +1 spins).
 
 ```{r}
 set.seed(1)
@@ -454,7 +454,7 @@ legend("topright", c("Total energy", "Spin states"),
 For a higher temperature $T = 3$, it becomes much harder to sample the lowest energy state. Most sampled energy states are in the middle range. 
 
 ```{r}
-set.seed(1)
+set.seed(2)
 nstep = 10^3
 results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 3)
 print(paste0("Mean energy: ",mean(results_ising$e)))

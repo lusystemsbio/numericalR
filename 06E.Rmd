@@ -14,13 +14,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # 1. Convergence of stochastic simulations
-SDE simulation is stochastic in nature. To evaluate the convergence and stability of a simulation, we rely on statistical analysis of the stochastic trajectories, *e.g.*, by mean levels and/or their standard deviations. Using the Ornstein–Uhlenbeck process (see Part 4A) as an example, design a simulation experiment to evaluate the convergence of simulation statistics with respect to the computational cost (here, we consider that the computational cost is proportional to the length of the simulation).
+SDE simulation is stochastic in nature. To evaluate the convergence and stability of a simulation, we rely on statistical analysis of the stochastic trajectories, *e.g.*, by mean levels and/or their standard deviations. Using the Ornstein–Uhlenbeck process (see Part 6C) as an example, design a simulation experiment to evaluate the convergence of simulation statistics with respect to the computational cost (here, we consider that the computational cost is proportional to the length of the simulation).
 
 # 2. Geometric Brownian motion
 
-Consider a geometric Brownian motion, governed by the following stochastic differential equation (SDE):
+Consider a geometric Brownian motion governed by the following stochastic differential equation (SDE):
 
-$$dX = \mu X dt+ \sigma XdW \tag{2}$$
+$$dX = \mu X dt+ \sigma XdW \tag{1}$$
 , where $\mu$ and $\sigma$ are positive constants. Show using SDE simulations with the Euler–Maruyama method that 
 
 **(a)** Mean $<X> = X_0 e^{\mu t}$
@@ -29,24 +29,24 @@ $$dX = \mu X dt+ \sigma XdW \tag{2}$$
 
 In this exercise, we set $\mu = 0.1$, $\sigma = 0.2$, and the same initial condition $X_0 = 1$.
 
-Hint: You will need to simulate many time trajectories for the same system using the same parameters and initial condition. Only random numbers are different between different simulations. From these simulations, you can take data from different time points to perform the statistics (mean and variance for different $t$s). Try at least 100 simulations (or more if you can) and 10 different time points $t$ (choose small $t$s and short total simulation time to reduce the computational cost), and evaluate whether the simulated data are consistent with the above formula or not.
+Hint: Simulate multiple time trajectories for the same system using the same parameters and initial condition. The only differences between these simulations are random numbers. From these simulations, compute the mean and variance for different $t$ values. You will need to perform at least 100 simulations and evaluate the statistics for 10 different time points $t$ (choose small $t$s and short total simulation time to reduce the computational cost). To answer the question, evaluate whether the statistics from the simulations are consistent with the above formula. 
 
 # 3. Noise in a flip-flop circuit
 
-We revisit the flip-flop circuit that we have experienced in Part 3F. Now we consider gene expression noise. Write down the corresponding SDEs for the circuit and simulate its stochastic dynamics. What types of dynamics do the circuit exhibit with the presence of noise?
+We revisit the flip-flop circuit that we have experienced in Part 3H. Now we consider gene expression noise. Write down the corresponding SDEs for the circuit and simulate its stochastic dynamics. What types of dynamics do the circuit exhibit with the presence of noise?
 
 # 4. Effective potential revisited, again 
 
-We had multiple discusses of effective potential for non-linear dynamical systems (see Parts 2C and 3E). Over there, we defined the effective potential by the analogy of over-damped dynamics. However, this definition has issues for a high dimensional system. Here, instead, we define a new effective potential by
+We had multiple discusses of effective potential for non-linear dynamical systems (see Parts 2D and 3G). Over there, we defined the effective potential by the analogy of over-damped dynamics. However, this definition has issues for a high dimensional system. Here, instead, we define a new effective potential by
 
 $$ U(X, Y) = - log(P(X,Y)) \tag{2}$$
 , where $P$ is the probability of the states near ($X$, $Y$) in the phase plane.
 
-Use the toggle switch circuit as an example (see Parts 3A-D), perform SDE simulations, and compute the effective potentials. Plot the potential curves along each of the nullclines. 
+Use the toggle switch circuit as an example (see Parts 3AB and 3EFG), perform SDE simulations, and compute the effective potentials. Plot the potential curves along each of the nullclines. 
 
 # 5. Transition state theory
 
-We revisit the transition rate calculations in Part 4C. Now we vary the noise levels. Identify the relationship between the transition rates and the noise levels. Check if your calculations are consistent with Arrhenius equation, *i.e.*, 
+We revisit the transition rate calculations in Part 6D. Now we vary the noise levels. Identify the relationship between the transition rates and the noise levels. Check if your calculations are consistent with Arrhenius equation, *i.e.*, 
 
 $$\kappa \propto e^{-\frac{\Delta U}{D}} \tag{3}$$
 
