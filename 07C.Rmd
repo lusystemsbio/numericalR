@@ -81,10 +81,10 @@ The model has two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the 
 ``` {r,fig.width = 4, fig.height = 3}
 par(mar = c(4, 4, 1, 1))
 set.seed(10)
-n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 20
+n = 2; l = 20; dX = 0.2; dt = 0.01; t.total_iter = 20
 D = c(0.1,1); mu = 1.5
 
-ngrid = as.integer(len/dX)+1  # number of grid points
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = c(0:(ngrid-1))*dX  # X values for each grid point
 
 u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
@@ -193,10 +193,10 @@ There are also two parameters $d$ and $\mu$. When $d = 0.1$ and $\mu = 1.5$, the
 ``` {r,fig.width = 4, fig.height = 3}
 par(mar = c(4, 4, 1, 1))
 set.seed(10)
-n = 2; len = 20; dX = 0.2; dt = 0.01; t.total_iter = 5
+n = 2; l = 20; dX = 0.2; dt = 0.01; t.total_iter = 5
 D = c(0.1,1); mu = 1.5
 
-ngrid = as.integer(len/dX)+1  # number of grid points
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = c(0:(ngrid-1))*dX  # X values for each grid point
 
 u0 = matrix(1 + runif(2*ngrid, -0.1,0.1), nrow = 2, ncol = ngrid)
@@ -205,7 +205,7 @@ turing_aim <- function(t, p, mu){
   u = p[1]
   v = p[2]
   f = u**2/v - u
-  g = u**2 - v
+  g = mu*u**2 - v
   return(c(f,g))
 }
 
@@ -215,7 +215,7 @@ for(i in 0:5){
     u_1 = pde_fd_reaction_diffusion_multi(derivs = turing_aim, n = n, ngrid = ngrid, dX = dX, dt = dt, D = D, 
                                   t0 = 0, t.total = t.total_iter, p0 = u_1, mu = mu) 
   }
-  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,3)) 
+  plot(X_all, u_1[1,], type="l", col=1, xlab="X", ylab="u or v", xlim=c(0,20), ylim=c(0,2)) 
   lines(X_all,u_1[2,], col=2)
   legend("topright", inset=0.02, 
        legend = c("u", "v"), title = paste0("t =",i*t.total_iter),

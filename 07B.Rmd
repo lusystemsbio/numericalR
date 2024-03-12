@@ -62,9 +62,9 @@ pde_fd_reaction_diffusion <- function(derivs, ngrid, dX, dt, D, t0, t.total, p0,
 Here, we set a constant $u$ at some center grids as the initial condition of the system. We can observe a bidirectional traveling wave at a constant velocity until the wave reaches to the boundary. 
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
+l = 100; dX = 1; dt = 0.01; D = 1
 r = 0.64; B = 75
-ngrid = as.integer(len/dX)+1  # number of grid points
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = c(0:(ngrid-1))*dX  # X values for each grid point
 
 u0 = numeric(ngrid)
@@ -88,9 +88,9 @@ legend("topright", title = "Iterations", inset=0.02,
 For a constant initial condition from the very left end of the system, the traveling wave is towards the right direction.
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1
+l = 100; dX = 1; dt = 0.01; D = 1
 r = 0.64; B = 75
-ngrid = as.integer(len/dX)+1  # number of grid points
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = c(0:(ngrid-1))*dX  # X values for each grid point
 
 u0 = numeric(ngrid) 
@@ -171,8 +171,8 @@ We applied the above function on Brownian dynamics under a harmonic potential an
 $$\frac{\partial P}{\partial t} = -\frac{\partial (-kXP)}{\partial X}  + D\frac{\partial^2 P}{\partial X^2} \tag{8}$$
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.01
-ngrid = as.integer(len/dX)+1  # number of grid points
+l = 100; dX = 1; dt = 0.01; D = 1; k = 0.01
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
 
 u0 = numeric(ngrid)
@@ -200,8 +200,8 @@ $$P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}e^{-\frac{kX^2}{2D}} \tag{9}$$
 In the plot, the dots represent the theoretical values of $P_{ss}(X)$.
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
-ngrid = as.integer(len/dX)+1  # number of grid points
+l = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
 
 u0 = numeric(ngrid)
@@ -226,8 +226,8 @@ legend("topright", title = "Iterations", inset=0.02,
 $P$ also converges to the same distribution when starting from a different initial condition (uniform distribution).
 
 ```{r}
-len = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
-ngrid = as.integer(len/dX)+1  # number of grid points
+l = 100; dX = 1; dt = 0.01; D = 1; k = 0.03
+ngrid = as.integer(l/dX)+1  # number of grid points
 X_all = (c(1:ngrid) - (ngrid+1)/2)*dX  # X values for each grid point
 
 u0 = rep(1, ngrid)
