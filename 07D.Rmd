@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # A model of pattern formation in Dictyostelium
 
-In this section, we show the implementation of a PDE-based model for pattern formation in Dicty, which was originally developed by Kessler & Levine, (1993) PRE,48(6):4801. In this model, cells are randomly placed on a 2D square lattice with density $\rho$. Cyclic AMP concentration $c$ (referred to as "con" in the code) obeys a reaction diffusion equation
+In this section, we show the implementation of a PDE-based model for pattern formation in Dicty, which was originally developed by [Kessler & Levine, (1993) PRE,48(6):4801](https://doi.org/10.1103/PhysRevE.48.4801). In this model, cells are randomly placed on a 2D square lattice with density $\rho$. Cyclic AMP concentration $c$ (referred to as "con" in the code) obeys a reaction diffusion equation
 
 $$\frac{\partial c}{\partial t} = a^2 (\frac{\partial^2 c}{\partial x^2}+\frac{\partial^2 c}{\partial y^2}) - kc + (\text{sources}) {\tag 1}$$
 where $a$ is the lattice size, $k$ is the degradation rate of cAMP. 
@@ -153,6 +153,9 @@ dicty_modeling <- function(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, n
   states_all = matrix(0, nframe, ncell)
   states_all[l,] = dat$states
   
+  con_all = matrix(0, nframe, n*n)
+  con_all[l,] = c(dat$con)
+  
   for (t_ind in seq_len(nt_all)){
     dat = update_states(n, ncell, dat, con_t, t_e, t_r, dt)
     
@@ -175,23 +178,33 @@ dicty_modeling <- function(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, n
     if(t_ind%%t_ind_save == 0){
       l = l + 1
       states_all[l,] = dat$states
+      con_all[l,] = c(dat$con)
     }
   }
-  return(states_all)
+  return(list(states = states_all, con = con_all))
 }
 
-state_all_saved = dicty_modeling(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, nframe)
+results = dicty_modeling(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, nframe)
 ```
 
 # Plotting
 ```{r,fig.width = 5, fig.height = 5.5}
-frame = 10
-plot(dat$ind[,1], dat$ind[,2], col = state_all_saved[frame,], xlab = "x", ylab = "y", cex = 0.5,pch = 15)
+library(plot.matrix)
+frame = 20
+# plot cell states
+plot(dat$ind[,1], dat$ind[,2], col = results$states[frame,], xlab = "x", ylab = "y", cex = 0.5,pch = 15)
+
+# plot cAMP concentration
+con = matrix(results$con[frame,], nrow = n, ncol = n)
+plot(con, key = NULL, breaks = c(seq(0,2,0.2),100), xlab = "", ylab = "", 
+     axis.col = NULL, axis.row = NULL, main = "", cex=0.6)
 ```
 
 # Animation
 
 The following scripts iteratively generate plots in png format and convert them to an animation gif using ImageMagick. 
+
+Animation for cell state changes:
 
 ```{r, results='hide', message = FALSE}
 library(png)
@@ -200,14 +213,14 @@ library(magrittr)
 
 for(i in 1:nframe){
   png(filename=sprintf("output_dicty_%05d.png",i), width = 960, height = 960)
-  plot(dat$ind[,1], dat$ind[,2], col = state_all_saved[i,], xlab = "x", ylab = "y", cex = 1.6, pch = 15)
+  plot(dat$ind[,1], dat$ind[,2], col = results$states[i,], xlab = "x", ylab = "y", cex = 1.6, pch = 15)
   dev.off()
 }
 list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>% 
   image_read() %>% 
   image_join() %>% 
   image_animate(fps=10) %>% 
-  image_write("extra/data/07D/dicty.gif") 
+  image_write("extra/data/07D/dicty_states.gif") 
 
 list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>%
   file.remove()
@@ -215,5 +228,30 @@ list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>%
 
 Here's the output animation showing spiral cell state changes. Black: inactive; Red: excited; Green: refractory.
 
-<center> ![Dicty animation](extra/data/07D/dicty.gif){width=50%} </center>
+<center> ![Dicty state animation](extra/data/07D/dicty_states.gif){width=50%} </center>
+<br/>
+
+Animation for cAMP concentration
+
+```{r, results='hide', message = FALSE}
+for(i in 1:nframe){
+  png(filename=sprintf("output_con_%05d.png",i), width = 960, height = 960)
+  con = matrix(results$con[i,], nrow = n, ncol = n)
+  plot(con, key = NULL, breaks = c(seq(0,2,0.2),100), xlab = "", ylab = "", 
+       axis.col = NULL, axis.row = NULL, main = "", cex=0.6)
+  dev.off()
+}
+list.files(path='.', pattern = 'output_con', full.names = TRUE) %>% 
+  image_read() %>% 
+  image_join() %>% 
+  image_animate(fps=10) %>% 
+  image_write("extra/data/07D/dicty_con.gif") 
+
+list.files(path='.', pattern = 'output_con', full.names = TRUE) %>%
+  file.remove()
+```
+
+Here's the output animation showing dynamics of cAMP. Yellow: high levels; Red: low levels.
+
+<center> ![cAMP concentration animation](extra/data/07D/dicty_con.gif){width=50%} </center>
 <br/>
