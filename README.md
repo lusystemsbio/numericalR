@@ -57,7 +57,8 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 7A. [Modeling diffusion](./07A.html) |
 |-- 7B. [Reaction-diffusion systems](./07B.html) |
 |-- 7C. [Turing instability](./07C.html) |
-|-- 7D. [Exercises](./07D.html) |
+|-- 7D. [Pattern formation in Dictyostelium](./07D.html) |
+|-- 7E. [Exercises](./07E.html) |
 |8. Monte Carlo Simulations|
 |-- 8A. [Monte Carlo Method](./08A.html) |
 |-- 8B. [Metropolis algorithm](./08B.html) |

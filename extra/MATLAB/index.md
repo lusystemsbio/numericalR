@@ -50,7 +50,8 @@
 |-- 7A. Modeling diffusion |
 |-- 7B. Reaction-diffusion systems |
 |-- 7C. Turing instability |
-|-- 7D. Exercises |
+|-- 7D. Pattern formation in Dictyostelium |
+|-- 7E. Exercises |
 |8. Monte Carlo Simulations|
 |-- 8A. Monte Carlo Method |
 |-- 8B. Metropolis algorithm |

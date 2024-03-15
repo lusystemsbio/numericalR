@@ -42,20 +42,21 @@
 |-- 5D. Exercises |
 |6. Stochastic differential equations|
 |-- 6A. [Random number generators](./06A.html) |
-|-- 6B. [Brownian motion](./06B.ht) |
-|-- 6B. SDE integrators |
-|-- 6D. Stochastic state transitions |
+|-- 6B. [Brownian motion](./06B.html) |
+|-- 6B. [SDE integrators](./06C.html) |
+|-- 6D. [Stochastic state transitions](./06D.html) |
 |-- 6E. Exercises |
 |7. Partial differential equations|
-|-- 7A. Modeling diffusion |
-|-- 7B. Reaction-diffusion systems |
-|-- 7C. Turing instability |
-|-- 7D. Exercises |
+|-- 7A. [Modeling diffusion](./07A.html) |
+|-- 7B. [Reaction-diffusion systems](./07B.html) |
+|-- 7C. [Turing instability](./07C.html) |
+|-- 7D. Pattern formation in Dictyostelium |
+|-- 7E. Exercises |
 |8. Monte Carlo Simulations|
-|-- 8A. Monte Carlo Method |
-|-- 8B. Metropolis algorithm |
-|-- 8C. Particles in a box: MCMC sampling |
-|-- 8D. Gillespie Algorithm |
+|-- 8A. [Monte Carlo Method](./08A.html) |
+|-- 8B. [Metropolis algorithm](./08B.html) |
+|-- 8C. [Particles in a box: MCMC sampling](./08C.html) |
+|-- 8D. [Gillespie Algorithm](./08D.html) |
 |-- 8E. Exercises |
 |9. Global optimization|
 |-- 9A. MCMC optimization methods |
