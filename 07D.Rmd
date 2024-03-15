@@ -29,16 +29,16 @@ For the initial condition, we consider a linear gradient of cAMP along the y-axi
 ```{r,fig.width = 5, fig.height = 5.5}
 # model parameters
 n = 101   # number of grid points per dimension;
-rho = 0.2 # cell density
+rho = 0.15  # cell density
 con_t = 1 # threshold concentration
 dc = 300 # cAMP production during excited state
 k = 0.5 # degradation rate
 t_e = 2 # excitation time
 t_r = 20 # refractory time
 p = 1 # maximum fraction of refractory cells
-t_total = 100 # total simulation time
+t_total = 150 # total simulation time
 dt = 0.01 # time step size
-nframe = 100 # animation frames
+nframe = 151 # animation frames
 set.seed(1) # random number seed
 
 # Initialize cells
@@ -91,6 +91,8 @@ ncell = as.integer(n*n*rho)
 dat = init_cells(n,ncell,p,t_r)
 plot(dat$ind[,1], dat$ind[,2], col = dat$states, xlab = "x", ylab = "y", cex = 0.5, pch = 15)
 ```
+
+In the plot, solid squares represent cells. Cell states are illustrated in different colors: black for inactive state (state 1), red for excited state (state 2), and green for refractory state (state 3)
 
 # Simulation
 
@@ -211,7 +213,7 @@ list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>%
   file.remove()
 ```
 
-Here's the output animation showing spiral cell state changes
+Here's the output animation showing spiral cell state changes. Black: inactive; Red: excited; Green: refractory.
 
 <center> ![Dicty animation](extra/data/07D/dicty.gif){width=50%} </center>
 <br/>
