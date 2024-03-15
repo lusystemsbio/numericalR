@@ -1,8 +1,8 @@
 ---
 title: "Part 7: Partial differential equations"
-subtitle: "D. Exercises"
+subtitle: "D. Pattern formation in Dictyostelium"
 author: "Mingyang Lu"
-date: "08/20/2023"
+date: "3/13/2024"
 output: 
   html_document:
     toc: true
@@ -13,37 +13,205 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# 1. Neumann's Boundary Condition*
+# A model of pattern formation in Dictyostelium
 
-In Part 7A, we modeled diffusion with PDEs under the Dirichlet boundary condition.
+In this section, we show the implementation of a PDE-based model for pattern formation in Dicty, which was originally developed by Kessler & Levine, (1993) PRE,48(6):4801. In this model, cells are randomly placed on a 2D square lattice with density $\rho$. Cyclic AMP concentration $c$ (referred to as "con" in the code) obeys a reaction diffusion equation
 
-$$\frac{\partial P(X,t)}{\partial t} = D \frac{\partial^2 P(X,t)}{\partial X^2} \tag{1} $$
-Another common type of boundary condition for a PDE is Neumann boundary condition, where we set $\frac{\partial P}{\partial X}(X, t) = 0$ for both $X = -l/2$ and $X = l/2$. This boundary condition would ensure no probability flux outside the system. Since
+$$\frac{\partial c}{\partial t} = a^2 (\frac{\partial^2 c}{\partial x^2}+\frac{\partial^2 c}{\partial y^2}) - kc + (\text{sources}) {\tag 1}$$
+where $a$ is the lattice size, $k$ is the degradation rate of cAMP. 
 
-$$  \frac{\partial P}{\partial X}(X, t) = \frac{P(X + \Delta X, t) - P(X, t)}{\Delta X} = 0$$
+Each cell has the capacity to alter its state as follows: it remains in an inactive state (state 1) until the concentration of cAMP surpasses a predefined threshold, denoted as $c_T$ (referred to as "con_t" in the code). Once the cAMP concentration exceeds $c_T$, the cell transitions to an excited state (state 2) and releases an amount $\Delta c$ of cAMP (referred to as "dc" in the code) over a duration of $t_e$ time units. Subsequently, after a period of $t_e$, the cell enters a refractory state (state 3) for a duration of $t_r$ time units, before eventually reverting to the inactive state (state 1). The term "sources" in Equation (1) describes the secretion of cAMP in state 2. 
 
-, we set $P(X,t)$ at a boundary point same as the $P(X,t)$ for the nearby grid point. 
+For the initial condition, we consider a linear gradient of cAMP along the y-axis, with an average concentration of 1. Cells occupy state 1 from one end of the x direction, whereas at the opposite end, a fraction $p$ of cells are in state 3. The fraction of cells in state 3 increases linearly along the x-axis.  We enforce a no-flux boundary condition in modeling diffusion of cAMP.
 
-**(a)** Modify the PDE integrator function *pde_fd_diffusion* (see Part 7A) for the Neumann boundary condition. 
+# Model setup
 
-**(b)** Read the section "Diffusion from the center". Model diffusion for the Neumann boundary condition. The initial condition is $P(X=0,t=0)=1$. Use the same parameters as provided in Part 7A. Plot the probability distributions as a function of $X$ for multiple time points. Plot the total $P$, $<X>$, and $<\sigma (X)^2>$ as functions of $t$. 
+```{r,fig.width = 5, fig.height = 5.5}
+# model parameters
+n = 101   # number of grid points per dimension;
+rho = 0.2 # cell density
+con_t = 1 # threshold concentration
+dc = 300 # cAMP production during excited state
+k = 0.5 # degradation rate
+t_e = 2 # excitation time
+t_r = 20 # refractory time
+p = 1 # maximum fraction of refractory cells
+t_total = 100 # total simulation time
+dt = 0.01 # time step size
+nframe = 100 # animation frames
+set.seed(1) # random number seed
 
-**(c)**. Diffusion from the left. Model diffusion with the initial condition $P(X<0,t=0)=1$ (normalization of the total probability is optional). Plot the probability distributions as a function of $X$ for multiple time points.
+# Initialize cells
+init_cells <- function(n, ncell, p, t_r){
+  # Input:
+  # n: number of grid points in each dimension
+  # ncell: number of cells
+  # p: maximum fraction of refractory cells
+  # t_r: refractory time
+  # Output:
+  # states: cell states, a vector of size ncell
+  #      1: inactive, con < con_th; 2: excited, con > con_th; 3: refractory
+  #      --- cell excited for tau, then refractory for tr, before transit to 0
+  # ind : indices for x and y grid points for each cell, a matrix of (ncell, 2)
+  # con: concentration of each grid point, a matrix of (n, n)
+  # clocks: time count down for cell state transitions, a vector of size ncell
+  
+  # Initialize cells 
+  ind_cell = sort(sample(1:(n*n), ncell, replace = FALSE))
+  ind_cell_xy = matrix(0, nrow = ncell, ncol = 2)
+  j = 0
+  for(i in ind_cell){
+    j = j + 1
+    ind_x = (i-1)%%n+1
+    ind_y = as.integer((i-1)/n) + 1
+    ind_cell_xy[j,1] = ind_x
+    ind_cell_xy[j,2] = ind_y
+  }
+  
+  # initial concentration
+  con_grad = seq(0,2,2/(n-1))
+  con = matrix(rep(con_grad,n), ncol = n, byrow = T)
+  
+  # Assign initial cell states, random assignment
+  states = rep(1, ncell)
+  clocks = integer(ncell)
+  for(i in seq_len(ncell)){
+    ind_x = ind_cell_xy[i,1]
+    ind_y = ind_cell_xy[i,2]
+    if(runif(1) < ind_x/n*p){
+      states[i] = 3
+      clocks[i] = t_r # state 3 with t_r waiting time
+    }
+  }
+  
+  return(list(states = states, ind = ind_cell_xy, con = con, clocks = clocks))
+}
 
-# 2. Gene circuit with multistability
+ncell = as.integer(n*n*rho)
+dat = init_cells(n,ncell,p,t_r)
+plot(dat$ind[,1], dat$ind[,2], col = dat$states, xlab = "x", ylab = "y", cex = 0.5, pch = 15)
+```
 
-Consider a circuit of one gene with self-activation, described by the chemical rate equation:
+# Simulation
 
-$$\frac{dX}{dt} = f(t, X,k) = 10 + 45\frac{X^4}{X^4+200^4} - kX. \tag{2}$$
+```{r}
+# update cell states
+update_states <- function(n, ncell, dat, con_t, t_e, t_r, dt){
+  for (i in seq_len(ncell)){
+    s = dat$states[i]
+    ind_x = dat$ind[i,1]
+    ind_y = dat$ind[i,2]
+    clock_now = dat$clocks[i]
+    if(s == 1){
+      if(dat$con[ind_x, ind_y] >= con_t){ # enter excited state
+        dat$states[i] = 2
+        dat$clocks[i] = t_e
+      }
+    }else if(s == 2){
+      if(clock_now >= dt){  # in excited state
+        dat$clocks[i] = clock_now - dt
+      }else{ # exit excited state, enter refractory state
+        dat$states[i] = 3
+        dat$clocks[i] = t_r
+      }
+    }else if(s == 3){
+      if(clock_now >= dt){  # in refractory state
+        dat$clocks[i] = clock_now - dt
+      }else{ # exit refractory state, enter inactive state
+        dat$states[i] = 1
+        dat$clocks[i] = 0
+      }
+    }
+  }
+  return(dat)
+}
 
-Here $k$ is an adjustable control parameter. This is the system that we have previously modeled using both ODE and SDE. The system can generate two stable steady states. Here, we model the stochastic dynamics of the circuit with the following Fokker-Planck equation:
+# main modeling function
+dicty_modeling <- function(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, nframe){
+  # n: number of grid points in each dimension
+  # ncell: number of cells
+  # dat: states (ncell), ind (ncell, 2), con (n, n), clocks(ncell)
+  # con_t:  cAMP threshold concentration 
+  # dc:  cAMP production
+  # k: degradation rate
+  # t_e: excitation time
+  # t_r: refractory time
+  # t_total: total simulation time
+  # dt: time step size
+  # nframe: number of frames to save
+  
+  nt_all = as.integer(t_total/dt)
+  rate_c = dc/t_e
+  t_ind_save = as.integer(nt_all/(nframe-1))
+  
+  con = dat$con
+  l = 0
+  pos_cells = dat$ind
+  
+  states_all = matrix(0, nframe, ncell)
+  states_all[l,] = dat$states
+  
+  for (t_ind in seq_len(nt_all)){
+    dat = update_states(n, ncell, dat, con_t, t_e, t_r, dt)
+    
+    c_x_plus_one = rbind(con[-1,],con[n,]) # con(X+dX,Y), no flux BC
+    c_x_minus_one = rbind(con[1,],con[-n,]) # con(X-dX,Y), no flux BC
+    c_y_plus_one = cbind(con[,-1],con[,n]) # con(X,Y+dY), no flux BC
+    c_y_minus_one = cbind(con[,1],con[,-n]) # con(X,Y-dY), no flux BC
+    
+    dcdt = (c_x_plus_one + c_x_minus_one + c_y_plus_one + c_y_minus_one - 4*con) - k * con
+    for (i in seq_len(ncell)){
+      if(dat$states[i] == 2){
+        ind_x = dat$ind[i,1]
+        ind_y = dat$ind[i,2]
+        dcdt[ind_x,ind_y] = dcdt[ind_x, ind_y] + rate_c
+      }
+    }
+    con = con + dcdt * dt
+    dat$con = con
+    
+    if(t_ind%%t_ind_save == 0){
+      l = l + 1
+      states_all[l,] = dat$states
+    }
+  }
+  return(states_all)
+}
 
-$$\frac{\partial P}{\partial t} = -\frac{\partial (fP)}{\partial X}  + \frac{\partial^2 (DP)}{\partial X^2} \tag{3} $$
+state_all_saved = dicty_modeling(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, nframe)
+```
 
-, where $f$ is described by Equation (2), the diffusion constant (or noise level) $D = 10$.
+# Plotting
+```{r,fig.width = 5, fig.height = 5.5}
+frame = 10
+plot(dat$ind[,1], dat$ind[,2], col = state_all_saved[frame,], xlab = "x", ylab = "y", cex = 0.5,pch = 15)
+```
 
-**(a)** Setup the PDE system by using the provided integrator *pde_fd_kokker_planck* (see Part 7B). Choose grid points from $X=0$ to $X=600$. Find an appropriate time step size $dt$ and an $X$ interval $dX$. (You may find weird $P$ values otherwise. You will need $dX$ to be relatively large, but not too large, and $dt$ to be small). The initial condition is chosen to be a uniform probability distribution. The initial condition is chosen to be a uniform probability distribution.
+# Animation
 
-**(b)** Try a series $k$ values (0.1, 0.12, 0.14, 0.16, 0.18, and 0.2). For each value of $k$, show the steady-state probability distributions (*i.e.*, the stationary probability distribution, which can be obtained after a sufficiently long PDE integration).
+The following scripts iteratively generate plots in png format and convert them to an animation gif using ImageMagick. 
 
-**(c)** Explain your observation. 
+```{r, results='hide', message = FALSE}
+library(png)
+library(magick)
+library(magrittr)
+
+for(i in 1:nframe){
+  png(filename=sprintf("output_dicty_%05d.png",i), width = 960, height = 960)
+  plot(dat$ind[,1], dat$ind[,2], col = state_all_saved[i,], xlab = "x", ylab = "y", cex = 1.6, pch = 15)
+  dev.off()
+}
+list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>% 
+  image_read() %>% 
+  image_join() %>% 
+  image_animate(fps=10) %>% 
+  image_write("extra/data/07D/dicty.gif") 
+
+list.files(path='.', pattern = 'output_dicty', full.names = TRUE) %>%
+  file.remove()
+```
+
+Here's the output animation showing spiral cell state changes
+
+<center> ![Dicty animation](extra/data/07D/dicty.gif){width=50%} </center>
+<br/>
