@@ -22,7 +22,7 @@ where $a$ is the lattice size, $k$ is the degradation rate of cAMP.
 
 Each cell has the capacity to alter its state as follows: it remains in an inactive state (state 1) until the concentration of cAMP surpasses a predefined threshold, denoted as $c_T$ (referred to as "con_t" in the code). Once the cAMP concentration exceeds $c_T$, the cell transitions to an excited state (state 2) and releases an amount $\Delta c$ of cAMP (referred to as "dc" in the code) over a duration of $t_e$ time units. Subsequently, after a period of $t_e$, the cell enters a refractory state (state 3) for a duration of $t_r$ time units, before eventually reverting to the inactive state (state 1). The term "sources" in Equation (1) describes the secretion of cAMP in state 2. 
 
-For the initial condition, we consider a linear gradient of cAMP along the y-axis, with an average concentration of 1. Cells occupy state 1 from one end of the x direction, whereas at the opposite end, a fraction $p$ of cells are in state 3. The fraction of cells in state 3 increases linearly along the x-axis.  We enforce a no-flux boundary condition in modeling diffusion of cAMP.
+For the initial condition, we consider a linear gradient of cAMP along the x-axis, with an average concentration of 1. Cells occupy state 1 from one end of the x direction, whereas at the opposite end, a fraction $p$ of cells are in state 3. The fraction of cells in state 3 increases linearly along the x-axis.  We enforce a no-flux boundary condition in modeling diffusion of cAMP.
 
 # Model setup
 
@@ -90,6 +90,10 @@ init_cells <- function(n, ncell, p, t_r){
 ncell = as.integer(n*n*rho)
 dat = init_cells(n,ncell,p,t_r)
 plot(dat$ind[,1], dat$ind[,2], col = dat$states, xlab = "x", ylab = "y", cex = 0.5, pch = 15)
+
+library(plot.matrix) # required to plot heatmap directly from a data matrix
+plot(dat$con, key = NULL, breaks = c(seq(0,2,0.2),100), xlab = "", ylab = "", 
+     axis.col = NULL, axis.row = NULL, main = "", cex=0.6, ylim = c(n,1))
 ```
 
 In the plot, solid squares represent cells. Cell states are illustrated in different colors: black for inactive state (state 1), red for excited state (state 2), and green for refractory state (state 3)
@@ -189,7 +193,6 @@ results = dicty_modeling(n, ncell, dat, con_t, dc, k, t_e, t_r, t_total, dt, nfr
 
 # Plotting
 ```{r,fig.width = 5, fig.height = 5.5}
-library(plot.matrix)
 frame = 20
 # plot cell states
 plot(dat$ind[,1], dat$ind[,2], col = results$states[frame,], xlab = "x", ylab = "y", cex = 0.5,pch = 15)
@@ -197,7 +200,7 @@ plot(dat$ind[,1], dat$ind[,2], col = results$states[frame,], xlab = "x", ylab = 
 # plot cAMP concentration
 con = matrix(results$con[frame,], nrow = n, ncol = n)
 plot(con, key = NULL, breaks = c(seq(0,2,0.2),100), xlab = "", ylab = "", 
-     axis.col = NULL, axis.row = NULL, main = "", cex=0.6)
+     axis.col = NULL, axis.row = NULL, main = "", cex=0.6, ylim = c(n,1))
 ```
 
 # Animation
@@ -238,7 +241,7 @@ for(i in 1:nframe){
   png(filename=sprintf("output_con_%05d.png",i), width = 960, height = 960)
   con = matrix(results$con[i,], nrow = n, ncol = n)
   plot(con, key = NULL, breaks = c(seq(0,2,0.2),100), xlab = "", ylab = "", 
-       axis.col = NULL, axis.row = NULL, main = "", cex=0.6)
+       axis.col = NULL, axis.row = NULL, main = "", cex=0.6, ylim = c(n,1))
   dev.off()
 }
 list.files(path='.', pattern = 'output_con', full.names = TRUE) %>% 

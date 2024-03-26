@@ -82,6 +82,7 @@ Q: is it okay to use larger $\Delta t$ in the simulation?
 nt = length(t_ind)
 t_sample = results_bm_1d[t_ind, 1, 1]  # all sampled t 
 mean_x = numeric(nt)
+mean_x2 = numeric(nt)
 var_x = numeric(nt)
 ind = 0
 for (i in t_ind){
@@ -89,11 +90,12 @@ for (i in t_ind){
   x = results_bm_1d[i, 2, ]
   hist(x, freq = F, xlab = "x", xlim = c(-100, 100), main = paste0("t =", t_sample[ind]))
   mean_x[ind] = mean(x)
-  var_x[ind] = mean(x*x)
+  mean_x2[ind] = mean(x*x)
+  var_x[ind] = mean_x2[ind] - mean_x[ind]**2 # not used yet
 }
 ```
 
-From the theory, we know that the variance $<x^2> = 2Dt$, where the diffusion constant for a one dimensional system:
+From the theory, we know that the $<x^2> = 2Dt$, where the diffusion constant for a one dimensional system:
 
 $$D = \lim_{\Delta t \rightarrow 0}\frac{\Delta x^2}{2\Delta t}. \tag{3}$$ 
 
@@ -101,10 +103,10 @@ Using the many simulations, we can also compute the mean and variance of $x$ for
 
 ```{r}
 plot(t_sample, mean_x, col = 1, xlab = "t", ylab = "Values", xlim = c(0,910), ylim = c(0, 1000))
-points(t_sample, var_x, col = 2)
+points(t_sample, mean_x2, col = 2)
 abline(a = 0, b = 0, col = 3)
 abline(a = 0, b = 1, col = 4)
-legend("topleft", inset= 0.02, legend = c("mean", "variance", "Theory mean (y = 0)", "Theory variance (y = t)"), 
+legend("topleft", inset= 0.02, legend = c("Mean(x)", "Mean(x^2)", "Theoretical Mean(x) (y = 0)", "Theoretical Mean(x^2) (y = t)"), 
        col=c(1:4), pch = c(1,1, NA, NA), lty = c(NA, NA, 1, 1))
 ```
 
