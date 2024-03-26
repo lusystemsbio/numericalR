@@ -129,14 +129,14 @@ potential_tot(x0, a) # initial potential
 Use Metropolis-Hastings algorithm to sample particle configurations.
 
 ```{r}
-metropolis_particle <- function(ntot, cal_e, cal_de, x0, dxmax, nstep, T, a){
+metropolis_particle <- function(ntot, cal_e, cal_de, x0, dxmax, nstep, temp, a){
   # ntot: number of particles
   # cal_e: name of the function to compute the total energy
   # cal_de: name of the function to compute the energy differences
   # x0: initial configuration (a vector of size 2*ntot)
   # dxmax: maximum displacement in a proposed move (a vector of size 2)
   # nstep: number of MCMC steps
-  # T: temperature (scaled)
+  # temp: temperature (scaled)
   # a: box size
   
   x = matrix(0, nrow = (nstep + 1), ncol = 2*ntot)  # positions
@@ -152,7 +152,7 @@ metropolis_particle <- function(ntot, cal_e, cal_de, x0, dxmax, nstep, T, a){
     x_new = x_new - floor(x_new/a) * a  # periodic boundary condition
     
     de = cal_de(x[i,], a, x_new, k)
-    if((de < 0) || (runif(1) <  exp(-de/T))){
+    if((de < 0) || (runif(1) <  exp(-de/temp))){
       x[i+1,] = x[i,]
       x[i+1, (2*k-1):(2*k)] = x_new
       e[i+1] = e[i] + de
@@ -172,11 +172,11 @@ MCMC sampling - the initial phase. This is needed as the initial configuration h
 ```{r}
 set.seed(10)
 dxmax = c(0.25, 0.25)
-T = 0.05
+temp = 0.05
 nstep = 5*10^3
 
 results_init = metropolis_particle(ntot = ntot, cal_e = potential_tot, cal_de = dp, x0 = x0, 
-                    dxmax = dxmax, nstep = nstep, T = T, a = a)
+                    dxmax = dxmax, nstep = nstep, temp = temp, a = a)
 plot(0:nstep, results_init$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
 x1 = results_init$x[nstep + 1,]
 ```
@@ -194,7 +194,7 @@ A second phase of MCMC sampling, prepared for the RDF calculation later.
 nstep = 1*10^4
 
 results_final = metropolis_particle(ntot = ntot, cal_e = potential_tot, cal_de = dp, x0 = x1, 
-                    dxmax = dxmax, nstep = nstep, T = T, a = a)
+                    dxmax = dxmax, nstep = nstep, temp = temp, a = a)
 plot(0:nstep, results_final$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
 ```
 

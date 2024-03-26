@@ -291,11 +291,11 @@ $$a  = min(1, \frac{P(x')}{P(x)}) = min(1, e^{-(E_{x'} - E_x)/T}). \tag{9}$$
 
 ```{r}
 # metropolis sampling based on a Boltzmann distribution
-metropolis_ising_1st <- function(nstep, n, J, T){
+metropolis_ising_1st <- function(nstep, n, J, temp){
   # nstep: number of steps
   # n: number of spins (one dimensional)
   # J: interaction strength
-  # T: temperature (after scaling)
+  # temp: temperature (after scaling)
   x = matrix(0, nrow = (nstep + 1), ncol = n)  # states
   e = numeric(nstep + 1) # total energy
   x[1, ] = sample(c(-1, 1), size = n, replace = T) # random initial condition
@@ -306,7 +306,7 @@ metropolis_ising_1st <- function(nstep, n, J, T){
     xnew = x[i,]
     xnew[k] = -xnew[k]  # flip the spin
     enew = e_ising(J, xnew)
-    a = min(1, exp(-(enew - e[i])/T))
+    a = min(1, exp(-(enew - e[i])/temp))
     if(runif(1) < a){
       x[i+1,] = xnew
       e[i+1] = enew
@@ -321,7 +321,7 @@ metropolis_ising_1st <- function(nstep, n, J, T){
 }
 set.seed(1)
 nstep = 10^3
-results_ising = metropolis_ising_1st(nstep = nstep, n = 10, J = 1, T = 1)
+results_ising = metropolis_ising_1st(nstep = nstep, n = 10, J = 1, temp = 1)
 plot(0:nstep, results_ising$e, type = "l", col = 2, lty = 1, xlab = "Step", ylab = "Total Energy", xlim = c(0,nstep))
 ```
 
@@ -382,11 +382,11 @@ Second, the acceptance probability doesn't need to be computed (which requires a
 
 ```{r}
 # metropolis sampling based on a Boltzmann distribution (an improved version)
-metropolis_ising_improved <- function(nstep, n, J, T){
+metropolis_ising_improved <- function(nstep, n, J, temp){
   # nstep: number of steps
   # n: number of spins (one dimensional)
   # J: interaction strength
-  # T: temperature (after scaling)
+  # temp: temperature (after scaling)
   x = matrix(0, nrow = (nstep + 1), ncol = n)  # states
   e = numeric(nstep + 1) # total energy
   x[1, ] = sample(c(-1, 1), size = n, replace = T) # random initial condition
@@ -395,7 +395,7 @@ metropolis_ising_improved <- function(nstep, n, J, T){
   for(i in 1:nstep){
     k = sample(x = n, size = 1) # randomly select a spin
     de = de_ising(J, x[i,], n, k)
-    if((de < 0) || (runif(1) <  exp(-de/T))){
+    if((de < 0) || (runif(1) <  exp(-de/temp))){
       x[i+1,] = x[i,]
       x[i+1,k] = -x[i+1,k] # flip the spin
       e[i+1] = e[i] + de
@@ -411,7 +411,7 @@ metropolis_ising_improved <- function(nstep, n, J, T){
 
 set.seed(1)
 nstep = 3*10^3
-results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 1)
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, temp = 1)
 print(paste0("Mean energy: ",mean(results_ising$e)))
 num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
 
@@ -436,7 +436,7 @@ For a lower temperature $T = 0.3$, it becomes much harder to undergo state trans
 ```{r}
 set.seed(1)
 nstep = 3*10^3
-results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 0.3)
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, temp = 0.3)
 print(paste0("Mean energy: ",mean(results_ising$e)))
 num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
 
@@ -456,7 +456,7 @@ For a higher temperature $T = 3$, it becomes much harder to sample the lowest en
 ```{r}
 set.seed(2)
 nstep = 10^3
-results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, T = 3)
+results_ising = metropolis_ising_improved(nstep = nstep, n = 10, J = 1, temp = 3)
 print(paste0("Mean energy: ",mean(results_ising$e)))
 num_1 = apply(results_ising$x, MARGIN = 1, function(vec) return(sum(vec == 1)))
 
