@@ -63,3 +63,8 @@
 |-- 9B. Dynamic programming |
 |-- 9C. Genetic algorithm |
 |-- 9D. Exercises |
+|10. High dimensional data analysis|
+|-- 10A. Dimensionality reduction |
+|-- 10B. Clustering |
+|-- 10C. Network algorithms |
+|-- 10D. Exercises |

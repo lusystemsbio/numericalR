@@ -59,7 +59,12 @@
 |-- 8D. [Gillespie Algorithm](./08D.html) |
 |-- 8E. Exercises |
 |9. Global optimization|
-|-- 9A. MCMC optimization methods |
-|-- 9B. Dynamic programming |
+|-- 9A. [MCMC optimization methods](./09A.html) |
+|-- 9B. [Dynamic programming](./09B.html) |
 |-- 9C. Genetic algorithm |
 |-- 9D. Exercises |
+|10. High dimensional data analysis|
+|-- 10A. Dimensionality reduction |
+|-- 10B. Clustering |
+|-- 10C. Network algorithms |
+|-- 10D. Exercises |

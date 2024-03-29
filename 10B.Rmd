@@ -1,0 +1,190 @@
+---
+title: "Part 10: High dimensional data analysis"
+subtitle: "B. Clustering"
+author: "Mingyang Lu"
+date: "03/27/2024"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# K-means
+
+```{r}
+# Function to initialize centroids randomly
+initialize_centroids <- function(data, k) {
+  n = nrow(data)
+  indices = sample(1:n, k)
+  centroids = data[indices, ]
+  return(centroids)
+}
+
+# Function to assign each data point to the nearest centroid
+assign_clusters <- function(data, centroids) {
+  n = nrow(data)
+  k = nrow(centroids)
+  distances = matrix(NA, nrow = n, ncol = k)
+  
+  # Calculate distances from each data point to each centroid
+  for (i in 1:k) {
+    distances[, i] = rowSums((data - centroids[i, ])^2)
+  }
+  
+  # Assign data points to the nearest centroid
+  clusters = apply(distances, 1, which.min)
+  return(clusters)
+}
+
+# Function to update centroids based on cluster assignments
+update_centroids <- function(data, clusters, k) {
+  n = nrow(data)
+  d = ncol(data)
+  centroids = matrix(NA, nrow = k, ncol = d)
+  for (i in 1:k) {
+    centroids[i, ] = colMeans(data[clusters == i, ])
+  }
+  return(centroids)
+}
+
+# Function to check if centroids have converged
+centroids_converged <- function(old_centroids, new_centroids, tol = 1e-6) {
+  sum_diff = sum((old_centroids - new_centroids)^2)
+  return(sum_diff < tol)
+}
+
+# K-means algorithm
+kmeans <- function(data, k, max_iters = 100, plot_iters = 0) {
+  # Input:
+  # data: matrix of data points
+  # k: number of clusters
+  # max_iters: number of maximum iterations for k-means
+  # plot_iters: number of iterations per plot; 0 means no plotting
+  # Output: a list of kmeans outputs.
+  # centroids: coordinates of the cluster centroids
+  # clusters: membership of clusters
+  
+  if(plot_iters != 0){
+    par(mar = c(2, 2, 2, 2))
+  }
+  
+  # Initialize centroids
+  centroids = initialize_centroids(data, k)
+  
+  # Loop until convergence or maximum iterations reached
+  for (iter in 1:max_iters) {
+    old_centroids = centroids
+    
+    # Assign data points to clusters
+    clusters = assign_clusters(data, centroids)
+    
+    # Update centroids
+    centroids = update_centroids(data, clusters, k)
+    
+    if((plot_iters != 0) & (iter %% plot_iters == 0)){
+      plot(data[,1], data[,2], xlab = "", ylab = "", col = clusters, pch = 20)
+      points(centroids, col = 1:k, pch = 8, cex = 2)
+    }
+    
+    # Check for convergence
+    if (centroids_converged(old_centroids, centroids)) {
+      break
+    }
+  }
+  print(paste0("Number of iterations:", iter))
+  
+  # Return final centroids and cluster assignments
+  return(list(centroids = centroids, clusters = clusters))
+}
+```
+
+Test example
+
+```{r,fig.width = 3, fig.height = 3}
+set.seed(123)
+cluster1 <- matrix(rnorm(100, mean = 0, sd = 0.5), ncol = 2)
+cluster2 <- matrix(rnorm(100, mean = 1.5, sd = 0.5), ncol = 2)
+cluster3 <- matrix(rnorm(100, mean = 3, sd = 0.5), ncol = 2)
+data <- rbind(cluster1, cluster2, cluster3)
+
+# Specify number of clusters (k)
+k = 3
+
+# Run k-means algorithm
+result = kmeans(data = data, k = k, plot_iters = 1)
+#plot(data, col = result$clusters, pch = 20)
+#points(result$centroids, col = 1:k, pch = 8, cex = 2)
+```
+
+# Hierarchical clustering analysis (HCA)
+
+```{r}
+# Function to perform hierarchical clustering using average linkage
+hierarchical_clustering <- function(data) {
+  # Calculate distance matrix
+  distances = as.matrix(dist(data))
+  
+  n = nrow(distances)
+  clusters = 1:n
+  while (n > 1) {
+    if (anyNA(distances)) {
+      print(n)
+      print(distances)
+    }
+    # Find the minimum distance between clusters
+    min_distance = Inf
+    min_i = 0
+    min_j = 0
+    for (i in 1:(n-1)) {
+      for (j in (i+1):n) {
+        if (distances[i, j] < min_distance) {
+          min_distance = distances[i, j]
+          min_i = i
+          min_j = j
+        }
+      }
+    }
+    # Merge clusters min_i and min_j
+    for (k in 1:n) {
+      if(n == 53){
+        if(k == 46){
+          print(c(min_i, min_j))
+          print(clusters)
+          print(sum(clusters == min_i))
+          print(sum(clusters == min_j))
+        }
+      }
+      if (k != min_i && k != min_j) {
+        distances[min_i, k] = (distances[min_i, k] * sum(clusters == min_i) + 
+                               distances[min_j, k] * sum(clusters == min_j)) / 
+                               (sum(clusters == min_i) + sum(clusters == min_j))
+        distances[k, min_i] = distances[min_i, k]
+      }
+    }
+    clusters[which(clusters == min_j)] = min_i
+#    clusters = c(clusters[-min_j], clusters[min_i])
+    distances = distances[-min_j, -min_j]
+    n = n - 1
+  }
+  return(clusters)
+}
+```
+
+Application
+
+```{r}
+# Generate example data
+set.seed(123)
+data <- matrix(rnorm(200), ncol = 2)
+
+# Perform hierarchical clustering
+clusters <- hierarchical_clustering(data)
+
+# Plot the data points with cluster assignments
+plot(data, col = clusters, pch = 20)
+
+```

@@ -1,0 +1,137 @@
+---
+title: "Part 10: High dimensional data analysis"
+subtitle: "A. Dimensionality reduction"
+author: "Mingyang Lu"
+date: "03/27/2024"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Projection of 2D data to a line
+
+Consider 100 data points in 2D as follows.
+
+```{r,fig.width = 6, fig.height = 6.2}
+set.seed(1)
+x = runif(100)
+y = 0.4*x + 0.8 + 0.1*runif(100)
+data1 = data.frame(x=x, y=y)
+plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0,1), ylim = c(0.5, 1.5))
+```
+
+
+
+```{r,fig.width = 6, fig.height = 6.2}
+plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0,1), ylim = c(0.5, 1.5))
+model = lm(y ~ x, data = data1)
+abline(model, col = 2)
+
+x0 = c(0, model$coefficients[1])  # a point in the fitted line
+k = model$coefficients[2]
+dir = c(1, k)/sqrt(1+k*k)
+
+x_proj = apply(as.matrix(data1), 1, function(x) {return((x - x0) %*% dir)})
+data1_projected = t(sapply(x_proj, function(p) {return(p*dir + x0)}))
+
+plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0,1), ylim = c(0.5, 1.5))
+abline(model, col = 2)
+points(data1_projected[,1], data1_projected[,2], pch = 16, col = 4)
+```
+
+# Principal Component Analysis
+
+```{r}
+pca <- function(dat) {
+  # dat: matrix
+  # OUtput: a list containing PCA outputs
+  
+  # Centering the data
+  centered_data = scale(dat, center = TRUE, scale = FALSE)
+  
+  # Calculating the covariance matrix
+  covariance_matrix = cov(centered_data)
+  
+  # Singular Value Decomposition (SVD) of the covariance matrix
+  svd_result = svd(covariance_matrix)
+  
+  # Extracting important information
+  eigenvalues = svd_result$d^2
+  eigenvectors = svd_result$v
+  
+  # Calculating the principal component scores
+  scores = centered_data %*% eigenvectors
+  
+  # Output list containing eigenvalues, eigenvectors, and scores
+  pca_output = list(
+    eigenvalues = eigenvalues,
+    eigenvectors = eigenvectors,
+    scores = scores
+  )
+  
+  return(pca_output)
+}
+```
+
+Application to a set of gene expression data
+
+```{r}
+exp_data = read.csv(file='./extra/data/01D/exp_data.csv', row.names = 1)
+dat = t(as.matrix(exp_data))
+
+results = pca(dat)
+eig = results$eigenvalues
+vec = results$eigenvectors
+pcs = results$scores
+
+print(eig[1:10])
+```
+
+```{r,fig.width = 7, fig.height = 5}
+plot_pc_contributions <- function(eigenvalues, npc) {
+  # eigenvalues: a vector of all eigenvalues
+  # npc: number of pcs to be considered
+  
+  total_variance = sum(eigenvalues)
+  variance_proportion = eigenvalues / total_variance
+  
+  variance_proportion_plotted = variance_proportion[1:npc]
+  
+  barplot(cumsum(variance_proportion_plotted), 
+          main = "Principal Component Contributions",
+          xlab = "Number of principal components",
+          ylab = "Proportion of Variance Explained",
+          names.arg = seq_len(npc))
+  
+  points(variance_proportion_plotted, col = "red", pch = 19)
+  lines(variance_proportion_plotted, col = "red", type = "b")
+  
+  legend("topright", 
+         legend = c("Individual", "Cumulative"),
+         col = c("black", "red"), 
+         pch = c(15, 19), 
+         lty = c(0, 1),
+         xpd = TRUE)
+}
+
+plot_pc_contributions(eigenvalues = eig, npc = 10)
+```
+
+Projection of data to the first two Principal Components.
+
+```{r,fig.width = 6, fig.height = 6.2}
+library(princurve)
+x = pcs[,1]
+y = pcs[,2]
+curve_fit <- principal_curve(pcs[,1:2])
+
+plot(x, y, xlab = "PC1", ylab = "PC2")
+text(x, y, labels = rownames(pcs), pos = 3, col = "blue")
+
+lines(curve_fit, col = "red")
+```

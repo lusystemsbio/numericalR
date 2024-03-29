@@ -70,3 +70,8 @@ The purpose of this tutorial is to illustrate the use of R programming in numeri
 |-- 9B. [Dynamic programming](./09B.html) |
 |-- 9C. [Genetic algorithm](./09C.html) |
 |-- 9D. [Exercises](./09D.html) |
+|10. High dimensional data analysis|
+|-- 10A. [Dimensionality reduction](./10A.html) |
+|-- 10B. [Clustering](./10B.html) |
+|-- 10C. [Network algorithms](./10C.html) |
+|-- 10D. [Exercises](./10D.html) |
