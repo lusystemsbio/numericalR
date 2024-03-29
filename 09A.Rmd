@@ -111,14 +111,13 @@ A powerful yet surprisingly simple global optimization method is to perform the 
 There are different temperature updating schemes. Below shows one way that linearly decreases the temperature.
 
 ```{r}
-sa_linear <- function(n, func, nstep, dx_max, temp_max, scaling, nint, ifprint = F){
+sa_linear <- function(n, func, nstep, dx_max, temp_max, scaling, ifprint = F){
   # n: number of variables
   # func: function to optimize func(x); x: vector of size n
   # nstep: number of steps
   # dx_max: maximum step size (chosen from a uniform distribution)
   # temp_max: maximum (initial) temperature 
   # scaling: temperature scaling factor
-  # nint: number of intervals
   # ifprint: logical, print messages (acceptance rate)
   x = matrix(0, nrow = nstep+1, ncol = n)
   e = numeric(nstep+1)
@@ -293,7 +292,6 @@ pt_2rep <- function(n, func, x0, niter, nstep, dx_max, temp, ifprint = F) {
   }
   return(list(x1 = x1, x2 = x2, e1 = e1, e2 = e2))
 }
-  
 ```
 
 We save the acceptance rate for both the replica swapping and the MH moves for each replica. These outputs help us to decide appropriate $dx_max$ for efficient MH sampling. In the test below, we set the temperatures of the two replica 10 and 50. The acceptance rate for the replica swapping is good (about 40%). However, when the temperatures become more different, the acceptance rate can significantly drop. In that case, more replicas are needed for more efficient sampling.

@@ -1,0 +1,25 @@
+---
+title: "Part 10: High dimensional data analysis"
+subtitle: "C. Network algorithms"
+author: "Mingyang Lu"
+date: "03/27/2024"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+TBD
+
+# Defining a network 
+
+# Properties of network topology
+
+# Network modularity
+
+# Network models
+

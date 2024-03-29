@@ -1,0 +1,17 @@
+---
+title: "Part 10: High dimensional data analysis"
+subtitle: "D. Excercises"
+author: "Mingyang Lu"
+date: "03/27/2024"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+TDB
+
