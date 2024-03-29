@@ -7952,7 +7952,7 @@ G-A-TCGA
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <p>Here, we consider $n = 10$ cities. We can also apply dynamic programming to find the exact solution of the TSP. This method is called Held–Karp algorithm. We formulate the problem as follows.</p>
 <p>First, we consider the first city $i=1$ as the starting point, and define a function <em>tsp_dp</em> to compute the  distance of the shortests path from $i=1$ to $j=x$ that goes through a list of cities in $z$, $g(x,z)$.</p>
-<p>$$g(x, z) = min_{i \in z}(g(x, z|i), d(i,x)), \tag{5}$$</p>
+<p>$$g(x, z) = min_{i \in z}(g(i, z|i)+ d(i,x)), \tag{5}$$</p>
 <p>where $z|i$ means the list of cities in $z$ excluding city $i$, and $d(i,x)$ is the distance between cities $i$ and $x$. Equation (5) can be applied recursively to eventually compute $g(1, 2:n)$. If the optimal $i$ is saved in each function evaluation, we can trace back to find the order of the cities for the optimal path.  See below for the implementation.</p>
 </div>
 </div>
