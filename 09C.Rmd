@@ -122,7 +122,6 @@ mutation_opt <- function(n, x, xrange, dx_max){
   if(x_new[ind] > xrange[ind,2]) x_new[ind] = xrange[ind,2]
   return(x_new)
 }
-
 ```
 
 By the following test, we can obtain solutions very close to the global minimum of the Rosenbrok function. But the performance depends on the choice of the GA parameters: crossover rate, number of parent solutions, and the number of generations. The performance also highly depends on the operations of crossover and mutation.
@@ -475,10 +474,6 @@ When inversion operator is used, the solution is much improved.
 
 ```{r}
 set.seed(1)
-c52 = read.table(file = "./extra/data/09/berlin52.tsp")
-colnames(c52) = c("ind", "x", "y")
-plot(c52$x, c52$y, type = "p", xlab = "x", ylab = "y")
-d52 = as.matrix(dist(c52, upper = T))
 
 n = 52; np = 40; rate_x = 0.6; ngen = 2000
 results = tsp_ga(n = n, d = d52, np = np, rate_x = rate_x, ngen = ngen, 
