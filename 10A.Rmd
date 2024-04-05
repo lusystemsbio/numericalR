@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Projection of 2D data to a line
 
-Consider 100 data points in 2D as follows.
+Consider 100 data points generated in a narrow strip within a 2D space.
 
 ```{r,fig.width = 6, fig.height = 6.2}
 set.seed(1)
@@ -25,7 +25,7 @@ data1 = data.frame(x=x, y=y)
 plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0,1), ylim = c(0.5, 1.5))
 ```
 
-
+Now, we can simplify the 2D data points into a single variable approximation. One approach is to start by conducting linear regression and then project each 2D point onto the regression line. The resulting projection value serves as a condensed representation, capturing the essence of the original 2D data within a single variable. 
 
 ```{r,fig.width = 6, fig.height = 6.2}
 plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0,1), ylim = c(0.5, 1.5))
@@ -45,6 +45,24 @@ points(data1_projected[,1], data1_projected[,2], pch = 16, col = 4)
 ```
 
 # Principal Component Analysis
+
+Principal Component Analysis (PCA) is a statistical technique used for dimensionality reduction. It identifies the underlying patterns in a dataset by transforming the original variables into a new set of orthogonal variables called principal components. These components are ordered by the amount of variance they explain, allowing PCA to capture the most significant information in the data with fewer dimensions. PCA is widely used in various fields such as data analysis, image processing, and pattern recognition.
+
+The detailed steps of Principal Component Analysis (PCA) are as follows:
+
+**(1) Data Standardization: ** If the features of the dataset are measured in different units or have different scales, it's crucial to standardize the data by subtracting the mean and dividing by the standard deviation for each feature. This step ensures that all features contribute equally to the analysis.
+
+**(2) Covariance Matrix Computation: ** Compute the covariance matrix of the standardized dataset. The covariance matrix summarizes the relationships between pairs of variables, showing how they vary together.
+
+**(3) Eigenvalue Decomposition:** Perform eigenvalue decomposition on the covariance matrix to find its eigenvectors and eigenvalues. Eigenvectors represent the directions of maximum variance in the dataset, while eigenvalues indicate the magnitude of variance along each eigenvector.
+
+**(4) Selection of Principal Components:** Sort the eigenvectors based on their corresponding eigenvalues in descending order. The eigenvectors with the highest eigenvalues (principal components) capture the most variance in the data. Choose the desired number of principal components (often determined based on the amount of variance explained).
+
+**(5) Projection onto Principal Components:** Project the original data onto the selected principal components. This is achieved by multiplying the standardized data matrix by the matrix of eigenvectors, resulting in a new dataset with reduced dimensionality.
+
+**(6) Interpretation and Analysis: ** Analyze the transformed dataset to understand the underlying structure and patterns. Each principal component represents a combination of the original features, and their contributions can be interpreted to gain insights into the data. Visualize the data in the reduced-dimensional space to explore clusters, trends, or outliers.
+
+Below shows a generic implementation of PCA in R programming.
 
 ```{r}
 pca <- function(dat) {
@@ -78,7 +96,7 @@ pca <- function(dat) {
 }
 ```
 
-Application to a set of gene expression data
+We apply PCA on a set of gene expression data for various experimental conditions.
 
 ```{r}
 exp_data = read.csv(file='./extra/data/01D/exp_data.csv', row.names = 1)
@@ -89,8 +107,11 @@ eig = results$eigenvalues
 vec = results$eigenvectors
 pcs = results$scores
 
+print("First 10 eigenvalues:")
 print(eig[1:10])
 ```
+
+We can assess the proportion of explained variance to determine the number of principal components (PCs) we wish to include.
 
 ```{r,fig.width = 7, fig.height = 5}
 plot_pc_contributions <- function(eigenvalues, npc) {
@@ -122,7 +143,7 @@ plot_pc_contributions <- function(eigenvalues, npc) {
 plot_pc_contributions(eigenvalues = eig, npc = 10)
 ```
 
-Projection of data to the first two Principal Components.
+After projecting the data onto the first two principal components, we visualize it in a 2D plot. In this instance, the projected data exhibit a sequential structure across various experimental conditions, following the order of A, B, C, D, E, F, G, H, I. By applying a principal curve to this 2D data, we can delineate the trajectory of gene expression dynamics.
 
 ```{r,fig.width = 6, fig.height = 6.2}
 library(princurve)

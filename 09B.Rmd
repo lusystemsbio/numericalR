@@ -317,7 +317,7 @@ tsp_dp <- function(n, d, x, z){
   # d: distance matrix (n by n)
   # x: the last city
   # z: a vector of cities passing through
-  # output: g: minimum distance; p: city order
+  # output: g: minimum distance; pos: city order
   if(length(z) == 0){
     g = d[1,x]
     pos = 1
