@@ -122,57 +122,6 @@ result = kmeans(data = data, k = k, plot_iters = 1)
 
 # Hierarchical clustering analysis (HCA)
 
-```{r}
-# Function to perform hierarchical clustering using average linkage
-hierarchical_clustering <- function(data) {
-  # Calculate distance matrix
-  distances = as.matrix(dist(data))
-  
-  n = nrow(distances)
-  clusters = 1:n
-  while (n > 1) {
-    if (anyNA(distances)) {
-      print(n)
-      print(distances)
-    }
-    # Find the minimum distance between clusters
-    min_distance = Inf
-    min_i = 0
-    min_j = 0
-    for (i in 1:(n-1)) {
-      for (j in (i+1):n) {
-        if (distances[i, j] < min_distance) {
-          min_distance = distances[i, j]
-          min_i = i
-          min_j = j
-        }
-      }
-    }
-    # Merge clusters min_i and min_j
-    for (k in 1:n) {
-      if(n == 53){
-        if(k == 46){
-          print(c(min_i, min_j))
-          print(clusters)
-          print(sum(clusters == min_i))
-          print(sum(clusters == min_j))
-        }
-      }
-      if (k != min_i && k != min_j) {
-        distances[min_i, k] = (distances[min_i, k] * sum(clusters == min_i) + 
-                               distances[min_j, k] * sum(clusters == min_j)) / 
-                               (sum(clusters == min_i) + sum(clusters == min_j))
-        distances[k, min_i] = distances[min_i, k]
-      }
-    }
-    clusters[which(clusters == min_j)] = min_i
-#    clusters = c(clusters[-min_j], clusters[min_i])
-    distances = distances[-min_j, -min_j]
-    n = n - 1
-  }
-  return(clusters)
-}
-```
 
 Application
 
@@ -181,10 +130,61 @@ Application
 set.seed(123)
 data <- matrix(rnorm(200), ncol = 2)
 
-# Perform hierarchical clustering
-clusters <- hierarchical_clustering(data)
+# Dissimilarity matrix
+d <- dist(data, method = "euclidean")
 
-# Plot the data points with cluster assignments
-plot(data, col = clusters, pch = 20)
+# Hierarchical clustering using Complete Linkage
+hc1 <- hclust(d, method = "complete" )
 
+# Cut tree into 4 groups
+hc1_groups <- cutree(hc1, k = 4)
+
+# Number of members in each cluster
+table(hc1_groups)
+
+# Plot the obtained dendrogram
+plot(hc1, cex = 0.6, hang = -1)
+rect.hclust(hc1, k = 4, border = 2:5)
+```
+
+```{r,fig.width = 5, fig.height = 5.4}
+plot(data[,1], data[,2], col = hc1_groups, xlab = "x", ylab = "y")
+```
+
+
+```{r}
+# Hierarchical clustering using Complete Linkage
+hc2 <- hclust(d, method = "average" )
+
+# Plot the obtained dendrogram
+plot(hc2, cex = 0.6, hang = -1)
+# Cut tree into 4 groups
+hc2_groups <- cutree(hc2, k = 4)
+
+# Plot the obtained dendrogram
+plot(hc2, cex = 0.6, hang = -1)
+rect.hclust(hc2, k = 4, border = 2:5)
+```
+
+```{r,fig.width = 5, fig.height = 5.4}
+plot(data[,1], data[,2], col = hc2_groups, xlab = "x", ylab = "y")
+```
+
+
+```{r}
+# Hierarchical clustering using Complete Linkage
+hc3 <- hclust(d, method = "ward.D2" )
+
+# Plot the obtained dendrogram
+plot(hc3, cex = 0.6, hang = -1)
+# Cut tree into 4 groups
+hc3_groups <- cutree(hc3, k = 4)
+
+# Plot the obtained dendrogram
+plot(hc3, cex = 0.6, hang = -1)
+rect.hclust(hc3, k = 4, border = 2:5)
+```
+
+```{r,fig.width = 5, fig.height = 5.4}
+plot(data[,1], data[,2], col = hc3_groups, xlab = "x", ylab = "y")
 ```
