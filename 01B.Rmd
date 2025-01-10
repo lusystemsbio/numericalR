@@ -48,6 +48,9 @@ v
 Iteration is commonly used in programming. Unfortunately, iteration, *e.g.*, using a For Loop, is very slow in R. For example, the following code calculates the mean and standard deviation (SD) of a series of numbers. Please note that the definition of SD here is the mathematical definition.
 
 $$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}}$$
+It can be shown that the following formula is equivalent and more efficient to be coded.
+
+$$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}\mathbf{x_j}^2}{n} - \left(\frac{\sum_{j=1}^{n}\mathbf{x_j}}{n}\right)^2}$$
 ``` {r}
 # Initialize variables
 my_sum = 0
@@ -72,10 +75,10 @@ While the above code is typical for C or Fortran, a better approach for R is to 
 num = 100 # Define num
 v = seq_len(num) # Create a sequence from 1 to num
 
-# Calculate mean, variance, and standard deviation
+# Calculate mean, mean square, and standard deviation
 my_mean = mean(v)
-my_variance = mean(v^2)
-my_sd = sqrt(my_variance - my_mean^2)
+my_mean_square = mean(v^2)
+my_sd = sqrt(my_mean_square - my_mean^2)
 
 # Print the mean and standard deviation
 my_mean
@@ -87,10 +90,10 @@ library(MASS) # Load the necessary library for matrix operations
 
 mat = matrix(rnorm(16), nrow = 4) # Generate a random matrix of size 4x4
 
-# Calculate means, means squared, and standard deviations
+# Calculate means, means square, and standard deviations
 means = apply(mat, 2, mean)
-means2 = apply(mat * mat, 2, mean)
-sd = sqrt(means2 - means^2)
+my_mean_square = apply(mat * mat, 2, mean)
+sd = sqrt(my_mean_square - means^2)
 
 sd # Print the standard deviations
 ```
