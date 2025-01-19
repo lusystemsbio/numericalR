@@ -99,7 +99,7 @@ Benchmark code efficiency of these methods using microbenchmark.
 
 $$\ln n! \approx n\ln n - n$$
 Plot the relative difference of the left-hand side and the right-hand side, *.i.e.*,
-$$1-\frac{n\ln - n}{\ln n!}$$
+$$1-\frac{n\ln n - n}{\ln n!}$$
 as a function of $n$. You can employ any method from **2.1** to compute $\ln n!$.
 
 # 4. Prime numbers
