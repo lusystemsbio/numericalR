@@ -29,7 +29,8 @@
 |-- 3E. [Bifurcation for two-variable systems](./03E.html) |
 |-- 3F. [Separatrix](./03F.html) |
 |-- 3G. [Effective potential revisited](./03G.html) |
-|-- 3H. Exercises |
+|-- 3H. [Multi-component systems](./03H.html) |
+|-- 3I. Exercises |
 |4. Systems with time delays|
 |-- 4A. [Delayed differential equations](./04A.html) |
 |-- 4B. [Examples of systems with time delays](./04B.html) |

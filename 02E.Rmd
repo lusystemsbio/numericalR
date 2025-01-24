@@ -45,7 +45,7 @@ func_k <- function(X){
   return(10/X+45*X**3/(X**4+200**4))
 }
 
-X_all = seq(50, 600, by=5)   # all Y grids, note that we avoid X = 0
+X_all = seq(50, 600, by=5)   # all X grids, note that we avoid X = 0
 k_all = func_k(X_all)
 
 plot(k_all, X_all, xlab = "k", ylab = "X", type = "p", col = 2, 
@@ -64,7 +64,7 @@ The most straightforward way is to uniformly sample $k$ values and, for each $k$
 library(rootSolve)
 dx = 0.1  # used to estimate the derivatives of f(X) near the steady states
 k_all = seq(0.1,0.2, by = 0.001)    # all k values to be sampled
-results = matrix(0, nrow = length(k_all)*3, ncol = 3)  # Define a sufficiently large matrix to save k & steady-state X
+results = matrix(0, nrow = length(k_all)*3, ncol = 3)  # Define a sufficiently large matrix to save k & steady states X
 ind = 0
 for(k in k_all) {
   roots = uniroot.all(derivs_k, k = k, interval = c(0, 800)) # find all roots 
