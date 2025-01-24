@@ -258,7 +258,7 @@ print(p1)
 
 ```{r,fig.width = 5, fig.height = 5}
 set.seed(71) 
-X_init_all = array(runif(12, 0, 4), dim = c(4,3)) # generate 10 random initial conditions
+X_init_all = array(runif(12, 0, 4), dim = c(4,3)) # generate 4 random initial conditions
 
 t.total = 50
 dt  = 0.01

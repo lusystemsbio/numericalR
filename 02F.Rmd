@@ -68,12 +68,36 @@ Here, $g$ is the control parameter in the range of (0, 100). Plot the bifurcatio
 
 # 5. The Spruce Budworm model 
 
+**Problem 2. The Spruce Budworm model**
+
 The spruce budworm, an insect inhabiting spruce-fir forests in the USA and Canada, typically maintains low population levels. However, there are intermittent surges in budworm populations that inflict significant damage on the forests. If we consider the intrinsic growth of budworm populations in isolation, they adhere to the logistic growth model. An additional factor in the dynamics of budworm involves predation by birds. Consequently, we can characterize the dynamics of the budworm using the following equation.
 
 $$ \frac{dN}{dt} = rN(1-\frac{N}{K}) - \frac{\rho N}{N+A}$$
-We choose the following parameters: growth rate $r = 0.2$, carrying capability $K=1000$, and half saturation population of predation $A = 250$. Explore the bifurcation diagram of the spruce budworm population ($N$) by varying the predation parameter $\rho$. From the bifurcation plot, identify regions of stability, bifurcation points, and the emergence of different population dynamics. 
 
-Hint: see if you can obtain this following bifurcation diagram.
+We choose the following parameters: growth rate $r = 0.2$, carrying capability $K=1000$, and half saturation population of predation $A = 250$. 
 
-<center> ![Figure 1](./extra/data/02F/fig1.png){width=70%} </center>
-<br/>
+**(1) Model implementation.** Define a function to compute the derivatives of the Spruce Budworm model. Ensure that the function takes the model parameters $r$, $K$, $A$, and $\rho$ as arguments. We will utilize the ODE integrator RK4 from numericalR (Python version also available in the folder extra), so the function should also take $t$ and $N$ as inputs. 
+
+**(2) Multistability.** We will assess the multistability of the ODE system by sampling different initial conditions $N(t=0)$ and, for each, we simulate the ODE for a fix time duration of t.total = 100. Explore the multistability of the model for the following three conditions. **(a)** $\rho = 40$; **(b)** $\rho= 70$; **(c)** $\rho = 100$. Based on your simulations, conclude how many steady states are available and their stability.
+
+**(3) Bifurcation diagram.** Explore the bifurcation diagram of the Spruce Budworm population ($N$) by varying the predation parameter $\rho$ in the range from 0 to 100. Plot the steady-state $N$ for different $\rho$ values and annotate the stable/unstable properties of the steady states. 
+
+Hint: Aim to obtain a bifurcation diagram similar to the one depicted below. You can use any numerical method discussed in class.
+
+<center> ![Figure 1](./fig1.png){width=70%} </center>
+
+**(4) Parameter-varying dynamics.** Here, we consider $\rho$ not at a constant level but instead oscillating over time according to a sinusoidal function.. The following R code generates such $\rho$ dynamics for an oscillation period of 50, mean signal of 60 and oscillation amplitude of 20. You can directly use the code provided if you use R; otherwise, write your code in Python/MATLAB to achieve the same.
+
+```{r}
+rho_oscillation <- function(t, period, rho_mean, rho_amp){
+    return(rho_mean + rho_amp * sin(t/period))
+}
+period = 50; rho_mean = 60; rho_amp = 20
+t_all = seq(0,1000)
+rho_all = rho_oscillation(t_all, period = period, rho_mean = rho_mean, rho_amp = rho_amp)
+plot(t_all, rho_all, type = "l", col = 2, xlab = "t", ylab = "rho")
+```
+
+Now, devise a new derivative function so that $\rho$ can be considered as an oscillatory signal. Choose an initial population, *e.g.*, $X_0 = 100$. Vary the oscillation periods, and for each, simulate the ODE for a long time duration (*e.g.*, t.total = 1000). Explore the differences in the dynamical properties of the system.
+
+Hint: in the new derivative function, first compute $\rho$ for a given $t$, and then use the computed $\rho$ to calculate the derivative.
