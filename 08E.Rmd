@@ -48,7 +48,34 @@ Hint:
 
 (2) You can use *geom_bin2d* from the ggplot2 library to plot the density map.
 
-# 2. Stochastic SIR model. 
+# 2. 2D Ising Model
+
+The Ising model describes a system of interacting spins on a lattice. Consider an $N \times N$ square lattice with periodic boundary conditions, where each site $i$ has a spin $s_i \in \{-1, +1\}$. The energy function of the system is given by:
+
+\begin{equation}
+E = -J \sum_{\langle i,j \rangle} s_i s_j,
+\end{equation}
+
+where the sum runs over all pairs of nearest-neighbor spins, and $J$ is the interaction strength (assume $J=1$ for simplicity). 
+
+**(a)** Implement the Metropolis algorithm by sampling the Boltzmann distribution of the system:
+
+$$ P \sim e^{-E/T}$$
+The proposal move flips a randomly selected spin. Make sure to consider the periodic boundary condition. The initial condition is chosen to be a lattice with random spins $s_i = \pm 1$. We consider $N = 20$. Check NumericalR Part 8B for an example of MCMC modeling of the Ising model in 1D.
+
+**(b)** Now we compute the magnetization per spin. 
+
+$$M = \frac{1}{N^2} \sum_{i} s_i$$
+
+Perform MCMC sampling for a small number of iterations ($\sim 10^4$) at temperature $T = 1.5$. Plot the total energy and the average magnetization $\langle |M| \rangle$ (absolute value) as a function of number of steps. Once you find the results make sense, run the MCMC sampling again for much longer simulations ($\sim 10^6$) to estimate the relaxation time for the system to reach a steady behavior.
+
+**(c)**. To study the phase transition of the Ising model, we run MCMC sampling at ten different temperatures $T \in [1.5, 3.5]$. Compute the average magnetization $\langle |M| \rangle$ over long Monte Carlo simulations (remember to only perform the statistical analysis on the later steps where the system has reached to the steady behavior). Plot $\langle |M| \rangle$ as a function of temperature and identify the critical temperature $T_c$ where there is a sharp drop in magnetization. 
+
+Compare your estimated $T_c$ with the theoretical value for an infinite system:
+  $$T_c = \frac{2J}{\ln(1+\sqrt{2})} \approx 2.269$$
+
+
+# 3. Stochastic SIR model. 
 
 Consider the following reaction network:
 
@@ -110,3 +137,54 @@ If you try a sufficient large number of simulations, you will find a variety of 
 **(3)** $I(t)$ generates a peak, but $I(t)$ dies out earlier and there are a sufficiently large number of $S$ left.
 
 **(4)** $I(t)$ generates a peak, but eventually there is no $S$ and $I$ left. 
+
+
+# 4. Stochastic toggle switch model.
+
+We model a toggle switch of two genes $X$ and $Y$, mutually inhibiting each other. Consider the following reaction network:
+
+$$D_x {\stackrel{g}{\rightarrow}}D_x + X$$
+$$D_y {\stackrel{g}{\rightarrow}}D_y + Y$$
+
+$$X {\stackrel{k}{\rightarrow}}\varnothing$$
+$$Y {\stackrel{k}{\rightarrow}}\varnothing$$
+
+$$D_x + 2Y \underset{k_{-1}}{\stackrel{k_1}{\rightleftharpoons}} C_x \tag{2}$$
+
+$$D_y + 2X \underset{k_{-1}}{\stackrel{k_1}{\rightleftharpoons}} C_y \tag{3}$$
+, where $g$, $k$, $k_1$, $k_{-1}$ are four kinetic parameters. $D_x + C_x = 1$, and $D_y + C_y = 1$.
+
+**(a)** Consider fast binding and unbinding rates for transcription factor and DNA interactions, show that the deterministic model of the system can be written as
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = \frac{g}{1+\frac{Y^2}{Y_0^2}} - k X\\
+              \frac{dY}{dt} = \frac{g}{1+\frac{X^2}{X_0^2}} - k Y \end{cases}
+\end{equation}
+
+, where $X_0 = Y_0 = \sqrt{\frac{2k_{-1}}{k_1}}$. 
+
+Hint: the reaction rate for the forward reaction in Equation (2) is $\frac{1}{2}k_1D_xY^2$. We also consider that the forward and the backward reaction rates are balanced due to quasi-steady-state approximation:
+
+$$\frac{1}{2}k_1D_xY^2 = k_{-1}C_x$$
+You will obtain a similar expression from Equation (3).
+
+**(b)** Show that the toggle switch circuit is bistable under the deterministic regime. Here, $g = 40$, $k=0.1$, $k_1 = 0.00001$, and $k_{-1} = 0.2$. (Please double check! This is monostable)
+
+Hint: to show the system is bistable, you can pick at least two initial conditions of $X$ and $Y$ and show with ODE simulations that the system reaches to two different stable steady states. 
+
+**(c)** Perform stochastic simulation using Gillespie algorithm. Use the same kinetic parameters and for the initial condition, use $D_x = 1$, $C_x = 0$, $D_y = 0$, $C_y = 1$, $X = 300$, $Y = 200$. Run the simulation for a total of 1000 unit time. Plot the time dynamics of $X$ and $Y$. You are supposed to observe stochastic state transitions.
+
+Please read [NumericalR](./08D.html) R Markdown for other modeling examples. You can directly use the functions *gillespie_step* and *ssa*, and you will need to write your own propensity function and stoichiometry function in the following format:
+
+```{r}
+my_propensity <- function(Xs) {   # Xs: current state; you can also supply parameters
+  
+  #output: a vector of propensity for all reactions
+}
+
+my_stoichiometry <- function(r_ind) {   # r_ind: the choice of the reaction
+  
+  # output: the stoichiometry vector for the reaction r_ind
+}
+```
+
