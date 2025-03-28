@@ -67,7 +67,7 @@ cal_similarity <- function(A, B, s_match, s_mismatch){
   # A: sequence A
   # B: sequence B
   # s_match: score for a match
-  # s_match: score for a mismatch
+  # s_mismatch: score for a mismatch
   # return (s): similarity matrix
   
   str_a = unlist(str_split(A, ""))
@@ -155,7 +155,7 @@ global_align <- function(A, B, s_match, s_mismatch, gap){
   # A: sequence A
   # B: sequence B
   # s_match: score for a match
-  # s_match: score for a mismatch
+  # s_mismatch: score for a mismatch
   # gap: gap penalty score
   s = cal_similarity(A, B, s_match, s_mismatch)
   f = global_scoring(s, gap)
