@@ -157,7 +157,7 @@ function $g(X)$.
 
 Because $X$ activates its own expression, the circuit is drawn as
 
-![](images/02a/fig3.png){width=22% fig-align="center"}
+![](images/02a/fig3.png){width=68px fig-align="center"}
 
 The transcription rate is modeled as
 
@@ -238,7 +238,7 @@ nonlinear Hill term; we return to its numerical solution in Part 2D.
 
 A third example is a gene $X$ whose product represses its own expression.
 
-![](images/02a/fig4.png){width=22% fig-align="center"}
+![](images/02a/fig4.png){width=68px fig-align="center"}
 
 The transcription rate is now
 
