@@ -1,0 +1,14 @@
+# Preface {.unnumbered}
+
+This book, *Numerical Methods in Computational Systems Biology — In the Era of
+AI*, illustrates the numerical methods and algorithms used to model biological
+systems, solve differential equations, run simulations, and analyze data. Each
+method is presented language-agnostically and then implemented in both **R** and
+**Python**, so the same concept can be studied in either language.
+
+::: {.callout-note}
+This is a work-in-progress migration from the original parallel R Markdown,
+Jupyter, and MATLAB materials into a single Quarto book. Chapters are being
+merged and proofread one at a time; the content below is placeholder scaffolding
+used to validate the build pipeline.
+:::

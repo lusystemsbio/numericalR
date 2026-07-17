@@ -44,3 +44,12 @@ vignettes/*.pdf
 # Mac system files
 .DS_Store
 
+
+/.quarto/
+**/*.quarto_ipynb
+
+# Quarto book build output
+/_book/
+
+# R session temp dumps
+.RDataTmp*
