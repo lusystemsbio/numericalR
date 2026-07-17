@@ -1,0 +1,17 @@
+project:
+  type: book
+  execute-dir: project
+
+book:
+  title: "Numerical Methods in Computational Systems Biology"
+  subtitle: "In the Era of AI"
+  chapters:
+    - index.qmd
+    - 02-odes/02a-test.qmd
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+  epub: default

@@ -86,7 +86,7 @@ Hint: Aim to obtain a bifurcation diagram similar to the one depicted below. You
 
 <center> ![Figure 1](./fig1.png){width=70%} </center>
 
-**(4) Parameter-varying dynamics.** Here, we consider $\rho$ not at a constant level but instead oscillating over time according to a sinusoidal function.. The following R code generates such $\rho$ dynamics for an oscillation period of 50, mean signal of 60 and oscillation amplitude of 20. You can directly use the code provided if you use R; otherwise, write your code in Python/MATLAB to achieve the same.
+**(4) Parameter-varying dynamics.** Here, we consider $\rho$ not at a constant level but instead oscillating over time according to a sinusoidal function.. The following R code generates such $\rho$ dynamics for an oscillation period of 50, mean signal of 60 and oscillation amplitude of 20. You can directly use the code provided if you use R; otherwise, write your code in Python to achieve the same.
 
 ```{r}
 rho_oscillation <- function(t, period, rho_mean, rho_amp){

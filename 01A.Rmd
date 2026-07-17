@@ -18,7 +18,7 @@ R is a programming language designed for statistical computing and graphics. Unl
 
 * R is simple to use. If you have some experience with any other programming language, it should be pretty easy to learn R.
 
-* R comes with an interactive environment for programming. Many users also use [RStudio](https://www.rstudio.com) for R. It provides an integrated environment for coding and scripting and a user-friendly Graphic User Interface (GUI), very similar to Matlab. [Here is an article comparing R and Matlab.](https://hackr.io/blog/r-vs-matlab)  
+* R comes with an interactive environment for programming. Many users also use [RStudio](https://www.rstudio.com) for R. It provides an integrated environment for coding and scripting and a user-friendly Graphic User Interface (GUI).
 
 * R is cross-platform. Both R and RStudio are available in Windows, Mac, and Linux. 
 
