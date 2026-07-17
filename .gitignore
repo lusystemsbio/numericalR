@@ -53,3 +53,5 @@ vignettes/*.pdf
 
 # R session temp dumps
 .RDataTmp*
+
+/.luarc.json

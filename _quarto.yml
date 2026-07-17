@@ -7,7 +7,12 @@ book:
   subtitle: "In the Era of AI"
   chapters:
     - index.qmd
-    - 02-odes/02a-test.qmd
+    - part: "Ordinary differential equations"
+      chapters:
+        - 02-odes/02a-modeling-gene-circuits.qmd
+
+bibliography: 02-odes/references.bib
+csl: ieee.csl
 
 format:
   html:
