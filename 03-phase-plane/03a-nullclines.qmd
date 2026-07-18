@@ -430,5 +430,5 @@ and the contour method. It is more code, since it needs a starting point on each
 curve, the travel direction, and the Jacobian, and (as written) it has no guard
 against a diverging Newton step. The advantage, as in Part 2F, is that it applies
 to nullclines that cannot be solved in closed form. All three methods feed the
-same next step: Part 3B locates the nullcline intersections to find the steady
-states and classify their stability.
+same next step: [Part 3B](03b-steady-states-2d.qmd) locates the nullcline
+intersections to find the steady states and classify their stability.
