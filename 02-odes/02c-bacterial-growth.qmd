@@ -237,8 +237,8 @@ following. Adapt the exponential-growth example — the `dN` derivative, `Euler`
 **Q1.** Re-run the *exponential*-growth simulation with other integration methods
 and step sizes — for example `deSolve`'s `ode45`/`ode23` in R, or different
 `method=` options of SciPy's `solve_ivp` in Python. For each, compare against the
-exact solution and assess the accuracy. *(Hint: `?deSolve` /
-`help(solve_ivp)`.)*
+exact solution and assess the accuracy. (Hint: `?deSolve` in R,
+`help(solve_ivp)` in Python.)
 
 **Q2.** For the *logistic* model with $B = 100$, $N_0 = 1$, $r = 0.1$: simulate
 Equation (3) with your `Euler`/`RK4` functions (or `deSolve`/`solve_ivp`).

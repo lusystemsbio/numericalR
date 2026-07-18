@@ -20,6 +20,7 @@ bibliography: references.bib
 format:
   html:
     theme: cosmo
+    toc-expand: true   # always show all TOC levels (incl. R/Python sections)
   pdf:
     documentclass: scrreprt
   epub: default
