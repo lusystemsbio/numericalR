@@ -5,8 +5,8 @@ old_id: "02C"
 code-tools: true
 ---
 
-This is a **practice page**. It uses ODEs to model bacterial growth — exponential
-growth and logistic growth — and reuses the numerical integrators developed in
+This is a **practice page**. It uses ODEs to model bacterial growth (exponential
+growth and logistic growth) and reuses the numerical integrators developed in
 [Part 2B](02b-numerical-integration.qmd). Each section works through the model and
 then poses a short exercise (in a highlighted box) for you to complete by editing
 and re-running the page. The growth models follow the standard treatment in
@@ -15,10 +15,10 @@ Sontag's lecture notes on mathematical systems biology [@sontag_systemsbio].
 ::: {.callout-tip title="How to practice"}
 This page is meant to be edited and re-run. Open its source file,
 `02-odes/02c-bacterial-growth.qmd`, from the
-[book repository](https://github.com/lusystemsbio/numericalR) — or, in the HTML
-version, use the **&lt;/&gt; Source** button at the top of the page — then change
-the code, re-render, and check your answers against the exercises below. Work in
-whichever language you prefer; both R and Python are shown.
+[book repository](https://github.com/lusystemsbio/numericalR), or, in the HTML
+version, use the **&lt;/&gt; Source** button at the top of the page. Then change
+the code, re-render, and check your answers against the practice questions below.
+Work in whichever language you prefer; both R and Python are shown.
 :::
 
 ## 2C.1 Exponential growth
@@ -37,14 +37,14 @@ N(t) = N_0 e^{rt} . \tag{2}
 \end{equation}
 
 (Interpret $N$ as a continuous population, not necessarily an integer.) We first
-evaluate and plot the exact solution — on a linear axis, and on a log-scaled axis
+evaluate and plot the exact solution, on a linear axis and on a log-scaled axis
 where the exponential appears as a straight line. We then reproduce it
 numerically with the Euler and RK4 integrators from
 [Part 2B](02b-numerical-integration.qmd) (repeated here so this page runs on its
 own); zooming in at large $t$, RK4 tracks the exact solution far more closely than
-Euler at the same step size. Finally, each language's built-in ODE solver —
-`deSolve` in R (here a fixed-step Euler) and SciPy's `solve_ivp` in Python
-(adaptive RK45) — reproduces the same result.
+Euler at the same step size. Finally, each language's built-in ODE solver
+reproduces the same result: `deSolve` in R (here a fixed-step Euler) and SciPy's
+`solve_ivp` in Python (adaptive RK45).
 
 ### R implementation {.impl}
 
@@ -174,7 +174,7 @@ sol.y[0][-3:]                          # final points ~ N(100) = e^{10}
 
 ::: {.callout-note title="Practice Q1"}
 Re-run the exponential-growth simulation with other integration methods and step
-sizes — for example `deSolve`'s `ode45`/`ode23` in R, or different `method=`
+sizes, for example `deSolve`'s `ode45`/`ode23` in R, or different `method=`
 options of SciPy's `solve_ivp` in Python. For each, compare against the exact
 solution and assess the accuracy. (Hint: `?deSolve` in R, `help(solve_ivp)` in
 Python.) Edit this page's source (see the tip above) to add your code.
@@ -227,7 +227,7 @@ plt.show()
 ::: {.callout-note title="Practice Q2"}
 For the logistic model with $B = 100$, $N_0 = 1$, $r = 0.1$: simulate Equation
 (3) with your `Euler`/`RK4` functions (or `deSolve`/`solve_ivp`). Adapt the
-exponential-growth example — the `dN` derivative, `Euler`, `RK4`, and the library
+exponential-growth example. The `dN` derivative, `Euler`, `RK4`, and the library
 solvers all carry over. Edit this page's source (see the tip above) to add your
 code.
 

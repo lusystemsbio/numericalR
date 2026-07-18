@@ -7,7 +7,7 @@ old_id: "02D"
 Having learned how to integrate ODEs, we now ask a more qualitative question:
 given a gene circuit, what are its steady states, are they stable, and how many
 are there? We answer this graphically and analytically, and then package the
-answer into an *effective potential* — a landscape whose valleys are the stable
+answer into an *effective potential*, a landscape whose valleys are the stable
 states.
 
 ## 2D.1 Stability of steady states
@@ -27,7 +27,7 @@ X_s \text{ is }
 For the constitutively expressed gene from [Part 2A](02a-modeling-gene-circuits.qmd),
 $f(X) = g - kX$, there is a single steady state $X_s = g/k$. Plotting the two
 terms $g$ and $kX$ separately, their intersection is the steady state. A small
-increase in $X$ raises $kX$ above $g$, so $\frac{dX}{dt} < 0$ and $X$ falls back —
+increase in $X$ raises $kX$ above $g$, so $\frac{dX}{dt} < 0$ and $X$ falls back;
 the state is stable (consistent with $\frac{df}{dX} = -k < 0$).
 
 The self-inhibiting gene, $f(X) = g_0 + g_1 H^{inh}(X) - kX$, likewise has a
@@ -137,12 +137,12 @@ three steady states: the outer two are stable and the middle one is unstable.
 A system with more than one stable steady state is called **multistable** (here,
 bistable) [@alon2019systems].
 
-Intuitively: when $X$ is low there is too little protein to activate
+Intuitively, when $X$ is low there is too little protein to activate
 transcription, so $X$ stays low; when $X$ is high it activates its own promoter,
 so $X$ stays high. Simulating the ODE (with RK4) from different initial
 conditions shows the trajectories converging to the two stable states, with the
 unstable state acting as the watershed between their basins. Computing
-$\frac{df}{dX}$ confirms the picture: it crosses zero three times — negative at
+$\frac{df}{dX}$ confirms the picture: it crosses zero three times, negative at
 the two outer (stable) states and positive at the middle (unstable) one.
 
 ### R implementation {.impl}
@@ -246,7 +246,8 @@ plt.show()
 A gene circuit is a non-equilibrium system, so energy is not strictly defined.
 Still, for a one-variable system we can make an analogy with an overdamped
 particle whose position is $X$ and whose velocity $\frac{dX}{dt} = f(X)$ is
-proportional to the force $-\,U'(X)$. This defines an **effective potential**
+proportional to the force $-\,U'(X)$ [@strogatz2015nonlinear]. This defines an
+**effective potential**
 
 $$U(X) = -\int_{X_0}^{X} f(x)\,dx + U(X_0) ,$$
 
@@ -258,14 +259,14 @@ at the peaks. We set $U(0) = 0$ and integrate with the trapezoidal rule
 $$U(X + \Delta x) = U(X) - \frac{f(X) + f(X + \Delta x)}{2}\,\Delta x .$$
 
 We illustrate this for the self-activating gene at $k = 0.15$. The resulting
-potential has two basins, around 100 nM and 300 nM — exactly the two stable
-steady states — separated by a barrier near 200 nM, the unstable state. This
+potential has two basins, around 100 nM and 300 nM (exactly the two stable
+steady states), separated by a barrier near 200 nM (the unstable state). This
 gives an intuitive picture of a multistable system, and of how *stable* each
 state is: the right basin sits lower (more stable), and the barrier height
 reflects how easily gene-expression noise could drive a transition between the
 two states (discussed further in Parts 4 and 6). We compute the potential two
-ways — with an explicit loop and, more concisely and faster, with a vectorized
-cumulative sum — and benchmark them. Finally we show the potential for
+ways, with an explicit loop and with a more concise, faster vectorized
+cumulative sum, then benchmark the two. Finally we show the potential for
 $k = 0.2$ and $k = 0.1$; both have a single well (monostable), in contrast to the
 bistable $k = 0.15$.
 

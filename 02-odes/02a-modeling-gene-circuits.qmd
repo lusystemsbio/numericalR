@@ -12,7 +12,7 @@ theory, (2) its implementation in both R and Python, and (3) the libraries
 available in each language.
 
 This first section is about how gene regulation can be turned into a set of
-*rate equations* — ordinary differential equations (ODEs) that track how the
+*rate equations*, ordinary differential equations (ODEs) that track how the
 concentration of a gene product changes over time. The modeling framework used
 throughout follows the standard treatment of gene-regulatory circuits in systems
 biology [@alon2019systems].
@@ -20,7 +20,7 @@ biology [@alon2019systems].
 ## 2A.1 Circuit of a constitutively expressed gene
 
 Consider a gene whose expression is independent of any regulator. The full
-process — transcription, translation, and protein degradation — is sketched
+process (transcription, translation, and protein degradation) is sketched
 below.
 
 ![](images/02a/fig1.png){width=70% fig-align="center"}

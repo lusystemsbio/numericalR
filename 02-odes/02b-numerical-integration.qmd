@@ -123,7 +123,7 @@ X(t+\Delta t) = X(t) + \frac{dX}{dt}\Delta t + O(\Delta t^2) . \tag{3}
 \end{equation}
 
 The term $O(\Delta t^2)$ collects the leading truncated contribution as
-$\Delta t \to 0$ — it bounds the error of the expansion. Comparing Equations (1)
+$\Delta t \to 0$ and bounds the error of the expansion. Comparing Equations (1)
 and (3) recovers the Euler formula (2), so the local error of the Euler method
 is $O(\Delta t^2)$. The same reasoning estimates the error of other integrators.
 
@@ -318,12 +318,12 @@ faster than `deSolve` (which stores each step's result in a list), and the
 compiled Fortran routine is about an order of magnitude faster than either. Two
 things make the R versions slow: the derivative function is interpreted R, and
 the array of time steps is repeatedly processed in the R interpreter during the
-loop. The Fortran routine avoids both — the derivative is compiled in, and,
+loop. The Fortran routine avoids both: the derivative is compiled in, and,
 although it allocates a result matrix, that matrix is only used for output, never
 during the integration. Exact timings vary by machine and run, and `deSolve` can
 itself call compiled derivative functions (in C or Fortran), which would narrow
-the gap. The takeaway is not that libraries are slow — they are robust and
-general — but that a compiled kernel wins for tight inner loops.
+the gap. None of this makes libraries slow. They are robust and general, but for
+tight inner loops a compiled kernel wins.
 
 ## 2B.4 Second-order approximation: Heun's method
 
@@ -561,8 +561,8 @@ c(vs_RK4   = rmsd(a[, 2], RK4(dX, 300, 80, dt, g = g, k = k)[, 2]),
 ```
 
 The Fortran RK4 matches the R RK4 (and the exact solution) to a tiny RMSD, while
-RK2 and especially Euler differ more — confirming the compiled and interpreted
-RK4 agree.
+RK2 and especially Euler differ more, confirming that the compiled and
+interpreted RK4 agree.
 
 ### Python implementation {.impl}
 
@@ -599,7 +599,7 @@ plt.show()
 
 RK4 is typically orders of magnitude more accurate than RK2, which is in turn
 orders of magnitude more accurate than Euler. RK4 needs four derivative
-evaluations per step, RK2 two, and Euler one — but RK4 and RK2 tolerate much
+evaluations per step, RK2 two, and Euler one. But RK4 and RK2 tolerate much
 larger step sizes at the same accuracy, so they are usually more efficient
 overall.
 
@@ -697,5 +697,5 @@ plt.show()
 ```
 
 Backward Euler is still only first-order accurate, but it is stable at step
-sizes where forward Euler diverges — the defining advantage of implicit methods
+sizes where forward Euler diverges, the defining advantage of implicit methods
 for stiff systems.
