@@ -172,7 +172,7 @@ sol = solve_ivp(lambda t, N: r * N, [0, 100], [N0], t_eval=np.arange(0, 101, 1))
 sol.y[0][-3:]                          # final points ~ N(100) = e^{10}
 ```
 
-::: {.callout-note title="Exercise Q1"}
+::: {.callout-note title="Practice Q1"}
 Re-run the exponential-growth simulation with other integration methods and step
 sizes — for example `deSolve`'s `ode45`/`ode23` in R, or different `method=`
 options of SciPy's `solve_ivp` in Python. For each, compare against the exact
@@ -224,7 +224,7 @@ plt.xlabel("t"); plt.ylabel("N(t)"); plt.xlim(0, 100); plt.ylim(0, 110)
 plt.show()
 ```
 
-::: {.callout-note title="Exercise Q2"}
+::: {.callout-note title="Practice Q2"}
 For the logistic model with $B = 100$, $N_0 = 1$, $r = 0.1$: simulate Equation
 (3) with your `Euler`/`RK4` functions (or `deSolve`/`solve_ivp`). Adapt the
 exponential-growth example — the `dN` derivative, `Euler`, `RK4`, and the library
