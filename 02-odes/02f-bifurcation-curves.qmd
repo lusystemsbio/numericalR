@@ -375,3 +375,102 @@ $k$ captures the two stable branches but jumps across the fold: it misses the
 unstable middle branch and cannot turn the corner. It is also awkward that one
 slope value corresponds to two travel directions along the curve. Arc-length
 continuation, next, fixes both.
+
+## 2F.6 Arc-length continuation
+
+The trouble at the fold is that we parameterized the curve by $k$, which is
+multivalued there. **Arc-length continuation** [@allgower1990continuation]
+parameterizes instead by the arc length $s$ measured along the curve, seeking
+$X(s)$ and $k(s)$.
+
+![](images/02f/fig1.png){width=55% fig-align="center"}
+
+A step of length $\Delta s$ along the curve splits into a $\Delta k$ and a
+$\Delta X$ with $\Delta s^2 = \Delta k^2 + \Delta X^2$ and $\Delta X = h\,\Delta k$,
+where $h(X, k) = dX/dk$ from Equation (4). Solving these together,
+
+\begin{equation}
+\begin{cases}
+\Delta k = \pm \dfrac{1}{\sqrt{1 + h^2}}\,\Delta s \\[2mm]
+\Delta X = h\,\Delta k
+\end{cases} \tag{7}
+\end{equation}
+
+Now even at a fold, where $h \to \infty$, the steps stay bounded: $\Delta k \to 0$
+and $\Delta X \to \pm\Delta s$, so the predictor moves almost vertically and rounds
+the corner instead of overshooting. The $\pm$ sign is chosen to keep travelling in
+the same direction as the previous step, and Newton corrects each predicted point
+back onto the curve.
+
+### R implementation {.impl}
+
+```{r}
+# trace the whole curve in arc length s: each step splits into (dk, dX) by Eq (7)
+k_range <- c(0.1, 0.2); ds <- 0.3; nmax <- 10000
+results <- matrix(NA, nrow = nmax, ncol = 3)   # columns: k, X, stability
+
+k <- 0.1
+X_new <- find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = k)   # start on the high branch
+step_k_prev <- 1; step_X_prev <- 0             # initial travel direction: increasing k
+cycle <- 1
+results[cycle, ] <- c(k, X_new, if (dfdX(X_new, k) < 0) 1 else 2)
+
+while ((k - k_range[1]) * (k - k_range[2]) <= 0 && cycle < nmax) {
+  h <- -dfdk(X_new, k) / dfdX(X_new, k)         # dX/dk, Equation (4)
+  step_k <- ds / sqrt(1 + h^2)                  # Equation (7); bounded even as h -> Inf
+  step_X <- step_k * h
+  if (step_k_prev * step_k + step_X_prev * step_X < 0) {   # keep the same travel direction
+    step_k <- -step_k; step_X <- -step_X
+  }
+  step_k_prev <- step_k; step_X_prev <- step_X
+  k <- k + step_k
+  X_new <- find_root_Newton(X_new + step_X, derivs_k, dfdX, c(0, 800), k = k)   # predict + correct
+  cycle <- cycle + 1
+  results[cycle, ] <- c(k, X_new, if (!is.na(X_new) && dfdX(X_new, k) < 0) 1 else 2)
+}
+results <- na.omit(results)
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = results[, 3],
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+legend("topright", inset = 0.02, legend = c("Stable", "Unstable"),
+       col = 1:2, pch = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# trace the whole curve in arc length s: each step splits into (dk, dX) by Eq (7)
+k_range = (0.1, 0.2); ds = 0.3; nmax = 10000
+
+k = 0.1
+X_new = find_root_Newton(500, derivs_k, dfdX, (0, 800), k=k)   # start on the high branch
+step_k_prev, step_X_prev = 1.0, 0.0            # initial travel direction: increasing k
+ks, Xs, stab = [k], [X_new], [1 if dfdX(X_new, k) < 0 else 2]
+
+cycle = 1
+while (k - k_range[0]) * (k - k_range[1]) <= 0 and cycle < nmax:
+    h = -dfdk(X_new, k) / dfdX(X_new, k)        # dX/dk, Equation (4)
+    step_k = ds / np.sqrt(1 + h**2)             # Equation (7); bounded even as h -> inf
+    step_X = step_k * h
+    if step_k_prev * step_k + step_X_prev * step_X < 0:   # keep the same travel direction
+        step_k, step_X = -step_k, -step_X
+    step_k_prev, step_X_prev = step_k, step_X
+    k += step_k
+    X_new = find_root_Newton(X_new + step_X, derivs_k, dfdX, (0, 800), k=k)   # predict + correct
+    ks.append(k); Xs.append(X_new); stab.append(1 if dfdX(X_new, k) < 0 else 2)
+    cycle += 1
+
+ks, Xs, stab = np.array(ks), np.array(Xs), np.array(stab == 1)
+plt.scatter(ks[stab],  Xs[stab],  s=3, color="black", label="Stable")
+plt.scatter(ks[~stab], Xs[~stab], s=3, color="red",   label="Unstable")
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600)
+plt.legend(loc="upper right", fontsize=8); plt.show()
+```
+
+This traces the entire S-curve in a single sweep, unstable middle branch included,
+rounding both folds. Arc-length continuation (and its pseudo-arclength refinements)
+is the engine behind bifurcation-analysis software. The Newton correction can still
+struggle extremely close to a fold, where $f'(X) \approx 0$; higher-order
+correctors such as Halley's method ease that case.
