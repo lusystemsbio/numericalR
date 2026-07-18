@@ -379,3 +379,111 @@ The three-value test confirms the single-root limitation: at $k = 0.15$ bisectio
 on $[0, 600]$ returns only one of the three steady states. The bracketed driver
 recovers all of them, giving the same scatter (and, after the 2E.2 reordering,
 the same S-curve).
+
+## 2E.4 False position method
+
+The false-position method [@press2007numerical] is bisection with a better guess.
+Instead of the midpoint, it takes the point where the straight line through the
+two endpoints $(x_{min}, f_1)$ and $(x_{max}, f_2)$ crosses zero:
+
+\begin{equation}
+x_{new} = \frac{x_{min} f_2 - x_{max} f_1}{f_2 - f_1} . \tag{2}
+\end{equation}
+
+Everything else is unchanged: the same sign-change bookkeeping and the same
+`all_roots_bracketing` driver from 2E.3, so it inherits the same limitations (one
+root per interval, and it needs a sign change). It can converge faster than
+bisection. As with bisection, testing on $[0, 600]$ at $k = 0.15$ returns only one
+of the three roots, though possibly a different one, since the interpolation
+takes a different path.
+
+### R implementation {.impl}
+
+```{r}
+# false position: like bisection, but refine with the secant's x-intercept (Eq. 2)
+false_position <- function(f, interval, epsilon = 1e-6, ...) {
+  x_min <- interval[1]; f1 <- f(x_min, ...)
+  x_max <- interval[2]; f2 <- f(x_max, ...)
+  if (abs(f1) < epsilon) return(x_min)
+  if (abs(f2) < epsilon) return(x_max)
+  if (f1 * f2 > 0) return(NA)
+  while (f1 * f2 < 0) {
+    x_new <- (f2 * x_min - f1 * x_max) / (f2 - f1)
+    f3 <- f(x_new, ...)
+    if (abs(f3) < epsilon) return(x_new)
+    if (f1 * f3 > 0) { f1 <- f3; x_min <- x_new }
+    else             { f2 <- f3; x_max <- x_new }
+  }
+}
+
+for (k in c(0.12, 0.15, 0.2)) {
+  root <- false_position(function(X) derivs_k(X, k), interval = c(0, 600))
+  cat(sprintf("k = %.2f: root = %.2f\n", k, root))
+}
+```
+
+```{r}
+# trace the curve, refining each bracket with false position (same driver as 2E.3)
+k_all <- seq(0.1, 0.2, by = 0.001)
+results <- matrix(0, ncol = 2, nrow = length(k_all) * 3)   # columns: k, Xs
+ind <- 1
+for (k in k_all) {
+  roots <- all_roots_bracketing(function(X) derivs_k(X, k), false_position,
+                                interval = c(0, 600), resolution = 1e-2)
+  num_X <- length(roots)
+  results[ind:(ind + num_X - 1), 1] <- k
+  results[ind:(ind + num_X - 1), 2] <- roots
+  ind <- ind + num_X
+}
+results <- results[1:(ind - 1), ]
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = 2,
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# false position: like bisection, but refine with the secant's x-intercept (Eq. 2)
+def false_position(f, interval, epsilon=1e-6, **kwargs):
+    x_min, x_max = interval
+    f1, f2 = f(x_min, **kwargs), f(x_max, **kwargs)
+    if abs(f1) < epsilon: return x_min
+    if abs(f2) < epsilon: return x_max
+    if f1 * f2 > 0: return None
+    while f1 * f2 < 0:
+        x_new = (f2 * x_min - f1 * x_max) / (f2 - f1)
+        f3 = f(x_new, **kwargs)
+        if abs(f3) < epsilon: return x_new
+        if f1 * f3 > 0: f1, x_min = f3, x_new
+        else:           f2, x_max = f3, x_new
+    return None
+
+for k in (0.12, 0.15, 0.2):
+    root = false_position(lambda X: derivs_k(X, k), (0, 600))
+    print(f"k = {k}: root = {root:.2f}")
+```
+
+```{python}
+# trace the curve, refining each bracket with false position (same driver as 2E.3)
+k_all = np.arange(0.1, 0.201, 0.001)
+results = np.zeros((len(k_all) * 3, 2))    # columns: k, Xs
+ind = 0
+for k in k_all:
+    roots = all_roots_bracketing(lambda X: derivs_k(X, k), false_position,
+                                 (0, 600), resolution=1e-2)
+    n = len(roots)
+    results[ind:ind + n, 0] = k
+    results[ind:ind + n, 1] = roots
+    ind += n
+results = results[:ind]
+
+plt.scatter(results[:, 0], results[:, 1], color="red", s=3)
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+The bracketed scatter is the same as bisection's. For this smooth, well-behaved
+problem false position offers no visible advantage; its speedup matters more when
+each function evaluation is expensive.
