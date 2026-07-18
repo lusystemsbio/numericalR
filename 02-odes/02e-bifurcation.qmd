@@ -75,3 +75,170 @@ points, this is a *saddle-node* bifurcation [@strogatz2015nonlinear].
 This method is exact and cheap, but it depends on being able to solve
 $f(X, k) = 0$ for $k$ in closed form. The remaining methods do not, so they also
 apply to circuits where no such shortcut exists.
+
+## 2E.2 Direct method: find all roots
+
+The most direct general approach samples $k$ uniformly and, at each $k$, finds
+every root $X_s$ of $f(X, k) = 0$. We classify each root from the sign of
+$\frac{df}{dX}$ ([Part 2D](02d-effective-potential.qmd)), stable when it is
+negative and unstable otherwise,
+estimated here with a small finite step $dx$. This is the most robust method in
+the chapter and works well for our example, though for a general nonlinear $f$
+there is no guarantee of finding every root, and it is slower than the methods
+that follow.
+
+The roots come out as a scatter of $(k, X_s)$ points that are not ordered along
+the curve, so joining them in the order found would give a tangled line. We
+reorder them with a nearest-neighbor walk: start at the leftmost point, then
+repeatedly step to the closest unused point until all points are used. (In the
+inverse-distance matrix used below, the nearest point is the one with the largest
+score.)
+
+### R implementation {.impl}
+
+`rootSolve::uniroot.all` finds all roots of a function on an interval in one call
+[@soetaert2009rootsolve].
+
+```{r}
+#| message: false
+# For each sampled k, find all roots of f(X, k) = 0 and label each by stability
+library(rootSolve)
+
+# Model derivative from Equation (1); reused by the methods below
+derivs_k <- function(X, k) 10 + 45 * X^4 / (X^4 + 200^4) - k * X
+
+dx <- 0.1                          # small step to estimate df/dX for stability
+k_all <- seq(0.1, 0.2, by = 0.001)
+results <- matrix(0, nrow = length(k_all) * 3, ncol = 3)  # columns: k, Xs, stability
+
+ind <- 0
+for (k in k_all) {
+  roots <- uniroot.all(derivs_k, k = k, interval = c(0, 800))
+  for (x in roots) {
+    ind <- ind + 1
+    stability <- if (sign(derivs_k(X = x + dx, k = k)) < 0) 1 else 2  # 1 stable, 2 unstable
+    results[ind, ] <- c(k, x, stability)
+  }
+}
+results <- results[1:ind, ]
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = results[, 3],
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+legend("topright", inset = 0.02, legend = c("Stable", "Unstable"),
+       col = 1:2, pch = 1, cex = 0.8)
+```
+
+```{r}
+# joining the points in the order found: not yet ordered along the curve
+plot(results[, 1], results[, 2], type = "l", col = 2,
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+```{r}
+#| warning: false
+# reorder the scattered roots into a connected curve (nearest-neighbor walk)
+d <- as.matrix(dist(results[, 1:2]))   # pairwise distances between points
+m <- 1 / d                             # inverse distance; nearest point scores highest
+num_total <- nrow(results)
+sequence <- integer(num_total)
+if_unused <- rep(1, num_total)         # 1 unused, 0 used
+
+point_current <- which.min(results[, 1])   # start at the smallest-k point
+sequence[1] <- point_current
+if_unused[point_current] <- 0
+for (i in 2:num_total) {
+  point_current <- which.max(m[, point_current] * if_unused)  # closest unused point
+  sequence[i] <- point_current
+  if_unused[point_current] <- 0
+}
+
+plot(results[sequence, 1], results[sequence, 2], type = "l", col = 2,
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+`scipy.optimize.fsolve` returns one root per initial guess, so we pass a vector of
+guesses and then discard spurious roots (where $|f|$ is not near zero) and any
+outside the range. Several guesses can converge to the same root, so we also drop
+duplicates; `uniroot.all` in R does this in one step.
+
+```{python}
+#| warning: false
+# For each sampled k, find all roots of f(X, k) = 0 and label each by stability
+import warnings
+warnings.filterwarnings("ignore")   # suppress fsolve/numpy runtime warnings
+from scipy.optimize import fsolve
+
+def derivs_k(X, k):
+    return 10 + 45 * X**4 / (X**4 + 200**4) - k * X
+
+dx = 0.1
+k_all = np.arange(0.1, 0.201, 0.001)
+results = np.zeros((len(k_all) * 10, 3))    # columns: k, Xs, stability
+
+ind = 0
+for k in k_all:
+    roots = fsolve(derivs_k, x0=np.arange(50, 500, 50), args=(k,))
+    for x in roots:
+        if abs(derivs_k(x, k)) > 0.01:      # fsolve can return non-roots; keep true roots only
+            continue
+        if 0 <= x <= 800:
+            stability = 1 if np.sign(derivs_k(x + dx, k)) < 0 else 2
+            results[ind] = [k, x, stability]
+            ind += 1
+results = results[:ind]
+
+# several initial guesses may land on the same root; keep unique (k, Xs)
+_, uniq = np.unique(np.round(results[:, :2], 2), axis=0, return_index=True)
+results = results[np.sort(uniq)]
+
+stable = results[results[:, 2] == 1]
+unstable = results[results[:, 2] == 2]
+plt.scatter(stable[:, 0], stable[:, 1], s=10, color="black", label="Stable")
+plt.scatter(unstable[:, 0], unstable[:, 1], s=10, color="red", label="Unstable")
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600)
+plt.legend(loc="upper right", fontsize=8); plt.show()
+```
+
+```{python}
+# joining the points in the order found: not yet ordered along the curve
+plt.plot(results[:, 0], results[:, 1], color="red", linewidth=1)
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+```{python}
+#| warning: false
+# reorder the scattered roots into a connected curve (nearest-neighbor walk)
+from scipy.spatial.distance import cdist
+
+d = cdist(results[:, :2], results[:, :2])   # pairwise distances
+m = 1 / d                                    # inverse distance; nearest point scores highest
+np.fill_diagonal(m, 0)                        # avoid divide-by-zero on the diagonal
+
+num_total = len(results)
+sequence = np.zeros(num_total, dtype=int)
+if_unused = np.ones(num_total, dtype=bool)
+
+point_current = int(np.argmin(results[:, 0]))   # start at the smallest-k point
+sequence[0] = point_current
+if_unused[point_current] = False
+for i in range(1, num_total):
+    point_current = int(np.argmax(m[:, point_current] * if_unused))
+    sequence[i] = point_current
+    if_unused[point_current] = False
+
+plt.plot(results[sequence, 0], results[sequence, 1], color="red", linewidth=1)
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+The scatter shows both stable branches (high and low $X$) and the unstable middle
+branch, colored by stability. After reordering, the points connect into the same
+smooth S-curve found by separation of variables, now obtained without an explicit
+formula for $k(X)$.
