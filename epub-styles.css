@@ -18,3 +18,10 @@ pre > code.sourceCode {
   overflow-wrap: break-word !important;
   word-break: break-word;
 }
+
+/* Slightly smaller code text on e-readers (EPUB only; PDF and HTML unchanged). */
+pre.sourceCode,
+pre.sourceCode code,
+pre > code.sourceCode {
+  font-size: 0.85em;
+}
