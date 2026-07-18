@@ -110,12 +110,14 @@ f(x, y_2) = \dfrac{x_2 - x}{x_2 - x_1} f_{12} + \dfrac{x - x_1}{x_2 - x_1} f_{22
 
 and then interpolate those linearly in $y$, giving the full bilinear surface
 
-\begin{equation}
-f(x, y) = \frac{1}{(x_2 - x_1)(y_2 - y_1)}
-\begin{pmatrix} x_2 - x & x - x_1 \end{pmatrix}
-\begin{pmatrix} f_{11} & f_{12} \\ f_{21} & f_{22} \end{pmatrix}
+$$
+\begin{aligned}
+f(x, y) = {} & \frac{1}{(x_2 - x_1)(y_2 - y_1)}
+\begin{pmatrix} x_2 - x & x - x_1 \end{pmatrix} \\
+& \times \begin{pmatrix} f_{11} & f_{12} \\ f_{21} & f_{22} \end{pmatrix}
 \begin{pmatrix} y_2 - y \\ y - y_1 \end{pmatrix} .
-\end{equation}
+\end{aligned}
+$$
 
 Setting $f(x, y) = 0$ and solving for $y$ gives
 

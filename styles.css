@@ -51,3 +51,14 @@ img {
   max-width: 100%;
   height: auto;
 }
+
+/* Wide display equations (e.g. the bilinear matrix form) can exceed the narrow
+   EPUB page. Constrain block MathML to the page width and let the equation scroll
+   within its own box rather than pushing the whole page wider. Targets MathML, so
+   it applies to EPUB only (HTML renders math via MathJax, not <math>). */
+math[display="block"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
