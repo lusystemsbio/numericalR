@@ -1,6 +1,6 @@
-# Numerical Quartorial
+# Numerical RPy
 
-### *Systems Biology in R & Python* — abbreviated **NumericalQ**
+### *In the Era of AI*
 
 #### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 
