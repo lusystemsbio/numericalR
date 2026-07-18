@@ -233,3 +233,145 @@ and slope across square boundaries, so the extracted contour comes out smooth
 rather than faceted. We do not implement it here; the construction is detailed in
 the "Higher Order for Smoothness: Bicubic Interpolation" section of *Numerical
 Recipes* [@press2007numerical].
+
+## 2F.5 Numerical continuation
+
+The most general method, and the one used by professional bifurcation software, is
+**numerical continuation** [@allgower1990continuation]. We want $X(k)$ satisfying
+$f(X, k) = 0$ across a range of $k$. Differentiating that constraint implicitly,
+$\frac{\partial f}{\partial X}\,dX + \frac{\partial f}{\partial k}\,dk = 0$, gives
+the slope of the bifurcation curve,
+
+\begin{equation}
+\frac{dX}{dk} \equiv h(X, k) = -\frac{\partial f / \partial k}{\partial f / \partial X} . \tag{4}
+\end{equation}
+
+Continuation then alternates a **predictor** and a **corrector**. From a known
+point $(k, X)$ on the curve, the predictor steps along the tangent,
+
+\begin{equation}
+\begin{cases}
+k_{new} = k + \Delta k \\
+X_{new} = X + \dfrac{dX}{dk}\,\Delta k
+\end{cases} \tag{5}
+\end{equation}
+
+and the corrector pulls that guess back onto the curve. We correct with
+**Newton's method**: to solve $f(X) = 0$ from a guess $X_0$, linearize
+$f(X_0 + \Delta X) \approx f(X_0) + f'(X_0)\,\Delta X = 0$, giving
+
+\begin{equation}
+\Delta X = -\frac{f(X_0)}{f'(X_0)} , \qquad
+X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} , \tag{6}
+\end{equation}
+
+iterated until $|f| < \epsilon$. Unlike bisection, Newton is not bracketed: it
+converges to whichever root is nearest the guess, so the initial value decides
+which branch we land on. For our $f$ the derivatives it needs are
+$\frac{\partial f}{\partial X} = \frac{180}{X}\frac{(X/200)^4}{(1 + (X/200)^4)^2} - k$
+and $\frac{\partial f}{\partial k} = -X$.
+
+### R implementation {.impl}
+
+```{r}
+# Newton's method: solve f(X) = 0 from a guess; stop if X leaves X_range (Eq. 6)
+dfdX <- function(X, k) 180 / X * (X/200)^4 / (1 + (X/200)^4)^2 - k   # df/dX
+
+find_root_Newton <- function(X, func, dfunc, X_range, error = 1e-3, ...) {
+  f <- func(X, ...)
+  while (abs(f) > error) {
+    X <- X - f / dfunc(X, ...)
+    if ((X - X_range[1]) * (X - X_range[2]) > 0) break   # left the range: not converging
+    f <- func(X, ...)
+  }
+  X
+}
+
+# from different guesses at k = 0.15, Newton finds different roots
+for (g in list(c(500, 0.1), c(500, 0.15), c(100, 0.15), c(150, 0.15))) {
+  root <- find_root_Newton(g[1], derivs_k, dfdX, c(0, 800), k = g[2])
+  cat(sprintf("guess %3d, k = %.2f: root = %.1f\n", g[1], g[2], root))
+}
+```
+
+```{r}
+# march along the curve: tangent predictor (Eq. 5) + Newton corrector, stepping in k
+dfdk <- function(X, k) -X   # df/dk
+
+k_range <- c(0.1, 0.2); dk <- 0.001
+results <- matrix(NA, nrow = (k_range[2] - k_range[1]) / dk + 1, ncol = 3)  # k, X, stability
+
+k <- 0.1
+X_new <- find_root_Newton(500, derivs_k, dfdX, c(0, 800), k = k)   # start on the high branch
+cycle <- 1
+results[cycle, ] <- c(k, X_new, if (dfdX(X_new, k) < 0) 1 else 2)
+
+while (k < k_range[2]) {
+  slope <- -dfdk(X_new, k) / dfdX(X_new, k)   # dX/dk from Equation (4); blows up at a fold
+  k <- k + dk
+  X_init <- X_new + dk * slope                # predictor, Equation (5)
+  X_new <- find_root_Newton(X_init, derivs_k, dfdX, c(0, 800), k = k)   # Newton correction
+  cycle <- cycle + 1
+  results[cycle, ] <- c(k, X_new, if (!is.na(X_new) && dfdX(X_new, k) < 0) 1 else 2)
+}
+results <- results[1:cycle, ]
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = results[, 3],
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# Newton's method: solve f(X) = 0 from a guess; stop if X leaves X_range (Eq. 6)
+def dfdX(X, k):
+    x_frac = (X / 200)**4
+    return 180 / X * x_frac / (1 + x_frac)**2 - k
+
+def find_root_Newton(X, func, dfunc, X_range, error=1e-3, **kwargs):
+    f = func(X, **kwargs)
+    while abs(f) > error:
+        X = X - f / dfunc(X, **kwargs)
+        if (X - X_range[0]) * (X - X_range[1]) > 0:   # left the range: not converging
+            break
+        f = func(X, **kwargs)
+    return X
+
+# from different guesses at k = 0.15, Newton finds different roots
+for X0, k in [(500, 0.1), (500, 0.15), (100, 0.15), (150, 0.15)]:
+    root = find_root_Newton(X0, derivs_k, dfdX, (0, 800), k=k)
+    print(f"guess {X0:3d}, k = {k:.2f}: root = {root:.1f}")
+```
+
+```{python}
+# march along the curve: tangent predictor (Eq. 5) + Newton corrector, stepping in k
+def dfdk(X, k):
+    return -X
+
+k_range = (0.1, 0.2); dk = 0.001
+k = 0.1
+X_new = find_root_Newton(500, derivs_k, dfdX, (0, 800), k=k)   # start on the high branch
+ks, Xs, stab = [k], [X_new], [1 if dfdX(X_new, k) < 0 else 2]
+
+while k < k_range[1]:
+    slope = -dfdk(X_new, k) / dfdX(X_new, k)   # dX/dk from Equation (4); blows up at a fold
+    k += dk
+    X_init = X_new + dk * slope                # predictor, Equation (5)
+    X_new = find_root_Newton(X_init, derivs_k, dfdX, (0, 800), k=k)   # Newton correction
+    ks.append(k); Xs.append(X_new); stab.append(1 if dfdX(X_new, k) < 0 else 2)
+
+ks, Xs, stab = np.array(ks), np.array(Xs), np.array(stab)
+plt.scatter(ks, Xs, s=3, c=np.where(stab == 1, "black", "red"))
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+Continuation traces the high stable branch cleanly from $k = 0.1$ down to the
+upper turning point near $k = 0.168$. There the slope $dX/dk \to \infty$ (the
+curve is vertical in the $(k, X)$ plane), the tangent predictor overshoots, and
+Newton lands on the far low branch, which the sweep then follows. So stepping in
+$k$ captures the two stable branches but jumps across the fold: it misses the
+unstable middle branch and cannot turn the corner. It is also awkward that one
+slope value corresponds to two travel directions along the curve. Arc-length
+continuation, next, fixes both.
