@@ -16,14 +16,11 @@ $\{(k, X) : f(X, k) = 0\}$ is a *curve* in the $(k, X)$ plane, and we trace it
 directly. Two families of methods do this. The **contour method** treats
 $f(k, X)$ as a surface and extracts its zero-level contour, interpolating within a
 grid to place the curve accurately. **Numerical continuation** starts from one
-point on the curve and walks along it with a predictor–corrector step; its
-**arc-length** variant parameterizes the curve by distance along itself, so it
-rounds the turning points at the saddle-node bifurcations, where $X$ is
-multivalued in $k$ and both the sampling methods and naive continuation struggle.
-These are the general-purpose tools of bifurcation analysis, and they return the
-curve already ordered.
+point on the curve and walks along it with a predictor–corrector step. These are
+the general-purpose tools of bifurcation analysis, and they return the curve
+already ordered.
 
-We use the same self-activating-gene model as in Part 2E,
+We use the same self-activating-gene model as in [Part 2E](02e-bifurcation.qmd),
 
 \begin{equation}
 \frac{dX}{dt} = f(X, k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX . \tag{1}
@@ -33,7 +30,7 @@ We use the same self-activating-gene model as in Part 2E,
 
 Every method below evaluates $f(X, k)$, so we define it once in each language.
 Because each chapter renders as an independent session, this repeats the
-`derivs_k` used in Part 2E rather than relying on it.
+`derivs_k` used in [Part 2E](02e-bifurcation.qmd) rather than relying on it.
 
 ### R implementation {.impl}
 
