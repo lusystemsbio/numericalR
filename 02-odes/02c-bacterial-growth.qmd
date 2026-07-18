@@ -36,9 +36,15 @@ This has the closed-form solution
 N(t) = N_0 e^{rt} . \tag{2}
 \end{equation}
 
-(Interpret $N$ as a continuous population, not necessarily an integer.) Below we
-evaluate the exact solution, then reproduce it numerically with the Part 2B
-integrators.
+(Interpret $N$ as a continuous population, not necessarily an integer.) We first
+evaluate and plot the exact solution — on a linear axis, and on a log-scaled axis
+where the exponential appears as a straight line. We then reproduce it
+numerically with the Euler and RK4 integrators from
+[Part 2B](02b-numerical-integration.qmd) (repeated here so this page runs on its
+own); zooming in at large $t$, RK4 tracks the exact solution far more closely than
+Euler at the same step size. Finally, each language's built-in ODE solver —
+`deSolve` in R (here a fixed-step Euler) and SciPy's `solve_ivp` in Python
+(adaptive RK45) — reproduces the same result.
 
 ### R implementation {.impl}
 
@@ -52,14 +58,9 @@ N <- N_exact(t, r, N0)
 plot(t, N, xlab = "t", ylab = "N(t)", xlim = c(0, 100), ylim = c(0, 1000))
 ```
 
-On a log-scaled $y$ axis the exponential appears as a straight line:
-
 ```{r}
 plot(t, N, log = "y", xlab = "t", ylab = "N(t) (log scale)", xlim = c(0, 100))
 ```
-
-Now integrate Equation (1) numerically with our own Euler and RK4 functions
-(from Part 2B, repeated here so this page runs on its own):
 
 ```{r}
 dN <- function(t, N, r) r * N            # derivative, Equation (1)
@@ -95,10 +96,6 @@ lines(sol_rk4[, 1],   sol_rk4[, 2],   col = 3)
 legend("topleft", inset = 0.02, legend = c("Euler dt=0.1", "RK4 dt=0.1", "Exact"),
        col = c(2, 3, 4), lty = c(1, 1, NA), pch = c(NA, NA, 1), cex = 0.8)
 ```
-
-With the same step size $\Delta t = 0.1$, RK4 tracks the exact solution far more
-closely than Euler at large $t$. The `deSolve` package is the ready-made library
-route (as in Part 2B):
 
 ```{r}
 #| message: false
@@ -168,9 +165,6 @@ plt.xlabel("t"); plt.ylabel("N")
 plt.legend(loc="upper left", fontsize=8)
 plt.show()
 ```
-
-SciPy's `solve_ivp` is the library route in Python (adaptive RK45, so not a
-fixed-step Euler):
 
 ```{python}
 from scipy.integrate import solve_ivp

@@ -33,7 +33,8 @@ the state is stable (consistent with $\frac{df}{dX} = -k < 0$).
 The self-inhibiting gene, $f(X) = g_0 + g_1 H^{inh}(X) - kX$, likewise has a
 single, stable steady state: $g(X)$ decreases monotonically, so it crosses the
 line $kX$ exactly once, and $\frac{df}{dX} < 0$ there. We confirm this by
-computing $\frac{df}{dX}$ numerically with a central finite difference.
+computing $\frac{df}{dX}$ numerically with a central finite difference: at the
+steady state (around 250 nM) it is negative, so the state is stable.
 
 ### R implementation {.impl}
 
@@ -80,8 +81,6 @@ plot(X_all, dfdX, type = "l", col = 1,
      xlab = "X (nM)", ylab = "df/dX", xlim = c(0, 600), ylim = c(-0.5, 0.1))
 abline(h = 0, lty = 2, col = 2)
 ```
-
-At the steady state (around 250 nM) $\frac{df}{dX} < 0$, so it is stable.
 
 ### Python implementation {.impl}
 
@@ -142,7 +141,9 @@ Intuitively: when $X$ is low there is too little protein to activate
 transcription, so $X$ stays low; when $X$ is high it activates its own promoter,
 so $X$ stays high. Simulating the ODE (with RK4) from different initial
 conditions shows the trajectories converging to the two stable states, with the
-unstable state acting as the watershed between their basins.
+unstable state acting as the watershed between their basins. Computing
+$\frac{df}{dX}$ confirms the picture: it crosses zero three times — negative at
+the two outer (stable) states and positive at the middle (unstable) one.
 
 ### R implementation {.impl}
 
@@ -195,9 +196,6 @@ plot(X_all, dfdX, type = "l", col = 1,
      xlab = "X (nM)", ylab = "df/dX", xlim = c(0, 500), ylim = c(-0.2, 0.2))
 abline(h = 0, lty = 2, col = 2)
 ```
-
-The $\frac{df}{dX}$ curve crosses zero three times; it is negative at the two
-outer (stable) states and positive at the middle (unstable) one.
 
 ### Python implementation {.impl}
 
@@ -259,8 +257,17 @@ at the peaks. We set $U(0) = 0$ and integrate with the trapezoidal rule
 
 $$U(X + \Delta x) = U(X) - \frac{f(X) + f(X + \Delta x)}{2}\,\Delta x .$$
 
-We illustrate this for the self-activating gene, first with an explicit loop and
-then with a faster vectorized version.
+We illustrate this for the self-activating gene at $k = 0.15$. The resulting
+potential has two basins, around 100 nM and 300 nM — exactly the two stable
+steady states — separated by a barrier near 200 nM, the unstable state. This
+gives an intuitive picture of a multistable system, and of how *stable* each
+state is: the right basin sits lower (more stable), and the barrier height
+reflects how easily gene-expression noise could drive a transition between the
+two states (discussed further in Parts 4 and 6). We compute the potential two
+ways — with an explicit loop and, more concisely and faster, with a vectorized
+cumulative sum — and benchmark them. Finally we show the potential for
+$k = 0.2$ and $k = 0.1$; both have a single well (monostable), in contrast to the
+bistable $k = 0.15$.
 
 ### R implementation {.impl}
 
@@ -283,15 +290,6 @@ plot(res1[, 1], res1[, 2], type = "l", col = 1,
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
-The potential has two basins, around 100 nM and 300 nM — exactly the two stable
-steady states — separated by a barrier near 200 nM, the unstable state. This
-gives an intuitive picture of a multistable system, and also of how *stable*
-each state is: the right basin sits lower (more stable), and the barrier height
-reflects how easily gene-expression noise could drive a transition between the
-two states (discussed further in Parts 4 and 6).
-
-The same integration is more concise and faster using only vector operations.
-
 ```{r}
 # Same integration, vectorized with a cumulative sum
 cal_int_vector <- function(Xmin, Xmax, dX, f, ...) {
@@ -309,8 +307,6 @@ plot(res2[, 1], res2[, 2], type = "l", col = 1,
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
-We benchmark the efficiency of the two methods.
-
 ```{r}
 #| message: false
 #| warning: false
@@ -323,27 +319,17 @@ mb <- microbenchmark(
 autoplot(mb)
 ```
 
-The vector approach is both more concise and more efficient than the one with a
-`for` loop.
-
-Finally, we show the effective potential for $k = 0.2\ \text{min}^{-1}$,
-
 ```{r}
 res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
 plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
-and for $k = 0.1\ \text{min}^{-1}$.
-
 ```{r}
 res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
 plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
-
-Both landscapes have a single well (monostability), unlike the bistable
-landscape at $k = 0.15$.
 
 ### Python implementation {.impl}
 
