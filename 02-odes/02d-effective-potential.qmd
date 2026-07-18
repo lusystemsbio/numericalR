@@ -1,0 +1,378 @@
+---
+title: "2D. Stability and effective potential"
+author: "Mingyang Lu"
+old_id: "02D"
+---
+
+Having learned how to integrate ODEs, we now ask a more qualitative question:
+given a gene circuit, what are its steady states, are they stable, and how many
+are there? We answer this graphically and analytically, and then package the
+answer into an *effective potential* — a landscape whose valleys are the stable
+states.
+
+## 2D.1 Stability of steady states
+
+A steady state $X_s$ of $\frac{dX}{dt} = f(X)$ satisfies $f(X_s) = 0$. It is
+**stable** if a small perturbation $X \to X + \Delta X$ decays back to $X_s$, and
+**unstable** otherwise. Linearizing $f$ about $X_s$ gives the criterion
+
+\begin{equation}
+X_s \text{ is }
+  \begin{cases}
+    \text{stable}   & \dfrac{df(X)}{dX}\Big|_{X_s} < 0 \\[2mm]
+    \text{unstable} & \dfrac{df(X)}{dX}\Big|_{X_s} \ge 0
+  \end{cases} \tag{1}
+\end{equation}
+
+For the constitutively expressed gene from [Part 2A](02a-modeling-gene-circuits.qmd),
+$f(X) = g - kX$, there is a single steady state $X_s = g/k$. Plotting the two
+terms $g$ and $kX$ separately, their intersection is the steady state. A small
+increase in $X$ raises $kX$ above $g$, so $\frac{dX}{dt} < 0$ and $X$ falls back —
+the state is stable (consistent with $\frac{df}{dX} = -k < 0$).
+
+The self-inhibiting gene, $f(X) = g_0 + g_1 H^{inh}(X) - kX$, likewise has a
+single, stable steady state: $g(X)$ decreases monotonically, so it crosses the
+line $kX$ exactly once, and $\frac{df}{dX} < 0$ there. We confirm this by
+computing $\frac{df}{dX}$ numerically with a central finite difference.
+
+### R implementation {.impl}
+
+```{r}
+# Constitutive gene: dX/dt = g - kX
+g <- 50; k <- 0.1
+X_all <- seq(400, 600, 1)
+plot(X_all, rep(g, length(X_all)), type = "l", col = 1,
+     xlab = "X (nM)", ylab = "Rates", xlim = c(400, 600), ylim = c(40, 60))
+lines(X_all, k * X_all, col = 2)
+legend("bottomright", inset = 0.02, legend = c("g", "kX"), col = 1:2, lty = 1, cex = 0.8)
+```
+
+```{r}
+# Self-inhibiting gene: g(X) = g0 + g1 * H_inh(X)
+hill_inh <- function(X, X_th, n) {   # inhibitory Hill function
+  a <- (X / X_th)^n
+  1 / (1 + a)
+}
+
+g0 <- 10; g1 <- 60; k <- 0.1; X_th <- 200; n <- 4
+X_all <- seq(0, 600, 1)
+plot(X_all, g0 + g1 * hill_inh(X_all, X_th, n), type = "l", col = 1,
+     xlab = "X (nM)", ylab = "Rates", xlim = c(0, 600), ylim = c(0, 70))
+lines(X_all, k * X_all, col = 2)
+legend("top", inset = 0.02, legend = c("g(X)", "kX"), col = 1:2, lty = 1, cex = 0.8)
+```
+
+```{r}
+# df/dX by a central finite difference (vectorized)
+f_1g_self_inh <- function(X, g0, g1, X_th, n, k) g0 + g1 * hill_inh(X, X_th, n) - k * X
+
+cal_dfdx <- function(X_all, dt, derivs, ...) {
+  f_all   <- derivs(X_all, ...)
+  f_plus  <- c(f_all[-1], NA)                # f(X + dX)
+  f_minus <- c(NA, f_all[-length(f_all)])    # f(X - dX)
+  (f_plus - f_minus) / (2 * dt)              # (f(X+dX) - f(X-dX)) / (2 dX)
+}
+
+X_all <- seq(0, 600, 0.1)
+dfdX <- cal_dfdx(X_all, dt = 0.1, derivs = f_1g_self_inh,
+                 g0 = 10, g1 = 60, X_th = 200, n = 4, k = 0.1)
+plot(X_all, dfdX, type = "l", col = 1,
+     xlab = "X (nM)", ylab = "df/dX", xlim = c(0, 600), ylim = c(-0.5, 0.1))
+abline(h = 0, lty = 2, col = 2)
+```
+
+At the steady state (around 250 nM) $\frac{df}{dX} < 0$, so it is stable.
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constitutive gene: dX/dt = g - kX
+g, k = 50, 0.1
+X_all = np.arange(400, 601, 1)
+plt.plot(X_all, np.full_like(X_all, g, dtype=float), color="black", label="g")
+plt.plot(X_all, k * X_all, color="red", label="kX")
+plt.xlabel("X (nM)"); plt.ylabel("Rates"); plt.xlim(400, 600); plt.ylim(40, 60)
+plt.legend(loc="lower right", fontsize=8); plt.show()
+```
+
+```{python}
+def hill_inh(X, X_th, n):        # inhibitory Hill function
+    a = (X / X_th)**n
+    return 1 / (1 + a)
+
+g0, g1, k, X_th, n = 10, 60, 0.1, 200, 4
+X_all = np.arange(0, 601, 1)
+plt.plot(X_all, g0 + g1 * hill_inh(X_all, X_th, n), color="black", label="g(X)")
+plt.plot(X_all, k * X_all, color="red", label="kX")
+plt.xlabel("X (nM)"); plt.ylabel("Rates"); plt.xlim(0, 600); plt.ylim(0, 70)
+plt.legend(loc="upper right", fontsize=8); plt.show()
+```
+
+```{python}
+def f_1g_self_inh(X, g0, g1, X_th, n, k):
+    return g0 + g1 * hill_inh(X, X_th, n) - k * X
+
+def cal_dfdx(X_all, dt, derivs, **kwargs):
+    f_all   = derivs(X_all, **kwargs)
+    f_plus  = np.concatenate([f_all[1:], [np.nan]])   # f(X + dX)
+    f_minus = np.concatenate([[np.nan], f_all[:-1]])  # f(X - dX)
+    return (f_plus - f_minus) / (2 * dt)
+
+X_all = np.arange(0, 600.1, 0.1)
+dfdX = cal_dfdx(X_all, 0.1, f_1g_self_inh, g0=10, g1=60, X_th=200, n=4, k=0.1)
+plt.plot(X_all, dfdX, color="black", label="df/dX")
+plt.axhline(0, linestyle="--", color="red")
+plt.xlabel("X (nM)"); plt.ylabel("df/dX"); plt.xlim(0, 600); plt.ylim(-0.5, 0.1)
+plt.show()
+```
+
+## 2D.2 Multi-stability
+
+The self-activating gene, $f(X) = g_0 + g_1 H^{ex}(X) - kX$, behaves very
+differently. Plotting $g(X)$ and $kX$ while varying $k$, the line $kX$ can cross
+the sigmoidal $g(X)$ either once or **three** times. With $k = 0.15$ there are
+three steady states: the outer two are stable and the middle one is unstable.
+A system with more than one stable steady state is called **multistable** (here,
+bistable) [@alon2019systems].
+
+Intuitively: when $X$ is low there is too little protein to activate
+transcription, so $X$ stays low; when $X$ is high it activates its own promoter,
+so $X$ stays high. Simulating the ODE (with RK4) from different initial
+conditions shows the trajectories converging to the two stable states, with the
+unstable state acting as the watershed between their basins.
+
+### R implementation {.impl}
+
+```{r}
+hill_ex <- function(X, X_th, n) {   # excitatory Hill function
+  a <- (X / X_th)^n
+  a / (1 + a)
+}
+
+g0 <- 10; g1 <- 45; X_th <- 200; n <- 4
+X_all <- seq(0, 600, 1)
+plot(X_all, g0 + g1 * hill_ex(X_all, X_th, n), type = "l", col = 1,
+     xlab = "X (nM)", ylab = "Rates", xlim = c(0, 600), ylim = c(0, 60))
+lines(X_all, 0.10 * X_all, col = 2)
+lines(X_all, 0.15 * X_all, col = 3)
+lines(X_all, 0.20 * X_all, col = 4)
+legend("topleft", inset = 0.02,
+       legend = c("g(X)", "kX (k=0.1)", "kX (k=0.15)", "kX (k=0.2)"),
+       col = 1:4, lty = 1, cex = 0.8)
+```
+
+```{r}
+#| message: false
+library(deSolve)
+
+f_1g_self_act <- function(X, g0, g1, X_th, n, k) g0 + g1 * hill_ex(X, X_th, n) - k * X
+
+dy_self_act <- function(t, y, parms) {
+  with(as.list(c(y, parms)), list(g0 + g1 * hill_ex(y, X_th, n) - k * y))
+}
+
+parms <- c(g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15)
+t_all <- seq(0, 80, 0.1)
+X0_all <- seq(50, 400, 50)
+
+plot(NULL, xlab = "t (Minute)", ylab = "X (nM)", xlim = c(0, 80), ylim = c(0, 500))
+for (i in seq_along(X0_all)) {
+  res <- ode(y = X0_all[i], times = t_all, func = dy_self_act, parms = parms, method = "rk4")
+  lines(res[, 1], res[, 2], col = i + 1)
+}
+legend("bottomright", inset = 0.02, title = "Initial conditions",
+       legend = paste0("X0 = ", X0_all), col = seq_along(X0_all) + 1, lty = 1, cex = 0.8)
+```
+
+```{r}
+X_all <- seq(0, 500, 0.1)
+dfdX <- cal_dfdx(X_all, dt = 0.1, derivs = f_1g_self_act,
+                 g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15)
+plot(X_all, dfdX, type = "l", col = 1,
+     xlab = "X (nM)", ylab = "df/dX", xlim = c(0, 500), ylim = c(-0.2, 0.2))
+abline(h = 0, lty = 2, col = 2)
+```
+
+The $\frac{df}{dX}$ curve crosses zero three times; it is negative at the two
+outer (stable) states and positive at the middle (unstable) one.
+
+### Python implementation {.impl}
+
+```{python}
+def hill_ex(X, X_th, n):        # excitatory Hill function
+    a = (X / X_th)**n
+    return a / (1 + a)
+
+g0, g1, X_th, n = 10, 45, 200, 4
+X_all = np.arange(0, 601, 1)
+plt.plot(X_all, g0 + g1 * hill_ex(X_all, X_th, n), color="black", label="g(X)")
+plt.plot(X_all, 0.10 * X_all, color="red",   label="kX (k=0.1)")
+plt.plot(X_all, 0.15 * X_all, color="green", label="kX (k=0.15)")
+plt.plot(X_all, 0.20 * X_all, color="blue",  label="kX (k=0.2)")
+plt.xlabel("X (nM)"); plt.ylabel("Rates"); plt.xlim(0, 600); plt.ylim(0, 60)
+plt.legend(loc="upper left", fontsize=8); plt.show()
+```
+
+```{python}
+from scipy.integrate import solve_ivp
+
+def f_1g_self_act(X, g0, g1, X_th, n, k):
+    return g0 + g1 * hill_ex(X, X_th, n) - k * X
+
+parms = dict(g0=10, g1=45, X_th=200, n=4, k=0.15)
+t_all = np.arange(0, 80.1, 0.1)
+X0_all = np.arange(50, 401, 50)
+
+for X0 in X0_all:
+    res = solve_ivp(lambda t, y: [f_1g_self_act(y[0], **parms)], [0, 80], [X0],
+                    t_eval=t_all, method="RK45", rtol=1e-6, atol=1e-8)
+    plt.plot(res.t, res.y[0], label=f"X0 = {X0}")
+plt.xlabel("t (Minute)"); plt.ylabel("X (nM)"); plt.xlim(0, 80); plt.ylim(0, 500)
+plt.legend(title="Initial conditions", loc="lower right", fontsize=8); plt.show()
+```
+
+```{python}
+X_all = np.arange(0, 500.1, 0.1)
+dfdX = cal_dfdx(X_all, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.15)
+plt.plot(X_all, dfdX, color="black", label="df/dX")
+plt.axhline(0, linestyle="--", color="red")
+plt.xlabel("X (nM)"); plt.ylabel("df/dX"); plt.xlim(0, 500); plt.ylim(-0.2, 0.2)
+plt.show()
+```
+
+## 2D.3 Effective potential
+
+A gene circuit is a non-equilibrium system, so energy is not strictly defined.
+Still, for a one-variable system we can make an analogy with an overdamped
+particle whose position is $X$ and whose velocity $\frac{dX}{dt} = f(X)$ is
+proportional to the force $-\,U'(X)$. This defines an **effective potential**
+
+$$U(X) = -\int_{X_0}^{X} f(x)\,dx + U(X_0) ,$$
+
+a one-dimensional version of Waddington's epigenetic landscape
+[@waddington1957strategy], with stable states at the valleys and unstable states
+at the peaks. We set $U(0) = 0$ and integrate with the trapezoidal rule
+[@press2007numerical]:
+
+$$U(X + \Delta x) = U(X) - \frac{f(X) + f(X + \Delta x)}{2}\,\Delta x .$$
+
+We implement this first with an explicit loop, then vectorized with a cumulative
+sum, and benchmark the two. Finally we show how the landscape changes with $k$:
+at $k = 0.15$ there are two basins (bistability); the lower-lying basin is the
+more stable state, and the barrier height indicates how hard a noise-driven
+transition between states would be (see Parts 4 and 6). At $k = 0.1$ or $k = 0.2$
+a single basin remains (monostability).
+
+### R implementation {.impl}
+
+```{r}
+# Trapezoidal integration with an explicit loop
+cal_int <- function(Xmin, Xmax, dX, f, ...) {
+  X_all <- seq(Xmin, Xmax, dX)
+  nX <- length(X_all)
+  U_all <- numeric(nX)
+  for (i in 1:(nX - 1)) {
+    X <- X_all[i]
+    U_all[i + 1] <- U_all[i] - (f(X, ...) + f(X + dX, ...)) / 2 * dX
+  }
+  cbind(X_all, U_all)
+}
+
+res1 <- cal_int(Xmin = 0, Xmax = 500, dX = 0.1, f = f_1g_self_act,
+                g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15)
+plot(res1[, 1], res1[, 2], type = "l", col = 1,
+     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
+```
+
+```{r}
+# Same integration, vectorized with a cumulative sum
+cal_int_vector <- function(Xmin, Xmax, dX, f, ...) {
+  X_all <- seq(Xmin, Xmax, dX)
+  f_all <- f(X_all, ...)
+  f_plus <- c(f_all[-1], NA)                 # f(X + dX)
+  trap <- (f_all + f_plus) * dX / 2          # trapezoid areas
+  U_all <- -cumsum(trap)
+  cbind(X_all, U_all)
+}
+
+res2 <- cal_int_vector(Xmin = 0, Xmax = 500, dX = 0.1, f = f_1g_self_act,
+                       g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15)
+plot(res2[, 1], res2[, 2], type = "l", col = 1,
+     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
+```
+
+```{r}
+#| message: false
+#| warning: false
+library(microbenchmark)
+library(ggplot2)
+mb <- microbenchmark(
+  loop   = cal_int(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15),
+  vector = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15),
+  times = 10, unit = "ms")
+autoplot(mb)
+```
+
+```{r}
+# Landscapes for k = 0.2 (monostable) and k = 0.1 (monostable)
+res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
+res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
+plot(res3[, 1], res3[, 2], type = "l", col = 2,
+     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
+lines(res4[, 1], res4[, 2], col = 4)
+legend("topright", inset = 0.02, legend = c("k = 0.2", "k = 0.1"), col = c(2, 4), lty = 1, cex = 0.8)
+```
+
+The vectorized version is both shorter and faster.
+
+### Python implementation {.impl}
+
+```{python}
+def cal_int(Xmin, Xmax, dX, f, **kwargs):
+    X_all = np.arange(Xmin, Xmax + dX, dX)
+    U_all = np.zeros(len(X_all))
+    for i in range(len(X_all) - 1):
+        X = X_all[i]
+        U_all[i + 1] = U_all[i] - (f(X, **kwargs) + f(X + dX, **kwargs)) / 2 * dX
+    return np.column_stack((X_all, U_all))
+
+res1 = cal_int(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.15)
+plt.plot(res1[:, 0], res1[:, 1], color="black")
+plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.show()
+```
+
+```{python}
+def cal_int_vector(Xmin, Xmax, dX, f, **kwargs):
+    X_all = np.arange(Xmin, Xmax + dX, dX)
+    f_all = f(X_all, **kwargs)
+    f_plus = np.concatenate([f_all[1:], [np.nan]])   # f(X + dX)
+    trap = (f_all + f_plus) * dX / 2
+    U_all = -np.cumsum(trap)
+    return np.column_stack((X_all, U_all))
+
+res2 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.15)
+plt.plot(res2[:, 0], res2[:, 1], color="black")
+plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.show()
+```
+
+```{python}
+import timeit
+kw = dict(g0=10, g1=45, X_th=200, n=4, k=0.15)
+n_rep = 10
+t_loop = timeit.timeit(lambda: cal_int(0, 500, 0.1, f_1g_self_act, **kw), number=n_rep) / n_rep
+t_vec  = timeit.timeit(lambda: cal_int_vector(0, 500, 0.1, f_1g_self_act, **kw), number=n_rep) / n_rep
+print(f"loop      : {t_loop*1e3:8.2f} ms")
+print(f"vectorized: {t_vec*1e3:8.2f} ms")
+```
+
+```{python}
+res3 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.2)
+res4 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.1)
+plt.plot(res3[:, 0], res3[:, 1], color="red",  label="k = 0.2")
+plt.plot(res4[:, 0], res4[:, 1], color="blue", label="k = 0.1")
+plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500)
+plt.legend(); plt.show()
+```
