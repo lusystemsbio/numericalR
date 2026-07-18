@@ -33,6 +33,7 @@ format:
   html:
     theme: cosmo
     css: styles.css
+    include-after-body: toc-active.html   # robust right-TOC scrollspy (see file)
     toc-depth: 2      # right TOC lists only the numbered sections (2B.1, 2B.2, ...)
     toc-expand: true  # keep the TOC list expanded (don't collapse/hide it)
   pdf:

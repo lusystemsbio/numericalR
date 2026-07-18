@@ -98,6 +98,7 @@ plt.legend(loc="lower right", fontsize=8); plt.show()
 ```
 
 ```{python}
+# Self-inhibiting gene: g(X) = g0 + g1 * H_inh(X)
 def hill_inh(X, X_th, n):        # inhibitory Hill function
     a = (X / X_th)**n
     return 1 / (1 + a)
@@ -111,6 +112,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 ```
 
 ```{python}
+# df/dX by a central finite difference (vectorized)
 def f_1g_self_inh(X, g0, g1, X_th, n, k):
     return g0 + g1 * hill_inh(X, X_th, n) - k * X
 
@@ -148,6 +150,7 @@ the two outer (stable) states and positive at the middle (unstable) one.
 ### R implementation {.impl}
 
 ```{r}
+# self-activating gene: g(X) vs kX for three k values
 hill_ex <- function(X, X_th, n) {   # excitatory Hill function
   a <- (X / X_th)^n
   a / (1 + a)
@@ -167,6 +170,7 @@ legend("topleft", inset = 0.02,
 
 ```{r}
 #| message: false
+# simulate the ODE (RK4) from several initial conditions
 library(deSolve)
 
 f_1g_self_act <- function(X, g0, g1, X_th, n, k) g0 + g1 * hill_ex(X, X_th, n) - k * X
@@ -189,6 +193,7 @@ legend("bottomright", inset = 0.02, title = "Initial conditions",
 ```
 
 ```{r}
+# df/dX crosses zero three times (two stable, one unstable)
 X_all <- seq(0, 500, 0.1)
 dfdX <- cal_dfdx(X_all, dt = 0.1, derivs = f_1g_self_act,
                  g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.15)
@@ -200,6 +205,7 @@ abline(h = 0, lty = 2, col = 2)
 ### Python implementation {.impl}
 
 ```{python}
+# self-activating gene: g(X) vs kX for three k values
 def hill_ex(X, X_th, n):        # excitatory Hill function
     a = (X / X_th)**n
     return a / (1 + a)
@@ -215,6 +221,7 @@ plt.legend(loc="upper left", fontsize=8); plt.show()
 ```
 
 ```{python}
+# simulate the ODE (RK4) from several initial conditions
 from scipy.integrate import solve_ivp
 
 def f_1g_self_act(X, g0, g1, X_th, n, k):
@@ -233,6 +240,7 @@ plt.legend(title="Initial conditions", loc="lower right", fontsize=8); plt.show(
 ```
 
 ```{python}
+# df/dX crosses zero three times (two stable, one unstable)
 X_all = np.arange(0, 500.1, 0.1)
 dfdX = cal_dfdx(X_all, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.15)
 plt.plot(X_all, dfdX, color="black", label="df/dX")
@@ -311,6 +319,7 @@ plot(res2[, 1], res2[, 2], type = "l", col = 1,
 ```{r}
 #| message: false
 #| warning: false
+# benchmark the loop against the vectorized version
 library(microbenchmark)
 library(ggplot2)
 mb <- microbenchmark(
@@ -321,12 +330,14 @@ autoplot(mb)
 ```
 
 ```{r}
+# effective potential for k = 0.2 (monostable)
 res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
 plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
 ```{r}
+# effective potential for k = 0.1 (monostable)
 res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
 plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
@@ -335,6 +346,7 @@ plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",
 ### Python implementation {.impl}
 
 ```{python}
+# Trapezoidal integration with an explicit loop
 def cal_int(Xmin, Xmax, dX, f, **kwargs):
     X_all = np.arange(Xmin, Xmax + dX, dX)
     U_all = np.zeros(len(X_all))
@@ -349,6 +361,7 @@ plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.s
 ```
 
 ```{python}
+# Same integration, vectorized with a cumulative sum
 def cal_int_vector(Xmin, Xmax, dX, f, **kwargs):
     X_all = np.arange(Xmin, Xmax + dX, dX)
     f_all = f(X_all, **kwargs)
@@ -363,6 +376,7 @@ plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.s
 ```
 
 ```{python}
+# benchmark the loop against the vectorized version
 import timeit
 kw = dict(g0=10, g1=45, X_th=200, n=4, k=0.15)
 n_rep = 10
@@ -373,6 +387,7 @@ print(f"vectorized: {t_vec*1e3:8.2f} ms")
 ```
 
 ```{python}
+# effective potential for k = 0.2 and k = 0.1 (both monostable)
 res3 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.2)
 plt.plot(res3[:, 0], res3[:, 1], color="black")
 plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.title("k = 0.2")
