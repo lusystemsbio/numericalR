@@ -1,0 +1,250 @@
+---
+title: "Practice: modeling bacterial growth"
+subtitle: "Part 2: Ordinary differential equations — C"
+author: "Mingyang Lu"
+old_id: "02C"
+code-tools: true
+---
+
+This is a **practice page**. It uses ODEs to model bacterial growth — exponential
+growth and logistic growth — and reuses the numerical integrators developed in
+Part 2B. The exponential-growth section is a fully worked example; the
+logistic-growth section is left as an exercise for you to complete by adapting
+that example. The growth models follow the standard treatment in Sontag's lecture
+notes on mathematical systems biology [@sontag_systemsbio].
+
+::: {.callout-tip}
+## How to practice
+This page is meant to be edited and re-run. Open its source file,
+`02-odes/02c-bacterial-growth.qmd`, from the
+[book repository](https://github.com/lusystemsbio/numericalR) — or, in the HTML
+version, use the **&lt;/&gt; Source** button at the top of the page — then change
+the code, re-render, and check your answers against the exercises below. Work in
+whichever language you prefer; both R and Python are shown.
+:::
+
+## Exponential growth (worked example)
+
+### Concept
+
+The simplest model assumes a constant per-capita growth rate $r$, so the
+bacterial count $N$ obeys
+
+\begin{equation}
+\frac{dN}{dt} = rN , \qquad N(t=0) = N_0 . \tag{1}
+\end{equation}
+
+This has the closed-form solution
+
+\begin{equation}
+N(t) = N_0 e^{rt} . \tag{2}
+\end{equation}
+
+(Interpret $N$ as a continuous population, not necessarily an integer.) Below we
+evaluate the exact solution, then reproduce it numerically with the Part 2B
+integrators.
+
+### R implementation
+
+```{r}
+N_exact <- function(t, r, N0) N0 * exp(r * t)   # exact solution, Equation (2)
+
+r <- 0.1; N0 <- 1
+t <- seq(0, 100, 1)
+N <- N_exact(t, r, N0)
+
+plot(t, N, xlab = "t", ylab = "N(t)", xlim = c(0, 100), ylim = c(0, 1000))
+```
+
+On a log-scaled $y$ axis the exponential appears as a straight line:
+
+```{r}
+plot(t, N, log = "y", xlab = "t", ylab = "N(t) (log scale)", xlim = c(0, 100))
+```
+
+Now integrate Equation (1) numerically with our own Euler and RK4 functions
+(from Part 2B, repeated here so this page runs on its own):
+
+```{r}
+dN <- function(t, N, r) r * N            # derivative, Equation (1)
+
+Euler <- function(derivs, X0, t.total, dt, ...) {
+  t_all <- seq(0, t.total, by = dt); n <- length(t_all)
+  X <- numeric(n); X[1] <- X0
+  for (i in 1:(n - 1)) X[i + 1] <- X[i] + dt * derivs(t_all[i], X[i], ...)
+  cbind(t_all, X)
+}
+
+RK4 <- function(derivs, X0, t.total, dt, ...) {
+  t_all <- seq(0, t.total, by = dt); n <- length(t_all)
+  X <- numeric(n); X[1] <- X0
+  for (i in 1:(n - 1)) {
+    h <- dt; t0 <- t_all[i]
+    k1 <- h * derivs(t0,       X[i],          ...)
+    k2 <- h * derivs(t0 + h/2, X[i] + k1 / 2, ...)
+    k3 <- h * derivs(t0 + h/2, X[i] + k2 / 2, ...)
+    k4 <- h * derivs(t0 + h,   X[i] + k3,     ...)
+    X[i + 1] <- X[i] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+  }
+  cbind(t_all, X)
+}
+
+sol_euler <- Euler(dN, N0, 100, 0.1, r = r)
+sol_rk4   <- RK4(dN, N0, 100, 0.1, r = r)
+
+# zoom in on large t, where the Euler error is most visible
+plot(t, N, xlab = "t", ylab = "N", xlim = c(66, 70), ylim = c(700, 1000), col = 4)
+lines(sol_euler[, 1], sol_euler[, 2], col = 2)
+lines(sol_rk4[, 1],   sol_rk4[, 2],   col = 3)
+legend("topleft", inset = 0.02, legend = c("Euler dt=0.1", "RK4 dt=0.1", "Exact"),
+       col = c(2, 3, 4), lty = c(1, 1, NA), pch = c(NA, NA, 1), cex = 0.8)
+```
+
+With the same step size $\Delta t = 0.1$, RK4 tracks the exact solution far more
+closely than Euler at large $t$. The `deSolve` package is the ready-made library
+route (as in Part 2B):
+
+```{r}
+#| message: false
+library(deSolve)
+dN_deSolve <- function(t, N, parms) list(parms["r"] * N)
+sol_de <- ode(y = N0, times = seq(0, 100, 0.1), func = dN_deSolve,
+              parms = c(r = 0.1), method = "euler")
+tail(sol_de, 3)   # final points match the exact value N(100) = e^{10}
+```
+
+### Python implementation
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def N_exact(t, r, N0):                # exact solution, Equation (2)
+    return N0 * np.exp(r * t)
+
+r, N0 = 0.1, 1
+t = np.arange(0, 101, 1)
+N = N_exact(t, r, N0)
+
+plt.plot(t, N, "o", markersize=3)
+plt.xlabel("t"); plt.ylabel("N(t)"); plt.xlim(0, 100); plt.ylim(0, 1000)
+plt.show()
+```
+
+```{python}
+plt.plot(t, N, "o", markersize=3)
+plt.yscale("log")
+plt.xlabel("t"); plt.ylabel("N(t) (log scale)"); plt.xlim(0, 100)
+plt.show()
+```
+
+```{python}
+def dN(t, N, r):                      # derivative, Equation (1)
+    return r * N
+
+def Euler(derivs, X0, t_total, dt, **kw):
+    t_all = np.arange(0, t_total + dt, dt); n = len(t_all)
+    X = np.zeros(n); X[0] = X0
+    for i in range(1, n):
+        X[i] = X[i - 1] + dt * derivs(t_all[i - 1], X[i - 1], **kw)
+    return np.column_stack((t_all, X))
+
+def RK4(derivs, X0, t_total, dt, **kw):
+    t_all = np.arange(0, t_total + dt, dt); n = len(t_all)
+    X = np.zeros(n); X[0] = X0
+    for i in range(0, n - 1):
+        h = dt; t0 = t_all[i]
+        k1 = h * derivs(t0,         X[i],          **kw)
+        k2 = h * derivs(t0 + h / 2, X[i] + k1 / 2, **kw)
+        k3 = h * derivs(t0 + h / 2, X[i] + k2 / 2, **kw)
+        k4 = h * derivs(t0 + h,     X[i] + k3,     **kw)
+        X[i + 1] = X[i] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    return np.column_stack((t_all, X))
+
+sol_euler = Euler(dN, N0, 100, 0.1, r=r)
+sol_rk4   = RK4(dN, N0, 100, 0.1, r=r)
+
+plt.plot(sol_euler[:, 0], sol_euler[:, 1], color="red",   label="Euler dt=0.1")
+plt.plot(sol_rk4[:, 0],   sol_rk4[:, 1],   color="green", label="RK4 dt=0.1")
+plt.plot(t, N, "o", color="blue", markersize=3, label="Exact")
+plt.xlim(66, 70); plt.ylim(700, 1000)
+plt.xlabel("t"); plt.ylabel("N")
+plt.legend(loc="upper left", fontsize=8)
+plt.show()
+```
+
+SciPy's `solve_ivp` is the library route in Python (adaptive RK45, so not a
+fixed-step Euler):
+
+```{python}
+from scipy.integrate import solve_ivp
+sol = solve_ivp(lambda t, N: r * N, [0, 100], [N0], t_eval=np.arange(0, 101, 1))
+sol.y[0][-3:]                          # final points ~ N(100) = e^{10}
+```
+
+## Logistic growth (exercise)
+
+### Concept
+
+The logistic model adds a limit to growth (the carrying capacity $B$):
+
+\begin{equation}
+\frac{dN}{dt} = rN\left(1 - \frac{N}{B}\right) , \qquad N(t=0) = N_0 , \tag{3}
+\end{equation}
+
+with closed-form solution [@sontag_systemsbio]
+
+\begin{equation}
+N(t) = \frac{N_0 B}{N_0 + (B - N_0)e^{-rt}} . \tag{4}
+\end{equation}
+
+The exact solution is plotted below (for $r = 0.1$, $B = 100$, $N_0 = 1$) to give
+you a target to check your simulations against.
+
+### R implementation
+
+```{r}
+logistic_exact <- function(t, r, B, N0) N0 * B / (N0 + (B - N0) * exp(-r * t))
+
+N0 <- 1; r <- 0.1; B <- 100
+t <- seq(0, 100, 1)
+N_log <- logistic_exact(t, r, B, N0)
+
+plot(t, N_log, xlab = "t", ylab = "N(t)", xlim = c(0, 100), ylim = c(0, 110))
+```
+
+### Python implementation
+
+```{python}
+def logistic_exact(t, r, B, N0):
+    return N0 * B / (N0 + (B - N0) * np.exp(-r * t))
+
+N0, r, B = 1, 0.1, 100
+t = np.arange(0, 101, 1)
+N_log = logistic_exact(t, r, B, N0)
+
+plt.plot(t, N_log, "o", markersize=3)
+plt.xlabel("t"); plt.ylabel("N(t)"); plt.xlim(0, 100); plt.ylim(0, 110)
+plt.show()
+```
+
+### Exercises
+
+Edit this page's source (see the tip above) and add your own code to answer the
+following. Adapt the exponential-growth example — the `dN` derivative, `Euler`,
+`RK4`, and the library solvers all carry over.
+
+**Q1.** Re-run the *exponential*-growth simulation with other integration methods
+and step sizes — for example `deSolve`'s `ode45`/`ode23` in R, or different
+`method=` options of SciPy's `solve_ivp` in Python. For each, compare against the
+exact solution and assess the accuracy. *(Hint: `?deSolve` /
+`help(solve_ivp)`.)*
+
+**Q2.** For the *logistic* model with $B = 100$, $N_0 = 1$, $r = 0.1$: simulate
+Equation (3) with your `Euler`/`RK4` functions (or `deSolve`/`solve_ivp`).
+
+(a) Compare the simulation with the exact solution above. At what times $t$ are
+the errors largest, and why?
+
+(b) Now take the initial condition $N_0 = 200$ (above the carrying capacity).
+Simulate $N(t)$ and describe what happens.

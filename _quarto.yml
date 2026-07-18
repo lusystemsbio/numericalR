@@ -12,6 +12,7 @@ book:
       chapters:
         - 02-odes/02a-modeling-gene-circuits.qmd
         - 02-odes/02b-numerical-integration.qmd
+        - 02-odes/02c-bacterial-growth.qmd
     - references.qmd
 
 bibliography: references.bib
