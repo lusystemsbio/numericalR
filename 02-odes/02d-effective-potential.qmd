@@ -317,14 +317,16 @@ autoplot(mb)
 ```
 
 ```{r}
-# Landscapes for k = 0.2 (monostable) and k = 0.1 (monostable)
+# Landscapes for the two monostable cases, plotted separately (as in the
+# original): their potentials are on very different scales, so a shared axis
+# would hide one of the wells.
 res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
+plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
+     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
+
 res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
-plot(res3[, 1], res3[, 2], type = "l", col = 2,
-     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500),
-     ylim = range(res3[, 2], res4[, 2], na.rm = TRUE))   # fit both curves
-lines(res4[, 1], res4[, 2], col = 4)
-legend("topright", inset = 0.02, legend = c("k = 0.2", "k = 0.1"), col = c(2, 4), lty = 1, cex = 0.8)
+plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",
+     xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
 The vectorized version is both shorter and faster.
@@ -371,9 +373,12 @@ print(f"vectorized: {t_vec*1e3:8.2f} ms")
 
 ```{python}
 res3 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.2)
+plt.plot(res3[:, 0], res3[:, 1], color="black")
+plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.title("k = 0.2")
+plt.show()
+
 res4 = cal_int_vector(0, 500, 0.1, f_1g_self_act, g0=10, g1=45, X_th=200, n=4, k=0.1)
-plt.plot(res3[:, 0], res3[:, 1], color="red",  label="k = 0.2")
-plt.plot(res4[:, 0], res4[:, 1], color="blue", label="k = 0.1")
-plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500)
-plt.legend(); plt.show()
+plt.plot(res4[:, 0], res4[:, 1], color="black")
+plt.xlabel("X (nM)"); plt.ylabel("Effective potential"); plt.xlim(0, 500); plt.title("k = 0.1")
+plt.show()
 ```
