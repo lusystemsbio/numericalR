@@ -21,6 +21,9 @@ book:
         - 02-odes/02e-bifurcation.qmd
         - 02-odes/02f-bifurcation-curves.qmd
         - 02-odes/02g-exercises.qmd
+    - part: "Part 3: Phase plane"
+      chapters:
+        - 03-phase-plane/03a-nullclines.qmd
     - references.qmd
 
 bibliography: references.bib
