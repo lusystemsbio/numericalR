@@ -259,12 +259,8 @@ at the peaks. We set $U(0) = 0$ and integrate with the trapezoidal rule
 
 $$U(X + \Delta x) = U(X) - \frac{f(X) + f(X + \Delta x)}{2}\,\Delta x .$$
 
-We implement this first with an explicit loop, then vectorized with a cumulative
-sum, and benchmark the two. Finally we show how the landscape changes with $k$:
-at $k = 0.15$ there are two basins (bistability); the lower-lying basin is the
-more stable state, and the barrier height indicates how hard a noise-driven
-transition between states would be (see Parts 4 and 6). At $k = 0.1$ or $k = 0.2$
-a single basin remains (monostability).
+We illustrate this for the self-activating gene, first with an explicit loop and
+then with a faster vectorized version.
 
 ### R implementation {.impl}
 
@@ -287,6 +283,15 @@ plot(res1[, 1], res1[, 2], type = "l", col = 1,
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
+The potential has two basins, around 100 nM and 300 nM — exactly the two stable
+steady states — separated by a barrier near 200 nM, the unstable state. This
+gives an intuitive picture of a multistable system, and also of how *stable*
+each state is: the right basin sits lower (more stable), and the barrier height
+reflects how easily gene-expression noise could drive a transition between the
+two states (discussed further in Parts 4 and 6).
+
+The same integration is more concise and faster using only vector operations.
+
 ```{r}
 # Same integration, vectorized with a cumulative sum
 cal_int_vector <- function(Xmin, Xmax, dX, f, ...) {
@@ -304,6 +309,8 @@ plot(res2[, 1], res2[, 2], type = "l", col = 1,
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
+We benchmark the efficiency of the two methods.
+
 ```{r}
 #| message: false
 #| warning: false
@@ -316,20 +323,27 @@ mb <- microbenchmark(
 autoplot(mb)
 ```
 
+The vector approach is both more concise and more efficient than the one with a
+`for` loop.
+
+Finally, we show the effective potential for $k = 0.2\ \text{min}^{-1}$,
+
 ```{r}
-# Landscapes for the two monostable cases, plotted separately (as in the
-# original): their potentials are on very different scales, so a shared axis
-# would hide one of the wells.
 res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
 plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
+```
 
+and for $k = 0.1\ \text{min}^{-1}$.
+
+```{r}
 res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
 plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",
      xlab = "X (nM)", ylab = "Effective potential", xlim = c(0, 500))
 ```
 
-The vectorized version is both shorter and faster.
+Both landscapes have a single well (monostability), unlike the bistable
+landscape at $k = 0.15$.
 
 ### Python implementation {.impl}
 
