@@ -1,0 +1,77 @@
+---
+title: "2E. Bifurcation"
+author: "Mingyang Lu"
+old_id: "02E"
+---
+
+We continue with the single self-activating gene from
+[Part 2A](02a-modeling-gene-circuits.qmd) (Equations (7) and (8)). As we saw in
+[Part 2D](02d-effective-potential.qmd), varying the degradation rate $k$ changes
+the number of steady states: the circuit is monostable for some $k$ and bistable
+(two stable states plus one unstable state) for others. To see the whole picture
+at once, we treat $k$ as a *control parameter* and plot the steady-state level
+$X_s$ against $k$. This curve is a one-dimensional **bifurcation diagram**. We use
+the rate equation
+
+\begin{equation}
+\frac{dX}{dt} = f(X,k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX , \tag{1}
+\end{equation}
+
+with state variable $X$ and control parameter $k$. Every point on the diagram is
+a steady state, so it satisfies $f(X, k) = 0$. This chapter works through several
+numerical strategies for tracing that curve, from a special-case shortcut to
+general-purpose continuation. Some are robust; others are homemade and work well
+only for this saddle-node example, as noted where they appear.
+
+## 2E.1 Separation of variables
+
+For this particular $f$, the steady-state condition $f(X, k) = 0$ can be solved
+for $k$ explicitly as a function of $X$:
+
+$$ k = \frac{10}{X} + 45\frac{X^3}{X^4 + 200^4} . $$
+
+Sweeping $X$ over a range (avoiding $X = 0$) and evaluating $k$ traces the curve
+directly, with no root-finding needed.
+
+### R implementation {.impl}
+
+```{r}
+func_k <- function(X) 10 / X + 45 * X^3 / (X^4 + 200^4)
+
+X_all <- seq(50, 600, by = 5)   # X grid; avoid X = 0
+k_all <- func_k(X_all)
+
+plot(k_all, X_all, xlab = "k", ylab = "X", type = "p", col = 2,
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+def func_k(X):
+    return 10 / X + 45 * X**3 / (X**4 + 200**4)
+
+X_all = np.arange(50, 605, 5)   # X grid; avoid X = 0
+k_all = func_k(X_all)
+
+plt.scatter(k_all, X_all, facecolors="none", edgecolors="red", s=20)
+plt.xlabel("k"); plt.ylabel("X")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600)
+plt.show()
+```
+
+The resulting curve is S-shaped and shows how the circuit's behavior changes with
+$k$. It has two turning points, near $k = 0.125$ and $k = 0.170$, where a stable
+steady state and the unstable steady state meet and annihilate; these are the
+**bifurcation points**. For $k$ below the first point the system is monostable at
+a relatively high $X$; between the two points it is bistable, with a high and a
+low stable state (and an unstable one in between); above the second point it is
+monostable again at a low $X$. Because the branches meet and vanish at the turning
+points, this is a *saddle-node* bifurcation [@strogatz2015nonlinear].
+
+This method is exact and cheap, but it depends on being able to solve
+$f(X, k) = 0$ for $k$ in closed form. The remaining methods do not, so they also
+apply to circuits where no such shortcut exists.
