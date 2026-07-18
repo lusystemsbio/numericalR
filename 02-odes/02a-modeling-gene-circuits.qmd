@@ -20,8 +20,6 @@ biology [@alon2019systems].
 
 ## Circuit of a constitutively expressed gene
 
-### Concept
-
 Consider a gene whose expression is independent of any regulator. The full
 process — transcription, translation, and protein degradation — is sketched
 below.
@@ -93,7 +91,7 @@ X(t) = X_0 + \left(\frac{g}{k} - X_0\right)\left(1 - e^{-kt}\right) . \tag{6}
 Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
-### R implementation
+### R implementation {.impl}
 
 ```{r}
 ode1 <- function(X0, t) {   # closed-form X(t) from Equation (6)
@@ -115,7 +113,7 @@ legend("topright", inset = 0.02, title = "Initial conditions",
        legend = my_label, col = my_col, lty = 1, cex = 0.8)
 ```
 
-### Python implementation
+### Python implementation {.impl}
 
 ```{python}
 import numpy as np
@@ -137,8 +135,6 @@ ax.legend(title="Initial conditions", loc="upper right", fontsize=8)
 plt.show()
 ```
 
-### Discussion
-
 The system has a single stable steady state: regardless of the initial
 condition, $X$ always relaxes to $X_s = g/k = 500$ nM. Here an analytical
 solution is easy to obtain, but in most problems it is much harder or impossible
@@ -146,8 +142,6 @@ to find one, so numerical integration becomes necessary. We introduce numerical
 methods for integrating ODEs in Part 2B.
 
 ## Circuit with a self-activating gene
-
-### Concept
 
 Now consider a gene whose expression is regulated by its own product: protein
 $X$ binds its own promoter and modifies the transcription rate, making it a
@@ -180,7 +174,7 @@ to describe cooperative protein interactions and transcription-factor–DNA
 binding [@alon2019systems]. The plots below show $H^{ex}$ for several Hill
 coefficients.
 
-### R implementation
+### R implementation {.impl}
 
 ```{r}
 hill_ex <- function(X, X_th, n) {   # excitatory Hill function
@@ -202,7 +196,7 @@ legend("bottomright", inset = 0.02, title = "Hill coefficient",
        legend = my_label, col = my_col, lty = 1, cex = 0.8)
 ```
 
-### Python implementation
+### Python implementation {.impl}
 
 ```{python}
 def hill_ex(X, X_th, n):     # excitatory Hill function
@@ -221,8 +215,6 @@ ax.legend(title="Hill coefficient", loc="lower right", fontsize=8)
 plt.show()
 ```
 
-### Discussion
-
 The rate equation for a self-activating gene is
 
 \begin{equation}
@@ -233,8 +225,6 @@ Finding an analytical solution of Equation (9) is non-trivial because of the
 nonlinear Hill term; we return to its numerical solution in Part 2D.
 
 ## Circuit with a self-inhibiting gene
-
-### Concept
 
 A third example is a gene $X$ whose product represses its own expression.
 
@@ -255,7 +245,7 @@ H^{inh}(X) \equiv \frac{1}{1 + (X/X_{th})^{n_X}} . \tag{11}
 By construction $H^{inh}(X) \equiv 1 - H^{ex}(X)$. The plots below show $H^{inh}$
 for several Hill coefficients.
 
-### R implementation
+### R implementation {.impl}
 
 ```{r}
 hill_inh <- function(X, X_th, n) {   # inhibitory Hill function
@@ -272,7 +262,7 @@ legend("topright", inset = 0.02, title = "Hill coefficient",
        legend = my_label, col = my_col, lty = 1, cex = 0.8)
 ```
 
-### Python implementation
+### Python implementation {.impl}
 
 ```{python}
 def hill_inh(X, X_th, n):    # inhibitory Hill function
@@ -288,8 +278,6 @@ ax.legend(title="Hill coefficient", loc="upper right", fontsize=8)
 plt.show()
 ```
 
-### Discussion
-
 The rate equation for the self-inhibiting gene is
 
 \begin{equation}
@@ -297,8 +285,6 @@ The rate equation for the self-inhibiting gene is
 \end{equation}
 
 ## Toggle switch circuit
-
-### Concept
 
 Finally, we consider a two-gene circuit with transcription factors $X$ and $Y$
 in which $X$ represses gene $Y$ and $Y$ represses gene $X$. This mutually

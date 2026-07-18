@@ -17,10 +17,32 @@ book:
 
 bibliography: references.bib
 
+# Section numbering stops at level 2 (chapter + named section). The level-3
+# "R implementation"/"Python implementation" labels stay UNNUMBERED everywhere.
+# TOC depth is per-format: HTML shows the level-3 labels (useful in-page nav),
+# while EPUB and PDF keep only the named sections for a clean table of contents.
+number-depth: 2
+
+# Style the R/Python "{.impl}" labels consistently: HTML/EPUB via styles.css
+# (h3.impl); PDF via the impl-box Lua filter + the \impllabel box defined below.
+filters:
+  - impl-box.lua
+
 format:
   html:
     theme: cosmo
-    toc-expand: true   # always show all TOC levels (incl. R/Python sections)
+    css: styles.css
+    toc-depth: 3
   pdf:
     documentclass: scrreprt
-  epub: default
+    toc-depth: 2
+    # Quarto's number-depth does not reach LaTeX; cap section numbering at level 1
+    # (chapter + section) so the level-3 labels stay unnumbered in the PDF too.
+    include-in-header:
+      text: |
+        \setcounter{secnumdepth}{1}
+        \usepackage{xcolor}
+        \newcommand{\impllabel}[1]{\par\medskip\noindent\colorbox{blue!7}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\strut\textbf{#1}}}\par\medskip}
+  epub:
+    toc-depth: 2
+    css: styles.css

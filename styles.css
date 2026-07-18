@@ -1,0 +1,11 @@
+/* "R implementation" / "Python implementation" labels — styled, unnumbered */
+h3.impl {
+  background-color: #e7f0fb;
+  border-left: 4px solid #4a86c7;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.4rem;
+  margin-bottom: 0.8rem;
+}

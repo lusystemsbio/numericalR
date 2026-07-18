@@ -25,8 +25,6 @@ whichever language you prefer; both R and Python are shown.
 
 ## Exponential growth (worked example)
 
-### Concept
-
 The simplest model assumes a constant per-capita growth rate $r$, so the
 bacterial count $N$ obeys
 
@@ -44,7 +42,7 @@ N(t) = N_0 e^{rt} . \tag{2}
 evaluate the exact solution, then reproduce it numerically with the Part 2B
 integrators.
 
-### R implementation
+### R implementation {.impl}
 
 ```{r}
 N_exact <- function(t, r, N0) N0 * exp(r * t)   # exact solution, Equation (2)
@@ -113,7 +111,7 @@ sol_de <- ode(y = N0, times = seq(0, 100, 0.1), func = dN_deSolve,
 tail(sol_de, 3)   # final points match the exact value N(100) = e^{10}
 ```
 
-### Python implementation
+### Python implementation {.impl}
 
 ```{python}
 import numpy as np
@@ -184,8 +182,6 @@ sol.y[0][-3:]                          # final points ~ N(100) = e^{10}
 
 ## Logistic growth (exercise)
 
-### Concept
-
 The logistic model adds a limit to growth (the carrying capacity $B$):
 
 \begin{equation}
@@ -201,7 +197,7 @@ N(t) = \frac{N_0 B}{N_0 + (B - N_0)e^{-rt}} . \tag{4}
 The exact solution is plotted below (for $r = 0.1$, $B = 100$, $N_0 = 1$) to give
 you a target to check your simulations against.
 
-### R implementation
+### R implementation {.impl}
 
 ```{r}
 logistic_exact <- function(t, r, B, N0) N0 * B / (N0 + (B - N0) * exp(-r * t))
@@ -213,7 +209,7 @@ N_log <- logistic_exact(t, r, B, N0)
 plot(t, N_log, xlab = "t", ylab = "N(t)", xlim = c(0, 100), ylim = c(0, 110))
 ```
 
-### Python implementation
+### Python implementation {.impl}
 
 ```{python}
 def logistic_exact(t, r, B, N0):
