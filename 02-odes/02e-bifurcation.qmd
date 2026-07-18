@@ -487,3 +487,136 @@ plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 The bracketed scatter is the same as bisection's. For this smooth, well-behaved
 problem false position offers no visible advantage; its speedup matters more when
 each function evaluation is expensive.
+
+## 2E.5 Bifurcation curve by ODE simulation
+
+Every method so far solves $f(X, k) = 0$ algebraically. A different idea is to
+*follow* the steady states with the ODE itself. Starting at $k = 0.1$ from an
+arbitrary $X_0$, we integrate $\frac{dX}{dt} = f(X, k)$ until it settles on a
+stable steady state, record it, nudge $k$ by a small $\Delta k$, and repeat from
+the previous state. Tracing a branch this way is cheap and needs no root-finding.
+
+Two tricks let it cover the whole S-curve:
+
+- **Reversing at a catastrophe.** When $k$ passes a bifurcation point the current
+  stable branch disappears, and the next integration lands far away ($|X_i -
+  X_{i-1}|$ exceeds a threshold `gap`). Detecting that jump, we reverse the sweep
+  direction of $k$ (flip $d \to -d$) and carry on.
+- **Capturing the unstable branch.** Integrating $\frac{dX}{dt} = -f(X, k)$
+  (i.e. $d = -1$) flips the stability, so the unstable steady state becomes an
+  attractor. Sweeping $k$ backward under $-f$ therefore traces the unstable
+  middle branch.
+
+\begin{equation}
+\frac{dX}{dt} = d\,f(X, k), \qquad d = \pm 1 . \tag{3}
+\end{equation}
+
+Together the sweep climbs the high stable branch, reverses at the upper
+bifurcation and returns along the unstable branch, reverses again at the lower
+bifurcation, and finishes up the low stable branch. The initial $X_0$ is random;
+we fix a seed here so the figure is reproducible.
+
+### R implementation {.impl}
+
+`rootSolve::runsteady` integrates an ODE until it reaches a steady state.
+
+```{r}
+#| message: false
+#| warning: false
+library(rootSolve)
+set.seed(1)   # reproducible random initial condition
+
+# dX/dt = d * f(X, k):  d = +1 settles on a stable state, d = -1 on an unstable one
+derivs_k_sim <- function(t, X, params) {
+  with(as.list(params), list(d * (10 + 45 * X^4 / (X^4 + 200^4) - k * X)))
+}
+
+gap   <- 100     # a jump larger than this flags a bifurcation (catastrophe)
+t_max <- 1000    # max integration time to reach a steady state
+dk    <- 0.001   # k step
+dX    <- 1       # small X step: perturbation and df/dX estimate
+
+k <- 0.1
+X0 <- runif(1, 100, 600)                       # arbitrary initial condition
+d <- 1
+ind <- 1
+results <- matrix(NA, nrow = 1000, ncol = 3)   # columns: k, Xs, stability
+
+while (k < 0.2) {
+  Xi <- runsteady(y = X0, time = c(0, t_max), func = derivs_k_sim,
+                  parms = c(k = k, d = d))$y
+  if (ind > 1 && abs(Xi - X0) > gap) {         # catastrophe: reverse the sweep
+    d <- -d
+    k <- k + d * dk
+    X0 <- X0 + dX * sign(Xi - X0)
+  } else {
+    f_plus <- derivs_k_sim(0, Xi + dX, c(k = k, d = 1))[[1]]   # stability from df/dX sign
+    results[ind, ] <- c(k, Xi, if (sign(f_plus) < 0) 1 else 2)
+    k <- k + d * dk
+    X0 <- Xi
+    ind <- ind + 1
+  }
+}
+results <- results[1:(ind - 1), ]
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = results[, 3],
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+legend("topright", inset = 0.02, legend = c("Stable", "Unstable"),
+       col = 1:2, pch = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+SciPy has no direct `runsteady`, so we integrate with `solve_ivp` to a large
+`t_max` and take the final value as the steady state.
+
+```{python}
+#| warning: false
+from scipy.integrate import solve_ivp
+np.random.seed(1)   # reproducible random initial condition
+
+# dX/dt = d * f(X, k):  d = +1 settles on a stable state, d = -1 on an unstable one
+def derivs_k_sim(t, X, k, d):
+    return d * (10 + 45 * X**4 / (X**4 + 200**4) - k * X)
+
+gap, t_max, dk, dX = 100.0, 1000.0, 0.001, 1
+
+k = 0.1
+X0 = np.random.uniform(100, 600)             # arbitrary initial condition
+d = 1
+ind = 0
+results = np.full((1000, 3), np.nan)         # columns: k, Xs, stability
+
+while k < 0.2:
+    sol = solve_ivp(lambda t, X: derivs_k_sim(t, X, k, d), (0, t_max), [X0], method="RK45")
+    Xi = sol.y[0, -1]
+    if ind > 0 and abs(Xi - X0) > gap:       # catastrophe: reverse the sweep
+        d = -d
+        k = k + d * dk
+        X0 = X0 + dX * np.sign(Xi - X0)
+    else:
+        f_plus = derivs_k_sim(0, Xi + dX, k, 1)   # stability from df/dX sign
+        results[ind] = [k, Xi, 1 if np.sign(f_plus) < 0 else 2]
+        k = k + d * dk
+        X0 = Xi
+        ind += 1
+results = results[:ind]
+
+stable = results[results[:, 2] == 1]
+unstable = results[results[:, 2] == 2]
+plt.scatter(stable[:, 0], stable[:, 1], s=10, color="black", label="Stable")
+plt.scatter(unstable[:, 0], unstable[:, 1], s=10, color="red", label="Unstable")
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600)
+plt.legend(loc="upper right", fontsize=8); plt.show()
+```
+
+This recovers every steady state, stable and unstable, from the dynamics alone.
+It is also the most fragile method here. It works for this saddle-node example,
+but the result depends on the numerical parameters: too small a `gap` misreads
+ordinary branch motion as a catastrophe, while too large a one misses a real
+jump, and `t_max` must be long enough to actually reach a steady state. The
+approach also assumes each branch has a single attractor to fall onto, which need
+not hold for other kinds of bifurcation. Try adjusting `gap`, `t_max`, and `dX`
+and watch how the diagram changes.
