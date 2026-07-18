@@ -90,3 +90,130 @@ The contour traces the whole S-curve as connected segments, already ordered by
 the algorithm, with no separate reordering step. This ordered output is the main
 practical advantage over the point-sampling methods, and it is what the
 interpolation and continuation methods below build on.
+
+## 2F.3 Bilinear interpolation
+
+The built-in contour routines are black boxes. To see how contour extraction
+works, we build a simple one from **bilinear interpolation**, the two-dimensional
+analogue of linear interpolation. Inside a grid square with corners
+$(x_1, y_1), (x_2, y_1), (x_1, y_2), (x_2, y_2)$ and corner values
+$f_{ij} = f(x_i, y_j)$, a solution of $f(x, y) = 0$ exists whenever the four
+corners are not all the same sign. We first interpolate linearly in $x$ along the
+bottom and top edges,
+
+\begin{equation}
+\begin{cases}
+f(x, y_1) = \dfrac{x_2 - x}{x_2 - x_1} f_{11} + \dfrac{x - x_1}{x_2 - x_1} f_{21} \\[2mm]
+f(x, y_2) = \dfrac{x_2 - x}{x_2 - x_1} f_{12} + \dfrac{x - x_1}{x_2 - x_1} f_{22}
+\end{cases} \tag{2}
+\end{equation}
+
+and then interpolate those linearly in $y$, giving the full bilinear surface
+
+\begin{equation}
+f(x, y) = \frac{1}{(x_2 - x_1)(y_2 - y_1)}
+\begin{pmatrix} x_2 - x & x - x_1 \end{pmatrix}
+\begin{pmatrix} f_{11} & f_{12} \\ f_{21} & f_{22} \end{pmatrix}
+\begin{pmatrix} y_2 - y \\ y - y_1 \end{pmatrix} .
+\end{equation}
+
+Setting $f(x, y) = 0$ and solving for $y$ gives
+
+\begin{equation}
+y = \frac{f(x, y_1)\, y_2 - f(x, y_2)\, y_1}{f(x, y_1) - f(x, y_2)} , \tag{3}
+\end{equation}
+
+which has the same form as the false-position step of
+[Part 2E](02e-bifurcation.qmd). To trace the contour we visit every grid square
+whose corners differ in sign, sample $x$ across it, and read off the matching $y$
+from Equations (2) and (3), keeping only points that land inside the square.
+
+### R implementation {.impl}
+
+```{r}
+# bilinear contour in one grid square: sample x, solve f = 0 for y (Eqs 2-3)
+# returns flattened x,y pairs where the z = 0 curve crosses the square, or NULL
+contour_segment_bilinear <- function(x_all, y_all, z, ind_x, ind_y, npoints = 20) {
+  f11 <- z[ind_x, ind_y];     f21 <- z[ind_x + 1, ind_y]
+  f12 <- z[ind_x, ind_y + 1]; f22 <- z[ind_x + 1, ind_y + 1]
+  if (length(unique(sign(c(f11, f21, f12, f22)))) == 1) return(NULL)  # all same sign: no crossing
+
+  x1 <- x_all[ind_x]; x2 <- x_all[ind_x + 1]
+  y1 <- y_all[ind_y]; y2 <- y_all[ind_y + 1]
+  x_points <- seq(x1, x2, length.out = npoints)
+  f_x_y1 <- ((x2 - x_points) * f11 + (x_points - x1) * f21) / (x2 - x1)   # Eq (2)
+  f_x_y2 <- ((x2 - x_points) * f12 + (x_points - x1) * f22) / (x2 - x1)   # Eq (2)
+  y_points <- (f_x_y1 * y2 - f_x_y2 * y1) / (f_x_y1 - f_x_y2)             # Eq (3)
+
+  keep <- which((y_points - y1) * (y2 - y_points) > 0)   # keep y inside (y1, y2)
+  if (length(keep) == 0) return(NULL)
+  c(t(cbind(x_points[keep], y_points[keep])))
+}
+```
+
+```{r}
+# build f on the grid, then extract the zero contour square by square
+k_all <- seq(0.1, 0.2, by = 0.001)
+X_all <- seq(0, 600, by = 5)
+z <- outer(k_all, X_all, function(k, X) derivs_k(X, k))   # z[i, j] = f(X_all[j], k_all[i])
+
+segments <- list()
+for (i in seq_len(length(k_all) - 1)) {
+  for (j in seq_len(length(X_all) - 1)) {
+    seg <- contour_segment_bilinear(k_all, X_all, z, i, j)
+    if (length(seg) > 0) segments[[length(segments) + 1]] <- seg
+  }
+}
+null_contour <- matrix(unlist(segments), ncol = 2, byrow = TRUE)
+
+plot(null_contour[, 1], null_contour[, 2], pch = 20, cex = 0.3, col = 2,
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# bilinear contour in one grid square: sample x, solve f = 0 for y (Eqs 2-3)
+# returns x,y pairs where the z = 0 curve crosses the square, or None
+def contour_segment_bilinear(x_all, y_all, z, ind_x, ind_y, npoints=20):
+    f11 = z[ind_x, ind_y];     f21 = z[ind_x + 1, ind_y]
+    f12 = z[ind_x, ind_y + 1]; f22 = z[ind_x + 1, ind_y + 1]
+    if len(np.unique(np.sign([f11, f21, f12, f22]))) == 1:   # all same sign: no crossing
+        return None
+    x1, x2 = x_all[ind_x], x_all[ind_x + 1]
+    y1, y2 = y_all[ind_y], y_all[ind_y + 1]
+    x_points = np.linspace(x1, x2, npoints)
+    f_x_y1 = ((x2 - x_points) * f11 + (x_points - x1) * f21) / (x2 - x1)   # Eq (2)
+    f_x_y2 = ((x2 - x_points) * f12 + (x_points - x1) * f22) / (x2 - x1)   # Eq (2)
+    y_points = (f_x_y1 * y2 - f_x_y2 * y1) / (f_x_y1 - f_x_y2)             # Eq (3)
+
+    keep = (y_points - y1) * (y2 - y_points) > 0                          # keep y inside (y1, y2)
+    pts = np.column_stack((x_points[keep], y_points[keep]))
+    return pts if pts.size else None
+```
+
+```{python}
+# build f on the grid, then extract the zero contour square by square
+k_all = np.arange(0.1, 0.2 + 0.001, 0.001)
+X_all = np.arange(0, 600 + 5, 5)
+K, Xg = np.meshgrid(k_all, X_all, indexing="ij")   # z[i, j] = f(X_all[j], k_all[i])
+z = derivs_k(Xg, K)
+
+segments = []
+for i in range(len(k_all) - 1):
+    for j in range(len(X_all) - 1):
+        seg = contour_segment_bilinear(k_all, X_all, z, i, j)
+        if seg is not None:
+            segments.append(seg)
+null_contour = np.vstack(segments)
+
+plt.scatter(null_contour[:, 0], null_contour[:, 1], color="red", s=2)
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+The hand-built extractor recovers the same S-curve as the library contour
+routine. Bilinear interpolation is cheap and widely used (in image processing,
+for instance), but it treats $f$ as flat-sided within each square, so a coarse
+grid shows visible facets. A smoother fit needs a higher-order scheme.
