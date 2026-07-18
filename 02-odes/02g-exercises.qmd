@@ -70,7 +70,8 @@ over $t_{tot} = 1000$, starting from the steady state at $k = 0.2$. Plot $X(t)$.
 *Hint:* adapt the derivative function for uniformly decreasing $k$.
 
 **(3)** Plot $X(k)$ for the two trajectories together with the bifurcation diagram
-from [Part 2E](02e-bifurcation.qmd). Briefly describe what you observe.
+from [Part 2E](02e-bifurcation.qmd) or [Part 2F](02f-bifurcation-curves.qmd).
+Briefly describe what you observe.
 
 ## 2G.4 Another bifurcation
 
@@ -80,7 +81,8 @@ Consider a gene-circuit model related to the one in
 $$ \frac{dX}{dt} = f(X, g) = 10 + g\frac{X^4}{X^4 + 200^4} - 0.15\,X , $$
 
 where $g$ is the control parameter, ranging over $(0, 100)$. Plot the bifurcation
-diagram of the steady-state $X$ as a function of $g$.
+diagram of the steady-state $X$ as a function of $g$, using any method from
+[Part 2E](02e-bifurcation.qmd) or [Part 2F](02f-bifurcation-curves.qmd).
 
 ## 2G.5 The Spruce Budworm model
 
