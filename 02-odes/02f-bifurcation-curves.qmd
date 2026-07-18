@@ -47,3 +47,46 @@ import matplotlib.pyplot as plt
 def derivs_k(X, k):
     return 10 + 45 * X**4 / (X**4 + 200**4) - k * X
 ```
+
+## 2F.2 Contour method
+
+Write $z = f(k, X)$, a surface over the $(k, X)$ plane. The steady states are
+exactly the points where this surface crosses zero, so the bifurcation curve is
+the **zero-level contour** of $z$. Standard contour algorithms take $f$ on a grid
+of $(k, X)$ and trace the level set $z = 0$; both R's `contour()` and Matplotlib's
+`contour()` do this. The method is powerful and stable, and, unlike the sampling
+methods of Part 2E, it returns the curve as connected, ordered line segments
+rather than a point cloud. Its one weakness is that it can miss a branch if the
+solution set is not connected. Here $f(X, k) = 0$ is a single connected S-shaped
+curve, so one contour captures all of it.
+
+### R implementation {.impl}
+
+```{r}
+# evaluate f on a grid of (k, X), then draw its zero-level contour
+k_all <- seq(0.1, 0.2, by = 0.001)
+X_all <- seq(0, 600, by = 5)
+z <- outer(k_all, X_all, function(k, X) derivs_k(X, k))   # z[i, j] = f(X_all[j], k_all[i])
+
+contour(k_all, X_all, z, levels = 0, col = 2, drawlabels = FALSE,
+        xlab = "k", ylab = "X")
+```
+
+### Python implementation {.impl}
+
+```{python}
+# evaluate f on a grid of (k, X), then draw its zero-level contour
+k_all = np.arange(0.1, 0.2 + 0.001, 0.001)
+X_all = np.arange(0, 600 + 5, 5)
+K, Xg = np.meshgrid(k_all, X_all)          # grid of k and X
+z = derivs_k(Xg, K)                         # f(X, k) at every grid point
+
+plt.contour(k_all, X_all, z, levels=[0], colors="red")
+plt.xlabel("k"); plt.ylabel("X")
+plt.show()
+```
+
+The contour traces the whole S-curve as connected segments, already ordered by
+the algorithm, with no separate reordering step. This ordered output is the main
+practical advantage over the point-sampling methods, and it is what the
+interpolation and continuation methods below build on.
