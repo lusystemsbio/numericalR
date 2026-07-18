@@ -43,11 +43,17 @@ format:
     documentclass: scrreprt
     geometry:
       - margin=1in          # tighter than KOMA's wide default -> more text per page
+    fig-width: 5.5          # smaller figures -> less vertical space, fewer pages
+    fig-height: 3.5
     toc-depth: 2
     include-in-header:
       text: |
         \usepackage{xcolor}
         \newcommand{\impllabel}[1]{\par\smallskip\noindent\colorbox{blue!7}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\strut\textbf{#1}}}\par\smallskip}
+        % wrap long code lines so they never overflow the page (code-overflow: wrap
+        % alone did not take effect; force it on the highlighting Verbatim env)
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\}}
         % --- fill pages better: compress heading whitespace ---
         \renewcommand*{\chapterheadstartvskip}{\vspace*{.5\baselineskip}}
         \renewcommand*{\chapterheadendvskip}{\vspace*{.8\baselineskip}}

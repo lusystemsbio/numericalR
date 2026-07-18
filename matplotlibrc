@@ -1,0 +1,2 @@
+savefig.bbox: tight
+savefig.pad_inches: 0.03
