@@ -55,3 +55,6 @@ vignettes/*.pdf
 .RDataTmp*
 
 /.luarc.json
+
+# Compiled Fortran shared libraries (rebuilt by scripts/build-fortran.sh pre-render)
+**/*.so

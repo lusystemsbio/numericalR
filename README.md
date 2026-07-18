@@ -1,77 +1,70 @@
-# Numerical Methods using R
+# Numerical Methods in Computational Systems Biology
 
-### [Mingyang Lu](https://lusystemsbio.northeastern.edu), Nov 2021
+### *In the Era of AI*
 
+#### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 
-![logo](./extra/data/logo.png)
----
+This book is a hands-on introduction to the numerical methods and algorithms used
+in computational systems biology: modeling gene-regulatory circuits, solving
+ordinary and stochastic differential equations, running simulations, performing
+optimization, and analyzing high-dimensional data. Rather than treating solvers
+as black boxes, each topic develops the underlying theory and then implements the
+algorithm from scratch, in the context of real problems in bioengineering,
+biomedical engineering, and data science.
 
-The purpose of this tutorial is to illustrate the use of R programming in numerical analyses, which can easily lead to a large variety of applications in science and engineering. I will cover basic elements of numerical methods and algorithms for solving different types of differential equations, running simulations, and performing optimization. Rather than just showing how to do so with existing packages, I will focus on the details of each algorithm using R and provide its usage in the context of real-world applications in the fields of biomedical engineering, bioengineering, and data science. The tutorial is organized into a series of R Markdown files. Students should be able to view the materials and play around with the provided R scripts using R/RStudio.
+Every method is presented **language-agnostically** and then implemented in both
+**R** and **Python**, so the same concept can be studied and run in either
+language. The book is built with [Quarto](https://quarto.org) and rendered to
+HTML, PDF, and EPUB from a single source.
 
-| <!-- --> | <!-- --> | <!-- --> | <!-- --> |
-|---|---|---|---|
-| [HTML version](https://lusystemsbio.github.io/numericalR) | [R Markdown scripts](https://github.com/lusystemsbio/numericalR) | [Index](./ind.html) | [Python](./extra/Python/index.html)
-|   |   |   |   |
+The live HTML version is published at
+<https://lusystemsbio.github.io/numericalR>.
 
-|Table of Contents|
-|:----------------|
-|1. Introduction to R programming|
-|-- 1A. [Basics of R](./01A.html) |
-|-- 1B. [Efficient R programming](./01B.html) |
-|-- 1C. [Numerical methods](./01C.html) |
-|-- 1D. [Exercises](./01D.html) |
-|2. Ordinary differential equations|
-|-- 2A. [Modeling gene circuits with rate equations](./02A.html) |
-|-- 2B. [Numerical integration](./02B.html) | 
-|-- 2C. [Practice: modeling bacterial growth](./02C.html) | 
-|-- 2D. [Stability](./02D.html) |
-|-- 2E. [Bifurcation](./02E.html) |
-|-- 2F. [Exercises](./02F.html) |
-|3. Phase plane|
-|-- 3A. [Nulllines](./03A.html) |
-|-- 3B. [Stability in 2D](./03B.html) |
-|-- 3C. [Practice: modeling chemostat](./03C.html) | 
-|-- 3D. [Practice: predator-prey model](./03D.html) | 
-|-- 3E. [Bifurcation for two-variable systems](./03E.html) |
-|-- 3F. [Separatrix](./03F.html) |
-|-- 3G. [Effective potential revisited](./03G.html) |
-|-- 3H. [Multi-component systems](./03H.html) |
-|-- 3I. [Exercises](./03I.html) |
-|4. Systems with time delays|
-|-- 4A. [Delayed differential equations](./04A.html) |
-|-- 4B. [Examples of systems with time delays](./04B.html) |
-|-- 4C. [Delays from indirect interactions](./04C.html) | 
-|-- 4D. [Exercises](./04D.html) |
-|5. Molecular dynamics|
-|-- 5A. [Integrators for second order ODEs](./05A.html) |
-|-- 5B. [Orbital motions](./05B.html) |
-|-- 5C. [Modeling a box of 2D particle](./05C.html) |
-|-- 5D. [Exercises](./05D.html) |
-|6. Stochastic differential equations|
-|-- 6A. [Random number generators](./06A.html) |
-|-- 6B. [Brownian motion](./06B.html) |
-|-- 6B. [SDE integrators](./06C.html) |
-|-- 6D. [Stochastic state transitions](./06D.html) |
-|-- 6E. [Exercises](./06E.html) |
-|7. Partial differential equations|
-|-- 7A. [Modeling diffusion](./07A.html) |
-|-- 7B. [Reaction-diffusion systems](./07B.html) |
-|-- 7C. [Turing instability](./07C.html) |
-|-- 7D. [Pattern formation in Dictyostelium](./07D.html) |
-|-- 7E. [Exercises](./07E.html) |
-|8. Monte Carlo Simulations|
-|-- 8A. [Monte Carlo Method](./08A.html) |
-|-- 8B. [Metropolis algorithm](./08B.html) |
-|-- 8C. [Particles in a box: MCMC sampling](./08C.html) |
-|-- 8D. [Gillespie Algorithm](./08D.html) |
-|-- 8E. [Exercises](./08E.html) |
-|9. Global optimization|
-|-- 9A. [MCMC optimization methods](./09A.html) |
-|-- 9B. [Dynamic programming](./09B.html) |
-|-- 9C. [Genetic algorithm](./09C.html) |
-|-- 9D. [Exercises](./09D.html) |
-|10. High dimensional data analysis|
-|-- 10A. [Dimensionality reduction](./10A.html) |
-|-- 10B. [Clustering](./10B.html) |
-|-- 10C. [Network algorithms](./10C.html) |
-|-- 10D. [Exercises](./10D.html) |
+## Repository layout
+
+- `NN-<topic>/` — chapter folders grouped by part (e.g. `02-odes/`), each holding
+  `.qmd` chapters, their figures under `images/`, and any compiled-code sources
+  under `src/`.
+- `index.qmd` — book preface; `references.qmd` — consolidated bibliography.
+- `references.bib` — shared bibliography for the whole book.
+- `scripts/` — build helpers run automatically during rendering.
+- `archive/` — original R Markdown / Jupyter source material retained for
+  reference during the migration; not part of the rendered book.
+
+## Building the book
+
+### Prerequisites
+
+- **[Quarto](https://quarto.org/docs/get-started/)** (1.9 or newer).
+- **R** (4.6+) with the packages: `reticulate`, `deSolve`, `microbenchmark`,
+  `ggplot2` (install via `install.packages(...)`).
+- **Python** (3.x) on your `PATH` with `numpy`, `scipy`, `matplotlib`, `jupyter`,
+  and `ipykernel`. R and Python chunks run in the same document via `knitr` +
+  `reticulate`; the interpreter is pinned once in the repo-root `.Rprofile`.
+- **gfortran** — required for the pre-build step below
+  (macOS: `brew install gcc`; Debian/Ubuntu: `apt-get install gfortran`).
+- **TinyTeX** for PDF output: `quarto install tinytex` (one time).
+
+### Pre-build step (automatic)
+
+Some chapters call compiled Fortran routines. The shared libraries are **not**
+committed; they are compiled from the `.f90` sources for your platform by
+`scripts/build-fortran.sh`, which Quarto runs automatically as a
+[`pre-render`](https://quarto.org/docs/projects/scripts.html#pre-and-post-render)
+step (configured in `_quarto.yml`). You do not need to run it by hand — it fires
+on every `quarto render`. It only requires `gfortran` to be installed; if you
+want to run it standalone:
+
+```bash
+sh scripts/build-fortran.sh
+```
+
+### Render
+
+```bash
+quarto render              # build HTML, PDF, and EPUB into _book/
+quarto render --to html    # a single format
+quarto preview             # live-reloading local preview
+```
+
+The rendered site is written to `_book/` (git-ignored).
