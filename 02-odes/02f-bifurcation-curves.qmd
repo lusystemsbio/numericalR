@@ -55,7 +55,7 @@ exactly the points where this surface crosses zero, so the bifurcation curve is
 the **zero-level contour** of $z$. Standard contour algorithms take $f$ on a grid
 of $(k, X)$ and trace the level set $z = 0$; both R's `contour()` and Matplotlib's
 `contour()` do this. The method is powerful and stable, and, unlike the sampling
-methods of Part 2E, it returns the curve as connected, ordered line segments
+methods of [Part 2E](02e-bifurcation.qmd), it returns the curve as connected, ordered line segments
 rather than a point cloud. Its one weakness is that it can miss a branch if the
 solution set is not connected. Here $f(X, k) = 0$ is a single connected S-shaped
 curve, so one contour captures all of it.
