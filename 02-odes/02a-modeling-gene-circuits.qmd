@@ -221,7 +221,7 @@ The rate equation for a self-activating gene is
 \end{equation}
 
 Finding an analytical solution of Equation (9) is non-trivial because of the
-nonlinear Hill term; we return to its numerical solution in Part 2D.
+nonlinear Hill term; we return to its numerical solution in [Part 2D](02d-effective-potential.qmd).
 
 ## 2A.3 Circuit with a self-inhibiting gene
 
