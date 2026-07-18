@@ -1,0 +1,10 @@
+---
+title: "1A. Getting started with R and Python"
+---
+
+::: {.callout-note title="Placeholder chapter"}
+This introductory chapter is under construction. The material on getting started
+with R and Python — installation, the basics of each language, efficient
+programming, and useful libraries — will be migrated here in a later pass. It is
+included now so that the chapters that follow are labelled correctly.
+:::

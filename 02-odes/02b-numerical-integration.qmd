@@ -1,12 +1,11 @@
 ---
-title: "Numerical integration"
-subtitle: "Part 2: Ordinary differential equations — B"
+title: "2B. Numerical integration"
 author: "Mingyang Lu"
 old_id: "02B"
 ---
 
 Here we introduce numerical methods to solve ODEs, using the constitutively
-expressed gene circuit from the previous section as a running example:
+expressed gene circuit from [Part 2A](02a-modeling-gene-circuits.qmd) as a running example:
 
 \begin{equation}
 \frac{dX}{dt} = f(X) \equiv g - kX \tag{1}
@@ -16,7 +15,7 @@ The methods below (Euler, Heun, Runge–Kutta, backward Euler) are standard
 numerical integrators for ordinary differential equations; see [@hairer1993solving]
 for a thorough treatment and [@press2007numerical] for practical implementations.
 
-## First-order approximation: the Euler method
+## 2B.1 First-order approximation: the Euler method
 
 The Euler method is a first-order method for integrating ODEs
 [@hairer1993solving]. Given $X$ at time $t$, it estimates $X$ at the next time
@@ -115,7 +114,7 @@ plt.show()
 With $\Delta t = 0.1$ the Euler method closely tracks the analytical solution;
 with $\Delta t = 1$ there is a visible discrepancy near $t \approx 10$.
 
-## Accuracy
+## 2B.2 Accuracy
 
 By Taylor expansion for small $\Delta t$,
 
@@ -128,7 +127,7 @@ $\Delta t \to 0$ — it bounds the error of the expansion. Comparing Equations (
 and (3) recovers the Euler formula (2), so the local error of the Euler method
 is $O(\Delta t^2)$. The same reasoning estimates the error of other integrators.
 
-## Code efficiency
+## 2B.3 Code efficiency
 
 Beyond writing an integrator by hand, one can use an established ODE library or
 call compiled code for speed. Here we compare three routes for the same Euler
@@ -322,7 +321,7 @@ vary by machine and run. The lesson is not that libraries are slow — they are
 robust and general — but that for tight inner loops, a compiled kernel can be an
 order of magnitude faster.
 
-## Second-order approximation: Heun's method
+## 2B.4 Second-order approximation: Heun's method
 
 In the Euler method the derivative is treated as constant over
 $t \to t+\Delta t$, which works when $\Delta t$ is small and the derivative
@@ -381,7 +380,7 @@ def Heun(derivs, X0, t_total, dt, **kwargs):
     return np.column_stack((t_all, X_all))
 ```
 
-## Second-order Runge–Kutta method (RK2)
+## 2B.5 Second-order Runge–Kutta method (RK2)
 
 RK2, the midpoint method [@hairer1993solving], takes a trial half-step to the
 midpoint of the interval and uses the derivative there for the full step:
@@ -426,7 +425,7 @@ def RK2(derivs, X0, t_total, dt, **kwargs):
     return np.column_stack((t_all, X_all))
 ```
 
-## Fourth-order Runge–Kutta method (RK4)
+## 2B.6 Fourth-order Runge–Kutta method (RK4)
 
 RK4 is the most widely used general-purpose integrator [@hairer1993solving;
 @press2007numerical], with local error $O(\Delta t^5)$:
@@ -483,7 +482,7 @@ def RK4(derivs, X0, t_total, dt, **kwargs):
     return np.column_stack((t_all, X_all))
 ```
 
-## Comparing integrator accuracy
+## 2B.7 Comparing integrator accuracy
 
 To quantify accuracy we use the root-mean-square deviation (RMSD) between the
 exact solution and each simulation over $n$ time points:
@@ -561,7 +560,7 @@ evaluations per step, RK2 two, and Euler one — but RK4 and RK2 tolerate much
 larger step sizes at the same accuracy, so they are usually more efficient
 overall.
 
-## Backward Euler method
+## 2B.8 Backward Euler method
 
 Rewriting Equation (2) with $h = \Delta t$, $X_n = X(t)$, $X_{n+1} = X(t+\Delta t)$:
 

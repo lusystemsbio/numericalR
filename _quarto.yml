@@ -8,7 +8,10 @@ book:
   subtitle: "In the Era of AI"
   chapters:
     - index.qmd
-    - part: "Ordinary differential equations"
+    - part: "Part 1: Introduction to R and Python programming"
+      chapters:
+        - 01-tools/01a-getting-started.qmd
+    - part: "Part 2: Ordinary differential equations"
       chapters:
         - 02-odes/02a-modeling-gene-circuits.qmd
         - 02-odes/02b-numerical-integration.qmd
@@ -17,14 +20,10 @@ book:
 
 bibliography: references.bib
 
-# Section numbering stops at level 2 (chapter + named section). The level-3
-# "R implementation"/"Python implementation" labels stay UNNUMBERED everywhere.
-# TOC depth is per-format: HTML shows the level-3 labels (useful in-page nav),
-# while EPUB and PDF keep only the named sections for a clean table of contents.
-number-depth: 2
+# Chapters are labelled 2A/2B/... by their titles and sections are numbered
+# 2A.1/2A.2/... by hand, so Quarto's automatic numbering is turned off.
+number-sections: false
 
-# Style the R/Python "{.impl}" labels consistently: HTML/EPUB via styles.css
-# (h3.impl); PDF via the impl-box Lua filter + the \impllabel box defined below.
 filters:
   - impl-box.lua
 
@@ -32,19 +31,15 @@ format:
   html:
     theme: cosmo
     css: styles.css
-    toc-depth: 3
+    toc-depth: 2      # right TOC lists only the numbered sections (2B.1, 2B.2, ...)
+    toc-expand: true  # keep the TOC list expanded (don't collapse/hide it)
   pdf:
     documentclass: scrreprt
     toc-depth: 2
-    # Quarto's number-depth does not reach LaTeX; cap section numbering at level 1
-    # (chapter + section) so the level-3 labels stay unnumbered in the PDF too.
     include-in-header:
       text: |
-        \setcounter{secnumdepth}{1}
         \usepackage{xcolor}
         \newcommand{\impllabel}[1]{\par\medskip\noindent\colorbox{blue!7}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\strut\textbf{#1}}}\par\medskip}
   epub:
     toc-depth: 2
-    css:
-      - styles.css
-      - epub-styles.css   # wrap long code lines (no horizontal scroll on e-readers)
+    css: styles.css

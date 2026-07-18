@@ -1,4 +1,6 @@
-# Preface {.unnumbered}
+---
+title: "Preface"
+---
 
 This book, *Numerical Methods in Computational Systems Biology — In the Era of
 AI*, illustrates the numerical methods and algorithms used to model biological

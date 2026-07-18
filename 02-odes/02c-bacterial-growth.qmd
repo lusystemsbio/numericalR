@@ -1,6 +1,5 @@
 ---
-title: "Practice: modeling bacterial growth"
-subtitle: "Part 2: Ordinary differential equations — C"
+title: "2C. Practice: modeling bacterial growth"
 author: "Mingyang Lu"
 old_id: "02C"
 code-tools: true
@@ -8,13 +7,12 @@ code-tools: true
 
 This is a **practice page**. It uses ODEs to model bacterial growth — exponential
 growth and logistic growth — and reuses the numerical integrators developed in
-Part 2B. The exponential-growth section is a fully worked example; the
+[Part 2B](02b-numerical-integration.qmd). The exponential-growth section is a fully worked example; the
 logistic-growth section is left as an exercise for you to complete by adapting
 that example. The growth models follow the standard treatment in Sontag's lecture
 notes on mathematical systems biology [@sontag_systemsbio].
 
-::: {.callout-tip}
-## How to practice
+::: {.callout-tip title="How to practice"}
 This page is meant to be edited and re-run. Open its source file,
 `02-odes/02c-bacterial-growth.qmd`, from the
 [book repository](https://github.com/lusystemsbio/numericalR) — or, in the HTML
@@ -23,7 +21,7 @@ the code, re-render, and check your answers against the exercises below. Work in
 whichever language you prefer; both R and Python are shown.
 :::
 
-## Exponential growth (worked example)
+## 2C.1 Exponential growth (worked example)
 
 The simplest model assumes a constant per-capita growth rate $r$, so the
 bacterial count $N$ obeys
@@ -180,7 +178,7 @@ sol = solve_ivp(lambda t, N: r * N, [0, 100], [N0], t_eval=np.arange(0, 101, 1))
 sol.y[0][-3:]                          # final points ~ N(100) = e^{10}
 ```
 
-## Logistic growth (exercise)
+## 2C.2 Logistic growth (exercise)
 
 The logistic model adds a limit to growth (the carrying capacity $B$):
 

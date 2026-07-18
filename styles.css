@@ -1,3 +1,9 @@
+/* Right-side "On this page" TOC: Quarto emits the list as .collapse (hidden
+   until its JS expands it), which can leave it hidden. Force it visible. */
+nav#TOC ul {
+  display: block !important;
+}
+
 /* "R implementation" / "Python implementation" labels — styled, unnumbered */
 h3.impl {
   background-color: #e7f0fb;
@@ -8,4 +14,20 @@ h3.impl {
   font-weight: 600;
   margin-top: 1.4rem;
   margin-bottom: 0.8rem;
+}
+
+/* Code blocks: smaller text, and soft-wrap so lines never need horizontal
+   scrolling (short or long). Pandoc's highlighting CSS forces, on screen,
+   `pre > code.sourceCode { white-space: pre }` (its pre-wrap variant is locked
+   in @media print) plus `div.sourceCode { overflow: auto }`. Override both with
+   a matching-specificity selector + !important. Applies to HTML and EPUB. */
+div.sourceCode {
+  overflow: visible !important;
+}
+pre.sourceCode,
+pre > code.sourceCode {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word;
+  font-size: 0.85em;
 }

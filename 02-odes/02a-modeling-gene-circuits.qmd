@@ -1,6 +1,5 @@
 ---
-title: "Modeling gene circuits with rate equations"
-subtitle: "Part 2: Ordinary differential equations — A"
+title: "2A. Modeling gene circuits with rate equations"
 author: "Mingyang Lu"
 old_id: "02A"
 ---
@@ -18,7 +17,7 @@ concentration of a gene product changes over time. The modeling framework used
 throughout follows the standard treatment of gene-regulatory circuits in systems
 biology [@alon2019systems].
 
-## Circuit of a constitutively expressed gene
+## 2A.1 Circuit of a constitutively expressed gene
 
 Consider a gene whose expression is independent of any regulator. The full
 process — transcription, translation, and protein degradation — is sketched
@@ -139,9 +138,9 @@ The system has a single stable steady state: regardless of the initial
 condition, $X$ always relaxes to $X_s = g/k = 500$ nM. Here an analytical
 solution is easy to obtain, but in most problems it is much harder or impossible
 to find one, so numerical integration becomes necessary. We introduce numerical
-methods for integrating ODEs in Part 2B.
+methods for integrating ODEs in [Part 2B](02b-numerical-integration.qmd).
 
-## Circuit with a self-activating gene
+## 2A.2 Circuit with a self-activating gene
 
 Now consider a gene whose expression is regulated by its own product: protein
 $X$ binds its own promoter and modifies the transcription rate, making it a
@@ -224,7 +223,7 @@ The rate equation for a self-activating gene is
 Finding an analytical solution of Equation (9) is non-trivial because of the
 nonlinear Hill term; we return to its numerical solution in Part 2D.
 
-## Circuit with a self-inhibiting gene
+## 2A.3 Circuit with a self-inhibiting gene
 
 A third example is a gene $X$ whose product represses its own expression.
 
@@ -284,7 +283,7 @@ The rate equation for the self-inhibiting gene is
 \frac{dX}{dt} = g_0 + g_1 H^{inh}(X) - kX . \tag{12}
 \end{equation}
 
-## Toggle switch circuit
+## 2A.4 Toggle switch circuit
 
 Finally, we consider a two-gene circuit with transcription factors $X$ and $Y$
 in which $X$ represses gene $Y$ and $Y$ represses gene $X$. This mutually
