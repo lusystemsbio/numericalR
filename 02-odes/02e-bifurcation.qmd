@@ -1,5 +1,5 @@
 ---
-title: "2E. Bifurcation"
+title: "2E. Bifurcation: finding roots/steady states"
 author: "Mingyang Lu"
 old_id: "02E"
 ---
@@ -18,10 +18,12 @@ the rate equation
 \end{equation}
 
 with state variable $X$ and control parameter $k$. Every point on the diagram is
-a steady state, so it satisfies $f(X, k) = 0$. This chapter works through several
-numerical strategies for tracing that curve, from a special-case shortcut to
-general-purpose continuation. Some are robust; others are homemade and work well
-only for this saddle-node example, as noted where they appear.
+a steady state, so it satisfies $f(X, k) = 0$. This chapter finds those steady
+states directly: at each value of $k$ we locate the roots of $f(X, k) = 0$, or
+reach them by simulation, and assemble the diagram from the resulting points.
+[Part 2F](02f-bifurcation-curves.qmd) takes the complementary view, tracing the
+diagram as a continuous curve. Some methods here are robust; others are homemade
+and work well only for this saddle-node example, as noted where they appear.
 
 ## 2E.1 Separation of variables
 
