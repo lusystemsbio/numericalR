@@ -217,3 +217,19 @@ The hand-built extractor recovers the same S-curve as the library contour
 routine. Bilinear interpolation is cheap and widely used (in image processing,
 for instance), but it treats $f$ as flat-sided within each square, so a coarse
 grid shows visible facets. A smoother fit needs a higher-order scheme.
+
+## 2F.4 Bicubic interpolation
+
+**Bicubic interpolation** is that higher-order scheme. Instead of a flat-sided
+fit, it models $f$ within each grid square as a bicubic polynomial
+
+$$ f(x, y) = \sum_{i=0}^{3} \sum_{j=0}^{3} a_{ij}\, x^i y^j , $$
+
+whose 16 coefficients $a_{ij}$ are fixed by 16 conditions at the four corners: the
+four function values, the eight first derivatives ($\partial f / \partial x$ and
+$\partial f / \partial y$), and the four mixed derivatives
+$\partial^2 f / \partial x\, \partial y$. The fit is then continuous in both value
+and slope across square boundaries, so the extracted contour comes out smooth
+rather than faceted. We do not implement it here; the construction is detailed in
+the "Higher Order for Smoothness: Bicubic Interpolation" section of *Numerical
+Recipes* [@press2007numerical].
