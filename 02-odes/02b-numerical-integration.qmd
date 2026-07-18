@@ -25,7 +25,7 @@ step $t + \Delta t$ by
 X(t+\Delta t) = X(t) + f(X,t)\,\Delta t . \tag{2}
 \end{equation}
 
-![](images/02b/fig1.png){width=400 fig-align="center"}
+![](images/02b/fig1.png){width=55% fig-align="center"}
 
 Starting from the initial condition $X(t=0)$ and iterating Equation (2) yields
 $X(t)$ at every time step. The smaller the step size $\Delta t$, the more
@@ -332,7 +332,7 @@ $t \to t+\Delta t$. This works well when $\Delta t$ is small and the derivative
 varies slowly; otherwise a higher-order approximation is required. Heun's method
 [@hairer1993solving] is a second-order scheme, illustrated below.
 
-![](images/02b/fig2.png){width=600 fig-align="center"}
+![](images/02b/fig2.png){width=55% fig-align="center"}
 
 We start from point A, $(X(t), t)$. An Euler step lands at point B,
 $(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, which is still some distance from the

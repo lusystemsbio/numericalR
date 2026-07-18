@@ -50,8 +50,8 @@ format:
     documentclass: scrreprt
     geometry:
       - margin=1in          # tighter than KOMA's wide default -> more text per page
-    fig-width: 5.5          # smaller figures -> less vertical space, fewer pages
-    fig-height: 3.5
+    fig-width: 5.0          # smaller figures -> less vertical space, fit after code blocks
+    fig-height: 3.0
     toc-depth: 2
     include-in-header:
       text: |
