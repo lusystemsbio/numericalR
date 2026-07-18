@@ -31,10 +31,15 @@ bibliography: references.bib
 knitr:
   opts_chunk:
     crop: true
+    fig.align: center     # center generated plots in every format
+    out.width: "75%"      # display width (0.75\linewidth in PDF); fonts/aspect preserved
 
 # Chapters are labelled 2A/2B/... by their titles and sections are numbered
 # 2A.1/2A.2/... by hand, so Quarto's automatic numbering is turned off.
 number-sections: false
+
+# Center all figures (generated plots + images) in every format: HTML, PDF, EPUB.
+fig-align: center
 
 filters:
   - impl-box.lua
@@ -50,8 +55,8 @@ format:
     documentclass: scrreprt
     geometry:
       - margin=1in          # tighter than KOMA's wide default -> more text per page
-    fig-width: 5.0          # smaller figures -> less vertical space, fit after code blocks
-    fig-height: 3.0
+    fig-width: 7            # generate at full size (natural 7:5 aspect, fonts proportional)
+    fig-height: 5           # display is scaled down by \setkeys below (aspect preserved)
     toc-depth: 2
     include-in-header:
       text: |
