@@ -4,8 +4,9 @@ project:
   pre-render: scripts/build-fortran.sh
 
 book:
-  title: "Numerical Methods in Computational Systems Biology"
-  subtitle: "In the Era of AI"
+  title: "Numerical Quartorial"
+  subtitle: "Systems Biology in R & Python"
+  output-file: "NumericalQ"   # base name for the PDF/EPUB downloads
   chapters:
     - index.qmd
     - part: "Part 1: Introduction to R and Python programming"

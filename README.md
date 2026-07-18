@@ -1,6 +1,6 @@
-# Numerical Methods in Computational Systems Biology
+# Numerical Quartorial
 
-### *In the Era of AI*
+### *Systems Biology in R & Python* — abbreviated **NumericalQ**
 
 #### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 
