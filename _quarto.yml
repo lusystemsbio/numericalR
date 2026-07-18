@@ -25,6 +25,13 @@ book:
 
 bibliography: references.bib
 
+# Auto-trim whitespace around every figure (knitr runs ImageMagick `convert -trim`
+# on each PNG). Matplotlib already crops via savefig.bbox=tight; this mainly tightens
+# the R base plots, which reserve a wide top margin for an absent title.
+knitr:
+  opts_chunk:
+    crop: true
+
 # Chapters are labelled 2A/2B/... by their titles and sections are numbered
 # 2A.1/2A.2/... by hand, so Quarto's automatic numbering is turned off.
 number-sections: false
