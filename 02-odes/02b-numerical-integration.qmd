@@ -313,25 +313,32 @@ plt.ylabel("time per call (ms)"); plt.yscale("log")
 plt.show()
 ```
 
-Both the hand-written loop and the compiled Fortran routine are typically faster
-than the general library solver for this simple, fixed-step problem: the library
-carries per-step overhead (adaptive error control, list/dictionary bookkeeping),
-while the compiled routine avoids interpreter overhead entirely. Exact timings
-vary by machine and run. The lesson is not that libraries are slow — they are
-robust and general — but that for tight inner loops, a compiled kernel can be an
-order of magnitude faster.
+For this simple, fixed-step problem the hand-written loop is typically a little
+faster than `deSolve` (which stores each step's result in a list), and the
+compiled Fortran routine is about an order of magnitude faster than either. Two
+things make the R versions slow: the derivative function is interpreted R, and
+the array of time steps is repeatedly processed in the R interpreter during the
+loop. The Fortran routine avoids both — the derivative is compiled in, and,
+although it allocates a result matrix, that matrix is only used for output, never
+during the integration. Exact timings vary by machine and run, and `deSolve` can
+itself call compiled derivative functions (in C or Fortran), which would narrow
+the gap. The takeaway is not that libraries are slow — they are robust and
+general — but that a compiled kernel wins for tight inner loops.
 
 ## 2B.4 Second-order approximation: Heun's method
 
-In the Euler method the derivative is treated as constant over
-$t \to t+\Delta t$, which works when $\Delta t$ is small and the derivative
-varies slowly. Higher-order methods reduce the error. Heun's method
-[@hairer1993solving] is a second-order scheme:
+In the Euler method the derivative is treated as constant over the interval
+$t \to t+\Delta t$. This works well when $\Delta t$ is small and the derivative
+varies slowly; otherwise a higher-order approximation is required. Heun's method
+[@hairer1993solving] is a second-order scheme, illustrated below.
 
 ![](images/02b/fig2.png){width=600 fig-align="center"}
 
-Starting from point A $(X(t), t)$, an Euler step reaches point B; the derivative
-at B is then averaged with the derivative at A to produce a better estimate:
+We start from point A, $(X(t), t)$. An Euler step lands at point B,
+$(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, which is still some distance from the
+true point C on the $X(t)$ curve. To do better, we evaluate the derivative at B,
+$f(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, and average the two slopes (at A and
+at B); this takes us to point D, which is usually closer to C than B is. In math,
 
 \begin{equation}
 \begin{aligned}
@@ -342,9 +349,24 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + k_2}{2}
 \end{aligned} \tag{4}
 \end{equation}
 
-A Taylor-expansion argument (using
-$\frac{df}{dt} = \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}$)
-shows the local error is $O(\Delta t^3)$.
+The local error is $O(\Delta t^3)$. To see this, Taylor-expand the exact update,
+
+\begin{equation}
+\begin{aligned}
+X(t + \Delta t) &= X(t) + \frac{dX}{dt}\Delta t + \frac{1}{2}\frac{d^2 X}{dt^2}\Delta t^2 + O(\Delta t^3) \\
+&= X(t) + f(X,t)\Delta t + \frac{1}{2}\frac{df(X,t)}{dt}\Delta t^2 + O(\Delta t^3) ,
+\end{aligned}
+\end{equation}
+
+where $\frac{df}{dt} = \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}$
+(chain rule, using $\frac{dX}{dt} = f$). Expanding $k_2$ to the same order,
+
+\begin{equation}
+k_2 = f(X,t)\Delta t + \left(f\frac{\partial f}{\partial X} + \frac{\partial f}{\partial t}\right)\Delta t^2 + O(\Delta t^3) ,
+\end{equation}
+
+so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2 + O(\Delta t^3) = X(t+\Delta t) - X(t) + O(\Delta t^3)$,
+which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 
 ### R implementation {.impl}
 
@@ -520,6 +542,27 @@ legend("bottomright", inset = 0.02, title = "Errors",
        legend = c("Heun", "RK2", "RK4", "Euler"),
        col = 2:5, pch = c(1, 3, 1, 1), cex = 0.8)
 ```
+
+The shared Fortran library also provides `ode_1g_rk2` and `ode_1g_rk4`. As a
+check, we compare the compiled RK4 against our R RK4, RK2, and Euler results (and
+the exact solution) at $\Delta t = 0.1$ via the RMSD:
+
+```{r}
+dt <- 0.1; t_total <- 80.0; X0 <- 300.0
+nsteps <- as.integer(t_total / dt)
+res <- matrix(0, nrow = 2, ncol = nsteps)
+fort_rk4 <- .Fortran("ode_1g_rk4", as.double(X0), as.double(dt),
+                     as.integer(nsteps), res)
+a <- rbind(c(0, X0), t(fort_rk4[[4]]))
+c(vs_RK4   = rmsd(a[, 2], RK4(dX, 300, 80, dt, g = g, k = k)[, 2]),
+  vs_RK2   = rmsd(a[, 2], RK2(dX, 300, 80, dt, g = g, k = k)[, 2]),
+  vs_Euler = rmsd(a[, 2], Euler(dX, 300, 80, dt, g = g, k = k)[, 2]),
+  vs_exact = rmsd(a[, 2], ode1(300, seq(0, t_total, dt), g = g, k = k)))
+```
+
+The Fortran RK4 matches the R RK4 (and the exact solution) to a tiny RMSD, while
+RK2 and especially Euler differ more — confirming the compiled and interpreted
+RK4 agree.
 
 ### Python implementation {.impl}
 
