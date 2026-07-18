@@ -1,0 +1,20 @@
+/* EPUB-only: wrap long code lines. E-readers cannot scroll horizontally.
+
+   Pandoc's inline highlighting CSS forces, on screen:
+     pre > code.sourceCode { white-space: pre; }            (no wrap)
+     @media screen { div.sourceCode { overflow: auto; } }   (horizontal scroll)
+   Its wrapping variant is locked inside @media print, so it never applies on an
+   e-reader. We override both here. The selector MUST match Pandoc's
+   `pre > code.sourceCode` (specificity 0,1,2), plus !important, so the override
+   wins regardless of cascade order. */
+
+div.sourceCode {
+  overflow: visible !important;
+}
+
+pre.sourceCode,
+pre > code.sourceCode {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word;
+}

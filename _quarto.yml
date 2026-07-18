@@ -45,4 +45,6 @@ format:
         \newcommand{\impllabel}[1]{\par\medskip\noindent\colorbox{blue!7}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\strut\textbf{#1}}}\par\medskip}
   epub:
     toc-depth: 2
-    css: styles.css
+    css:
+      - styles.css
+      - epub-styles.css   # wrap long code lines (no horizontal scroll on e-readers)
