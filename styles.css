@@ -31,3 +31,15 @@ pre > code.sourceCode {
   word-break: break-word;
   font-size: 0.85em;
 }
+
+/* Center figures. HTML centers them via Bootstrap; EPUB has no Bootstrap. Center
+   via the figure container's text-align so the image stays INLINE (block +
+   auto-margins made images overflow the EPUB viewport, adding a horizontal
+   scrollbar). Cap width so an image can never exceed the page. */
+figure {
+  text-align: center;
+}
+figure img {
+  max-width: 100%;
+  height: auto;
+}
