@@ -461,7 +461,7 @@ while (k - k_range[0]) * (k - k_range[1]) <= 0 and cycle < nmax:
     ks.append(k); Xs.append(X_new); stab.append(1 if dfdX(X_new, k) < 0 else 2)
     cycle += 1
 
-ks, Xs, stab = np.array(ks), np.array(Xs), np.array(stab == 1)
+ks, Xs, stab = np.array(ks), np.array(Xs), np.array(stab) == 1   # boolean stable mask
 plt.scatter(ks[stab],  Xs[stab],  s=3, color="black", label="Stable")
 plt.scatter(ks[~stab], Xs[~stab], s=3, color="red",   label="Unstable")
 plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
