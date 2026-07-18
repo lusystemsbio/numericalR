@@ -32,14 +32,22 @@ pre > code.sourceCode {
   font-size: 0.85em;
 }
 
-/* Center figures. HTML centers them via Bootstrap; EPUB has no Bootstrap. Center
-   via the figure container's text-align so the image stays INLINE (block +
-   auto-margins made images overflow the EPUB viewport, adding a horizontal
-   scrollbar). Cap width so an image can never exceed the page. */
-figure {
+/* Figures in EPUB. Some e-readers (e.g. Apple Books) size a figure's container to
+   the image's intrinsic pixels, making the container wider than the page: a
+   horizontal scrollbar appears and centering then shifts the figure to the right.
+   Fix: constrain EVERY nesting container AND the image to the page width, and
+   center via text-align (NOT display:block + auto margins, which triggered the
+   overflow). Harmless in HTML, which already centers via Bootstrap. */
+.cell-output-display,
+.quarto-figure,
+figure,
+figure > p {
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   text-align: center;
 }
-figure img {
+img {
   max-width: 100%;
   height: auto;
 }
