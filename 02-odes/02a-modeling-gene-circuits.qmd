@@ -319,8 +319,3 @@ The chemical rate equations for the levels of $X$ and $Y$ are
 The system is now described by two coupled ODEs, with solutions $X(t)$ and
 $Y(t)$. Because there are two variables, more sophisticated tools are needed to
 analyze the dynamics; we take this up in Part 3.
-
-## References
-
-::: {#refs}
-:::
