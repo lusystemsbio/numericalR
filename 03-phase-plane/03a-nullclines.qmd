@@ -180,7 +180,8 @@ vf <- as.data.frame(vf); colnames(vf) <- c("X", "Y", "dX", "dY")
 
 ggplot(vf, aes(X, Y)) +
   geom_segment(aes(xend = X + dX, yend = Y + dY),
-               arrow = arrow(length = unit(0.05, "in")))
+               arrow = arrow(length = unit(0.05, "in"))) +
+  coord_fixed()   # equal X/Y scale: a square phase plane
 ```
 
 ```{r}
@@ -195,7 +196,8 @@ vfu <- as.data.frame(vfu); colnames(vfu) <- c("X", "Y", "dX", "dY")
 
 p_field <- ggplot(vfu, aes(X, Y)) +
   geom_segment(aes(xend = X + 15 * dX, yend = Y + 15 * dY),
-               arrow = arrow(length = unit(0.05, "in")))
+               arrow = arrow(length = unit(0.05, "in"))) +
+  coord_fixed()   # equal X/Y scale: a square phase plane
 p_field
 ```
 
@@ -212,6 +214,7 @@ grid = np.array(np.meshgrid(X_all, Y_all)).T.reshape(-1, 2)   # all (X, Y) combi
 for X, Y in grid:
     dX, dY = derivs_ts(0, (X, Y))
     plt.arrow(X, Y, dX, dY, head_width=8, head_length=8, ec="black")
+plt.gca().set_aspect("equal")   # equal X/Y scale: a square phase plane
 plt.xlabel("X"); plt.ylabel("Y"); plt.show()
 ```
 
@@ -227,6 +230,7 @@ def unit_arrow(X, Y, scale=15):
 for X, Y in grid:
     dX, dY = unit_arrow(X, Y)
     plt.arrow(X, Y, dX, dY, head_width=8, head_length=8, ec="black")
+plt.gca().set_aspect("equal")   # equal X/Y scale: a square phase plane
 plt.xlabel("X"); plt.ylabel("Y"); plt.show()
 ```
 
@@ -288,6 +292,7 @@ for X, Y in grid:                         # unit vector field
     plt.arrow(X, Y, dX, dY, head_width=8, head_length=8, ec="black")
 plt.plot(null1[:, 0], null1[:, 1], color="red",  lw=2, label="dX/dt=0")
 plt.plot(null2[:, 0], null2[:, 1], color="blue", lw=2, label="dY/dt=0")
+plt.gca().set_aspect("equal")   # equal X/Y scale: a square phase plane
 plt.xlabel("X"); plt.ylabel("Y"); plt.legend(loc="upper right"); plt.show()
 ```
 
