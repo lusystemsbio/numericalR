@@ -242,3 +242,140 @@ The scatter shows both stable branches (high and low $X$) and the unstable middl
 branch, colored by stability. After reordering, the points connect into the same
 smooth S-curve found by separation of variables, now obtained without an explicit
 formula for $k(X)$.
+
+## 2E.3 Bisection method
+
+The library root-finder can be replaced by a homemade one. The **bisection
+method** [@press2007numerical] brackets a root: if $f$ has opposite signs at the
+two ends of an interval, a root must lie between them, and repeatedly halving the
+interval (keeping the half across which the sign still changes) converges to it.
+Bisection is simple and robust, but it has two limitations. It needs a sign
+change, so it misses roots where $f$ only touches zero, and it returns nothing
+when the two endpoints share a sign even if roots exist between them. It also
+finds only one root per interval. Both effects show up when we test it on the
+whole range $[0, 600]$: at $k = 0.12$ and $k = 0.2$ (monostable) it returns the
+single root, while at $k = 0.15$ (bistable) it returns just one of the three.
+
+To find every root, we bracket: scan the range in many small windows and apply
+bisection to each window that contains a sign change (the `all_roots_bracketing`
+driver, with `resolution` setting the window width). Applied across $k$, this
+reproduces the same scattered $(k, X_s)$ points as in 2E.2. Reordering them into
+the curve is the identical nearest-neighbor walk from 2E.2 and is omitted here.
+Both implementations reuse the model derivative `derivs_k` defined in 2E.2.
+
+### R implementation {.impl}
+
+```{r}
+# bisection: find one root of f where it changes sign across the interval
+bisection <- function(f, interval, epsilon = 1e-6, ...) {
+  x_min <- interval[1]; f1 <- f(x_min, ...)
+  x_max <- interval[2]; f2 <- f(x_max, ...)
+  if (abs(f1) < epsilon) return(x_min)
+  if (abs(f2) < epsilon) return(x_max)
+  if (f1 * f2 > 0) return(NA)                     # same sign: no bracketed root
+  while (f1 * f2 < 0) {
+    x_mid <- (x_min + x_max) / 2
+    f3 <- f(x_mid, ...)
+    if (abs(f3) < epsilon) return(x_mid)
+    if (f1 * f3 > 0) { f1 <- f3; x_min <- x_mid }  # sign change is in the upper half
+    else             { f2 <- f3; x_max <- x_mid }  # sign change is in the lower half
+  }
+}
+
+for (k in c(0.12, 0.15, 0.2)) {
+  root <- bisection(function(X) derivs_k(X, k), interval = c(0, 600))
+  cat(sprintf("k = %.2f: root = %.2f\n", k, root))
+}
+```
+
+```{r}
+# all roots by bracketing: scan the range in small windows and bisect each
+all_roots_bracketing <- function(f, method, interval, resolution = 1e-2, ...) {
+  x_all <- seq(interval[1], interval[2], by = resolution * (interval[2] - interval[1]))
+  roots <- numeric(0)
+  for (i in seq_len(length(x_all) - 1)) {
+    root <- method(f, c(x_all[i], x_all[i + 1]), ...)
+    if (!is.na(root)) roots <- c(roots, root)
+  }
+  if (length(roots) == 0) NA else unique(roots)
+}
+```
+
+```{r}
+# trace the curve: at each k, find every root by bracketed bisection
+k_all <- seq(0.1, 0.2, by = 0.001)
+results <- matrix(0, ncol = 2, nrow = length(k_all) * 3)   # columns: k, Xs
+ind <- 1
+for (k in k_all) {
+  roots <- all_roots_bracketing(function(X) derivs_k(X, k), bisection,
+                                interval = c(0, 600), resolution = 1e-2)
+  num_X <- length(roots)
+  results[ind:(ind + num_X - 1), 1] <- k
+  results[ind:(ind + num_X - 1), 2] <- roots
+  ind <- ind + num_X
+}
+results <- results[1:(ind - 1), ]
+
+plot(results[, 1], results[, 2], pch = 1, cex = 0.3, col = 2,
+     xlab = expression(k ~ (Minute^{-1})), ylab = "Xs (nM)",
+     xlim = c(0.09, 0.21), ylim = c(0, 600))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# bisection: find one root of f where it changes sign across the interval
+def bisection(f, interval, epsilon=1e-6, **kwargs):
+    x_min, x_max = interval
+    f1 = f(x_min, **kwargs); f2 = f(x_max, **kwargs)
+    if abs(f1) < epsilon: return x_min
+    if abs(f2) < epsilon: return x_max
+    if f1 * f2 > 0: return None                    # same sign: no bracketed root
+    while f1 * f2 < 0:
+        x_mid = (x_min + x_max) / 2
+        f3 = f(x_mid, **kwargs)
+        if abs(f3) < epsilon: return x_mid
+        if f1 * f3 > 0: f1, x_min = f3, x_mid       # sign change is in the upper half
+        else:           f2, x_max = f3, x_mid       # sign change is in the lower half
+    return None
+
+for k in (0.12, 0.15, 0.2):
+    root = bisection(lambda X: derivs_k(X, k), (0, 600))
+    print(f"k = {k}: root = {root:.2f}")
+```
+
+```{python}
+# all roots by bracketing: scan the range in small windows and bisect each
+def all_roots_bracketing(f, method, interval, resolution=1e-2, **kwargs):
+    x_all = np.linspace(interval[0], interval[1], int(1 / resolution) + 1)
+    roots = []
+    for i in range(len(x_all) - 1):
+        root = method(f, (x_all[i], x_all[i + 1]), **kwargs)
+        if root is not None:
+            roots.append(root)
+    return np.unique(roots).tolist() if roots else []
+```
+
+```{python}
+# trace the curve: at each k, find every root by bracketed bisection
+k_all = np.arange(0.1, 0.201, 0.001)
+results = np.zeros((len(k_all) * 3, 2))    # columns: k, Xs
+ind = 0
+for k in k_all:
+    roots = all_roots_bracketing(lambda X: derivs_k(X, k), bisection,
+                                 (0, 600), resolution=1e-2)
+    n = len(roots)
+    results[ind:ind + n, 0] = k
+    results[ind:ind + n, 1] = roots
+    ind += n
+results = results[:ind]
+
+plt.scatter(results[:, 0], results[:, 1], color="red", s=3)
+plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
+plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
+```
+
+The three-value test confirms the single-root limitation: at $k = 0.15$ bisection
+on $[0, 600]$ returns only one of the three steady states. The bracketed driver
+recovers all of them, giving the same scatter (and, after the 2E.2 reordering,
+the same S-curve).
