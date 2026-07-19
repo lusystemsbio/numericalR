@@ -47,7 +47,7 @@ SDE_Euler_2D <- function(derivs_2D, noise_2D, X0, t.total, dt, ...){
   return(cbind(t_all, X_all))
 }
 
-set.seed(1)
+set.seed(3)
 results <- SDE_Euler_2D(f_ts, noise_ts, X0 = c(50, 200), t.total = 1000, dt = 0.01, b = c(20, 20))
 
 plot(NULL, xlab = "t", ylab = "Levels", xlim = c(0, 1000), ylim = c(0, 600))
@@ -90,7 +90,7 @@ def SDE_Euler_2D(derivs_2D, noise_2D, X0, t_total, dt, **kwargs):
         X_all[i+1] = np.maximum(0, X)         # X, Y cannot go negative
     return np.column_stack((t_all, X_all))
 
-np.random.seed(1)
+np.random.seed(3)
 results = SDE_Euler_2D(f_ts, noise_ts, X0=np.array([50, 200]), t_total=1000, dt=0.01, b=np.array([20, 20]))
 
 plt.xlabel("t"); plt.ylabel("Levels"); plt.xlim(0, 1000); plt.ylim(0, 600)
@@ -220,13 +220,12 @@ print("state1_to_2:", int(np.sum(d == 1)), " state2_to_1:", int(np.sum(d == -1))
 ```
 
 The ellipses capture most of each state's cloud (the factor of 1.5 enlarges the
-axes to do so). The crossing count, however, is unreliable: it treats every brief
-dip across the boundary as a transition, so it badly over-counts incomplete
-excursions that immediately fall back, and the result depends heavily on the
-particular noise realization. The R and Python runs here draw different random
-streams and, tellingly, report very different counts, one modest and one many
-times larger. That sensitivity, together with the slowness of the point-by-point
-R loop, is why we turn to a more robust statistic.
+axes to do so), giving a handful of transitions each way over this run. The count
+is only a rough estimate, though: it can treat a brief dip across the boundary as a
+transition, so it tends to over-count incomplete excursions, and because R and
+Python draw different random streams they report somewhat different numbers. That
+run-to-run sensitivity, together with the slowness of the point-by-point R loop, is
+why we turn to a more robust statistic.
 
 ## 6D.3 Mean first passage time
 
