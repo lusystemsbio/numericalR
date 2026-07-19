@@ -25,6 +25,7 @@ book:
       chapters:
         - 03-phase-plane/03a-nullclines.qmd
         - 03-phase-plane/03b-steady-states-2d.qmd
+        - 03-phase-plane/03c-chemostat.qmd
     - references.qmd
 
 bibliography: references.bib
