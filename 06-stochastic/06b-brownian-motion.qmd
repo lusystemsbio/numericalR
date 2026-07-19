@@ -340,4 +340,5 @@ Even with the much larger step $\Delta t = 10$, the statistics come out right,
 because the $\sqrt{2 D \Delta t}$ scaling keeps the variance on track. A large step
 is fine for pure diffusion, but once a deterministic force is added the step must
 again be small, just as for an ODE. That combination of deterministic drift and
-random diffusion is the stochastic differential equation we take up in Part 6C.
+random diffusion is the stochastic differential equation we take up in
+[Part 6C](06c-sde-integrators.qmd).

@@ -105,7 +105,8 @@ plt.show()
 
 The trajectories reproduce the free Brownian motion of the previous chapter. We
 generate all Wiener increments in one call, which is fast but memory-hungry for
-long runs; a compiled Fortran or C routine (as in Part 6D) is the better choice there.
+long runs; a compiled Fortran or C routine (as in
+[Part 6D](06d-stochastic-transitions.qmd)) is the better choice there.
 
 ## 6C.2 The Ornstein-Uhlenbeck process
 
