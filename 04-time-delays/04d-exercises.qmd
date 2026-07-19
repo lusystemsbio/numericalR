@@ -31,8 +31,8 @@ the steady state into a sustained oscillation.
 
 ## 4D.2 The method of steps
 
-The integrators of Part 4A stored the entire trajectory so that $N(t - \tau)$ was
-always available. The **method of steps** avoids that cost by splitting the
+The integrators of [Part 4A](04a-delayed-differential-equations.qmd) stored the
+entire trajectory so that $N(t - \tau)$ was always available. The **method of steps** avoids that cost by splitting the
 simulation into consecutive windows of length $\tau$
 [@bellman1963differential]. Starting from the history $N(t)$ on
 $[t_0 - \tau, t_0]$, one short integration gives $N(t)$ on $[t_0, t_0 + \tau]$;
