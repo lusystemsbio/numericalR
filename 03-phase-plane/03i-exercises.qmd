@@ -46,7 +46,8 @@ $$ \frac{d\mathbf{X}}{d\lambda} = -\mathbf{J}^{-1}\frac{\partial \mathbf{f}}{\pa
 Equation (3) generalizes the one-variable continuation of
 [Part 2E](../02-odes/02e-bifurcation.qmd) to two variables. Implement it (a
 predictor step along $d\mathbf{X}/d\lambda$ followed by a Newton correction back
-onto Equation (1)) and recover the saddle-node and pitchfork diagrams of Part 3E.
+onto Equation (1)) and recover the saddle-node and pitchfork diagrams of
+[Part 3E](03e-bifurcation-2d.qmd).
 
 ## 3I.2 A flip-flop gene circuit
 

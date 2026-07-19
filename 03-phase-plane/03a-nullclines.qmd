@@ -343,7 +343,8 @@ as the control parameter and follow $X(Y)$, stepping along the curve by arc leng
 and correcting each step back onto it with Newton's method. The corrector needs
 the partial derivatives $\partial f/\partial X$ and $\partial f/\partial Y$ (the
 Jacobian). The code below adapts the 2F routine to two variables; because the
-method is identical to 2F, the Python implementation is omitted (see Part 2F).
+method is identical to 2F, the Python implementation is omitted (see
+[Part 2F](../02-odes/02f-bifurcation-curves.qmd)).
 
 ### R implementation {.impl}
 
