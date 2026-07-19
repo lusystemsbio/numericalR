@@ -58,6 +58,7 @@ book:
     - part: "Part 6: Stochastic differential equations"
       chapters:
         - 06-stochastic/06a-random-number-generators.qmd
+        - 06-stochastic/06b-brownian-motion.qmd
     - references.qmd
 
 bibliography: references.bib

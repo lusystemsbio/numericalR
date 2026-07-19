@@ -1,0 +1,343 @@
+---
+title: "6B. Brownian motion"
+author: "Mingyang Lu"
+old_id: "06B"
+---
+
+Brownian motion, the erratic wandering of a particle buffeted by random kicks, is
+the prototypical stochastic process and the foundation for the stochastic
+differential equations of the following chapters. We build it up from a simple
+one-dimensional random walk, study the statistics of an ensemble of walks, and
+arrive at the Wiener process.
+
+## 6B.1 A one-dimensional random walk
+
+A particle starts at the origin, $x(0) = 0$. At each time step it hops left or
+right by a fixed distance $\Delta x$, with equal probability. We write two
+implementations: one with an explicit loop (like an ODE integrator) and one using
+only vector operations. The vectorized version is concise but less flexible for
+more complex dynamics; both give statistically identical walks.
+
+### R implementation {.impl}
+
+```{r}
+# 1D random walk, explicit loop
+brownian <- function(t.total, dt, dx) {
+  t_all <- seq(0, t.total, by = dt)
+  n_all <- length(t_all)
+  x_all <- numeric(n_all)          # starts at 0
+  for (i in 1:(n_all - 1)) {
+    x_all[i+1] <- x_all[i] + dx * sample(c(-1, 1), size = 1)
+  }
+  return(cbind(t_all, x_all))
+}
+
+# 1D random walk, vectorized (cumulative sum of random +/- steps)
+brownian_concise <- function(t.total, dt, dx) {
+  t_all <- seq(0, t.total, by = dt)
+  x_all <- cumsum(sample(c(-1, 1), size = length(t_all), replace = TRUE)) * dx
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+t.total <- 1000; dt <- 1; dx <- 1; nrep <- 1000   # nrep independent walks
+results_bm_1d <- replicate(nrep, brownian(t.total, dt, dx))   # array [time, 2, rep]
+
+plot(NULL, xlab = "t", ylab = "x", xlim = c(0, 1000), ylim = c(-70, 70))
+for (i in 1:10) lines(results_bm_1d[,1,i], results_bm_1d[,2,i], col = i)   # first 10 walks
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1D random walk, explicit loop
+def brownian(t_total, dt, dx):
+    t_all = np.arange(0, t_total + dt, dt)
+    n_all = len(t_all)
+    x_all = np.zeros(n_all)          # starts at 0
+    for i in range(1, n_all):
+        x_all[i] = x_all[i-1] + dx * np.random.choice([-1, 1])
+    return np.column_stack((t_all, x_all))
+
+# 1D random walk, vectorized (cumulative sum of random +/- steps)
+def brownian_concise(t_total, dt, dx):
+    t_all = np.arange(0, t_total + dt, dt)
+    x_all = np.cumsum(np.random.choice([-1, 1], size=len(t_all))) * dx
+    return np.column_stack((t_all, x_all))
+
+np.random.seed(12)
+t_total, dt, dx, nrep = 1000, 1, 1, 1000          # nrep independent walks
+results_bm_1d = np.array([brownian(t_total, dt, dx) for _ in range(nrep)])  # [rep, time, 2]
+
+plt.xlabel("t"); plt.ylabel("x"); plt.xlim(0, 1000); plt.ylim(-70, 70)
+for i in range(10):
+    plt.plot(results_bm_1d[i, :, 0], results_bm_1d[i, :, 1])   # first 10 walks
+plt.show()
+```
+
+Each walk wanders differently because it draws its own random steps, but as a
+group they spread symmetrically about the origin, some ending far from it and
+others near.
+
+## 6B.2 Statistics of the ensemble
+
+Across many walks the mean position stays at zero while the spread grows with
+time. At any fixed $t$ the distribution of $x$ is (exactly) binomial and, after
+many steps, approaches a Gaussian by the central limit theorem, with a width that
+widens as $t$ increases. Theory gives the variance $\langle x^2 \rangle = 2 D t$,
+with the one-dimensional diffusion constant [@einstein1905brownian]
+
+$$ D = \lim_{\Delta t \rightarrow 0} \frac{\Delta x^2}{2 \Delta t} . \tag{3} $$
+
+We view the spread with a box plot across sampled times, confirm the Gaussian
+shape with histograms at a few times, and check the variance against the theory.
+For our steps ($\Delta x = \Delta t = 1$), $D = 0.5$, so $\langle x^2 \rangle = t$.
+
+### R implementation {.impl}
+
+```{r}
+t_ind <- seq(1, 1000, by = 100)                 # sampled time indices
+t_sample <- results_bm_1d[t_ind, 1, 1]          # the corresponding times (0, 100, ...)
+
+# box plot of x at each sampled time
+bm_long <- data.frame(t = c(results_bm_1d[t_ind, 1, ]), x = c(results_bm_1d[t_ind, 2, ]))
+boxplot(x ~ t, data = bm_long, xlab = "t", ylab = "x", ylim = c(-100, 100))
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 3.2
+#| out-width: "92%"
+#| rmar: false
+# histograms of x at three representative times (Gaussian, widening with t)
+par(mfrow = c(1, 3), mar = c(4, 4, 2.5, 1))
+for (i in c(1, 5, 10)) {
+  x <- results_bm_1d[t_ind[i], 2, ]
+  hist(x, freq = FALSE, xlab = "x", xlim = c(-100, 100),
+       main = paste0("t = ", t_sample[i]))
+}
+```
+
+```{r}
+# mean(x) and mean(x^2) vs time, against theory
+mean_x  <- sapply(t_ind, function(i) mean(results_bm_1d[i, 2, ]))
+mean_x2 <- sapply(t_ind, function(i) mean(results_bm_1d[i, 2, ]^2))
+plot(t_sample, mean_x, col = 1, xlab = "t", ylab = "Values", xlim = c(0, 910), ylim = c(-20, 1000))
+points(t_sample, mean_x2, col = 2)
+abline(a = 0, b = 0, col = 3); abline(a = 0, b = 1, col = 4)
+legend("topleft", inset = 0.02, col = 1:4, pch = c(1, 1, NA, NA), lty = c(NA, NA, 1, 1),
+       legend = c("Mean(x)", "Mean(x^2)", "y = 0 (theory)", "y = t (theory)"))
+```
+
+### Python implementation {.impl}
+
+```{python}
+t_ind = np.arange(0, 1000, 100)                 # sampled time indices
+t_sample = results_bm_1d[0, t_ind, 0]           # the corresponding times (0, 100, ...)
+data_bm_1d = np.array([results_bm_1d[:, k, 1] for k in t_ind]).T   # [rep, sampled-time]
+
+plt.boxplot(data_bm_1d); plt.xticks(range(1, len(t_ind)+1), t_ind)
+plt.xlabel("t"); plt.ylabel("x"); plt.ylim(-100, 100); plt.show()
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 3.2
+#| out-width: "92%"
+# histograms of x at three representative times (Gaussian, widening with t)
+fig, axs = plt.subplots(1, 3, figsize=(9, 3.2))
+for ax, i in zip(axs, [0, 4, 9]):
+    ax.hist(data_bm_1d[:, i], bins=15, density=True, color="w", edgecolor="b")
+    ax.set_xlabel("x"); ax.set_xlim(-100, 100); ax.set_title(f"t = {t_sample[i]:.0f}")
+plt.tight_layout(); plt.show()
+```
+
+```{python}
+# mean(x) and mean(x^2) vs time, against theory
+mean_x  = data_bm_1d.mean(axis=0)
+mean_x2 = (data_bm_1d**2).mean(axis=0)
+plt.plot(t_sample, mean_x,  "o", color="black", label="Mean(x)")
+plt.plot(t_sample, mean_x2, "o", color="red",   label="Mean(x^2)")
+plt.plot(t_sample, t_sample*0, color="green", label="y = 0 (theory)")
+plt.plot(t_sample, t_sample,   color="blue",  label="y = t (theory)")
+plt.xlabel("t"); plt.ylabel("Values"); plt.xlim(0, 910); plt.ylim(-20, 1000)
+plt.legend(loc="upper left"); plt.show()
+```
+
+The box plot shows a mean pinned at zero with a spread that grows with time, and
+the histograms confirm an approximately Gaussian shape that widens as $t$
+increases. The measured $\langle x^2 \rangle$ tracks the line $y = t$, so
+$D \approx 0.5$ as expected, with residual scatter that would shrink with more
+walks.
+
+## 6B.3 Gaussian move steps
+
+Nothing forces the steps to be discrete $\pm \Delta x$. Drawing each step from a
+Gaussian of mean $0$ and standard deviation $\Delta x$ gives the same large-scale
+statistics.
+
+### R implementation {.impl}
+
+```{r}
+brownian_gaussian_steps <- function(t.total, dt, dx) {
+  t_all <- seq(0, t.total, by = dt)
+  n_all <- length(t_all)
+  x_all <- numeric(n_all)
+  for (i in 1:(n_all - 1)) {
+    x_all[i+1] <- x_all[i] + rnorm(1, mean = 0, sd = dx)   # Gaussian step
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+results_bm_gauss <- replicate(nrep, brownian_gaussian_steps(t.total, dt, dx))
+bm_gauss_long <- data.frame(t = c(results_bm_gauss[t_ind, 1, ]), x = c(results_bm_gauss[t_ind, 2, ]))
+boxplot(x ~ t, data = bm_gauss_long, xlab = "t", ylab = "x", ylim = c(-100, 100))
+```
+
+### Python implementation {.impl}
+
+```{python}
+def brownian_gaussian_steps(t_total, dt, dx):
+    t_all = np.arange(0, t_total + dt, dt)
+    n_all = len(t_all)
+    x_all = np.zeros(n_all)
+    for i in range(1, n_all):
+        x_all[i] = x_all[i-1] + np.random.normal(0, dx)      # Gaussian step
+    return np.column_stack((t_all, x_all))
+
+np.random.seed(12)
+results_bm_gauss = np.array([brownian_gaussian_steps(t_total, dt, dx) for _ in range(nrep)])
+data_gauss = np.array([results_bm_gauss[:, k, 1] for k in t_ind]).T
+plt.boxplot(data_gauss); plt.xticks(range(1, len(t_ind)+1), t_ind)
+plt.xlabel("t"); plt.ylabel("x"); plt.ylim(-100, 100); plt.show()
+```
+
+The box plot is statistically the same as before: the step distribution does not
+matter for the long-time behavior, only its mean and variance.
+
+## 6B.4 Brownian motion in 2D
+
+The walk generalizes to a plane by drawing an independent Gaussian step for each
+of $x$ and $y$ at every time.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "58%"
+brownian_2d <- function(t.total, dt, dx) {
+  # dx: length-2 vector of step standard deviations in x and y
+  t_all <- seq(0, t.total, by = dt)
+  n_all <- length(t_all)
+  x_all <- matrix(0, nrow = n_all, ncol = 2)   # starts at (0, 0)
+  for (i in 1:(n_all - 1)) {
+    x_all[i+1,] <- x_all[i,] + rnorm(2, mean = 0, sd = 1) * dx
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+results_bm_2d <- brownian_2d(t.total = 10000, dt = 1, dx = c(1, 1))
+par(pty = "s")
+plot(results_bm_2d[,2], results_bm_2d[,3], type = "l", col = 2, asp = 1,
+     xlab = "x", ylab = "y", xlim = c(-100, 100), ylim = c(-100, 100))
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "58%"
+def brownian_2d(t_total, dt, dx):
+    # dx: length-2 array of step standard deviations in x and y
+    t_all = np.arange(0, t_total + dt, dt)
+    n_all = len(t_all)
+    x_all = np.zeros((n_all, 2))                 # starts at (0, 0)
+    for i in range(1, n_all):
+        x_all[i] = x_all[i-1] + np.random.normal(0, 1, size=2) * dx
+    return np.column_stack((t_all, x_all))
+
+np.random.seed(12)
+results_bm_2d = brownian_2d(10000, 1, np.array([1, 1]))
+plt.plot(results_bm_2d[:, 1], results_bm_2d[:, 2], color="red", linewidth=0.4)
+plt.gca().set_aspect("equal")
+plt.xlabel("x"); plt.ylabel("y"); plt.xlim(-100, 100); plt.ylim(-100, 100); plt.show()
+```
+
+The path is a tangled two-dimensional walk that drifts away from the origin over
+time, its typical distance again growing like $\sqrt{t}$.
+
+## 6B.5 The Wiener process
+
+A precise mathematical description of Brownian motion is the *Wiener process*
+$W_t$, a continuous-time process with four defining properties
+[@gardiner2009stochastic]:
+
+**(1)** $W_0 = 0$.
+
+**(2)** Independent increments: for $t > 0$ and $h \geq 0$, the increment
+$W_{t+h} - W_t$ is independent of the past $\{W_s : s < t\}$.
+
+**(3)** Gaussian increments: $W_{t+h} - W_t \sim \mathcal{N}(0, h)$.
+
+**(4)** Continuous paths: $W_t$ is continuous in $t$.
+
+Our Gaussian-step walk is essentially a Wiener process. To make the diffusion
+constant explicit, we scale the step standard deviation as $\sqrt{2 D \Delta t}$,
+so that the variance grows as $2 D t$ regardless of the step size. This scaling is
+essential: a common mistake is to set the standard deviation to $\Delta t$.
+
+### R implementation {.impl}
+
+```{r}
+brownian_wiener <- function(t.total, dt, D) {
+  t_all <- seq(0, t.total, by = dt)
+  n_all <- length(t_all)
+  x_all <- numeric(n_all)
+  step_sd <- sqrt(2 * D * dt)                    # critical scaling
+  for (i in 1:(n_all - 1)) {
+    x_all[i+1] <- x_all[i] + rnorm(1, mean = 0, sd = step_sd)
+  }
+  return(cbind(t_all, x_all))
+}
+
+set.seed(12)
+results_wiener <- replicate(nrep, brownian_wiener(t.total = 1000, dt = 10, D = 0.5))
+tw_ind <- seq(1, 100, by = 10)
+tw_sample <- results_wiener[tw_ind, 1, 1]
+wiener_long <- data.frame(t = c(results_wiener[tw_ind, 1, ]), x = c(results_wiener[tw_ind, 2, ]))
+boxplot(x ~ t, data = wiener_long, xlab = "t", ylab = "x", ylim = c(-100, 100))
+```
+
+### Python implementation {.impl}
+
+```{python}
+def brownian_wiener(t_total, dt, D):
+    t_all = np.arange(0, t_total + dt, dt)
+    n_all = len(t_all)
+    x_all = np.zeros(n_all)
+    step_sd = np.sqrt(2 * D * dt)                # critical scaling
+    for i in range(1, n_all):
+        x_all[i] = x_all[i-1] + np.random.normal(0, step_sd)
+    return np.column_stack((t_all, x_all))
+
+np.random.seed(12)
+results_wiener = np.array([brownian_wiener(1000, 10, 0.5) for _ in range(nrep)])
+tw_ind = np.arange(0, 100, 10)
+tw_sample = results_wiener[0, tw_ind, 0]
+data_wiener = np.array([results_wiener[:, k, 1] for k in tw_ind]).T
+plt.boxplot(data_wiener); plt.xticks(range(1, len(tw_ind)+1), tw_sample.astype(int))
+plt.xlabel("t"); plt.ylabel("x"); plt.ylim(-100, 100); plt.show()
+```
+
+Even with the much larger step $\Delta t = 10$, the statistics come out right,
+because the $\sqrt{2 D \Delta t}$ scaling keeps the variance on track. A large step
+is fine for pure diffusion, but once a deterministic force is added the step must
+again be small, just as for an ODE. That combination of deterministic drift and
+random diffusion is the stochastic differential equation we take up in Part 6C.
