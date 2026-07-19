@@ -35,7 +35,7 @@ makes the solution's derivative discontinuous at $t_0$ (and its higher derivativ
 at $t_0 + \tau, t_0 + 2\tau, \dots$), so DDE trajectories are only piecewise
 smooth; interpret them with care. Storing the entire trajectory is also
 memory-heavy; a leaner scheme, the *method of steps*, is left as an exercise in
-Part 4D.
+[Part 4D](04d-exercises.qmd).
 
 The delay reshapes the stability of $N_s = 0$. For small $|r|$ the solution decays
 monotonically, but as $r$ decreases past the critical value $r = -\pi/2 \approx
