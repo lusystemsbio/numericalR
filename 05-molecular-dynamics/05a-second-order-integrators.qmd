@@ -447,4 +447,4 @@ plt.legend(loc="upper left"); plt.show()
 The Verlet method reproduces the oscillation at both step sizes while storing
 only positions, which is why it and its velocity Verlet variant underlie most
 practical MD codes. We extend these integrators to systems of many interacting
-particles in Part 5B.
+particles in [Part 5B](05b-orbital-motion.qmd).

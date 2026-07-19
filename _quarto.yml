@@ -52,6 +52,7 @@ book:
     - part: "Part 5: Molecular dynamics"
       chapters:
         - 05-molecular-dynamics/05a-second-order-integrators.qmd
+        - 05-molecular-dynamics/05b-orbital-motion.qmd
     - references.qmd
 
 bibliography: references.bib
