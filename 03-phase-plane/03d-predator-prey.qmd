@@ -1,5 +1,5 @@
 ---
-title: "3D. Predator-prey model: oscillatory dynamics, local stability, and model fitting"
+title: "3D. Modeling predator-prey dynamics"
 author: "Mingyang Lu"
 old_id: "03D"
 ---
