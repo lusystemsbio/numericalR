@@ -39,6 +39,9 @@ book:
         - 03-phase-plane/03g-effective-potential-2d.qmd
         - 03-phase-plane/03h-multi-component.qmd
         - 03-phase-plane/03i-exercises.qmd
+    - part: "Part 4: Systems with time delays"
+      chapters:
+        - 04-time-delays/04a-delayed-differential-equations.qmd
     - references.qmd
 
 bibliography: references.bib

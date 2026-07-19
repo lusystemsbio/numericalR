@@ -1,0 +1,193 @@
+---
+title: "4A. Delayed differential equations"
+author: "Mingyang Lu"
+old_id: "04A"
+---
+
+Many processes respond not to the current state of a system but to its state some
+time earlier: a population reproduces from the adults born a generation ago, a
+gene responds to a protein that took time to be made. Such systems are described
+by **delay differential equations** (DDEs), rate equations whose right-hand side
+depends on the solution at an earlier time [@smith2011delay]. As a first example
+we revisit exponential growth, but with the rate set by $N$ a time $\tau$ in the
+past,
+
+$$ \frac{dN}{dt} = r\, N(t - \tau) . \tag{1} $$
+
+with constant delay $\tau = 1$. An ODE needs a single initial value $N(t_0)$; a
+DDE instead needs an entire **history**, $N(t)$ for $t \in [t_0 - \tau, t_0]$.
+Because a steady state is time-independent, a DDE has the same steady states as
+the corresponding ODE (here $N_s = 0$), so the usual root-finding methods still
+locate them. What the delay changes is *stability*: it can turn a stable state
+oscillatory or unstable.
+
+## 4A.1 Euler method for DDEs
+
+The simplest way to integrate a DDE is to keep the whole trajectory, starting from
+the history interval $[t_0 - \tau, t_0]$, so that $N(t - \tau)$ can be looked up at
+any step. With a fixed step $dt$, the delayed value sits exactly $d = \tau/dt$
+steps back, so the Euler update is
+
+$$ N_{n+1} = N_n + h\, f(t_n, N_n, N_{n-d}) . \tag{2} $$
+
+We take a constant history $N(t) = N_0$ for $t \leq t_0$. This is convenient but
+makes the solution's derivative discontinuous at $t_0$ (and its higher derivatives
+at $t_0 + \tau, t_0 + 2\tau, \dots$), so DDE trajectories are only piecewise
+smooth; interpret them with care. Storing the entire trajectory is also
+memory-heavy; a leaner scheme, the *method of steps*, is left as an exercise in
+Part 4D.
+
+The delay reshapes the stability of $N_s = 0$. For small $|r|$ the solution decays
+monotonically, but as $r$ decreases past the critical value $r = -\pi/2 \approx
+-1.57$ the decay first becomes oscillatory and then unstable. Three values of $r$
+show the regimes: $r = -0.3$ (monotonic decay), $r = -1.4$ (just above $-\pi/2$, a
+damped oscillation), and $r = -1.7$ (just below $-\pi/2$, an oscillation that grows
+without bound). Note $N$ goes negative once it oscillates, which is unphysical for
+a population; this linear model is only illustrative.
+
+### R implementation {.impl}
+
+```{r}
+# delay exponential growth: N is N(t), N_old is N(t - tau)
+dN_delays <- function(t, N, N_old, r) r * N_old
+
+# Euler integrator for a DDE with one constant delay tau
+DDE_Euler <- function(derivs, t0, X0, t.total, dt, tau, ...) {
+  t_all <- seq(t0 - tau, t.total, by = dt)   # include the history interval [t0 - tau, t0]
+  n_all <- length(t_all)
+  X_all <- numeric(n_all)
+  n_delay <- as.integer(tau / dt)            # the delayed value sits n_delay steps back
+  X_all[1:(n_delay + 1)] <- X0               # constant history N(t) = X0 for t <= t0
+  for (i in (n_delay + 1):(n_all - 1)) {
+    X_all[i + 1] <- X_all[i] + dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], ...)
+  }
+  cbind(t_all, X_all)
+}
+```
+
+```{r}
+res1 <- DDE_Euler(dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = -0.3)
+res2 <- DDE_Euler(dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = -1.4)
+res3 <- DDE_Euler(dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = -1.7)
+
+plot(res1[, 1], res1[, 2], type = "l", col = 2, xlab = "t", ylab = "N",
+     xlim = c(-1, 40), ylim = c(0, 1))                                  # monotonic decay
+legend("topright", inset = 0.02, legend = "r = -0.3", col = 2, lty = 1, cex = 0.8)
+
+plot(res2[, 1], res2[, 2], type = "l", col = 2, xlab = "t", ylab = "N",
+     xlim = c(-1, 40), ylim = c(-1, 1))                                 # damped oscillation
+legend("topright", inset = 0.02, legend = "r = -1.4", col = 2, lty = 1, cex = 0.8)
+
+plot(res3[, 1], res3[, 2], type = "l", col = 2, xlab = "t", ylab = "N",
+     xlim = c(-1, 40), ylim = c(-10, 11))                               # growing oscillation
+legend("topleft", inset = 0.02, legend = "r = -1.7", col = 2, lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# delay exponential growth: N is N(t), N_old is N(t - tau)
+def dN_delays(t, N, N_old, r):
+    return r * N_old
+
+# Euler integrator for a DDE with one constant delay tau
+def DDE_Euler(derivs, t0, X0, t_total, dt, tau, **kw):
+    t_all = np.arange(t0 - tau, t_total + dt, dt)   # include the history interval
+    n_all = len(t_all)
+    X_all = np.zeros(n_all)
+    n_delay = int(tau / dt)                         # the delayed value sits n_delay steps back
+    X_all[0:n_delay + 1] = X0                       # constant history N(t) = X0 for t <= t0
+    for i in range(n_delay, n_all - 1):
+        X_all[i + 1] = X_all[i] + dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], **kw)
+    return np.column_stack((t_all, X_all))
+```
+
+```{python}
+res1 = DDE_Euler(dN_delays, 0, 1, 40, 0.01, 1, r=-0.3)
+res2 = DDE_Euler(dN_delays, 0, 1, 40, 0.01, 1, r=-1.4)
+res3 = DDE_Euler(dN_delays, 0, 1, 40, 0.01, 1, r=-1.7)
+
+for res, r, yl, loc in [(res1, "-0.3", (0, 1), "upper right"),
+                        (res2, "-1.4", (-1, 1), "upper right"),
+                        (res3, "-1.7", (-10, 11), "upper left")]:
+    plt.figure()
+    plt.plot(res[:, 0], res[:, 1], color="red")
+    plt.xlabel("t"); plt.ylabel("N"); plt.xlim(-1, 40); plt.ylim(*yl)
+    plt.legend([f"r = {r}"], loc=loc); plt.show()
+```
+
+## 4A.2 A second-order integrator: Heun's method
+
+Euler's method is only first-order accurate. For a cheap improvement we adapt
+**Heun's method**, a second-order scheme close to second-order Runge-Kutta but
+using only whole time steps, which makes it easy to carry over to DDEs (a method
+like RK4 would need delayed values at half-steps that are not stored). Each step
+takes a predictor and a corrector,
+
+\begin{equation}
+\begin{aligned}
+k_1 &= h\, f(t_n, N_n, N_{n-d}) \\
+\tilde{N}_{n+1} &= N_n + k_1 \\
+k_2 &= h\, f(t_{n+1}, \tilde{N}_{n+1}, N_{n+1-d}) \\
+N_{n+1} &= N_n + (k_1 + k_2)/2
+\end{aligned} \tag{3}
+\end{equation}
+
+Comparing the two integrators on the unstable case $r = -1.7$, they agree early
+on but drift apart at later times, with the first-order Euler trajectory
+overshooting.
+
+### R implementation {.impl}
+
+```{r}
+# Heun (2nd-order) integrator for a DDE with one constant delay tau
+DDE_Heun <- function(derivs, t0, X0, t.total, dt, tau, ...) {
+  t_all <- seq(t0 - tau, t.total, by = dt)
+  n_all <- length(t_all)
+  X_all <- numeric(n_all)
+  n_delay <- as.integer(tau / dt)
+  X_all[1:(n_delay + 1)] <- X0
+  for (i in (n_delay + 1):(n_all - 1)) {
+    k1 <- dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], ...)
+    X_all[i + 1] <- X_all[i] + k1                  # predictor (also handles tau = 0)
+    k2 <- dt * derivs(t_all[i + 1], X_all[i + 1], X_all[i + 1 - n_delay], ...)
+    X_all[i + 1] <- X_all[i] + (k1 + k2) / 2       # corrector
+  }
+  cbind(t_all, X_all)
+}
+
+res3_heun <- DDE_Heun(dN_delays, t0 = 0, X0 = 1, t.total = 40, dt = 0.01, tau = 1, r = -1.7)
+
+plot(res3[, 1], res3[, 2], type = "l", col = 2, xlab = "t", ylab = "N",
+     xlim = c(-1, 40), ylim = c(-11, 12))
+lines(res3_heun[, 1], res3_heun[, 2], col = 3)
+legend("topleft", inset = 0.02, legend = c("Euler", "Heun"), col = c(2, 3), lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# Heun (2nd-order) integrator for a DDE with one constant delay tau
+def DDE_Heun(derivs, t0, X0, t_total, dt, tau, **kw):
+    t_all = np.arange(t0 - tau, t_total + dt, dt)
+    n_all = len(t_all)
+    X_all = np.zeros(n_all)
+    n_delay = int(tau / dt)
+    X_all[0:n_delay + 1] = X0
+    for i in range(n_delay, n_all - 1):
+        k1 = dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], **kw)
+        X_all[i + 1] = X_all[i] + k1                # predictor (also handles tau = 0)
+        k2 = dt * derivs(t_all[i + 1], X_all[i + 1], X_all[i + 1 - n_delay], **kw)
+        X_all[i + 1] = X_all[i] + (k1 + k2) / 2     # corrector
+    return np.column_stack((t_all, X_all))
+
+res3_heun = DDE_Heun(dN_delays, 0, 1, 40, 0.01, 1, r=-1.7)
+
+plt.plot(res3[:, 0], res3[:, 1], color="red",   label="Euler")
+plt.plot(res3_heun[:, 0], res3_heun[:, 1], color="green", label="Heun")
+plt.xlabel("t"); plt.ylabel("N"); plt.xlim(-1, 40); plt.ylim(-11, 12)
+plt.legend(loc="upper left"); plt.show()
+```
