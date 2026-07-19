@@ -62,6 +62,9 @@ book:
         - 06-stochastic/06c-sde-integrators.qmd
         - 06-stochastic/06d-stochastic-transitions.qmd
         - 06-stochastic/06e-exercises.qmd
+    - part: "Part 7: Partial differential equations"
+      chapters:
+        - 07-pde/07a-modeling-diffusion.qmd
     - references.qmd
 
 bibliography: references.bib
