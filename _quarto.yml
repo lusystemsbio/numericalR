@@ -14,6 +14,10 @@ book:
   title: "Numerical RPy"
   subtitle: "In the Era of AI"
   output-file: "NumericalRPy"   # base name for the PDF/EPUB downloads
+  # Fold the left nav: parts collapsed by default, only the current part
+  # expands to show its chapters (keeps the sidebar short as chapters grow).
+  sidebar:
+    collapse-level: 1
   chapters:
     - index.qmd
     - part: "Part 1: Introduction to R and Python programming"
@@ -67,6 +71,7 @@ fig-align: center
 
 filters:
   - impl-box.lua
+  - epub-tag.lua   # EPUB only: rewrite \tag{N} -> \qquad (N) so texmath renders it
 
 format:
   html:
