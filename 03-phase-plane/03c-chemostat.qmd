@@ -1,17 +1,16 @@
 ---
-title: "3C. Practice: modeling a chemostat"
+title: "3C. Modeling a chemostat"
 author: "Mingyang Lu"
 old_id: "03C"
 ---
 
-This is a practice chapter. Instead of introducing new methods, it applies the
-phase-plane toolkit of [Part 3A](03a-nullclines.qmd) and
+This chapter applies the phase-plane toolkit of [Part 3A](03a-nullclines.qmd) and
 [Part 3B](03b-steady-states-2d.qmd) to a different two-variable system, the
 classic **chemostat** model of bacterial growth in continuous culture
-[@sontag_systemsbio]. The numerical steps are the same as before (RK4
-integration, vector fields, nullclines, steady-state stability), so the focus
-here is on setting up a new model and reusing that machinery in both R and
-Python. Practice questions are embedded throughout.
+[@sontag_systemsbio]. It introduces no new methods; the numerical steps are the
+same as before (RK4 integration, vector fields, nullclines, steady-state
+stability), so the focus is on setting up a new model and reusing that machinery
+in both R and Python. Practice questions are embedded throughout.
 
 ## 3C.1 Chemostat model
 

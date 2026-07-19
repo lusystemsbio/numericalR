@@ -1,12 +1,12 @@
 ---
-title: "2C. Practice: modeling bacterial growth"
+title: "2C. Modeling bacterial growth"
 author: "Mingyang Lu"
 old_id: "02C"
 code-tools: true
 ---
 
-This is a **practice page**. It uses ODEs to model bacterial growth (exponential
-growth and logistic growth) and reuses the numerical integrators developed in
+This chapter uses ODEs to model bacterial growth (exponential growth and logistic
+growth) and reuses the numerical integrators developed in
 [Part 2B](02b-numerical-integration.qmd). Each section works through the model and
 then poses a short exercise (in a highlighted box) for you to complete by editing
 and re-running the page. The growth models follow the standard treatment in
