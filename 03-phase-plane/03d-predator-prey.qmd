@@ -4,8 +4,10 @@ author: "Mingyang Lu"
 old_id: "03D"
 ---
 
-This practice chapter models a predator-prey system with the classic
-**Lotka-Volterra** equations [@lotka1925elements; @volterra1926fluctuations].
+This practice chapter models a predator-prey system, a cornerstone example of how
+populations regulate one another in an ecosystem [@carroll2016serengeti], with the
+classic **Lotka-Volterra** equations
+[@lotka1925elements; @volterra1926fluctuations; @sontag_systemsbio].
 Unlike the toggle switch and chemostat of [Part 3A](03a-nullclines.qmd) through
 [Part 3C](03c-chemostat.qmd), where every trajectory settled onto a fixed point,
 this system oscillates: its trajectories form closed orbits around a *center*.
@@ -286,9 +288,10 @@ settles the question.
 
 A different kind of practice: given real population data, estimate the parameters
 $a, b, c, d$. We use the Hudson's Bay Company fur-trade records of snowshoe hare
-and Canada lynx from 1900-1920 (a series widely reproduced in ecology texts). We
-fit in two stages: a fast **linear regression** for an initial estimate, then
-**error minimization** to refine it.
+and Canada lynx from 1900-1920, a classic predator-prey series discussed in both
+@carroll2016serengeti and @sontag_systemsbio. We fit in two stages: a fast
+**linear regression** for an initial estimate, then **error minimization** to
+refine it.
 
 Linear regression works because the rate equations are *linear* in the
 parameters. Approximating the time derivatives by centered finite differences at
@@ -331,6 +334,9 @@ names(p_lr) <- c("a", "b", "c", "d"); p_lr
 data_LV <- cbind(lvdata$hare, lvdata$lynx)
 cal_error <- function(p, nsteps = 10) {
   t.total <- nrow(data_LV) - 1
+  # a, b, c, d are forwarded to derivs_LV through RK4_generic's `...` ellipsis.
+  # Pass them positionally, not as a=/b=/c=/d=: a named `d=` would partial-match
+  # RK4_generic's own `derivs`/`dt` formals and error out.
   sim <- RK4_generic(derivs_LV, data_LV[1, ], t.total, 1 / nsteps, p[1], p[2], p[3], p[4])
   sim <- sim[seq(1, nrow(sim), by = nsteps), 2:3]
   sum((data_LV - sim)^2)
