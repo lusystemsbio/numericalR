@@ -15,9 +15,8 @@ exponential, and Gaussian distributions.
 
 ## 6A.1 A visual test for randomness
 
-A quick visual check, in the spirit of the
-[Pickover test](https://www.r-bloggers.com/2017/09/how-good-is-that-random-number-generator/),
-plots consecutive pairs $(R_i, R_{i+k})$ for lags $k = 1, 2, 3$. A good uniform
+A quick visual check, the Pickover test [@pickover1995random], plots consecutive
+pairs $(R_i, R_{i+k})$ for lags $k = 1, 2, 3$. A good uniform
 generator scatters these points evenly over the unit square with no visible
 structure; stripes, bands, or clusters would betray correlations between nearby
 values.
