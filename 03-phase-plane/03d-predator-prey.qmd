@@ -1,10 +1,10 @@
 ---
-title: "3D. Practice: predator-prey model"
+title: "3D. Predator-prey model: oscillatory dynamics, local stability, and model fitting"
 author: "Mingyang Lu"
 old_id: "03D"
 ---
 
-This practice chapter models a predator-prey system, a cornerstone example of how
+This chapter models a predator-prey system, a cornerstone example of how
 populations regulate one another in an ecosystem [@carroll2016serengeti], with the
 classic **Lotka-Volterra** equations
 [@lotka1925elements; @volterra1926fluctuations; @sontag_systemsbio].
@@ -289,23 +289,28 @@ settles the question.
 A different kind of practice: given real population data, estimate the parameters
 $a, b, c, d$. We use the Hudson's Bay Company fur-trade records of snowshoe hare
 and Canada lynx from 1900-1920, a classic predator-prey series discussed in both
-@carroll2016serengeti and @sontag_systemsbio. We fit in two stages: a fast
-**linear regression** for an initial estimate, then **error minimization** to
-refine it.
+@carroll2016serengeti and @sontag_systemsbio. The two populations rise and fall
+in a coupled cycle, the lynx peaks trailing the hare peaks, the same qualitative
+pattern the model produces.
 
-Linear regression works because the rate equations are *linear* in the
-parameters. Approximating the time derivatives by centered finite differences at
-each year turns Equation (1) into a linear system: for the prey,
-$\frac{N_{t+1} - N_{t-1}}{2} = a\,N_t - b\,N_t P_t$, and similarly for the
-predator. Fitting these (no intercept) recovers $(a, b)$ and $(c, d)$. This is
-exact only for closely spaced data, so on the sparse yearly record it gives a
-good starting point rather than a final answer. Error minimization then adjusts
-the parameters to minimize the sum of squared differences between the simulated
-and observed trajectories.
+We fit the parameters two ways. **Error minimization** simulates the model for a
+trial parameter set, measures the sum of squared differences (SSD) from the data,
+and adjusts the parameters until the SSD is as small as possible. Because the
+minimizer (R's Newton-based `nlm`, or `scipy.optimize.minimize` with BFGS) only
+finds a *local* minimum, it needs a reasonable starting guess; here we begin from
+a hand-picked one. **Linear regression** is a second, deterministic method: the
+rate equations are *linear* in the parameters, so replacing the time derivatives
+with centered finite differences at each year turns Equation (1) into a linear
+system. For the prey, $\frac{N_{t+1} - N_{t-1}}{2} = a\,N_t - b\,N_t P_t$, and
+similarly for the predator; fitting these (no intercept) recovers $(a, b)$ and
+$(c, d)$. It is only exact for closely spaced data, so on the sparse yearly record
+it is imperfect on its own, but it makes an excellent starting guess for the error
+minimization (Practice Q4).
 
 ### R implementation {.impl}
 
 ```{r}
+# the lynx-hare data
 lvdata <- data.frame(
   year = 1900:1920,
   hare = c(30, 47.2, 70.2, 77.4, 36.3, 20.6, 18.1, 21.4, 22, 25.4, 27.1,
@@ -316,37 +321,32 @@ knitr::kable(head(lvdata), col.names = c("Year", "Hare (x1000)", "Lynx (x1000)")
 ```
 
 ```{r}
-# linear regression: centered finite differences give a linear system in the parameters
-N <- lvdata$hare; P <- lvdata$lynx; tot <- length(N)
-mid <- 2:(tot - 1)
-d_n <- data.frame(dNdt = (N[3:tot] - N[1:(tot - 2)]) / 2, n = N[mid], mnp = -N[mid] * P[mid])
-d_p <- data.frame(dPdt = (P[3:tot] - P[1:(tot - 2)]) / 2, np = N[mid] * P[mid], mp = -P[mid])
-model_n <- lm(dNdt ~ 0 + n + mnp, d_n)     # coefficients a, b
-model_p <- lm(dPdt ~ 0 + np + mp, d_p)     # coefficients c, d
-p_lr <- c(coef(model_n), coef(model_p))
-names(p_lr) <- c("a", "b", "c", "d"); p_lr
+# both populations cycle, with lynx trailing hare
+plot(lvdata$year, lvdata$hare, type = "b", pch = 15, col = 2, xlab = "Year",
+     ylab = "Level (x1000)", xlim = c(1900, 1920), ylim = c(0, 100))
+lines(lvdata$year, lvdata$lynx, type = "b", pch = 15, col = 3)
+legend("topright", inset = 0.02, legend = c("Hare", "Lynx"), col = 2:3, lty = 1, cex = 0.8)
 ```
 
 ```{r}
 #| warning: false
-# error minimization: SSD between simulated and observed levels, minimized by nlm
-# (some parameter guesses make the ODE blow up; nlm quietly recovers)
+# error minimization: minimize the SSD between simulated and observed levels with nlm.
+# a, b, c, d are forwarded to derivs_LV through RK4_generic's `...` ellipsis; pass them
+# positionally, since a named `d=` would partial-match the derivs/dt formals and error out.
 data_LV <- cbind(lvdata$hare, lvdata$lynx)
 cal_error <- function(p, nsteps = 10) {
-  t.total <- nrow(data_LV) - 1
-  # a, b, c, d are forwarded to derivs_LV through RK4_generic's `...` ellipsis.
-  # Pass them positionally, not as a=/b=/c=/d=: a named `d=` would partial-match
-  # RK4_generic's own `derivs`/`dt` formals and error out.
-  sim <- RK4_generic(derivs_LV, data_LV[1, ], t.total, 1 / nsteps, p[1], p[2], p[3], p[4])
+  sim <- RK4_generic(derivs_LV, data_LV[1, ], nrow(data_LV) - 1, 1 / nsteps,
+                     p[1], p[2], p[3], p[4])
   sim <- sim[seq(1, nrow(sim), by = nsteps), 2:3]
   sum((data_LV - sim)^2)
 }
-fitted <- nlm(cal_error, p_lr)
-p_fit <- fitted$estimate; names(p_fit) <- c("a", "b", "c", "d")
+p0 <- c(0.5, 0.02, 0.02, 0.5)                      # hand-picked initial guess
+p_fit <- setNames(nlm(cal_error, p0)$estimate, c("a", "b", "c", "d"))
 round(p_fit, 4)
 ```
 
 ```{r}
+# the fitted model against the data
 sim <- RK4_generic(derivs_LV, data_LV[1, ], 20, 0.1, p_fit[1], p_fit[2], p_fit[3], p_fit[4])
 plot(lvdata$year, lvdata$hare, type = "b", pch = 15, col = 2, xlab = "Year",
      ylab = "Level (x1000)", xlim = c(1900, 1920), ylim = c(0, 100))
@@ -357,9 +357,21 @@ legend("topright", inset = 0.02, legend = c("Hare data", "Lynx data", "fit"),
        col = c(2, 3, 1), lty = c(1, 1, 2), pch = c(15, 15, NA), cex = 0.8)
 ```
 
+```{r}
+# linear regression: centered finite differences make Eq (1) linear in the parameters
+N <- lvdata$hare; P <- lvdata$lynx; tot <- length(N); mid <- 2:(tot - 1)
+d_n <- data.frame(dNdt = (N[3:tot] - N[1:(tot - 2)]) / 2, n = N[mid], mnp = -N[mid] * P[mid])
+d_p <- data.frame(dPdt = (P[3:tot] - P[1:(tot - 2)]) / 2, np = N[mid] * P[mid], mp = -P[mid])
+p_lr <- c(coef(lm(dNdt ~ 0 + n + mnp, d_n)), coef(lm(dPdt ~ 0 + np + mp, d_p)))
+names(p_lr) <- c("a", "b", "c", "d")
+round(p_lr, 4)          # a good starting guess, though imperfect on its own ...
+cal_error(p_lr)         # ... its raw SSD is larger than the minimized fit above
+```
+
 ### Python implementation {.impl}
 
 ```{python}
+# the lynx-hare data
 import pandas as pd
 lvdata = pd.DataFrame({
     "year": range(1900, 1921),
@@ -371,40 +383,37 @@ print(lvdata.head())
 ```
 
 ```{python}
-# linear regression: least squares on the finite-difference linear system.
-# np.linalg.lstsq is the counterpart of R's lm(... - 1) (no intercept).
-N = lvdata["hare"].to_numpy(); P = lvdata["lynx"].to_numpy(); tot = len(N)
-mid = slice(1, tot - 1)
-dNdt = (N[2:] - N[:-2]) / 2
-dPdt = (P[2:] - P[:-2]) / 2
-ab = np.linalg.lstsq(np.column_stack([N[mid], -N[mid] * P[mid]]), dNdt, rcond=None)[0]  # a, b
-cd = np.linalg.lstsq(np.column_stack([N[mid] * P[mid], -P[mid]]), dPdt, rcond=None)[0]  # c, d
-p_lr = np.array([ab[0], ab[1], cd[0], cd[1]]); print("a,b,c,d =", p_lr)
+# both populations cycle, with lynx trailing hare
+yr = lvdata["year"]
+plt.plot(yr, lvdata["hare"], "s-", color="red",   label="Hare")
+plt.plot(yr, lvdata["lynx"], "s-", color="green", label="Lynx")
+plt.xlabel("Year"); plt.ylabel("Level (x1000)"); plt.ylim(0, 100)
+plt.legend(loc="upper right", fontsize=8); plt.show()
 ```
 
 ```{python}
 #| warning: false
-# error minimization: SSD between simulated and observed levels (scipy.optimize.minimize,
-# the counterpart of R's nlm). Both find a local minimum near the regression estimate.
-import warnings; warnings.filterwarnings("ignore")   # some guesses overflow the ODE
+# error minimization: minimize the SSD between simulated and observed levels.
+# scipy.optimize.minimize with BFGS is the counterpart of R's Newton-based nlm;
+# a derivative-free method (Nelder-Mead) can stall at a poor local minimum here.
+import warnings; warnings.filterwarnings("ignore")
 from scipy.optimize import minimize
 data_LV = lvdata[["hare", "lynx"]].to_numpy()
 
 def cal_error(p, nsteps=10):
     sim = RK4_generic(derivs_LV, data_LV[0], len(data_LV) - 1, 1 / nsteps,
                       a=p[0], b=p[1], c=p[2], d=p[3])
-    sim = sim[::nsteps, 1:3]
-    return np.sum((data_LV - sim) ** 2)
+    return np.sum((data_LV - sim[::nsteps, 1:3]) ** 2)
 
-p_fit = minimize(cal_error, p_lr, method="Nelder-Mead",
-                 options={"xatol": 1e-6, "fatol": 1e-6, "maxiter": 10000}).x
+p0 = [0.5, 0.02, 0.02, 0.5]                        # hand-picked initial guess
+p_fit = minimize(cal_error, p0, method="BFGS").x
 print("fitted a,b,c,d =", np.round(p_fit, 4))
 ```
 
 ```{python}
+# the fitted model against the data
 sim = RK4_generic(derivs_LV, data_LV[0], 20, 0.1,
                   a=p_fit[0], b=p_fit[1], c=p_fit[2], d=p_fit[3])
-yr = lvdata["year"]
 plt.plot(yr, lvdata["hare"], "s-", color="red",   label="Hare data")
 plt.plot(yr, lvdata["lynx"], "s-", color="green", label="Lynx data")
 plt.plot(sim[:, 0] + 1900, sim[:, 1], "--", color="red")
@@ -413,19 +422,44 @@ plt.xlabel("Year"); plt.ylabel("Level (x1000)"); plt.ylim(0, 100)
 plt.legend(loc="upper right", fontsize=8); plt.show()
 ```
 
-The linear regression is only approximate on such sparse data, so the refined fit
-from error minimization tracks the oscillations more closely, though neither is
-perfect: the real lynx-hare cycle is noisier and more complex than the two-species
-model.
+```{python}
+# linear regression: least squares on the finite-difference linear system
+# (np.linalg.lstsq is the counterpart of R's lm(... - 1), no intercept).
+N = lvdata["hare"].to_numpy(); P = lvdata["lynx"].to_numpy(); tot = len(N); mid = slice(1, tot - 1)
+ab = np.linalg.lstsq(np.column_stack([N[mid], -N[mid] * P[mid]]), (N[2:] - N[:-2]) / 2, rcond=None)[0]
+cd = np.linalg.lstsq(np.column_stack([N[mid] * P[mid], -P[mid]]), (P[2:] - P[:-2]) / 2, rcond=None)[0]
+p_lr = np.array([ab[0], ab[1], cd[0], cd[1]])
+print("a,b,c,d =", np.round(p_lr, 4), " raw SSD =", round(cal_error(p_lr), 1))
+```
+
+Error minimization tracks the oscillations closely. The raw linear-regression fit
+is rougher, since finite differences on once-a-year data are crude, but it is a
+cheap, principled starting point. Neither is perfect: the real lynx-hare cycle is
+noisier and more complex than a two-species model.
 
 ::: {.callout-note title="Practice Q4"}
+Feed the linear-regression estimate `p_lr` into the error minimization as its
+initial guess, in place of the hand-picked `p0`. Does it reach a comparable (or
+lower) SSD, and in fewer steps? Seeding a nonlinear fit with a cheap linear one is
+a common, robust recipe.
+:::
+
+::: {.callout-note title="Practice Q5"}
+Explore how sensitive the fit is to the optimizer and the starting point. Try
+several initial guesses and several optimizers (in R, `nlm` and the methods of
+`optim`; in Python, `minimize` with `Nelder-Mead`, `BFGS`, and `Powell`). Which
+combinations reach the good fit and which stall at a poor local minimum? What does
+that say about non-convex fitting problems?
+:::
+
+::: {.callout-note title="Practice Q6"}
 Test the claim that the regression error comes mainly from the coarse yearly
 spacing. Generate a denser dataset by sampling the fitted simulation every few
 time steps, run the linear regression on it, and check whether the recovered
 parameters are closer to the ones used to generate it.
 :::
 
-::: {.callout-note title="Practice Q5"}
+::: {.callout-note title="Practice Q7"}
 Add random noise of increasing amplitude to the data points and refit with both
 methods. Which approach, linear regression or error minimization, degrades more
 gracefully, and why?
