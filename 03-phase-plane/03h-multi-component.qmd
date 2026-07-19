@@ -97,8 +97,7 @@ vfu <- t(apply(grid, 1, function(Xs) {
 vfu <- as.data.frame(vfu); colnames(vfu) <- c("X", "Y", "dX", "dY")
 p1 <- ggplot(vfu, aes(X, Y)) +
   geom_segment(aes(xend = X + 0.2 * dX, yend = Y + 0.2 * dY),
-               arrow = arrow(length = unit(0.05, "in"))) +
-  coord_fixed()
+               arrow = arrow(length = unit(0.05, "in")))
 p1
 ```
 
@@ -130,7 +129,7 @@ grid = np.array(np.meshgrid(X_ax, Y_ax)).T.reshape(-1, 2)
 for X, Y in grid:
     v = np.array(derivs_neg(0, (X, Y), g, h)); v = 0.2 * v / np.sqrt(v @ v)
     plt.arrow(X, Y, v[0], v[1], head_width=0.06, ec="black")
-plt.gca().set_aspect("equal"); plt.xlabel("X"); plt.ylabel("Y")
+plt.xlabel("X"); plt.ylabel("Y")
 plt.xlim(0, 3); plt.ylim(0, 5); plt.show()
 ```
 
@@ -145,7 +144,7 @@ np.random.seed(77)
 for X0 in np.random.uniform(0, 2, (10, 2)):       # 10 random initial conditions
     r = RK4_generic(derivs_neg, X0, 100, 0.01, g=g, h=h)
     plt.plot(r[:, 1], r[:, 2], lw=1)
-plt.gca().set_aspect("equal"); plt.xlabel("X"); plt.ylabel("Y")
+plt.xlabel("X"); plt.ylabel("Y")
 plt.xlim(0, 3); plt.ylim(0, 5); plt.show()
 ```
 
