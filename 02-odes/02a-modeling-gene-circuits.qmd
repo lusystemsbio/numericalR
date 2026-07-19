@@ -32,9 +32,9 @@ a single zero-order reaction with transcription rate $g$, while degradation is a
 first-order reaction with degradation rate $k$. The corresponding chemical
 scheme is
 
-\begin{equation}
+$$
 \varnothing {\stackrel{g}{\rightarrow}} X {\stackrel{k}{\rightarrow}} \varnothing
-\end{equation}
+$$
 
 The rate equation for the level of gene $X$ is
 
@@ -45,9 +45,9 @@ The rate equation for the level of gene $X$ is
 This is a typical ordinary differential equation (ODE). At steady state, the
 level $X_s$ satisfies
 
-\begin{equation}
+$$
 \frac{dX}{dt} = 0 ,
-\end{equation}
+$$
 
 so that
 
@@ -58,9 +58,9 @@ X_s = \frac{g}{k} . \tag{2}
 We can also solve for $X$ as an explicit function of time, $X(t)$, given the
 initial condition
 
-\begin{equation}
+$$
 X(t=0) = X_0 .
-\end{equation}
+$$
 
 Introducing the shifted variable
 

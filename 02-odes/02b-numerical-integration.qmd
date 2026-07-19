@@ -351,19 +351,19 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + k_2}{2}
 
 The local error is $O(\Delta t^3)$. To see this, Taylor-expand the exact update,
 
-\begin{equation}
+$$
 \begin{aligned}
 X(t + \Delta t) &= X(t) + \frac{dX}{dt}\Delta t + \frac{1}{2}\frac{d^2 X}{dt^2}\Delta t^2 + O(\Delta t^3) \\
 &= X(t) + f(X,t)\Delta t + \frac{1}{2}\frac{df(X,t)}{dt}\Delta t^2 + O(\Delta t^3) ,
 \end{aligned}
-\end{equation}
+$$
 
 where $\frac{df}{dt} = \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}$
 (chain rule, using $\frac{dX}{dt} = f$). Expanding $k_2$ to the same order,
 
-\begin{equation}
+$$
 k_2 = f(X,t)\Delta t + \left(f\frac{\partial f}{\partial X} + \frac{\partial f}{\partial t}\right)\Delta t^2 + O(\Delta t^3) ,
-\end{equation}
+$$
 
 so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2 + O(\Delta t^3) = X(t+\Delta t) - X(t) + O(\Delta t^3)$,
 which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
