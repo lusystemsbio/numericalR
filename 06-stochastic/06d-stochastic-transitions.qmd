@@ -169,11 +169,10 @@ get_state <- function(X, e1, e2) {
   return(NULL)                        # outside both: keep previous state
 }
 
-# state sequence over the trajectory, then count crossings
+# state sequence over the trajectory, then the steps where transitions are detected
 state_all <- unlist(apply(results[, 2:3], 1, function(X) get_state(X, ell1, ell2)))
-n_12 <- sum(diff(state_all) ==  1)    # transitions state 1 -> 2
-n_21 <- sum(diff(state_all) == -1)    # transitions state 2 -> 1
-c(state1_to_2 = n_12, state2_to_1 = n_21)
+which(diff(state_all) ==  1)    # steps of state 1 -> 2 transitions
+which(diff(state_all) == -1)    # steps of state 2 -> 1 transitions
 ```
 
 ### Python implementation {.impl}
@@ -216,16 +215,18 @@ def get_state(X, e1, e2):
 
 states = np.array([s for s in (get_state(X, ell1, ell2) for X in XY) if s is not None])
 d = np.diff(states)
-print("state1_to_2:", int(np.sum(d == 1)), " state2_to_1:", int(np.sum(d == -1)))
+print("1->2 at steps:", np.where(d ==  1)[0])   # steps of state 1 -> 2 transitions
+print("2->1 at steps:", np.where(d == -1)[0])   # steps of state 2 -> 1 transitions
 ```
 
 The ellipses capture most of each state's cloud (the factor of 1.5 enlarges the
-axes to do so), giving a handful of transitions each way over this run. The count
-is only a rough estimate, though: it can treat a brief dip across the boundary as a
-transition, so it tends to over-count incomplete excursions, and because R and
-Python draw different random streams they report somewhat different numbers. That
-run-to-run sensitivity, together with the slowness of the point-by-point R loop, is
-why we turn to a more robust statistic.
+axes to do so). Printing the step at which each transition is detected, rather than
+just the total, exposes why the count is unreliable: several of them fall within a
+few steps of one another, a $1 \to 2$ immediately followed by a $2 \to 1$ and
+another $1 \to 2$. These are not separate events but a single trajectory jittering
+back and forth across the boundary before it settles, with each wobble counted as a
+transition. That over-counting, together with the slowness of the point-by-point R
+loop, is why we turn to a more robust statistic.
 
 ## 6D.3 Mean first passage time
 
