@@ -9,17 +9,8 @@ This chapter uses ODEs to model bacterial growth (exponential growth and logisti
 growth) and reuses the numerical integrators developed in
 [Part 2B](02b-numerical-integration.qmd). Each section works through the model and
 then poses a short exercise (in a highlighted box) for you to complete by editing
-and re-running the page. The growth models follow the standard treatment in
+and re-running the code. The growth models follow the standard treatment in
 Sontag's lecture notes on mathematical systems biology [@sontag_systemsbio].
-
-::: {.callout-tip title="How to practice"}
-This page is meant to be edited and re-run. Open its source file,
-`02-odes/02c-bacterial-growth.qmd`, from the
-[book repository](https://github.com/lusystemsbio/numericalR), or, in the HTML
-version, use the **&lt;/&gt; Source** button at the top of the page. Then change
-the code, re-render, and check your answers against the practice questions below.
-Work in whichever language you prefer; both R and Python are shown.
-:::
 
 ## 2C.1 Exponential growth
 
