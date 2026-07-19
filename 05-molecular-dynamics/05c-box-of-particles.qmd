@@ -15,7 +15,7 @@ distribution function, a standard structural fingerprint of a liquid
 The system is $N_\text{tot} = 25$ identical particles of unit mass in a square box
 of side $a = 6.25$, started from an evenly spaced grid.
 
-## The Lennard-Jones interaction
+## 5C.1 The Lennard-Jones interaction
 
 Any two particles a distance $r$ apart interact through the force
 
@@ -104,7 +104,7 @@ plt.axhline(0, ls=":", color="red")
 plt.xlabel("r"); plt.ylabel("LJ potential"); plt.xlim(0,4); plt.ylim(-1,2); plt.show()
 ```
 
-## Periodic boundaries and the minimum image convention
+## 5C.2 Periodic boundaries and the minimum image convention
 
 To model a bulk system with only a few particles, we wrap the box with *periodic
 boundary conditions*: a particle that leaves one side re-enters from the opposite
@@ -162,7 +162,7 @@ print("r_min =", r_min)
 
 The velocities are never wrapped; only positions are folded back into the box.
 
-## Computing the total force
+## 5C.3 Computing the total force
 
 The force that particle $j$ exerts on particle $i$ points along their
 minimum-image separation, with the sign and magnitude set by the LJ force
@@ -233,7 +233,7 @@ def force_all(t, x_all, a):
     return f
 ```
 
-## Velocity Verlet with periodic boundaries
+## 5C.4 Velocity Verlet with periodic boundaries
 
 Each particle obeys Newton's equation with the summed LJ force,
 
@@ -283,7 +283,7 @@ def velocity_verlet_bc(f, t0, x0, v0, t_total, dt, **kwargs):
     return np.column_stack((t_all, x_all, v_all))
 ```
 
-## Simulating the box
+## 5C.5 Simulating the box
 
 We start every particle on the grid and give them small initial velocities.
 Rather than the random velocities one might use, we assign a fixed, evenly spread
@@ -371,7 +371,7 @@ machine to another) even though both begin from the same initial condition.
 Structural averages such as the radial distribution function below are
 reproducible, however, which is what we actually care about.
 
-## Animating the simulation
+## 5C.6 Animating the simulation
 
 As in [Part 5B](05b-orbital-motion.qmd), the run is much easier to read as an
 animation than as a pair of snapshots. The code below renders the box simulation
@@ -440,7 +440,7 @@ Both the R and Python versions produce an animation of the particle dynamics.
 ![The box simulation as an animation, rendered here with the R `gganimate` implementation above (the Python `matplotlib` version produces an equivalent GIF). It plays only in the HTML edition.](images/05c/md.gif){width=55% fig-align="center"}
 :::
 
-## Radial distribution function
+## 5C.7 Radial distribution function
 
 The radial distribution function $g(r)$ summarizes the structure of the fluid: it
 is the probability of finding a particle a distance $r$ from a reference particle,

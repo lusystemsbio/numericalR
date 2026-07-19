@@ -46,7 +46,7 @@ def velocity_verlet_generic(f, t0, x0, v0, t_total, dt, **kwargs):
     return np.column_stack((t_all, x_all, v_all))   # columns: t, then all x, then all v
 ```
 
-## Modeling an orbital motion
+## 5B.1 Modeling an orbital motion
 
 As a first example, a particle in a plane is attracted toward a fixed center
 (think of a satellite and the Earth) by a force whose magnitude falls off with
@@ -162,7 +162,7 @@ The first initial condition produces a closed, nearly elliptical orbit, while th
 second traces a precessing rosette that gradually fills an annulus, the orbit
 never quite closing on itself.
 
-## Two-body problem
+## 5B.2 Two-body problem
 
 Next we let two particles of equal mass attract each other in the plane, a system
 of four coordinates $(x_1, y_1, x_2, y_2)$. Each particle feels the pull of the
@@ -261,7 +261,7 @@ plt.xlabel("x"); plt.ylabel("y"); plt.legend(loc="upper left"); plt.show()
 With the momentum removed, the two particles trace a stationary, closed pattern
 centered on their common center of mass.
 
-## Three-body problem
+## 5B.3 Three-body problem
 
 Adding a third particle gives a six-coordinate system in which every particle
 attracts every other. The two-body motion was regular, but three mutually
@@ -342,7 +342,7 @@ motion never settles into a repeating pattern. Given long enough, one particle
 gains enough energy to escape and the remaining pair recoils in the opposite
 direction, the hallmark of the chaotic three-body problem.
 
-## Animating the trajectories
+## 5B.4 Animating the trajectories
 
 A static plot of the full trajectory hides the sequence of events; an animation
 makes the dynamics much easier to follow. The code below renders the three-body

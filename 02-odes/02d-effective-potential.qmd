@@ -330,6 +330,7 @@ autoplot(mb)
 ```
 
 ```{r}
+#| rmar: false
 # effective potential for k = 0.2 (monostable)
 res3 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.2)
 plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
@@ -337,6 +338,7 @@ plot(res3[, 1], res3[, 2], type = "l", col = 1, main = "k = 0.2",
 ```
 
 ```{r}
+#| rmar: false
 # effective potential for k = 0.1 (monostable)
 res4 <- cal_int_vector(0, 500, 0.1, f_1g_self_act, g0 = 10, g1 = 45, X_th = 200, n = 4, k = 0.1)
 plot(res4[, 1], res4[, 2], type = "l", col = 1, main = "k = 0.1",

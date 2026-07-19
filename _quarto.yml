@@ -64,8 +64,11 @@ bibliography: references.bib
 knitr:
   opts_chunk:
     crop: true
+    rmar: true            # trim R base plots' reserved top-title margin (see .Rprofile)
     fig.align: center     # center generated plots in every format
-    out.width: "70%"      # display width (0.70\linewidth in PDF); fonts/aspect preserved
+    fig.width: 7          # generation size (natural 7:5 aspect); square plots override
+    fig.height: 5         #   per-chunk with fig-width/height: 5
+    out.width: "55%"      # display width (0.70\linewidth in PDF); fonts/aspect preserved
 
 # Chapters are labelled 2A/2B/... by their titles and sections are numbered
 # 2A.1/2A.2/... by hand, so Quarto's automatic numbering is turned off.

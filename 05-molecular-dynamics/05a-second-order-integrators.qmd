@@ -30,7 +30,7 @@ The integrators below advance this pair step by step. Throughout, $h$ is the tim
 step size, and a subscript $n$ denotes a quantity evaluated at time
 $t_n = t_0 + n h$, so $f_n = f(x_n, t_n)$.
 
-## Modeling a harmonic oscillator
+## 5A.1 Modeling a harmonic oscillator
 
 We test each integrator on the harmonic oscillator, a mass on a spring of
 stiffness $k$, whose force is linear in the displacement,
@@ -61,7 +61,7 @@ def f_ho(t, x, k):
     return -k * x
 ```
 
-## Euler method
+## 5A.2 Euler method
 
 The Euler method carries over directly from the [first-order ODE version](../02-odes/02b-numerical-integration.qmd): advance both the
 velocity and the position by one step using their current derivatives,
@@ -200,7 +200,7 @@ $$
 makes the method symplectic (though still not time-reversible). Its
 implementation and analysis are left as an exercise.
 
-## Leapfrog method
+## 5A.3 Leapfrog method
 
 The leapfrog method is a second-order integrator that stores the velocity at
 half-integer time steps, so that position and velocity "leap" over each other,
@@ -290,7 +290,7 @@ energy plot: leapfrog stores $x_n$ and $v_{n+1/2}$ at staggered times rather tha
 at the same instant, so the massic energy computed from them shows a small
 oscillatory ripple when the step size is large.
 
-## Velocity Verlet method
+## 5A.4 Velocity Verlet method
 
 The leapfrog method never has $x$ and $v$ available at the same time. The
 velocity Verlet method fixes this by splitting the velocity update into two half
@@ -382,7 +382,7 @@ By symmetry, one can instead split the *position* update into two half steps
 around a full velocity step, giving the position Verlet method. Working out its
 update equations is left as an exercise.
 
-## Verlet method
+## 5A.5 Verlet method
 
 If the velocity is not needed as an output, the original Verlet method integrates
 the position alone [@verlet1967computer]. Adding the Taylor expansions of
