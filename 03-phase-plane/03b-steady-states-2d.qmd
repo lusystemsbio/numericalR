@@ -88,10 +88,14 @@ find_intersection <- function(lineA, lineB, nA, nB) {
 ```
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
 # test example: two three-point curves that cross along their first segments
 lineA <- array(c(0, 1, 2, 0, 0, 0), c(3, 2))
 lineB <- array(c(0.5, 0.5, 0.5, 1, -1, -3), c(3, 2))
 
+par(pty = "s")   # square plot
 plot(lineA, type = "l", col = "red", lwd = 2, xlab = "X", ylab = "Y",
      ylim = c(min(lineA[, 2], lineB[, 2]), max(lineA[, 2], lineB[, 2])))
 lines(lineB, col = "blue", lwd = 2)
@@ -130,6 +134,9 @@ def find_intersection(lineA, lineB, nA, nB):
 ```
 
 ```{python}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
 # test example: two three-point curves that cross along their first segments
 lineA = np.array([[0, 0], [1, 0], [2, 0]])
 lineB = np.array([[0.5, 1], [0.5, -1], [0.5, -3]])
