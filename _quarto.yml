@@ -59,6 +59,7 @@ book:
       chapters:
         - 06-stochastic/06a-random-number-generators.qmd
         - 06-stochastic/06b-brownian-motion.qmd
+        - 06-stochastic/06c-sde-integrators.qmd
     - references.qmd
 
 bibliography: references.bib
