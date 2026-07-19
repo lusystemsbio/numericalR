@@ -15,7 +15,7 @@ if (requireNamespace("knitr", quietly = TRUE)) {
   # or par(pty="s") still override/extend this default.
   knitr::knit_hooks$set(rmar = function(before, options) {
     if (before && isTRUE(options$rmar) && grepl("^r", tolower(options$engine))) {
-      par(mar = c(4.6, 4.6, 1.0, 1.0))
+      par(mar = c(4.6, 4.6, 0.5, 1.0))   # top=0.5 -> cropped landscape ~1.40, matching matplotlib
     }
   })
 }
