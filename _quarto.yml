@@ -31,6 +31,7 @@ book:
         - 03-phase-plane/03f-separatrix.qmd
         - 03-phase-plane/03g-effective-potential-2d.qmd
         - 03-phase-plane/03h-multi-component.qmd
+        - 03-phase-plane/03i-exercises.qmd
     - references.qmd
 
 bibliography: references.bib

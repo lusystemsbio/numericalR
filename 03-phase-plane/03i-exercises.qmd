@@ -1,0 +1,180 @@
+---
+title: "3I. Exercises"
+author: "Mingyang Lu"
+old_id: "03I"
+---
+
+These exercises accompany Part 3. They build on the phase-plane tools developed
+throughout: nullclines and steady states ([Part 3A](03a-nullclines.qmd),
+[Part 3B](03b-steady-states-2d.qmd)), bifurcation diagrams
+([Part 3E](03e-bifurcation-2d.qmd)), and numerical continuation
+([Part 2F](../02-odes/02f-bifurcation-curves.qmd)). Work in whichever language you
+prefer; the R and Python routines from the earlier chapters carry over.
+
+## 3I.1 Numerical continuation for a 2D bifurcation
+
+Reproduce the bifurcation curves of [Part 3E](03e-bifurcation-2d.qmd) using
+numerical continuation instead of separation of variables. The steady states of a
+two-variable system with a control parameter $\lambda$ trace a curve satisfying
+
+\begin{equation}
+\begin{cases}
+f_X(X, Y, \lambda) = 0 \\
+f_Y(X, Y, \lambda) = 0
+\end{cases} \tag{1}
+\end{equation}
+
+two equations in three unknowns, so the solution set is a one-dimensional curve.
+Differentiating with respect to $X$, $Y$, and $\lambda$ gives
+
+$$
+\begin{cases}
+\dfrac{\partial f_X}{\partial X}\Delta X + \dfrac{\partial f_X}{\partial Y}\Delta Y + \dfrac{\partial f_X}{\partial \lambda}\Delta \lambda = 0 \\[2mm]
+\dfrac{\partial f_Y}{\partial X}\Delta X + \dfrac{\partial f_Y}{\partial Y}\Delta Y + \dfrac{\partial f_Y}{\partial \lambda}\Delta \lambda = 0
+\end{cases}
+$$
+
+In matrix form, with the Jacobian $\mathbf{J}$, the state increment
+$\Delta\mathbf{X} = (\Delta X, \Delta Y)^\top$, and $\mathbf{f} = (f_X, f_Y)^\top$,
+
+$$ \mathbf{J}\,\Delta\mathbf{X} + \frac{\partial \mathbf{f}}{\partial \lambda}\,\Delta\lambda = 0 . \tag{2} $$
+
+Solving for the tangent of the bifurcation curve,
+
+$$ \frac{d\mathbf{X}}{d\lambda} = -\mathbf{J}^{-1}\frac{\partial \mathbf{f}}{\partial \lambda} . \tag{3} $$
+
+Equation (3) generalizes the one-variable continuation of
+[Part 2E](../02-odes/02e-bifurcation.qmd) to two variables. Implement it (a
+predictor step along $d\mathbf{X}/d\lambda$ followed by a Newton correction back
+onto Equation (1)) and recover the saddle-node and pitchfork diagrams of Part 3E.
+
+## 3I.2 A flip-flop gene circuit
+
+Two transcription factors $X$ and $Y$: $X$ activates $Y$, and $Y$ inhibits $X$.
+
+![](images/03i/flip-flop.png){width=30% fig-align="center"}
+
+The rate equations are
+
+\begin{equation}
+\begin{cases}
+\dfrac{dX}{dt} = g_{X0} + g_{X1}\dfrac{1}{1 + (Y/Y_0)^{n_Y}} - k_X X \\[2mm]
+\dfrac{dY}{dt} = g_{Y0} + g_{Y1}\dfrac{(X/X_0)^{n_X}}{1 + (X/X_0)^{n_X}} - k_Y Y
+\end{cases} \tag{4}
+\end{equation}
+
+Explore the system with phase-plane analysis.
+
+**(1)** How many steady states can the circuit have?
+
+**(2)** What is the stability of each steady state?
+
+## 3I.3 A toggle switch with self-activating genes
+
+Two transcription factors $X$ and $Y$: each inhibits the other and activates
+itself.
+
+![](images/03i/self-activating-toggle.png){width=30% fig-align="center"}
+
+The rate equations are
+
+\begin{equation}
+\begin{cases}
+\dfrac{dX}{dt} = \left(g_{X0} + g_{X1}\dfrac{(X/X_{0X})^{n_{XX}}}{1 + (X/X_{0X})^{n_{XX}}}\right)\dfrac{1}{1 + (Y/Y_{0X})^{n_{YX}}} - k_X X \\[2mm]
+\dfrac{dY}{dt} = \left(g_{Y0} + g_{Y1}\dfrac{(Y/Y_{0Y})^{n_{YY}}}{1 + (Y/Y_{0Y})^{n_{YY}}}\right)\dfrac{1}{1 + (X/X_{0Y})^{n_{XY}}} - k_Y Y
+\end{cases} \tag{5}
+\end{equation}
+
+All of $g_{X0}, g_{X1}, X_{0X}, Y_{0Y}, Y_{0X}, X_{0Y}, n_{XX}, n_{YX}, n_{YY},
+n_{XY}, k_X, k_Y$ are parameters. Using any of the numerical methods from Part 3,
+find a parameter set for which the system has **five** steady states, three of
+them stable. For that case, choose sensible axis ranges and grid spacing, then
+
+**(1)** plot the vector field (vectors or unit vectors; pick a scaling that keeps
+the plot legible);
+
+**(2)** plot the nullclines;
+
+**(3)** locate the steady states numerically;
+
+**(4)** classify each steady state from the eigenvalues of its Jacobian;
+
+**(5)** plot a bifurcation diagram of the steady-state $X$ against the control
+parameter $k_X$.
+
+## 3I.4 The FitzHugh-Nagumo model
+
+The FitzHugh-Nagumo model is a two-variable reduction of the Hodgkin-Huxley
+neuron, a standard model of an excitable system
+[@fitzhugh1961impulses; @nagumo1962active]:
+
+\begin{equation}
+\begin{cases}
+\dfrac{dv}{dt} = v - \dfrac{v^3}{3} - w + I \\[2mm]
+\dfrac{dw}{dt} = \dfrac{1}{\tau}(v + a - bw)
+\end{cases} \tag{6}
+\end{equation}
+
+where $v$ is the membrane potential, $w$ a recovery variable, $I$ the input
+current, $\tau$ a time constant, and $a, b$ parameters. Use $a = 0.7$, $b = 0.8$,
+$\tau = 12.5$.
+
+**(1)** Implement the model with an ODE solver (e.g. RK4) and explore how changing
+$I$ affects the dynamics.
+
+**(2)** For $I = 0.5$, draw the phase plane: nullclines, vector field, and the
+steady states.
+
+**(3)** Compute bifurcation diagrams with $I$ as the control parameter over
+$(-1.5, 1.5)$. For the vertical axis, try both the steady-state values of $v$ (or
+$w$) and the maximum and minimum of $v$ (or $w$) along a trajectory.
+
+## 3I.5 The spruce budworm model revisited
+
+We revisit the spruce budworm [@ludwig1978qualitative] (see also
+[Part 2F](../02-odes/02f-bifurcation-curves.qmd)), now as two interacting
+populations: the budworms (prey, $W$) and their predators ($P$),
+
+\begin{equation}
+\begin{cases}
+\dfrac{dW}{dt} = rW\left(1 - \dfrac{W}{K}\right) - aWP \\[2mm]
+\dfrac{dP}{dt} = -kP + bWP
+\end{cases} \tag{7}
+\end{equation}
+
+with intrinsic growth rate $r$, carrying capacity $K$, predation rate $a$,
+predator death rate $k$, and predator growth rate $b$. Use $r = 0.1$, $K = 1$,
+$a = 0.02$, $k = 0.2$, $b = 0.01$.
+
+**(1)** Implement the model with an ODE solver and simulate the populations from
+several initial conditions. Describe the behavior of $W$ and $P$.
+
+**(2)** Do a phase-plane analysis: nullclines, vector field, and steady states.
+
+**(3)** Explore the bifurcation diagram of the budworm population $W$ as $a$ is
+varied.
+
+## 3I.6 A chaotic system
+
+The Lorenz system [@lorenz1963deterministic] is a three-variable system famous for
+its chaotic dynamics,
+
+\begin{equation}
+\begin{cases}
+\dfrac{dx}{dt} = \sigma (y - x) \\[2mm]
+\dfrac{dy}{dt} = x (\rho - z) - y \\[2mm]
+\dfrac{dz}{dt} = xy - \beta z
+\end{cases} \tag{8}
+\end{equation}
+
+with parameters $\sigma$, $\rho$, and $\beta$. Study how its behavior changes as
+the parameters vary.
+
+**(1)** Implement the ODEs for simulation.
+
+**(2)** Fix $\sigma = 10$ and $\beta = 8/3$, and take $\rho$ as the control
+parameter. For each $\rho$ from $20$ to $400$, simulate for a duration of $1000$
+time units and plot the final $z$ levels against $\rho$.
+
+**(3)** From the diagram, identify regions of stability, bifurcation points, and
+transitions as $\rho$ is varied.

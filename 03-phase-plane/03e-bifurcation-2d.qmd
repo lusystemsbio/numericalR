@@ -284,7 +284,7 @@ tool is numerical continuation, the arc-length predictor-corrector of
 [Part 2F](../02-odes/02f-bifurcation-curves.qmd) generalized from one equation in
 two variables to $n$ equations in $n + 1$ variables (here $n = 2$). Reproducing
 these bifurcation curves by numerical continuation is left as an exercise in
-Part 3I.
+[Part 3I](03i-exercises.qmd).
 
 ::: {.callout-note title="Practice Q1"}
 Both diagrams come from the same circuit. Varying $k$ keeps the
