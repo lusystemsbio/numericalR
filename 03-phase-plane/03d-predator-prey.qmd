@@ -78,8 +78,11 @@ legend("topright", inset = 0.02, legend = c("N (prey)", "P (predator)"),
 ```
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 5
 # nested closed orbits from four initial conditions
 ICs <- rbind(c(30, 10), c(40, 20), c(30, 25), c(20, 40))
+par(pty = "s")   # square phase plane
 plot(NULL, xlab = "N", ylab = "P", xlim = c(0, 150), ylim = c(0, 100))
 for (i in seq_len(nrow(ICs))) {
   r <- RK4_generic(derivs_LV, ICs[i, ], 50, 0.01, a, b, c, d)
@@ -125,6 +128,8 @@ plt.legend(loc="upper right"); plt.show()
 ```
 
 ```{python}
+#| fig-width: 5
+#| fig-height: 5
 # nested closed orbits from four initial conditions
 ICs = np.array([[30, 10], [40, 20], [30, 25], [20, 40]])
 for i, ic in enumerate(ICs):
@@ -164,6 +169,8 @@ four nullcline lines and the two steady states, and add one orbit.
 ### R implementation {.impl}
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 5
 #| message: false
 #| warning: false
 library(ggplot2)
@@ -187,12 +194,16 @@ p_field +
   geom_point(aes(x = d/c, y = a/b, colour = "Steady state"), size = 3) +
   geom_path(data = orbit, aes(N, P, colour = "Orbit")) +
   scale_colour_manual(values = c("red", "black", "blue", "orange")) +
-  labs(colour = NULL)
+  labs(colour = NULL) +
+  theme(legend.position = c(0.99, 0.99), legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "white", colour = "grey80"))
 ```
 
 ### Python implementation {.impl}
 
 ```{python}
+#| fig-width: 5
+#| fig-height: 5
 N_ax = np.arange(0, 151, 10); P_ax = np.arange(0, 101, 10)
 grid = np.array(np.meshgrid(N_ax, P_ax)).T.reshape(-1, 2)
 for N, P in grid:
@@ -320,6 +331,7 @@ legend("topright", inset = 0.02, legend = c("Hare", "Lynx"), col = 2:3, lty = 1,
 #| fig-width: 5
 #| fig-height: 5
 # the same data as a trajectory in the (hare, lynx) phase plane
+par(pty = "s")   # square phase plane
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4,
      xlab = "Hare (x1000)", ylab = "Lynx (x1000)", xlim = c(0, 100), ylim = c(0, 100))
 ```
@@ -352,6 +364,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 #| fig-height: 5
 # the same data as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue")
+plt.gca().set_aspect("equal")   # square phase plane
 plt.xlabel("Hare (x1000)"); plt.ylabel("Lynx (x1000)")
 plt.xlim(0, 100); plt.ylim(0, 100); plt.show()
 ```
@@ -386,9 +399,7 @@ round(p_fit, 4)
 ```
 
 ```{r}
-#| fig-width: 5
-#| fig-height: 5
-# the fitted model against the data, in time and in the phase plane
+# the fitted model against the data (time courses)
 sim <- RK4_generic(derivs_LV, data_LV[1, ], 20, 0.1, p_fit[1], p_fit[2], p_fit[3], p_fit[4])
 plot(lvdata$year, lvdata$hare, type = "b", pch = 15, col = 2, xlab = "Year",
      ylab = "Level (x1000)", xlim = c(1900, 1920), ylim = c(0, 100))
@@ -397,7 +408,13 @@ lines(sim[, 1] + 1900, sim[, 2], col = 2, lty = 2)
 lines(sim[, 1] + 1900, sim[, 3], col = 3, lty = 2)
 legend("topright", inset = 0.02, legend = c("Hare data", "Lynx data", "fit"),
        col = c(2, 3, 1), lty = c(1, 1, 2), pch = c(15, 15, NA), cex = 0.8)
+```
 
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+# the same fit as a trajectory in the (hare, lynx) phase plane
+par(pty = "s")
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4, xlab = "Hare (x1000)",
      ylab = "Lynx (x1000)", xlim = c(0, 100), ylim = c(0, 100))
 lines(sim[, 2], sim[, 3], col = 2)   # fitted trajectory in the phase plane
@@ -425,22 +442,24 @@ print("fitted a,b,c,d =", np.round(p_fit, 4))
 ```
 
 ```{python}
-#| fig-width: 5
-#| fig-height: 5
-# the fitted model against the data, in time and in the phase plane
+# the fitted model against the data (time courses)
 sim = RK4_generic(derivs_LV, data_LV[0], 20, 0.1,
                   a=p_fit[0], b=p_fit[1], c=p_fit[2], d=p_fit[3])
-plt.figure()
 plt.plot(yr, lvdata["hare"], "s-", color="red",   label="Hare data")
 plt.plot(yr, lvdata["lynx"], "s-", color="green", label="Lynx data")
 plt.plot(sim[:, 0] + 1900, sim[:, 1], "--", color="red")
 plt.plot(sim[:, 0] + 1900, sim[:, 2], "--", color="green")
 plt.xlabel("Year"); plt.ylabel("Level (x1000)"); plt.ylim(0, 100)
 plt.legend(loc="upper right", fontsize=8); plt.show()
+```
 
-plt.figure()
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+# the same fit as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue", label="data")
 plt.plot(sim[:, 1], sim[:, 2], color="red", label="fit")   # fitted trajectory
+plt.gca().set_aspect("equal")
 plt.xlabel("Hare (x1000)"); plt.ylabel("Lynx (x1000)")
 plt.xlim(0, 100); plt.ylim(0, 100); plt.legend(fontsize=8); plt.show()
 ```
@@ -478,9 +497,7 @@ cal_error(p_lr)         # ... its raw SSD is larger than the minimized fit of 3D
 ```
 
 ```{r}
-#| fig-width: 5
-#| fig-height: 5
-# the regression fit against the data, in time and in the phase plane
+# the regression fit against the data (time courses)
 sim <- RK4_generic(derivs_LV, data_LV[1, ], 20, 0.1, p_lr[1], p_lr[2], p_lr[3], p_lr[4])
 plot(lvdata$year, lvdata$hare, type = "b", pch = 15, col = 2, xlab = "Year",
      ylab = "Level (x1000)", xlim = c(1900, 1920), ylim = c(0, 100))
@@ -489,7 +506,13 @@ lines(sim[, 1] + 1900, sim[, 2], col = 2, lty = 2)
 lines(sim[, 1] + 1900, sim[, 3], col = 3, lty = 2)
 legend("topright", inset = 0.02, legend = c("Hare data", "Lynx data", "regression fit"),
        col = c(2, 3, 1), lty = c(1, 1, 2), pch = c(15, 15, NA), cex = 0.8)
+```
 
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+# the same regression fit as a trajectory in the (hare, lynx) phase plane
+par(pty = "s")
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4, xlab = "Hare (x1000)",
      ylab = "Lynx (x1000)", xlim = c(0, 100), ylim = c(0, 100))
 lines(sim[, 2], sim[, 3], col = 2)   # regression trajectory in the phase plane
@@ -508,22 +531,24 @@ print("a,b,c,d =", np.round(p_lr, 4), " raw SSD =", round(cal_error(p_lr), 1))
 ```
 
 ```{python}
-#| fig-width: 5
-#| fig-height: 5
-# the regression fit against the data, in time and in the phase plane
+# the regression fit against the data (time courses)
 sim = RK4_generic(derivs_LV, data_LV[0], 20, 0.1,
                   a=p_lr[0], b=p_lr[1], c=p_lr[2], d=p_lr[3])
-plt.figure()
 plt.plot(yr, lvdata["hare"], "s-", color="red",   label="Hare data")
 plt.plot(yr, lvdata["lynx"], "s-", color="green", label="Lynx data")
 plt.plot(sim[:, 0] + 1900, sim[:, 1], "--", color="red")
 plt.plot(sim[:, 0] + 1900, sim[:, 2], "--", color="green")
 plt.xlabel("Year"); plt.ylabel("Level (x1000)"); plt.ylim(0, 100)
 plt.legend(loc="upper right", fontsize=8); plt.show()
+```
 
-plt.figure()
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+# the same regression fit as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue", label="data")
 plt.plot(sim[:, 1], sim[:, 2], color="red", label="regression fit")
+plt.gca().set_aspect("equal")
 plt.xlabel("Hare (x1000)"); plt.ylabel("Lynx (x1000)")
 plt.xlim(0, 100); plt.ylim(0, 100); plt.legend(fontsize=8); plt.show()
 ```
