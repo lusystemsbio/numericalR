@@ -80,6 +80,7 @@ legend("topright", inset = 0.02, legend = c("N (prey)", "P (predator)"),
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # nested closed orbits from four initial conditions
 ICs <- rbind(c(30, 10), c(40, 20), c(30, 25), c(20, 40))
 par(pty = "s")   # square phase plane
@@ -130,6 +131,7 @@ plt.legend(loc="upper right"); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # nested closed orbits from four initial conditions
 ICs = np.array([[30, 10], [40, 20], [30, 25], [20, 40]])
 for i, ic in enumerate(ICs):
@@ -171,6 +173,7 @@ four nullcline lines and the two steady states, and add one orbit.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 #| warning: false
 library(ggplot2)
@@ -204,6 +207,7 @@ p_field +
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 N_ax = np.arange(0, 151, 10); P_ax = np.arange(0, 101, 10)
 grid = np.array(np.meshgrid(N_ax, P_ax)).T.reshape(-1, 2)
 for N, P in grid:
@@ -330,6 +334,7 @@ legend("topright", inset = 0.02, legend = c("Hare", "Lynx"), col = 2:3, lty = 1,
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same data as a trajectory in the (hare, lynx) phase plane
 par(pty = "s")   # square phase plane
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4,
@@ -362,6 +367,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same data as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue")
 plt.gca().set_aspect("equal")   # square phase plane
@@ -413,6 +419,7 @@ legend("topright", inset = 0.02, legend = c("Hare data", "Lynx data", "fit"),
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same fit as a trajectory in the (hare, lynx) phase plane
 par(pty = "s")
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4, xlab = "Hare (x1000)",
@@ -456,6 +463,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same fit as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue", label="data")
 plt.plot(sim[:, 1], sim[:, 2], color="red", label="fit")   # fitted trajectory
@@ -511,6 +519,7 @@ legend("topright", inset = 0.02, legend = c("Hare data", "Lynx data", "regressio
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same regression fit as a trajectory in the (hare, lynx) phase plane
 par(pty = "s")
 plot(lvdata$hare, lvdata$lynx, type = "b", pch = 15, col = 4, xlab = "Hare (x1000)",
@@ -545,6 +554,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # the same regression fit as a trajectory in the (hare, lynx) phase plane
 plt.plot(lvdata["hare"], lvdata["lynx"], "s-", color="blue", label="data")
 plt.plot(sim[:, 1], sim[:, 2], color="red", label="regression fit")

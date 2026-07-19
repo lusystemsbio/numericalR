@@ -41,6 +41,7 @@ states and *outward* along the separatrix, the reverse of the original flow.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 library(ggplot2)
 hill_inh <- function(X, X_th, n) 1 / (1 + (X / X_th)^n)      # same as Part 3A
@@ -70,6 +71,7 @@ p1
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -110,6 +112,7 @@ the red separatrix, confirming that it is the boundary between the two basins.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| warning: false
 # RK4 for a generic multi-variable system (same as Part 3A)
 RK4_generic <- function(derivs, X0, t.total, dt, ...) {
@@ -163,6 +166,7 @@ p1
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| warning: false
 # RK4 for a generic multi-variable system (same as Part 3A)
 def RK4_generic(derivs, X0, t_total, dt, **kw):

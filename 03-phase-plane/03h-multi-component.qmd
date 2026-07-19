@@ -82,6 +82,7 @@ produces damped oscillations.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 library(ggplot2)
 derivs_neg <- function(t, Xs, g, h) {
@@ -104,6 +105,7 @@ p1
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 set.seed(77)
 X_init_all <- matrix(runif(20, 0, 2), ncol = 2)   # 10 random initial conditions
 for (i in seq_len(nrow(X_init_all))) {
@@ -119,6 +121,7 @@ p1
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 def derivs_neg(t, Xs, g, h):
     x, y = Xs
     return [g / (1 + y**3) - x, h * x**3 / (1 + x**3) - y]
@@ -136,6 +139,7 @@ plt.xlim(0, 3); plt.ylim(0, 5); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 for X, Y in grid:                                 # redraw the vector field
     v = np.array(derivs_neg(0, (X, Y), g, h)); v = 0.2 * v / np.sqrt(v @ v)
     plt.arrow(X, Y, v[0], v[1], head_width=0.06, ec="black")
@@ -233,6 +237,7 @@ states, the bistability we analyzed before.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 derivs_ts <- function(t, Xs, g, h) {
   x <- Xs[1]; y <- Xs[2]
@@ -248,6 +253,7 @@ plot_phase_plane(derivs_ts, xrange = c(0, 6), yrange = c(0, 6), ngrids = 11,
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 def derivs_ts(t, Xs, g, h):
     x, y = Xs
     return [g / (1 + y**3) - x, h / (1 + x**3) - y]
@@ -283,6 +289,7 @@ then projected. With $g = h = l = 5$ the trajectories converge to a closed loop,
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 # full 3-variable repressilator
 derivs_rep <- function(t, Xs, g) {
@@ -321,6 +328,7 @@ p1
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # full 3-variable repressilator
 def derivs_rep(t, Xs, g):
     x, y, z = Xs

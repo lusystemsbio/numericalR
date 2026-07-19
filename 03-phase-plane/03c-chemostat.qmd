@@ -79,6 +79,7 @@ RK4_generic <- function(derivs, X0, t.total, dt, ...) {
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 alpha1 <- 2; alpha2 <- 5
 res1 <- RK4_generic(derivs_chemostat, c(0, 0),    20, 0.01, alpha1, alpha2)   # washout
 res2 <- RK4_generic(derivs_chemostat, c(0.01, 0), 20, 0.01, alpha1, alpha2)   # tiny seed
@@ -118,6 +119,7 @@ def RK4_generic(derivs, X0, t_total, dt, **kw):
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 alpha1, alpha2 = 2.0, 5.0
 res1 = RK4_generic(derivs_chemostat, [0, 0],    20, 0.01, alpha1=alpha1, alpha2=alpha2)
 res2 = RK4_generic(derivs_chemostat, [0.01, 0], 20, 0.01, alpha1=alpha1, alpha2=alpha2)
@@ -171,6 +173,7 @@ methods of Part 3A apply here too and are left as practice.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 #| warning: false
 library(ggplot2)
@@ -198,12 +201,15 @@ p_field +
   geom_path(data = nullN_1, aes(N, C, colour = "dN/dt=0"), linewidth = 1) +
   geom_path(data = nullN_2, aes(N, C, colour = "dN/dt=0"), linewidth = 1) +
   geom_path(data = nullC,   aes(N, C, colour = "dC/dt=0"), linewidth = 1) +
-  labs(colour = NULL)
+  labs(colour = NULL) +
+  theme(legend.position = c(0.99, 0.99), legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "white", colour = "grey80"))
 ```
 
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 # C-nullcline by root finding: solve g(N, C) = 0 for C at each N (rootSolve)
 library(rootSolve)
@@ -215,7 +221,9 @@ nullC_root <- do.call(rbind, lapply(seq(0, 10, 0.1), function(N) {
 
 p_field +
   geom_path(data = as.data.frame(nullC_root), aes(N, C, colour = "dC/dt=0"), linewidth = 1) +
-  labs(colour = NULL)
+  labs(colour = NULL) +
+  theme(legend.position = c(0.99, 0.99), legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "white", colour = "grey80"))
 ```
 
 ### Python implementation {.impl}
@@ -223,6 +231,7 @@ p_field +
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # unit vector field on a grid (arrows normalized to a fixed length)
 N_ax = np.arange(0, 10.01, 0.5); C_ax = np.arange(0, 10.01, 0.5)
 grid = np.array(np.meshgrid(N_ax, C_ax)).T.reshape(-1, 2)
@@ -251,6 +260,7 @@ plt.xlabel("N"); plt.ylabel("C"); plt.legend(loc="upper right"); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # C-nullcline by root finding: solve g(N, C) = 0 for C at each N.
 # g(N, C) = 0 has a single positive root per N, so a bracketing solver (brentq)
 # suffices; R's rootSolve::uniroot.all would instead return every root in [0, 10].

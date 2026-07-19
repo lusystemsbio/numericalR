@@ -36,6 +36,7 @@ saddle at $(118, 118)$, found by the intersection method of
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 library(ggplot2)
 # symmetric toggle switch
@@ -72,6 +73,7 @@ ggplot() +
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 import numpy as np
 import matplotlib.pyplot as plt
 

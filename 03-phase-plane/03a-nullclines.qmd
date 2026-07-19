@@ -136,6 +136,7 @@ attractors, confirming the two stable steady states.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 plot(NULL, xlab = "X (nM)", ylab = "Y (nM)", xlim = c(0, 600), ylim = c(0, 650))
 for (i in seq_len(nrow(X_init_all))) {
   res <- RK4_generic(derivs_ts, X_init_all[i, ], t.total, dt)
@@ -148,6 +149,7 @@ for (i in seq_len(nrow(X_init_all))) {
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 plt.xlabel("X (nM)"); plt.ylabel("Y (nM)")
 plt.xlim(0, 600); plt.ylim(0, 650)
 for i in range(X_init_all.shape[0]):
@@ -171,6 +173,7 @@ the speed.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 #| message: false
 # vector field: the derivative (dX/dt, dY/dt) as an arrow at each grid point
 library(ggplot2)
@@ -187,6 +190,7 @@ ggplot(vf, aes(X, Y)) +
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # unit vectors: same directions, normalized to a fixed length
 vfu <- t(apply(grid, 1, function(Xs) {
   v <- derivs_ts(0, Xs)
@@ -206,6 +210,7 @@ p_field
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # vector field: the derivative (dX/dt, dY/dt) as an arrow at each grid point
 X_all = np.arange(0, 601, 20)
 Y_all = np.arange(0, 651, 20)
@@ -221,6 +226,7 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.show()
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 # unit vectors: same directions, normalized to a fixed length
 def unit_arrow(X, Y, scale=15):
     dX, dY = derivs_ts(0, (X, Y))
@@ -248,8 +254,10 @@ $$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1 + (X/X_{th})^{n_X}} - k_Y Y = 0 \tag{2}
 For this circuit each nullcline can be solved in closed form by *separation of
 variables*: rearranging Equation (1) for $X$ and Equation (2) for $Y$,
 
-$$ X(Y) = \frac{g_{X0} + g_{X1}\dfrac{1}{1 + (Y/Y_{th})^{n_Y}}}{k_X} , \qquad
-   Y(X) = \frac{g_{Y0} + g_{Y1}\dfrac{1}{1 + (X/X_{th})^{n_X}}}{k_Y} . \tag{3} $$
+$$ \begin{aligned}
+X(Y) &= \frac{g_{X0} + g_{X1}\dfrac{1}{1 + (Y/Y_{th})^{n_Y}}}{k_X} , \\[2mm]
+Y(X) &= \frac{g_{Y0} + g_{Y1}\dfrac{1}{1 + (X/X_{th})^{n_X}}}{k_Y} .
+\end{aligned} \tag{3} $$
 
 Sweeping $Y$ (or $X$) then traces each nullcline directly. Overlaid on the unit
 vector field, the two nullclines cross three times: the outer two crossings are
@@ -262,6 +270,7 @@ next two sections give general numerical alternatives.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 nullcline1 <- function(Y) cbind(X = (5 + 50 * hill_inh(Y, 100, 4)) / 0.1,  Y = Y)   # dX/dt = 0
 nullcline2 <- function(X) cbind(X = X,  Y = (4 + 40 * hill_inh(X, 150, 4)) / 0.12)   # dY/dt = 0
 
@@ -271,7 +280,9 @@ null2 <- as.data.frame(nullcline2(seq(0, 600, 1)))
 p_field +
   geom_path(data = null1, aes(X, Y, colour = "dX/dt=0"), linewidth = 1) +
   geom_path(data = null2, aes(X, Y, colour = "dY/dt=0"), linewidth = 1) +
-  labs(colour = NULL)
+  labs(colour = NULL) +
+  theme(legend.position = c(0.99, 0.99), legend.justification = c(1, 1),
+        legend.background = element_rect(fill = "white", colour = "grey80"))
 ```
 
 ### Python implementation {.impl}
@@ -279,6 +290,7 @@ p_field +
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 def nullcline1(Y):   # dX/dt = 0
     return np.column_stack(((5 + 50 * hill_inh(Y, 100, 4)) / 0.1, Y))
 def nullcline2(X):   # dY/dt = 0
@@ -310,6 +322,7 @@ though a fine grid over two dimensions can be costly.
 ```{r}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 X_all <- seq(0, 600, 10); Y_all <- seq(0, 650, 10)
 z_X <- outer(X_all, Y_all, function(X, Y) 5 + 50 * hill_inh(Y, 100, 4) - 0.1 * X)
 z_Y <- outer(X_all, Y_all, function(X, Y) 4 + 40 * hill_inh(X, 150, 4) - 0.12 * Y)
@@ -324,6 +337,7 @@ legend("topright", inset = 0.02, legend = c("dX/dt=0", "dY/dt=0"), col = c(2, 4)
 ```{python}
 #| fig-width: 5
 #| fig-height: 5
+#| out-width: "55%"
 X_all = np.arange(0, 601, 10); Y_all = np.arange(0, 651, 10)
 Xg, Yg = np.meshgrid(X_all, Y_all)
 z_X = 5 + 50 * hill_inh(Yg, 100, 4) - 0.1 * Xg
@@ -388,6 +402,9 @@ RK4_1D_steady <- function(derivs, X0, t.total, dt, ...) {
 ```
 
 ```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
 # arc-length continuation of a nullcline: step in (X, Y), Newton-correct in X
 nullcline_numcont <- function(func, dfdX, dfdY, X_range, Y_range,
                               X_init, Y_init, direct = 1, step_arc = 3) {
@@ -425,6 +442,7 @@ X0_null2 <- RK4_1D_steady(f_null2, X0 = 1, Y = 366.6, t.total = 1000, dt = 0.01)
 null2_cont <- nullcline_numcont(f_null2, dfdX_null2, dfdY_null2, X_range, Y_range,
                                 X_init = X0_null2, Y_init = 366.6, direct = -1)
 
+par(pty = "s")   # square phase plane
 plot(NULL, xlab = "X", ylab = "Y", xlim = X_range, ylim = Y_range)
 points(null1_cont[, 1], null1_cont[, 2], pch = 1, cex = 0.3, col = 2)
 points(null2_cont[, 1], null2_cont[, 2], pch = 1, cex = 0.3, col = 4)
