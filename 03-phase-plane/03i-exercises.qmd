@@ -4,13 +4,6 @@ author: "Mingyang Lu"
 old_id: "03I"
 ---
 
-These exercises accompany Part 3. They build on the phase-plane tools developed
-throughout: nullclines and steady states ([Part 3A](03a-nullclines.qmd),
-[Part 3B](03b-steady-states-2d.qmd)), bifurcation diagrams
-([Part 3E](03e-bifurcation-2d.qmd)), and numerical continuation
-([Part 2F](../02-odes/02f-bifurcation-curves.qmd)). Work in whichever language you
-prefer; the R and Python routines from the earlier chapters carry over.
-
 ## 3I.1 Numerical continuation for a 2D bifurcation
 
 Reproduce the bifurcation curves of [Part 3E](03e-bifurcation-2d.qmd) using

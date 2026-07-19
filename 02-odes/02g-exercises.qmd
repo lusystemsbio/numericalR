@@ -4,13 +4,6 @@ author: "Mingyang Lu"
 old_id: "02F"
 ---
 
-These exercises accompany Part 2. They build on the ODE integrators of
-[Part 2B](02b-numerical-integration.qmd), the gene-circuit models of
-[Part 2A](02a-modeling-gene-circuits.qmd), and the bifurcation methods of Parts
-[2E](02e-bifurcation.qmd) and [2F](02f-bifurcation-curves.qmd). Work in whichever
-language you prefer; the R and Python integrators from the earlier chapters carry
-over.
-
 ## 2G.1 Adams-Bashforth method
 
 The Adams-Bashforth method is a two-step scheme for integrating a single-variable

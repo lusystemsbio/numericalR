@@ -4,12 +4,6 @@ author: "Mingyang Lu"
 old_id: "04D"
 ---
 
-These exercises accompany Part 4. They build on the DDE integrators of
-[Part 4A](04a-delayed-differential-equations.qmd), the delay models of
-[Part 4B](04b-modeling-time-delays.qmd), and the feedback-loop constructions of
-[Part 4C](04c-indirect-interactions.qmd). Work in whichever language you prefer;
-the R and Python integrators from those chapters carry over.
-
 ## 4D.1 A bifurcation diagram in the delay
 
 Take the self-inhibiting gene of [Part 4B](04b-modeling-time-delays.qmd), whose
