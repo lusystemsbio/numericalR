@@ -61,6 +61,7 @@ book:
         - 06-stochastic/06b-brownian-motion.qmd
         - 06-stochastic/06c-sde-integrators.qmd
         - 06-stochastic/06d-stochastic-transitions.qmd
+        - 06-stochastic/06e-exercises.qmd
     - references.qmd
 
 bibliography: references.bib

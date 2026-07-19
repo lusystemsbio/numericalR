@@ -1,0 +1,70 @@
+---
+title: "6E. Exercises"
+author: "Mingyang Lu"
+old_id: "06E"
+---
+
+## 6E.1 Convergence of stochastic simulations
+
+SDE simulations are stochastic, so we judge their convergence and stability
+through statistics of the trajectories, such as mean levels and their standard
+deviations. Using the [Ornstein-Uhlenbeck process](06c-sde-integrators.qmd) as the
+test case, design an experiment that measures how the simulation statistics
+converge as the computational cost grows (take the cost to be proportional to the
+total simulation length).
+
+## 6E.2 Geometric Brownian motion
+
+Consider a geometric Brownian motion, governed by the SDE
+
+$$ dX = \mu X\,dt + \sigma X\,dW , \tag{1} $$
+
+with positive constants $\mu$ and $\sigma$. Using Euler-Maruyama simulations, show
+that
+
+**(a)** the mean is $\langle X \rangle = X_0\, e^{\mu t}$, and
+
+**(b)** the variance is $\mathrm{Var}(X) = X_0^2\, e^{2\mu t} \left( e^{\sigma^2 t} - 1 \right)$.
+
+Use $\mu = 0.1$, $\sigma = 0.2$, and $X_0 = 1$.
+
+Hint: simulate many trajectories of the same system with the same parameters and
+initial condition, differing only in their random draws, then compute the mean and
+variance at each of several time points. Run at least 100 simulations and evaluate
+the statistics at 10 time points (choose small $t$ and a short total time to keep
+the cost down). Check whether the simulated statistics match the formulas above.
+
+## 6E.3 Noise in a flip-flop circuit
+
+Return to the [flip-flop circuit](../03-phase-plane/03h-multi-component.qmd) of
+Part 3H and add gene-expression noise. Write down the corresponding SDEs, simulate
+the stochastic dynamics, and describe what kinds of behavior the circuit shows once
+noise is present.
+
+## 6E.4 Effective potential revisited
+
+We have defined an effective potential for nonlinear systems by analogy with
+over-damped dynamics ([Part 2D](../02-odes/02d-effective-potential.qmd) and
+[Part 3G](../03-phase-plane/03g-effective-potential-2d.qmd)), but that definition
+runs into trouble in higher dimensions. An alternative defines the potential from
+the occupancy of the phase plane,
+
+$$ U(X, Y) = -\log P(X, Y) , \tag{2} $$
+
+where $P(X, Y)$ is the probability of finding the system near $(X, Y)$. Using the
+[toggle switch](../03-phase-plane/03a-nullclines.qmd) as an example, run SDE
+simulations, estimate $P(X, Y)$, and compute this effective potential. Plot the
+potential along each of the nullclines, and compare it with the over-damped
+definition.
+
+## 6E.5 Transition state theory
+
+Revisit the transition-rate calculation of
+[Part 6D](06d-stochastic-transitions.qmd), now varying the noise level. Determine
+how the transition rate depends on the noise, and check whether the results follow
+the Arrhenius (Kramers) form for noise-activated barrier crossing
+[@kramers1940brownian],
+
+$$ \kappa \propto e^{-\frac{\Delta U}{D}} , \tag{3} $$
+
+where $D$ is the noise level and $\Delta U$ the barrier height.
