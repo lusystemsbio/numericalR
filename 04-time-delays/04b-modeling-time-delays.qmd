@@ -213,8 +213,9 @@ legend("topright", inset = 0.02, legend = c("N", "P"), col = c(2, 3), lty = 1, c
 #| fig-width: 5
 #| fig-height: 5
 # phase plane: the delay turns the closed orbit into an outward spiral
+par(pty = "s")   # square plot region
 plot(res_nodelay[, 2], res_nodelay[, 3], type = "l", col = 2, xlab = "N", ylab = "P",
-     xlim = c(0, 180), ylim = c(0, 150), asp = 1)
+     xlim = c(0, 180), ylim = c(0, 150))
 lines(res_delay[, 2], res_delay[, 3], col = 4)
 legend("topright", inset = 0.02, legend = c("no delay", "with delay"),
        col = c(2, 4), lty = 1, cex = 0.8)
@@ -261,7 +262,6 @@ plt.legend(loc="upper right"); plt.show()
 # phase plane: the delay turns the closed orbit into an outward spiral
 plt.plot(res_nodelay[:, 1], res_nodelay[:, 2], color="red",  label="no delay")
 plt.plot(res_delay[:, 1],   res_delay[:, 2],   color="blue", label="with delay")
-plt.gca().set_aspect("equal")
 plt.xlabel("N"); plt.ylabel("P"); plt.xlim(0, 180); plt.ylim(0, 150)
 plt.legend(loc="upper right"); plt.show()
 ```
