@@ -1,0 +1,295 @@
+---
+title: "3E. Bifurcation for two-variable systems"
+author: "Mingyang Lu"
+old_id: "03E"
+---
+
+[Part 3A](03a-nullclines.qmd) and [Part 3B](03b-steady-states-2d.qmd) built the
+tools to locate a two-variable system's steady states and classify their stability
+at a fixed set of parameters. This chapter puts them to work to trace a
+**bifurcation diagram**: how the steady states, and their stability, change as a
+control parameter varies. As in [Part 2E](../02-odes/02e-bifurcation.qmd) for
+one-variable systems, a qualitative change in the number or stability of steady
+states is a bifurcation [@strogatz2015nonlinear]. Here two classic types appear in
+the same two-gene toggle switch [@gardner2000toggle], depending on which parameter
+we sweep.
+
+We use a slightly modified toggle switch with two variables $X$ and $Y$ and two
+tunable parameters, the maximum production rate $g_X$ and the common degradation
+rate $k$,
+
+\begin{equation}
+\begin{cases}
+\dfrac{dX}{dt} = f_X(X, Y, g_X, k) = 5 + g_X\dfrac{1}{1 + (Y/100)^4} - kX \\[2mm]
+\dfrac{dY}{dt} = f_Y(X, Y, g_X, k) = 5 + 50\dfrac{1}{1 + (X/100)^4} - kY
+\end{cases} \tag{1}
+\end{equation}
+
+At $g_X = 50$ the two genes have identical parameters, so the circuit is symmetric
+under swapping $X \leftrightarrow Y$; moving $g_X$ away from $50$ breaks that
+symmetry. We build a bifurcation diagram by varying either $g_X$ or $k$.
+
+## 3E.1 The bifurcation scan
+
+The recipe reuses the whole Part 3A/3B pipeline at each parameter value: (1) build
+the two nullclines by separation of variables (Part 3A), (2) find their
+intersections, the steady states (Part 3B), and (3) classify each by the
+eigenvalues of its Jacobian (Part 3B). Sweeping the control parameter and plotting
+the steady-state $X$ against it, colored by stability, traces the diagram. The
+function `find_steady_states` packages the three steps; `find_intersection`,
+`find_intersection_all_fast`, and `stability_2D` are exactly the routines from
+Part 3B.
+
+### R implementation {.impl}
+
+```{r}
+# modified toggle switch, with gX and k as tunable parameters
+fx <- function(X, Y, gX, k) 5 + gX / (1 + (Y / 100)^4) - k * X   # dX/dt
+fy <- function(X, Y, gX, k) 5 + 50 / (1 + (X / 100)^4) - k * Y   # dY/dt
+derivs_ts <- function(t, Xs, gX, k) c(fx(Xs[1], Xs[2], gX, k), fy(Xs[1], Xs[2], gX, k))
+```
+
+```{r}
+# nullclines by separation of variables (as in Part 3A), as point series within range
+null_fx <- function(gX, k, X_range, Y_range) {                    # dX/dt = 0
+  Y_all <- seq(Y_range[1], Y_range[2], length.out = 1000)
+  X_all <- (5 + gX / (1 + (Y_all / 100)^4)) / k
+  keep <- (X_all - X_range[1]) * (X_all - X_range[2]) <= 0
+  cbind(X = X_all[keep], Y = Y_all[keep])
+}
+null_fy <- function(gX, k, X_range, Y_range) {                    # dY/dt = 0
+  X_all <- seq(X_range[1], X_range[2], length.out = 1000)
+  Y_all <- (5 + 50 / (1 + (X_all / 100)^4)) / k
+  keep <- (Y_all - Y_range[1]) * (Y_all - Y_range[2]) <= 0
+  cbind(X = X_all[keep], Y = Y_all[keep])
+}
+```
+
+```{r}
+# line-segment intersection finders (same as Part 3B)
+find_intersection <- function(lineA, lineB, nA, nB) {
+  dAX <- lineA[nA + 1, 1] - lineA[nA, 1]; dAY <- lineA[nA + 1, 2] - lineA[nA, 2]
+  dBX <- lineB[nB + 1, 1] - lineB[nB, 1]; dBY <- lineB[nB + 1, 2] - lineB[nB, 2]
+  dABX <- lineB[nB, 1] - lineA[nA, 1];    dABY <- lineB[nB, 2] - lineA[nA, 2]
+  d <- dAX * dBY - dAY * dBX
+  alpha <- (dABX * dBY - dABY * dBX) / d; beta <- (dABX * dAY - dABY * dAX) / d
+  if (alpha * (1 - alpha) >= 0 && beta * (1 - beta) >= 0)
+    c((1 - alpha) * lineA[nA, 1] + alpha * lineA[nA + 1, 1],
+      (1 - alpha) * lineA[nA, 2] + alpha * lineA[nA + 1, 2], 1)
+  else c(alpha, beta, 0)
+}
+
+find_intersection_all_fast <- function(lineA, lineB, dxdt, dydt) {
+  small <- 1e-3
+  lineA_ind <- which(dydt * c(dydt[-1], NA) <= small)
+  lineB_ind <- which(dxdt * c(dxdt[-1], NA) <= small)
+  lines_all <- expand.grid(lineA_ind, lineB_ind)
+  results <- apply(lines_all, 1, function(i) find_intersection(lineA, lineB, i[1], i[2]))
+  t(results[1:2, results[3, ] == 1, drop = FALSE])
+}
+```
+
+```{r}
+# stability from the numerical Jacobian eigenvalues (same as Part 3B)
+stability_2D <- function(derivs, ss, ...) {
+  delta <- 0.001
+  f0  <- derivs(0, ss, ...)
+  fdx <- derivs(0, ss + c(delta, 0), ...)
+  fdy <- derivs(0, ss + c(0, delta), ...)
+  jacobian <- matrix(c((fdx[1] - f0[1]) / delta, (fdx[2] - f0[2]) / delta,
+                       (fdy[1] - f0[1]) / delta, (fdy[2] - f0[2]) / delta), 2)
+  lambda <- eigen(jacobian)$values
+  if (is.complex(lambda)) { if (Re(lambda[1]) < 0) 4 else 5 }
+  else if (lambda[1] < 0 && lambda[2] < 0) 1
+  else if (lambda[1] >= 0 && lambda[2] >= 0) 2 else 3
+}
+```
+
+```{r}
+# steady states + stability at one parameter setting
+find_steady_states <- function(gX, k, X_range, Y_range) {
+  line_1 <- null_fx(gX, k, X_range, Y_range)     # dX/dt = 0 nullcline
+  line_2 <- null_fy(gX, k, X_range, Y_range)     # dY/dt = 0 nullcline
+  dxdt <- fx(line_2[, 1], line_2[, 2], gX, k)    # dX/dt along the dY/dt = 0 nullcline
+  dydt <- fy(line_1[, 1], line_1[, 2], gX, k)    # dY/dt along the dX/dt = 0 nullcline
+  ss <- find_intersection_all_fast(line_1, line_2, dxdt, dydt)
+  t(apply(ss, 1, function(s) c(s, stability_2D(derivs_ts, s, gX, k))))
+}
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+
+# modified toggle switch, with gX and k as tunable parameters
+def fx(X, Y, gX, k): return 5 + gX / (1 + (Y / 100)**4) - k * X   # dX/dt
+def fy(X, Y, gX, k): return 5 + 50 / (1 + (X / 100)**4) - k * Y   # dY/dt
+def derivs_ts(t, Xs, gX, k): return [fx(Xs[0], Xs[1], gX, k), fy(Xs[0], Xs[1], gX, k)]
+```
+
+```{python}
+# nullclines by separation of variables (as in Part 3A), as point series within range
+def null_fx(gX, k, X_range, Y_range):                            # dX/dt = 0
+    Y_all = np.linspace(Y_range[0], Y_range[1], 1000)
+    X_all = (5 + gX / (1 + (Y_all / 100)**4)) / k
+    keep = (X_all - X_range[0]) * (X_all - X_range[1]) <= 0
+    return np.column_stack((X_all[keep], Y_all[keep]))
+def null_fy(gX, k, X_range, Y_range):                            # dY/dt = 0
+    X_all = np.linspace(X_range[0], X_range[1], 1000)
+    Y_all = (5 + 50 / (1 + (X_all / 100)**4)) / k
+    keep = (Y_all - Y_range[0]) * (Y_all - Y_range[1]) <= 0
+    return np.column_stack((X_all[keep], Y_all[keep]))
+```
+
+```{python}
+# line-segment intersection finders (same as Part 3B)
+def find_intersection(lineA, lineB, nA, nB):
+    dAX = lineA[nA+1,0]-lineA[nA,0]; dAY = lineA[nA+1,1]-lineA[nA,1]
+    dBX = lineB[nB+1,0]-lineB[nB,0]; dBY = lineB[nB+1,1]-lineB[nB,1]
+    dABX = lineB[nB,0]-lineA[nA,0];  dABY = lineB[nB,1]-lineA[nA,1]
+    d = dAX*dBY - dAY*dBX
+    alpha = (dABX*dBY - dABY*dBX)/d; beta = (dABX*dAY - dABY*dAX)/d
+    if (0 <= alpha <= 1) and (0 <= beta <= 1):
+        return np.array([(1-alpha)*lineA[nA,0]+alpha*lineA[nA+1,0],
+                         (1-alpha)*lineA[nA,1]+alpha*lineA[nA+1,1], 1])
+    return np.array([alpha, beta, 0])
+
+def find_intersection_all_fast(lineA, lineB, dxdt, dydt):
+    small = 1e-3
+    lineA_ind = np.where(dydt * np.append(dydt[1:], np.nan) <= small)[0]
+    lineB_ind = np.where(dxdt * np.append(dxdt[1:], np.nan) <= small)[0]
+    lines_all = np.array(np.meshgrid(lineA_ind, lineB_ind)).T.reshape(-1, 2)
+    if len(lines_all) == 0:
+        return np.empty((0, 2))
+    results = np.array([find_intersection(lineA, lineB, i, j) for i, j in lines_all])
+    return results[results[:, 2] == 1, :2]
+```
+
+```{python}
+# stability from the numerical Jacobian eigenvalues (same as Part 3B)
+def stability_2D(derivs, ss, *args):
+    delta = 0.001
+    f0  = np.array(derivs(0, ss, *args))
+    fdx = np.array(derivs(0, ss + np.array([delta, 0]), *args))
+    fdy = np.array(derivs(0, ss + np.array([0, delta]), *args))
+    J = np.array([[(fdx[0]-f0[0])/delta, (fdy[0]-f0[0])/delta],
+                  [(fdx[1]-f0[1])/delta, (fdy[1]-f0[1])/delta]])
+    lam = np.linalg.eigvals(J)
+    if np.any(np.iscomplex(lam)):
+        return 4 if np.real(lam[0]) < 0 else 5
+    if lam[0] < 0 and lam[1] < 0:
+        return 1
+    return 2 if lam[0] >= 0 and lam[1] >= 0 else 3
+```
+
+```{python}
+# steady states + stability at one parameter setting
+def find_steady_states(gX, k, X_range, Y_range):
+    line_1 = null_fx(gX, k, X_range, Y_range)      # dX/dt = 0 nullcline
+    line_2 = null_fy(gX, k, X_range, Y_range)      # dY/dt = 0 nullcline
+    dxdt = fx(line_2[:, 0], line_2[:, 1], gX, k)   # dX/dt along the dY/dt = 0 nullcline
+    dydt = fy(line_1[:, 0], line_1[:, 1], gX, k)   # dY/dt along the dX/dt = 0 nullcline
+    ss = find_intersection_all_fast(line_1, line_2, dxdt, dydt)
+    return np.array([np.append(s, stability_2D(derivs_ts, s, gX, k)) for s in ss])
+```
+
+## 3E.2 Saddle-node bifurcation
+
+Sweeping $g_X$ from $0$ to $100$ (at fixed $k = 0.1$) breaks the $X \leftrightarrow Y$
+symmetry. The diagram colors each steady state by stability (stable node or
+saddle). As $g_X$ increases past a critical value a stable node and a saddle
+appear together, so the circuit turns from monostable to bistable. Two branches
+being created (or destroyed) at a point in this way is a **saddle-node**
+bifurcation.
+
+### R implementation {.impl}
+
+```{r}
+X_range <- c(0, 1000); Y_range <- c(0, 1000); k <- 0.1
+ss_all <- numeric()
+for (gX in seq(0, 100, by = 1)) {
+  ss_all <- rbind(ss_all, cbind(gX, find_steady_states(gX, k, X_range, Y_range)))
+}
+colnames(ss_all) <- c("gX", "X", "Y", "Stability")
+plot(ss_all[, "gX"], ss_all[, "X"], col = ss_all[, "Stability"], pch = 16, cex = 0.4,
+     xlab = "gX", ylab = "X", xlim = c(0, 100), ylim = c(0, 1000))
+legend("topleft", inset = 0.02, legend = c("Stable", "Saddle"), col = c(1, 3), pch = 16, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+import matplotlib.pyplot as plt
+X_range, Y_range, k = [0, 1000], [0, 1000], 0.1
+ss_all = []
+for gX in range(0, 101):
+    for s in find_steady_states(gX, k, X_range, Y_range):
+        ss_all.append([gX, *s])
+ss_all = np.array(ss_all)
+
+colors = {1: "black", 3: "green"}   # stability code -> color
+for code, lab in [(1, "Stable"), (3, "Saddle")]:
+    m = ss_all[:, 3] == code
+    plt.scatter(ss_all[m, 0], ss_all[m, 1], color=colors[code], s=8, label=lab)
+plt.xlabel("gX"); plt.ylabel("X"); plt.xlim(0, 100); plt.ylim(0, 1000)
+plt.legend(loc="upper left"); plt.show()
+```
+
+## 3E.3 Pitchfork bifurcation
+
+Now fix $g_X = 50$, where the circuit is symmetric under $X \leftrightarrow Y$,
+and sweep the degradation rate $k$. Below a critical value near $k = 0.03$ a
+single steady state is in view; above it the diagram splits into three, a central
+saddle flanked by two stable branches. Because the two stable states are related
+by the $X \leftrightarrow Y$ symmetry, they emerge together as a matched pair when
+the symmetric state turns into the saddle. This splitting of one state into a
+symmetric pair is a **pitchfork** bifurcation, and it is the symmetry (absent when
+$g_X \neq 50$) that makes it a pitchfork rather than a saddle-node.
+
+### R implementation {.impl}
+
+```{r}
+X_range <- c(0, 1000); Y_range <- c(0, 1000); gX <- 50
+ss_all <- numeric()
+for (k in seq(0.01, 0.15, by = 0.001)) {
+  ss_all <- rbind(ss_all, cbind(k, find_steady_states(gX, k, X_range, Y_range)))
+}
+colnames(ss_all) <- c("k", "X", "Y", "Stability")
+plot(ss_all[, "k"], ss_all[, "X"], col = ss_all[, "Stability"], pch = 16, cex = 0.4,
+     xlab = "k", ylab = "X", xlim = c(0, 0.15), ylim = c(0, 800))
+legend("topleft", inset = 0.02, legend = c("Stable", "Saddle"), col = c(1, 3), pch = 16, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+X_range, Y_range, gX = [0, 1000], [0, 1000], 50
+ss_all = []
+for k in np.arange(0.01, 0.151, 0.001):
+    for s in find_steady_states(gX, k, X_range, Y_range):
+        ss_all.append([k, *s])
+ss_all = np.array(ss_all)
+
+for code, lab in [(1, "Stable"), (3, "Saddle")]:
+    m = ss_all[:, 3] == code
+    plt.scatter(ss_all[m, 0], ss_all[m, 1], color=colors[code], s=8, label=lab)
+plt.xlabel("k"); plt.ylabel("X"); plt.xlim(0, 0.15); plt.ylim(0, 800)
+plt.legend(loc="upper left"); plt.show()
+```
+
+Both diagrams were cheap to compute because the nullclines followed from
+separation of variables. When they cannot be written in closed form, the general
+tool is numerical continuation, the arc-length predictor-corrector of
+[Part 2F](../02-odes/02f-bifurcation-curves.qmd) generalized from one equation in
+two variables to $n$ equations in $n + 1$ variables (here $n = 2$). We take up the
+continuation approach to the toggle switch's bifurcation in Part 3H.
+
+::: {.callout-note title="Practice Q1"}
+Both diagrams come from the same circuit. Varying $k$ keeps the
+$X \leftrightarrow Y$ symmetry of Equation (1) at $g_X = 50$ (both genes then have
+identical parameters), while varying $g_X$ breaks it. Explain how that difference
+produces a pitchfork in one case and a saddle-node in the other. (Hint: a
+pitchfork needs a symmetry for the two outer branches to appear as a matched
+pair.)
+:::
