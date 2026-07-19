@@ -1,0 +1,185 @@
+---
+title: "3G. Effective potential revisited"
+author: "Mingyang Lu"
+old_id: "03G"
+---
+
+[Part 2D](../02-odes/02d-effective-potential.qmd) defined an effective potential
+for a one-variable system as $U(X) = -\int f(X)\,dX$, turning the dynamics into a
+particle rolling downhill. It is tempting to carry this over to two variables by
+treating $(-f_X, -f_Y)$ as a 2D force and integrating it along a path,
+
+$$ U(X, Y) = -\int_{s_0}^{s} \big(f_X\,dx + f_Y\,dy\big) + U(X_0, Y_0) . \tag{1} $$
+
+This chapter shows the construction has a fatal flaw: the result depends on the
+path, so it is not a potential at all. Discretized, each step along a path
+contributes
+
+$$ \Delta U = -\tfrac{1}{2}\big(f_X^{(i)} + f_X^{(i+1)}\big)\Delta x
+             - \tfrac{1}{2}\big(f_Y^{(i)} + f_Y^{(i+1)}\big)\Delta y , \tag{2} $$
+
+the trapezoidal rule applied to the line integral. We integrate along the two
+nullclines of the toggle switch; along $dX/dt = 0$ the first term vanishes, and
+along $dY/dt = 0$ the second does.
+
+## 3G.1 The system and its nullclines
+
+We use a symmetric version of the toggle switch: both genes have basal rate $5$,
+maximum production $20$, threshold $100$, Hill coefficient $4$, and degradation
+rate $0.1$, so the two nullclines are mirror images across the diagonal. The
+circuit has three steady states, two asymmetric stable states and a symmetric
+saddle at $(118, 118)$, found by the intersection method of
+[Part 3B](03b-steady-states-2d.qmd).
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| message: false
+library(ggplot2)
+# symmetric toggle switch
+derivs_ts <- function(t, Xs) {
+  c(5 + 20 / (1 + (Xs[2] / 100)^4) - 0.1 * Xs[1],
+    5 + 20 / (1 + (Xs[1] / 100)^4) - 0.1 * Xs[2])
+}
+
+# nullclines by separation of variables (as in Part 3A)
+null_fx <- function(gX, X_range, Y_range) {                   # dX/dt = 0
+  Y_all <- seq(Y_range[1], Y_range[2], length.out = 1000)
+  cbind(X = (5 + gX / (1 + (Y_all / 100)^4)) / 0.1, Y = Y_all)
+}
+null_fy <- function(gY, X_range, Y_range) {                   # dY/dt = 0
+  X_all <- seq(X_range[1], X_range[2], length.out = 1000)
+  cbind(X = X_all, Y = (5 + gY / (1 + (X_all / 100)^4)) / 0.1)
+}
+
+X_range <- c(0, 250); Y_range <- c(0, 250)
+null1 <- null_fx(20, X_range, Y_range)
+null2 <- null_fy(20, X_range, Y_range)
+ss <- data.frame(X = c(56.76438, 118.02210, 231.18787),   # steady states (Part 3B/3C)
+                 Y = c(231.18787, 118.02210, 56.76438))
+
+ggplot() +
+  geom_path(data = as.data.frame(null1), aes(X, Y), color = "red") +
+  geom_path(data = as.data.frame(null2), aes(X, Y), color = "blue") +
+  geom_point(data = ss, aes(X, Y), size = 2) +
+  coord_fixed(xlim = c(0, 250), ylim = c(0, 250))
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+import numpy as np
+import matplotlib.pyplot as plt
+
+# symmetric toggle switch
+def derivs_ts(t, Xs):
+    return np.array([5 + 20 / (1 + (Xs[1] / 100)**4) - 0.1 * Xs[0],
+                     5 + 20 / (1 + (Xs[0] / 100)**4) - 0.1 * Xs[1]])
+
+# nullclines by separation of variables (as in Part 3A)
+def null_fx(gX, X_range, Y_range):                            # dX/dt = 0
+    Y_all = np.linspace(Y_range[0], Y_range[1], 1000)
+    return np.column_stack(((5 + gX / (1 + (Y_all / 100)**4)) / 0.1, Y_all))
+def null_fy(gY, X_range, Y_range):                            # dY/dt = 0
+    X_all = np.linspace(X_range[0], X_range[1], 1000)
+    return np.column_stack((X_all, (5 + gY / (1 + (X_all / 100)**4)) / 0.1))
+
+X_range, Y_range = [0, 250], [0, 250]
+null1 = null_fx(20, X_range, Y_range)
+null2 = null_fy(20, X_range, Y_range)
+ss = np.array([[56.76438, 231.18787],      # steady states (Part 3B/3C)
+               [118.02210, 118.02210], [231.18787, 56.76438]])
+
+plt.plot(null1[:, 0], null1[:, 1], color="red",  label="dX/dt=0")
+plt.plot(null2[:, 0], null2[:, 1], color="blue", label="dY/dt=0")
+plt.scatter(ss[:, 0], ss[:, 1], color="black", zorder=3, label="steady states")
+plt.gca().set_aspect("equal"); plt.xlabel("X"); plt.ylabel("Y")
+plt.xlim(0, 250); plt.ylim(0, 250); plt.legend(); plt.show()
+```
+
+## 3G.2 Effective potential along the nullclines
+
+We now integrate Equation (2) by the trapezoidal rule along each nullcline and
+plot the accumulated potential against $X$ and against $Y$. Each curve dips to a
+local minimum at the stable states and rises to a maximum at the saddle, so it
+does locate the steady states as extrema. The two paths, however, do not agree on
+the potential values.
+
+### R implementation {.impl}
+
+```{r}
+# trapezoidal line integral of (-f_X, -f_Y) along an arbitrary path `line`
+cal_int_2D_line <- function(line, derivs) {
+  ntot <- nrow(line); U <- numeric(ntot)
+  for (i in 1:(ntot - 1)) {
+    dx <- line[i + 1, 1] - line[i, 1]; dy <- line[i + 1, 2] - line[i, 2]
+    di  <- derivs(0, line[i, ]); di1 <- derivs(0, line[i + 1, ])
+    U[i + 1] <- U[i] - (di[1] + di1[1]) / 2 * dx - (di[2] + di1[2]) / 2 * dy
+  }
+  cbind(line, U = U)
+}
+
+U1 <- cal_int_2D_line(null1, derivs_ts)   # along dX/dt = 0
+U2 <- cal_int_2D_line(null2, derivs_ts)   # along dY/dt = 0
+
+plot(U1[, 1], U1[, 3], type = "l", col = 1, xlab = "X (nM)", ylab = "Effective potential",
+     xlim = c(0, 250), ylim = c(-500, 100))
+lines(U2[, 1], U2[, 3], col = 3)
+legend("bottom", inset = 0.02, legend = c("along dX/dt=0", "along dY/dt=0"),
+       col = c(1, 3), lty = 1, cex = 0.8)
+
+plot(U1[, 2], U1[, 3], type = "l", col = 1, xlab = "Y (nM)", ylab = "Effective potential",
+     xlim = c(0, 250), ylim = c(-500, 100))
+lines(U2[, 2], U2[, 3], col = 3)
+legend("bottom", inset = 0.02, legend = c("along dX/dt=0", "along dY/dt=0"),
+       col = c(1, 3), lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# trapezoidal line integral of (-f_X, -f_Y) along an arbitrary path `line`
+def cal_int_2D_line(line, derivs):
+    ntot = len(line); U = np.zeros(ntot)
+    for i in range(ntot - 1):
+        dx = line[i + 1, 0] - line[i, 0]; dy = line[i + 1, 1] - line[i, 1]
+        di  = derivs(0, line[i, :]); di1 = derivs(0, line[i + 1, :])
+        U[i + 1] = U[i] - (di[0] + di1[0]) / 2 * dx - (di[1] + di1[1]) / 2 * dy
+    return np.column_stack((line, U))
+
+U1 = cal_int_2D_line(null1, derivs_ts)   # along dX/dt = 0
+U2 = cal_int_2D_line(null2, derivs_ts)   # along dY/dt = 0
+
+for xi, xlab in [(0, "X (nM)"), (1, "Y (nM)")]:
+    plt.figure()
+    plt.plot(U1[:, xi], U1[:, 2], color="black", label="along dX/dt=0")
+    plt.plot(U2[:, xi], U2[:, 2], color="green", label="along dY/dt=0")
+    plt.xlabel(xlab); plt.ylabel("Effective potential")
+    plt.xlim(0, 250); plt.ylim(-500, 100); plt.legend(); plt.show()
+```
+
+The two curves disagree: the potential assigned to a given point depends on which
+path was used to reach it. A genuine potential is path-independent, so this 2D
+effective potential is ill-defined. The cause is that the force $(f_X, f_Y)$ is
+**non-conservative**,
+
+$$ \frac{\partial f_Y}{\partial X} - \frac{\partial f_X}{\partial Y} \neq 0 . $$
+
+A force derived from a potential, $f_X = -\partial U/\partial X$ and
+$f_Y = -\partial U/\partial Y$, would instead satisfy
+$\partial f_Y/\partial X = \partial f_X/\partial Y = -\partial^2 U/\partial X\,\partial Y$,
+so a molecular force field is always conservative. A general nonlinear dynamical
+system is not. Defining a meaningful landscape (a quasi-potential) for such
+systems is possible but beyond the scope of this book.
+
+::: {.callout-note title="Practice Q1"}
+Confirm the field is non-conservative: evaluate
+$\partial f_Y/\partial X - \partial f_X/\partial Y$ numerically at a few points
+and show it is nonzero. Then integrate $\Delta U$ (Equation (2)) around a closed
+loop in the $(X, Y)$ plane and show the total is not zero, whereas a conservative
+field would return exactly to its starting value.
+:::

@@ -311,8 +311,8 @@ eigenvalues (and their imaginary parts) classify the steady state:
 | $\mathrm{Re}(\lambda_1) \geq 0$ and $\mathrm{Re}(\lambda_2) \geq 0$ | Unstable spiral |
 
 The eigenvalues of a Jacobian are not necessarily real; a complex conjugate pair
-signals a spiral. Part 3G shows several gene circuits with the different types of
-stability. For the toggle switch, the two outer steady states are stable and the
+signals a spiral. Part 3H shows gene circuits that produce spirals. For the toggle
+switch, the two outer steady states are stable and the
 middle one is a saddle point.
 
 ### R implementation {.impl}
@@ -380,5 +380,5 @@ print(results)
 The two methods agree: for the toggle switch there are three steady states, two
 stable nodes (stability code `1`) and one saddle point (code `3`) sitting between
 them. This matches the phase portrait of Part 3A, where trajectories flowed into
-the two outer attractors while the middle crossing repelled them. Part 3G
+the two outer attractors while the middle crossing repelled them. Part 3H
 revisits stability for circuits that also produce spirals.
