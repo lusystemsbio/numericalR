@@ -49,6 +49,9 @@ book:
         - 04-time-delays/04b-modeling-time-delays.qmd
         - 04-time-delays/04c-indirect-interactions.qmd
         - 04-time-delays/04d-exercises.qmd
+    - part: "Part 5: Molecular dynamics"
+      chapters:
+        - 05-molecular-dynamics/05a-second-order-integrators.qmd
     - references.qmd
 
 bibliography: references.bib
