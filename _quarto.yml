@@ -28,6 +28,7 @@ book:
         - 03-phase-plane/03c-chemostat.qmd
         - 03-phase-plane/03d-predator-prey.qmd
         - 03-phase-plane/03e-bifurcation-2d.qmd
+        - 03-phase-plane/03f-separatrix.qmd
     - references.qmd
 
 bibliography: references.bib
