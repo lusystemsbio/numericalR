@@ -54,6 +54,7 @@ book:
         - 05-molecular-dynamics/05a-second-order-integrators.qmd
         - 05-molecular-dynamics/05b-orbital-motion.qmd
         - 05-molecular-dynamics/05c-box-of-particles.qmd
+        - 05-molecular-dynamics/05d-exercises.qmd
     - references.qmd
 
 bibliography: references.bib
