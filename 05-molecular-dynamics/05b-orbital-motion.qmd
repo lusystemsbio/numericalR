@@ -373,7 +373,7 @@ p <- ggplot(df, aes(x = x, y = y, colour = particle)) +
   scale_color_manual(values = c("1" = "red", "2" = "orange", "3" = "blue")) +
   labs(x = "x", y = "y")
 
-anim <- p + transition_time(t) + labs(title = "t = {frame_time}")
+anim <- p + transition_time(t) + labs(title = "t = {round(frame_time, 1)}")
 anim <- animate(anim, fps = 20, nframes = 200, renderer = gifski_renderer())
 anim_save("3-body.gif", animation = anim)
 ```
@@ -404,3 +404,10 @@ def update(i):
 anim = FuncAnimation(fig, update, frames=frames, interval=50)
 anim.save("3-body.gif", writer="pillow", fps=20)
 ```
+
+Both blocks write `3-body.gif`, in which the three particles orbit, scatter, and
+finally fling one member away.
+
+::: {.content-visible when-format="html"}
+![The three-body run as an animation, produced by the code above. It plays only in the HTML edition; the print editions show the static trajectory plot from the previous section.](images/05b/3-body.gif){width=70% fig-align="center"}
+:::
