@@ -58,3 +58,6 @@ vignettes/*.pdf
 
 # Compiled Fortran shared libraries (rebuilt by scripts/build-fortran.sh pre-render)
 **/*.so
+
+# Quarto per-chapter execution cache (regenerated locally)
+/_freeze/

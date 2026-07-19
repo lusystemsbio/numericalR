@@ -3,6 +3,13 @@ project:
   execute-dir: project
   pre-render: scripts/build-fortran.sh
 
+# Cache each chapter's executed R/Python output under _freeze/. `quarto render`
+# then re-runs only chapters whose source changed and loads the rest from cache,
+# so a whole-book build stays fast and consistent. Delete _freeze/<chapter> (or
+# edit the .qmd) to force a re-run, e.g. after a package/data change.
+execute:
+  freeze: auto
+
 book:
   title: "Numerical RPy"
   subtitle: "In the Era of AI"
