@@ -1,0 +1,194 @@
+---
+title: "6A. Random number generators"
+author: "Mingyang Lu"
+old_id: "06A"
+---
+
+Stochastic models are driven by streams of random numbers, so Part 6 begins with
+how those numbers are made. A random number generator (RNG) produces a sequence
+that only *looks* random: it is fully deterministic (hence *pseudo*-random) yet
+passes statistical tests for randomness. Good generators are fast, needing only a
+handful of arithmetic and logical operations per value, and the samplers built on
+them let us draw from any distribution we need [@devroye1986nonuniform]. This
+chapter tests a generator visually and then builds samplers for the uniform,
+exponential, and Gaussian distributions.
+
+## 6A.1 A visual test for randomness
+
+A quick visual check, in the spirit of the
+[Pickover test](https://www.r-bloggers.com/2017/09/how-good-is-that-random-number-generator/),
+plots consecutive pairs $(R_i, R_{i+k})$ for lags $k = 1, 2, 3$. A good uniform
+generator scatters these points evenly over the unit square with no visible
+structure; stripes, bands, or clusters would betray correlations between nearby
+values.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "62%"
+set.seed(10)
+n <- 3000
+r <- runif(n)                 # n pseudo-random numbers from R's default RNG
+
+rng_test <- function(r) {
+  n <- length(r)
+  par(mar = c(5, 4, 1, 7), xpd = TRUE)   # room for the legend outside, on the right
+  plot(r[1:(n-1)], r[2:n], pch = 16, cex = 0.4, asp = 1,
+       col = adjustcolor(2, 0.5), xlab = bquote(R[i]), ylab = bquote(R[i+k]))
+  points(r[1:(n-2)], r[3:n], pch = 16, cex = 0.4, col = adjustcolor(3, 0.5))
+  points(r[1:(n-3)], r[4:n], pch = 16, cex = 0.4, col = adjustcolor(4, 0.5))
+  legend("topright", inset = c(-0.28, 0), title = "k",
+         legend = c("1", "2", "3"), col = 2:4, pch = 16)
+}
+rng_test(r)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "62%"
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(10)
+n = 3000
+r = np.random.rand(n)         # n pseudo-random numbers from NumPy's default RNG
+
+def rng_test(r):
+    n = len(r)
+    plt.scatter(r[:n-1], r[1:], s=1, alpha=0.5, color="red",   label="1")
+    plt.scatter(r[:n-2], r[2:], s=1, alpha=0.5, color="green", label="2")
+    plt.scatter(r[:n-3], r[3:], s=1, alpha=0.5, color="blue",  label="3")
+    plt.xlabel(r"$R_i$"); plt.ylabel(r"$R_{i+k}$")
+    plt.gca().set_aspect("equal")
+    plt.legend(title="k", loc="upper left", bbox_to_anchor=(1.02, 1))
+    plt.show()
+
+rng_test(r)
+```
+
+The points fill the unit square evenly, with no visible pattern, so the default
+generator passes this test. The picture would look quite different for a
+non-uniform distribution, or for a poor generator with short-range correlations.
+
+## 6A.2 Uniform distribution of discrete numbers
+
+Discrete uniform draws come from sampling **with replacement**; sampling without
+replacement would exhaust the pool and correlate successive values. As an example
+we draw $10^4$ values from $\{1, 2\}$.
+
+### R implementation {.impl}
+
+```{r}
+n <- 10000
+r_binary <- sample(x = 2, size = n, replace = TRUE)
+hist(r_binary, freq = FALSE, breaks = 2, xlab = "r", main = "")
+```
+
+### Python implementation {.impl}
+
+```{python}
+n = 10000
+r_binary = np.random.choice([1, 2], size=n, replace=True)
+plt.hist(r_binary, bins=2, density=True, edgecolor="black", alpha=0.7)
+plt.xlabel("r"); plt.ylabel("Density"); plt.show()
+```
+
+The two outcomes occur with roughly equal probability, as the histogram shows.
+
+## 6A.3 Exponential distribution
+
+Given uniform draws $x$ on $(0, 1)$, the *inverse-transform* method turns them into
+draws $y$ from an exponential distribution by inverting the exponential
+cumulative distribution [@devroye1986nonuniform],
+
+$$ y = -\ln x . \tag{1} $$
+
+### R implementation {.impl}
+
+```{r}
+n <- 10000
+r <- runif(n)
+y <- -log(r)                  # exponential draws by the inverse transform
+hist(r, freq = FALSE, xlab = "r", main = "")
+hist(y, freq = FALSE, xlab = "y", main = "")
+```
+
+### Python implementation {.impl}
+
+```{python}
+n = 10000
+r = np.random.rand(n)
+y = -np.log(r)                # exponential draws by the inverse transform
+plt.hist(r, bins=30, density=True, color="blue", edgecolor="black", alpha=0.7)
+plt.xlabel("r"); plt.ylabel("Density"); plt.show()
+plt.hist(y, bins=30, density=True, color="green", edgecolor="black", alpha=0.7)
+plt.xlabel("y"); plt.ylabel("Density"); plt.show()
+```
+
+The flat uniform input (first histogram) becomes the characteristic decaying
+exponential (second) after the transform.
+
+## 6A.4 Gaussian distribution
+
+For Gaussian draws we use the polar form of the Box-Muller method
+[@box1958note]. Sample a point $(x, y)$ uniformly in the square $[-1, 1]^2$, keep
+it only if it falls inside the unit disk ($0 < R^2 < 1$ with $R^2 = x^2 + y^2$),
+and otherwise resample. Each accepted point yields two independent
+standard-normal values,
+
+$$
+\begin{cases}
+r_1 = x \sqrt{-2 \ln(R^2) / R^2} \\
+r_2 = y \sqrt{-2 \ln(R^2) / R^2}
+\end{cases} \tag{2}
+$$
+
+In practice one simply calls `rnorm` or `np.random.randn`, but it is instructive
+to see how such a sampler works.
+
+### R implementation {.impl}
+
+```{r}
+ran_gaussian <- function() {
+  repeat {
+    x <- 2 * runif(2) - 1                  # two uniforms on [-1, 1]
+    R2 <- sum(x * x)
+    if (R2 < 1 && abs(R2) > 1e-6) break    # accept only inside the unit disk
+  }
+  return(x * sqrt(-2 * log(R2) / R2))
+}
+
+n <- 10000
+y <- replicate(n, ran_gaussian())          # 2 x n: two normal streams
+hist(y[1,], freq = FALSE, xlab = expression(r[1]), main = "")
+hist(y[2,], freq = FALSE, xlab = expression(r[2]), main = "")
+```
+
+### Python implementation {.impl}
+
+```{python}
+def ran_gaussian():
+    while True:
+        x = 2 * np.random.rand(2) - 1            # two uniforms on [-1, 1]
+        R2 = np.sum(x * x)
+        if 0 < R2 < 1 and abs(R2) > 1e-6:        # accept only inside the unit disk
+            break
+    return x * np.sqrt(-2 * np.log(R2) / R2)
+
+n = 10000
+y = np.array([ran_gaussian() for _ in range(n)]).T   # 2 x n: two normal streams
+plt.hist(y[0], bins=30, density=True, color="blue", edgecolor="black", alpha=0.7)
+plt.xlabel("r_1"); plt.ylabel("Density"); plt.show()
+plt.hist(y[1], bins=30, density=True, color="green", edgecolor="black", alpha=0.7)
+plt.xlabel("r_2"); plt.ylabel("Density"); plt.show()
+```
+
+Both output streams follow the bell-shaped normal distribution. Because R and
+Python draw from different generators, the individual values differ between the
+two, but the distributions they sample are the same, which is all that matters for
+a stochastic simulation.

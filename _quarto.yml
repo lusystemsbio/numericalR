@@ -55,6 +55,9 @@ book:
         - 05-molecular-dynamics/05b-orbital-motion.qmd
         - 05-molecular-dynamics/05c-box-of-particles.qmd
         - 05-molecular-dynamics/05d-exercises.qmd
+    - part: "Part 6: Stochastic differential equations"
+      chapters:
+        - 06-stochastic/06a-random-number-generators.qmd
     - references.qmd
 
 bibliography: references.bib
