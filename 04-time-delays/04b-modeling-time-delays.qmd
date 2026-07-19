@@ -1,0 +1,271 @@
+---
+title: "4B. Modeling systems with time delays"
+author: "Mingyang Lu"
+old_id: "04B"
+---
+
+We now apply DDEs to three familiar models and watch how a time delay changes
+their behavior. Throughout we integrate with the second-order Heun scheme from
+[Part 4A](04a-delayed-differential-equations.qmd), redefined at the start of the
+first example so the chapter is self-contained.
+
+## 4B.1 Delay logistic growth
+
+Adding a delay to the logistic model gives the **Hutchinson equation**
+[@hutchinson1948circular], in which the growth of $N$ is limited by the population
+one delay $\tau$ in the past,
+
+$$ \frac{dN}{dt} = r\, N(t)\left[1 - \frac{N(t - \tau)}{B}\right] , \tag{1} $$
+
+with carrying capacity $B$. We fix $B = 100$ and $\tau = 1$ and vary the growth
+rate $r$. The delay drives a Hopf bifurcation at $r\tau = \pi/2$: below it the
+population settles at $B$; above it, it oscillates forever. Four values of $r$
+trace the transition: $r = 0.3$ (monotonic growth to $B$), $r = 1.5$ (just below
+$\pi/2$, a damped oscillation settling at $B$), $r = \pi/2 \approx 1.57$ (the Hopf
+point, an oscillation that decays extremely slowly), and $r = 1.7$ (above $\pi/2$,
+a sustained oscillation, a stable limit cycle).
+
+### R implementation {.impl}
+
+```{r}
+# Heun (2nd-order) integrator for a DDE with one constant delay (same as Part 4A)
+DDE_Heun <- function(derivs, t0, X0, t.total, dt, tau, ...) {
+  t_all <- seq(t0 - tau, t.total, by = dt)
+  n_all <- length(t_all)
+  X_all <- numeric(n_all)
+  n_delay <- as.integer(tau / dt)
+  X_all[1:(n_delay + 1)] <- X0
+  for (i in (n_delay + 1):(n_all - 1)) {
+    k1 <- dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], ...)
+    X_all[i + 1] <- X_all[i] + k1
+    k2 <- dt * derivs(t_all[i + 1], X_all[i + 1], X_all[i + 1 - n_delay], ...)
+    X_all[i + 1] <- X_all[i] + (k1 + k2) / 2
+  }
+  cbind(t_all, X_all)
+}
+```
+
+```{r}
+dN_logistic_delays <- function(t, N, N_old, r, B) r * N * (1 - N_old / B)
+
+# (r, total time, x-max, y-max) for the four regimes
+cases <- list(c(0.3, 40, 40, 120), c(1.5, 200, 200, 220),
+              c(pi / 2, 200, 200, 220), c(1.7, 80, 80, 240))
+labs <- c("r = 0.3", "r = 1.5", "r = pi/2", "r = 1.7")
+
+for (j in seq_along(cases)) {
+  cs <- cases[[j]]
+  res <- DDE_Heun(dN_logistic_delays, 0, 1, cs[2], 0.01, 1, r = cs[1], B = 100)
+  plot(res[, 1], res[, 2], type = "l", col = 2, xlab = "t", ylab = "N",
+       xlim = c(-1, cs[3]), ylim = c(0, cs[4]))
+  legend("topright", inset = 0.02, legend = labs[j], col = 2, lty = 1, cex = 0.8)
+}
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Heun (2nd-order) integrator for a DDE with one constant delay (same as Part 4A)
+def DDE_Heun(derivs, t0, X0, t_total, dt, tau, **kw):
+    t_all = np.arange(t0 - tau, t_total + dt, dt)
+    n_all = len(t_all)
+    X_all = np.zeros(n_all)
+    n_delay = int(tau / dt)
+    X_all[0:n_delay + 1] = X0
+    for i in range(n_delay, n_all - 1):
+        k1 = dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], **kw)
+        X_all[i + 1] = X_all[i] + k1
+        k2 = dt * derivs(t_all[i + 1], X_all[i + 1], X_all[i + 1 - n_delay], **kw)
+        X_all[i + 1] = X_all[i] + (k1 + k2) / 2
+    return np.column_stack((t_all, X_all))
+```
+
+```{python}
+def dN_logistic_delays(t, N, N_old, r, B):
+    return r * N * (1 - N_old / B)
+
+# (r, total time, x-max, y-max, legend label) for the four regimes
+cases = [(0.3, 40, 40, 120, "r = 0.3"), (1.5, 200, 200, 220, "r = 1.5"),
+         (np.pi / 2, 200, 200, 220, "r = pi/2"), (1.7, 80, 80, 240, "r = 1.7")]
+
+for r, tmax, xl, yl, lab in cases:
+    res = DDE_Heun(dN_logistic_delays, 0, 1, tmax, 0.01, 1, r=r, B=100)
+    plt.figure()
+    plt.plot(res[:, 0], res[:, 1], color="red")
+    plt.xlabel("t"); plt.ylabel("N"); plt.xlim(-1, xl); plt.ylim(0, yl)
+    plt.legend([lab], loc="upper right"); plt.show()
+```
+
+## 4B.2 A self-inhibiting gene with delay
+
+A gene whose product represses its own transcription forms a negative-feedback
+loop. Because transcription and translation take time, the repression acts on the
+protein level a delay $\tau$ earlier,
+
+$$ \frac{dX}{dt} = g_0 + g_1\frac{1}{1 + (X(t - \tau)/X_{th})^n} - k X(t) , \tag{2} $$
+
+where $g_0$ is the leakage rate, $g_0 + g_1$ the maximum rate (reached when $X$ is
+low and the inhibitory Hill term approaches $1$), $X_{th}$ the Hill threshold, $n$
+the Hill coefficient, and $k$ the degradation rate. With $g_0 = 10$, $g_1 = 60$,
+$X_{th} = 200$, $n = 4$, $k = 0.1$, the delay decides the dynamics: a short delay
+($\tau = 5$) settles at the steady state near $250$, but as $\tau$ grows the
+response turns into a damped and then a sustained oscillation. Delayed negative
+feedback is a generic route to biological oscillations.
+
+### R implementation {.impl}
+
+```{r}
+hill_inh <- function(X, X_th, n) 1 / (1 + (X / X_th)^n)
+
+# delayed self-inhibition: repression depends on X at the earlier time (X_old)
+f_1g_self_inh_delays <- function(t, X, X_old, g0, g1, X_th, n, k) {
+  g0 + g1 * hill_inh(X_old, X_th, n) - k * X
+}
+
+tau_all <- seq(5, 20, 5)
+plot(NULL, xlab = "t", ylab = "X", xlim = c(-20, 200), ylim = c(150, 450))
+for (j in seq_along(tau_all)) {
+  res <- DDE_Heun(f_1g_self_inh_delays, 0, 200, 200, 0.01, tau_all[j],
+                  g0 = 10, g1 = 60, X_th = 200, n = 4, k = 0.1)
+  lines(res[, 1], res[, 2], col = j)
+}
+legend("topleft", inset = 0.02, legend = paste0("tau = ", tau_all),
+       col = seq_along(tau_all), lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+def hill_inh(X, X_th, n):
+    return 1 / (1 + (X / X_th)**n)
+
+# delayed self-inhibition: repression depends on X at the earlier time (X_old)
+def f_1g_self_inh_delays(t, X, X_old, g0, g1, X_th, n, k):
+    return g0 + g1 * hill_inh(X_old, X_th, n) - k * X
+
+for tau in range(5, 21, 5):
+    res = DDE_Heun(f_1g_self_inh_delays, 0, 200, 200, 0.01, tau,
+                   g0=10, g1=60, X_th=200, n=4, k=0.1)
+    plt.plot(res[:, 0], res[:, 1], label=f"tau = {tau}")
+plt.xlabel("t"); plt.ylabel("X"); plt.xlim(-20, 200); plt.ylim(150, 450)
+plt.legend(loc="upper left"); plt.show()
+```
+
+## 4B.3 Delayed Lotka-Volterra
+
+Finally, a two-variable delay: in the Lotka-Volterra predator-prey model each
+species reacts to the other after a lag,
+
+\begin{equation}
+\begin{cases}
+\dfrac{dN}{dt} = N(t)\,[a - b\,P(t - \tau_1)] \\[2mm]
+\dfrac{dP}{dt} = P(t)\,[c\,N(t - \tau_2) - d]
+\end{cases} \tag{3}
+\end{equation}
+
+For simplicity we set $\tau_1 = \tau_2 = \tau$, which needs an integrator that
+carries a *vector* history. The undelayed model ($\tau = 0$) has neutrally stable
+closed orbits (the center of [Part 3D](../03-phase-plane/03d-predator-prey.qmd)).
+The delay breaks that neutral balance: even a one-step delay ($\tau = 0.01$) makes
+the orbit spiral outward, and larger delays deviate faster.
+
+### R implementation {.impl}
+
+```{r}
+# Lotka-Volterra with delays; Xs is (N, P) now, Xs_old is (N, P) a delay ago
+derivs_LV_delays <- function(t, Xs, Xs_old, a, b, c, d) {
+  c(Xs[1] * (a - b * Xs_old[2]), Xs[2] * (c * Xs_old[1] - d))
+}
+
+# Heun DDE integrator for a generic multi-variable system (vector state + history)
+DDE_Heun_generic <- function(derivs, t0, X0, t.total, dt, tau, ...) {
+  t_all <- seq(t0 - tau, t.total, by = dt)
+  nt <- length(t_all)
+  X_all <- matrix(0, nt, length(X0))
+  n_delay <- as.integer(tau / dt)
+  for (i in 1:(n_delay + 1)) X_all[i, ] <- X0
+  for (i in (n_delay + 1):(nt - 1)) {
+    k1 <- dt * derivs(t_all[i], X_all[i, ], X_all[i - n_delay, ], ...)
+    X_all[i + 1, ] <- X_all[i, ] + k1
+    k2 <- dt * derivs(t_all[i + 1], X_all[i + 1, ], X_all[i + 1 - n_delay, ], ...)
+    X_all[i + 1, ] <- X_all[i, ] + (k1 + k2) / 2
+  }
+  cbind(t_all, X_all)
+}
+```
+
+```{r}
+a <- 1; b <- 0.03; c <- 0.02; d <- 1; X0 <- c(30, 10)
+res_nodelay <- DDE_Heun_generic(derivs_LV_delays, 0, X0, 50, 0.01, 0,    a, b, c, d)
+res_delay   <- DDE_Heun_generic(derivs_LV_delays, 0, X0, 50, 0.01, 0.01, a, b, c, d)
+
+# time courses without delay: the usual oscillation
+plot(res_nodelay[, 1], res_nodelay[, 2], type = "l", col = 2, xlab = "t",
+     ylab = "Population", xlim = c(-1, 50), ylim = c(0, 160))
+lines(res_nodelay[, 1], res_nodelay[, 3], col = 3)
+legend("topright", inset = 0.02, legend = c("N", "P"), col = c(2, 3), lty = 1, cex = 0.8)
+```
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+# phase plane: the delay turns the closed orbit into an outward spiral
+plot(res_nodelay[, 2], res_nodelay[, 3], type = "l", col = 2, xlab = "N", ylab = "P",
+     xlim = c(0, 180), ylim = c(0, 150), asp = 1)
+lines(res_delay[, 2], res_delay[, 3], col = 4)
+legend("topright", inset = 0.02, legend = c("no delay", "with delay"),
+       col = c(2, 4), lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# Lotka-Volterra with delays; Xs is (N, P) now, Xs_old is (N, P) a delay ago
+def derivs_LV_delays(t, Xs, Xs_old, a, b, c, d):
+    return np.array([Xs[0] * (a - b * Xs_old[1]), Xs[1] * (c * Xs_old[0] - d)])
+
+# Heun DDE integrator for a generic multi-variable system (vector state + history)
+def DDE_Heun_generic(derivs, t0, X0, t_total, dt, tau, *args):
+    t_all = np.arange(t0 - tau, t_total + dt, dt)
+    nt = len(t_all)
+    X_all = np.zeros((nt, len(X0)))
+    n_delay = int(tau / dt)
+    X_all[0:n_delay + 1] = X0
+    for i in range(n_delay, nt - 1):
+        k1 = dt * derivs(t_all[i], X_all[i], X_all[i - n_delay], *args)
+        X_all[i + 1] = X_all[i] + k1
+        k2 = dt * derivs(t_all[i + 1], X_all[i + 1], X_all[i + 1 - n_delay], *args)
+        X_all[i + 1] = X_all[i] + (k1 + k2) / 2
+    return np.column_stack((t_all, X_all))
+```
+
+```{python}
+a, b, c, d = 1, 0.03, 0.02, 1
+X0 = [30, 10]
+res_nodelay = DDE_Heun_generic(derivs_LV_delays, 0, X0, 50, 0.01, 0,    a, b, c, d)
+res_delay   = DDE_Heun_generic(derivs_LV_delays, 0, X0, 50, 0.01, 0.01, a, b, c, d)
+
+# time courses without delay: the usual oscillation
+plt.plot(res_nodelay[:, 0], res_nodelay[:, 1], color="red",   label="N")
+plt.plot(res_nodelay[:, 0], res_nodelay[:, 2], color="green", label="P")
+plt.xlabel("t"); plt.ylabel("Population"); plt.xlim(-1, 50); plt.ylim(0, 160)
+plt.legend(loc="upper right"); plt.show()
+```
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+# phase plane: the delay turns the closed orbit into an outward spiral
+plt.plot(res_nodelay[:, 1], res_nodelay[:, 2], color="red",  label="no delay")
+plt.plot(res_delay[:, 1],   res_delay[:, 2],   color="blue", label="with delay")
+plt.gca().set_aspect("equal")
+plt.xlabel("N"); plt.ylabel("P"); plt.xlim(0, 180); plt.ylim(0, 150)
+plt.legend(loc="upper right"); plt.show()
+```
+
+The delayed Lotka-Volterra approach extends to unequal delays $\tau_1 \neq \tau_2$
+with a little more bookkeeping (a separate delay index per variable), left as an
+exercise.

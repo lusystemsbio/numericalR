@@ -42,6 +42,7 @@ book:
     - part: "Part 4: Systems with time delays"
       chapters:
         - 04-time-delays/04a-delayed-differential-equations.qmd
+        - 04-time-delays/04b-modeling-time-delays.qmd
     - references.qmd
 
 bibliography: references.bib
