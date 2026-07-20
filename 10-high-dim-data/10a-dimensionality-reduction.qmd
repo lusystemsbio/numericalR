@@ -1,0 +1,339 @@
+---
+title: "10A. Dimensionality reduction"
+author: "Mingyang Lu"
+old_id: "10A"
+---
+
+Biological data are often high-dimensional: a gene-expression experiment measures
+thousands of genes across many samples. To visualize and interpret such data we reduce
+their dimensionality, mapping each sample to a few coordinates that capture most of the
+structure. This chapter builds *principal component analysis* (PCA) from scratch, uses
+it on a real gene-expression dataset, and then demonstrates nonlinear embeddings (MDS,
+t-SNE, and UMAP).
+
+## 10A.1 Projecting data onto a line
+
+The simplest reduction takes two-dimensional points and describes them by a single
+number. Consider 100 points scattered in a narrow, tilted strip.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+set.seed(1)
+x <- runif(100); y <- 0.4 * x + 0.8 + 0.1 * runif(100)
+data1 <- data.frame(x = x, y = y)
+
+# fit a line, then project each point onto it
+model <- lm(y ~ x, data = data1)
+x0 <- c(0, coef(model)[1])                 # a point on the line
+dir <- c(1, coef(model)[2]); dir <- dir / sqrt(sum(dir^2))   # unit direction
+proj <- as.matrix(data1) %*% dir - sum(x0 * dir)            # 1D coordinate along the line
+projected <- t(sapply(proj, function(p) p * dir + x0))      # back to 2D
+
+plot(data1$x, data1$y, xlab = "x", ylab = "y", xlim = c(0, 1), ylim = c(0.5, 1.5), asp = 1)
+abline(model, col = 2)
+points(projected[, 1], projected[, 2], pch = 16, col = 4)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(1)
+x = rng.uniform(size=100); y = 0.4 * x + 0.8 + 0.1 * rng.uniform(size=100)
+data1 = np.column_stack([x, y])
+
+# fit a line, then project each point onto it
+b1, b0 = np.polyfit(x, y, 1)
+x0 = np.array([0, b0])
+d = np.array([1, b1]); d = d / np.linalg.norm(d)            # unit direction
+proj = data1 @ d - x0 @ d                                   # 1D coordinate along the line
+projected = np.outer(proj, d) + x0                          # back to 2D
+
+plt.figure(figsize=(5, 5))
+plt.scatter(x, y)
+xs = np.array([0, 1]); plt.plot(xs, b1 * xs + b0, color="red")
+plt.scatter(projected[:, 0], projected[:, 1], color="blue", s=15)
+plt.gca().set_aspect("equal"); plt.xlabel("x"); plt.ylabel("y")
+plt.xlim(0, 1); plt.ylim(0.5, 1.5); plt.show()
+```
+
+Each blue point is the closest position on the line to its original point. The single
+coordinate along the line (the projection) keeps most of the spread of the data, since
+the points barely deviate from the line. PCA generalizes this idea: it finds the
+directions of largest variance automatically, without being told to use a regression
+line, and works in any number of dimensions.
+
+## 10A.2 Principal component analysis from scratch
+
+PCA re-expresses the data in a new orthogonal basis, the *principal components*, ordered
+by how much variance they capture [@pearson1901lines; @hotelling1933analysis]. The
+recipe is: center the data, then find the directions along which it varies most. Those
+directions are the eigenvectors of the covariance matrix, and their eigenvalues give the
+variance captured. We implement it two equivalent ways: eigen-decomposition of the
+covariance matrix, and the *singular value decomposition* (SVD) of the centered data,
+which is numerically preferable and much cheaper when there are more features than
+samples.
+
+### R implementation {.impl}
+
+```{r}
+# PCA from scratch: "eigen" (covariance eigen-decomposition) or "svd" (of centered data)
+pca <- function(X, method = "svd") {
+  Xc <- scale(X, center = TRUE, scale = FALSE)   # center each feature
+  n <- nrow(X)
+  if (method == "eigen") {
+    e <- eigen(cov(Xc)); values <- e$values; loadings <- e$vectors
+  } else {
+    s <- svd(Xc); values <- s$d^2 / (n - 1); loadings <- s$v
+  }
+  list(values = values, loadings = loadings, scores = Xc %*% loadings)
+}
+
+# the two routes agree (on the strip data from 10A.1)
+X2 <- as.matrix(data1)
+round(rbind(eigen = pca(X2, "eigen")$values, svd = pca(X2, "svd")$values), 5)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# PCA from scratch: "eigen" (covariance eigen-decomposition) or "svd" (of centered data)
+def pca(X, method="svd"):
+    Xc = X - X.mean(0)                              # center each feature
+    n = len(X)
+    if method == "eigen":
+        vals, vecs = np.linalg.eigh(np.cov(Xc, rowvar=False))
+        order = np.argsort(vals)[::-1]
+        values, loadings = vals[order], vecs[:, order]
+    else:
+        U, s, Vt = np.linalg.svd(Xc, full_matrices=False)
+        values, loadings = s**2 / (n - 1), Vt.T
+    return {"values": values, "loadings": loadings, "scores": Xc @ loadings}
+
+# the two routes agree (on the strip data from 10A.1)
+print(np.round(np.vstack([pca(data1, "eigen")["values"], pca(data1, "svd")["values"]]), 5))
+```
+
+Both routes return the same variances. For the strip data the first principal component
+carries almost all the variance and points along the strip, recovering the direction we
+fit by hand in the previous section.
+
+## 10A.3 Interpreting components with loadings
+
+We now apply PCA to a real dataset: expression of 500 genes measured across 26 samples
+spanning nine experimental conditions (A through I). The samples are the observations
+and the genes are the features, so we transpose the table. The *loadings* (the columns
+of the eigenvector matrix) say how much each gene contributes to each component;
+inspecting the largest loadings tells us which genes drive the dominant patterns.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 7
+#| fig-height: 4
+#| out-width: "70%"
+exp_data <- read.csv("10-high-dim-data/data/exp_data.csv", row.names = 1)
+X <- t(as.matrix(exp_data))                        # 26 samples x 500 genes
+genes <- colnames(X)
+
+res <- pca(X)                                      # used again in 10A.4
+top <- order(abs(res$loadings[, 1]), decreasing = TRUE)[1:10]   # top PC1 genes
+barplot(res$loadings[top, 1], names.arg = genes[top], las = 2,
+        ylab = "PC1 loading", main = "Genes contributing most to PC1")
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 7
+#| fig-height: 4
+#| out-width: "70%"
+import pandas as pd
+exp_data = pd.read_csv("10-high-dim-data/data/exp_data.csv", index_col=0)
+X = exp_data.values.T                              # 26 samples x 500 genes
+genes = exp_data.index.to_numpy()
+samples = exp_data.columns.to_numpy()
+
+res = pca(X)                                       # used again in 10A.4
+top = np.argsort(np.abs(res["loadings"][:, 0]))[::-1][:10]      # top PC1 genes
+plt.figure(figsize=(7, 4))
+plt.bar(genes[top], res["loadings"][top, 0])
+plt.xticks(rotation=90); plt.ylabel("PC1 loading")
+plt.title("Genes contributing most to PC1"); plt.tight_layout(); plt.show()
+```
+
+Each principal component is a weighted combination of all 500 genes. The handful of
+genes with the largest loadings dominate that component, so PC1 can be read as the
+coordinated expression pattern of these top genes, the axis along which the samples vary
+most.
+
+## 10A.4 Visualizing the samples
+
+With the same PCA, we look at the sample side. The *scree plot* shows how much variance
+each component explains, guiding how many to keep. Projecting the samples onto the first
+two components then reveals their structure.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 7
+#| fig-height: 4
+#| out-width: "70%"
+# scree plot: proportion of variance explained
+var_prop <- res$values / sum(res$values)
+barplot(var_prop[1:10], names.arg = 1:10, xlab = "Principal component",
+        ylab = "Proportion of variance", main = "Scree plot")
+lines(seq_along(var_prop[1:10]) * 1.2 - 0.5, cumsum(var_prop[1:10]), type = "b", col = 2)
+legend("topright", c("individual", "cumulative"), col = c("grey30", 2), pch = c(15, 1), lty = c(0, 1))
+```
+
+```{r}
+#| fig-width: 5.5
+#| fig-height: 5.5
+#| out-width: "60%"
+# project onto PC1-PC2, colored by condition, with a fitted principal curve
+cond <- factor(substr(rownames(X), 1, 1))
+pc <- res$scores[, 1:2]
+
+# principal curve from scratch (Hastie-Stuetzle: project, order, smooth; repeat)
+principal_curve <- function(P, n_iter = 8, k = 5) {
+  n <- nrow(P); lambda <- P[, 1]
+  ma <- function(v) { s <- as.numeric(stats::filter(v, rep(1 / k, k), sides = 2)); s[is.na(s)] <- v[is.na(s)]; s }
+  for (it in 1:n_iter) {
+    ord <- order(lambda); f <- P
+    for (d in 1:ncol(P)) f[ord, d] <- ma(P[ord, d])
+    curve <- f[ord, ]
+    seg <- c(0, cumsum(sqrt(rowSums(diff(curve)^2))))
+    for (i in 1:n) lambda[i] <- seg[which.min(rowSums((curve - matrix(P[i, ], n, 2, byrow = TRUE))^2))]
+  }
+  f[order(lambda), ]
+}
+curve <- principal_curve(pc)
+
+plot(pc[, 1], pc[, 2], col = cond, pch = 19, xlab = "PC1", ylab = "PC2")
+text(pc[, 1], pc[, 2], labels = rownames(X), pos = 3, cex = 0.6)
+lines(curve[, 1], curve[, 2], col = "red", lwd = 2)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 7
+#| fig-height: 4
+#| out-width: "70%"
+# scree plot: proportion of variance explained
+var_prop = res["values"] / res["values"].sum()
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.bar(range(1, 11), var_prop[:10], color="grey")
+ax.plot(range(1, 11), np.cumsum(var_prop[:10]), "o-", color="red")
+ax.set(xlabel="Principal component", ylabel="Proportion of variance", title="Scree plot")
+plt.show()
+```
+
+```{python}
+#| fig-width: 5.5
+#| fig-height: 5.5
+#| out-width: "60%"
+# project onto PC1-PC2, colored by condition, with a fitted principal curve
+cond = np.array([s[0] for s in samples])
+pc = res["scores"][:, :2]
+
+# principal curve from scratch (Hastie-Stuetzle: project, order, smooth; repeat)
+def principal_curve(P, n_iter=8, k=5):
+    n = len(P); lam = P[:, 0].copy()
+    ma = lambda v: np.convolve(v, np.ones(k) / k, mode="same")
+    for _ in range(n_iter):
+        o = np.argsort(lam); f = P.copy()
+        for d in range(P.shape[1]):
+            f[o, d] = ma(P[o, d])
+        curve = f[o]
+        seg = np.concatenate([[0], np.cumsum(np.sqrt((np.diff(curve, axis=0) ** 2).sum(1)))])
+        for i in range(n):
+            lam[i] = seg[np.argmin(((curve - P[i]) ** 2).sum(1))]
+    return f[np.argsort(lam)]
+curve = principal_curve(pc)
+
+codes = {c: i for i, c in enumerate(sorted(set(cond)))}
+plt.figure(figsize=(5.5, 5.5))
+plt.scatter(pc[:, 0], pc[:, 1], c=[codes[c] for c in cond], cmap="tab10")
+for i, s in enumerate(samples):
+    plt.text(pc[i, 0], pc[i, 1], s, fontsize=6)
+plt.plot(curve[:, 0], curve[:, 1], color="red", lw=2)
+plt.xlabel("PC1"); plt.ylabel("PC2"); plt.show()
+```
+
+The first component alone explains most of the variance, and the samples fall into an
+ordered arc from condition A to I in the PC1-PC2 plane. Fitting a principal curve, a
+smooth one-dimensional path that threads through the middle of the points
+[@hastie1989principal], summarizes this trajectory: the experiment traces a continuous
+progression of gene-expression states, and the position along the curve is a natural
+one-dimensional coordinate for each sample.
+
+## 10A.5 Nonlinear embeddings: MDS, t-SNE, and UMAP
+
+PCA is a linear projection. When the data lie on a curved manifold, nonlinear methods
+can separate structure that PCA blurs. We demonstrate three, using established libraries
+rather than building them from scratch. *Multidimensional scaling* (MDS) places points
+in 2D so their pairwise distances match the high-dimensional distances as closely as
+possible [@torgerson1952multidimensional]. *t-SNE* [@vandermaaten2008tsne] and *UMAP*
+[@mcinnes2018umap] instead preserve local neighborhoods, and are the standard tools for
+visualizing high-dimensional biological data, at the cost of being stochastic and
+distorting global distances.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 9
+#| fig-height: 3.4
+#| out-width: "95%"
+#| warning: false
+library(Rtsne); library(uwot)
+set.seed(1)
+emb_mds  <- cmdscale(dist(X), k = 2)
+emb_tsne <- Rtsne(X, dims = 2, perplexity = 5, check_duplicates = FALSE)$Y
+emb_umap <- umap(X, n_components = 2, n_neighbors = 5)
+
+par(mfrow = c(1, 3), mar = c(4, 4, 2, 1))
+plot(emb_mds,  col = cond, pch = 19, xlab = "dim 1", ylab = "dim 2", main = "MDS")
+plot(emb_tsne, col = cond, pch = 19, xlab = "dim 1", ylab = "dim 2", main = "t-SNE")
+plot(emb_umap, col = cond, pch = 19, xlab = "dim 1", ylab = "dim 2", main = "UMAP")
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 9
+#| fig-height: 3.4
+#| out-width: "95%"
+#| warning: false
+import warnings; warnings.filterwarnings("ignore")
+from sklearn.manifold import MDS, TSNE
+import umap
+
+emb_mds  = MDS(n_components=2, random_state=1, normalized_stress="auto").fit_transform(X)
+emb_tsne = TSNE(n_components=2, perplexity=5, random_state=1).fit_transform(X)
+emb_umap = umap.UMAP(n_components=2, n_neighbors=5, random_state=1).fit_transform(X)
+
+col = [codes[c] for c in cond]
+fig, axs = plt.subplots(1, 3, figsize=(9, 3.4))
+for ax, (name, e) in zip(axs, [("MDS", emb_mds), ("t-SNE", emb_tsne), ("UMAP", emb_umap)]):
+    ax.scatter(e[:, 0], e[:, 1], c=col, cmap="tab10")
+    ax.set(xlabel="dim 1", ylabel="dim 2", title=name)
+plt.tight_layout(); plt.show()
+```
+
+All three separate the nine conditions, and MDS, like PCA, lays them out along the A-to-I
+progression because it preserves global distances. t-SNE and UMAP emphasize tight local
+clusters (the replicates of each condition group together) but their between-cluster
+distances should not be read as meaningful. For this small, smoothly varying dataset PCA
+already captures the essential structure; the nonlinear methods become more valuable for
+larger datasets with distinct, non-linear cluster structure.

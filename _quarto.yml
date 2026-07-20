@@ -83,6 +83,9 @@ book:
         - 09-optimization/09b-dynamic-programming.qmd
         - 09-optimization/09c-genetic-algorithm.qmd
         - 09-optimization/09d-exercises.qmd
+    - part: "Part 10: High-dimensional data analysis"
+      chapters:
+        - 10-high-dim-data/10a-dimensionality-reduction.qmd
     - references.qmd
 
 bibliography: references.bib
