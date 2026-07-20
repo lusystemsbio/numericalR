@@ -80,6 +80,7 @@ book:
     - part: "Part 9: Global optimization"
       chapters:
         - 09-optimization/09a-mcmc-optimization.qmd
+        - 09-optimization/09b-dynamic-programming.qmd
     - references.qmd
 
 bibliography: references.bib
