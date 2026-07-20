@@ -67,6 +67,7 @@ book:
         - 07-pde/07a-modeling-diffusion.qmd
         - 07-pde/07b-reaction-diffusion.qmd
         - 07-pde/07c-turing-instability.qmd
+        - 07-pde/07d-pattern-formation-dictyostelium.qmd
     - references.qmd
 
 bibliography: references.bib
