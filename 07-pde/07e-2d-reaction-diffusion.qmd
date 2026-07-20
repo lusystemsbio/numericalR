@@ -26,7 +26,12 @@ with reaction terms $f$, $g$ and diffusion constants $D_u$, $D_v$. We discretize
 two-dimensional Laplacian with the five-point stencil of
 [Part 7D](07d-pattern-formation-dictyostelium.qmd), giving the explicit update
 
-$$ u_{i,j}^{n+1} = u_{i,j}^n + f\,\Delta t + D_u \frac{\Delta t}{\Delta X^2}\left( u_{i+1,j}^n + u_{i-1,j}^n + u_{i,j+1}^n + u_{i,j-1}^n - 4 u_{i,j}^n \right) , \tag{2} $$
+$$
+\begin{aligned}
+u_{i,j}^{n+1} = u_{i,j}^n &+ f\,\Delta t \\
+&+ D_u \frac{\Delta t}{\Delta X^2}\left( u_{i+1,j}^n + u_{i-1,j}^n + u_{i,j+1}^n + u_{i,j-1}^n - 4 u_{i,j}^n \right) ,
+\end{aligned} \tag{2}
+$$
 
 and the same for $v$ with $D_v$. As in Part 7C we use a *periodic* boundary, wrapping
 the lattice in both directions so the pattern tiles the plane without an edge.
