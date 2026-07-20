@@ -199,10 +199,13 @@ with $X_0 = Y_0 = \sqrt{2 k_{-1} / k_1}$. Hint: the forward rate of Equation (2)
 $\tfrac{1}{2} k_1 D_x Y^2$; at quasi-steady state it balances the backward rate,
 $\tfrac{1}{2} k_1 D_x Y^2 = k_{-1} C_x$, and similarly for Equation (3).
 
-**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00001$, $k_{-1} = 0.2$, determine whether
-the circuit is monostable or bistable in the deterministic regime. Integrate the ODEs
-from several initial conditions and check whether the trajectories converge to one
-steady state or to two distinct ones.
+**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00004$, and $k_{-1} = 0.2$ (so that
+$X_0 = Y_0 = 100$), show that the toggle switch is bistable in the deterministic
+regime. Integrate the ODEs from several initial conditions and confirm that the
+trajectories settle into two distinct stable steady states, one with high $X$ and one
+with high $Y$. (Bistability requires the maximal level $g/k$ to exceed roughly twice
+the threshold $X_0$; the smaller value $k_1 = 0.00001$ gives $X_0 = 200$, which sits
+right at that boundary and is not yet bistable.)
 
 **(c)** Simulate the full network with the Gillespie algorithm using the same
 parameters, starting from $D_x = 1$, $C_x = 0$, $D_y = 0$, $C_y = 1$, $X = 300$,
