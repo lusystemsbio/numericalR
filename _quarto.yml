@@ -87,6 +87,7 @@ book:
       chapters:
         - 10-high-dim-data/10a-dimensionality-reduction.qmd
         - 10-high-dim-data/10b-clustering.qmd
+        - 10-high-dim-data/10c-network-algorithms.qmd
     - references.qmd
 
 bibliography: references.bib

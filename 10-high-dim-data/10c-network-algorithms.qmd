@@ -1,0 +1,397 @@
+---
+title: "10C. Network algorithms"
+author: "Mingyang Lu"
+old_id: "10C"
+---
+
+Many biological systems are naturally described as *networks*: protein-protein
+interaction networks, gene regulatory networks, metabolic networks, and cell-signaling
+networks all connect components (genes, proteins, metabolites) by their interactions
+[@barabasi2004network]. A network, or *graph*, is a set of *vertices* (nodes) joined by
+*edges*. This chapter represents networks as adjacency matrices, computes their
+structural properties, generates random-network models, detects community structure by
+modularity, and models discrete gene-regulatory dynamics with Boolean networks. We
+compute the core quantities from scratch and use `igraph` (R) and `networkx` (Python)
+for graph layout and the longer standard algorithms.
+
+## 10C.1 Networks and their properties
+
+A network of $n$ vertices is stored as an $n \times n$ *adjacency matrix* $A$, with
+$A_{ij} = 1$ when vertices $i$ and $j$ are connected and 0 otherwise (symmetric for an
+undirected network). From $A$ we read off the basic structure. The *degree* of a vertex
+is its number of neighbors, $k_i = \sum_j A_{ij}$. The *clustering coefficient* measures
+how interconnected a vertex's neighbors are: for a vertex of degree $k$ with $e$ edges
+among its neighbors, $c = e / \binom{k}{2}$. The *distance* between two vertices is the
+length of the shortest path between them, and the *diameter* is the largest such
+distance. We illustrate on Zachary's karate club [@zachary1977information], a classic
+34-member social network.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "65%"
+#| message: false
+library(igraph)
+g <- make_graph("Zachary"); A <- as.matrix(as_adjacency_matrix(g)); n <- nrow(A)
+
+degree_v <- rowSums(A)                                   # degree of each vertex
+
+# clustering coefficient (averaged over all vertices; degree < 2 contributes 0)
+clustering <- function(A) {
+  mean(sapply(1:nrow(A), function(u) {
+    nb <- which(A[u, ] > 0); k <- length(nb)
+    if (k < 2) 0 else sum(A[nb, nb]) / 2 / (k * (k - 1) / 2)
+  }))
+}
+
+# shortest-path distances via boolean adjacency powers; diameter = largest distance
+dist_matrix <- function(A) {
+  n <- nrow(A); D <- matrix(Inf, n, n); diag(D) <- 0; reach <- diag(n)
+  for (l in 1:(n - 1)) { reach <- (reach %*% A) > 0; D[D == Inf & reach] <- l }
+  D
+}
+D <- dist_matrix(A)
+cat("mean degree:", round(mean(degree_v), 2), " clustering:", round(clustering(A), 3),
+    " diameter:", max(D[is.finite(D)]), "\n")
+
+bc <- betweenness(g)                                     # betweenness (igraph)
+set.seed(1)
+plot(g, vertex.size = 4 + degree_v, vertex.color = "gold",
+     vertex.label = NA, layout = layout_with_fr)
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3.4
+#| out-width: "80%"
+#| rmar: false
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+barplot(table(degree_v), xlab = "degree k", ylab = "number of vertices", main = "Degree distribution")
+plot(degree_v, bc, xlab = "degree", ylab = "betweenness", main = "Betweenness vs degree", pch = 19)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "65%"
+import numpy as np, networkx as nx, matplotlib.pyplot as plt
+G = nx.karate_club_graph(); A = nx.to_numpy_array(G, weight=None); n = len(A)
+
+degree_v = A.sum(1).astype(int)                          # degree of each vertex
+
+# clustering coefficient (averaged over all vertices; degree < 2 contributes 0)
+def clustering(A):
+    n = len(A); c = np.zeros(n)
+    for u in range(n):
+        nb = np.where(A[u] > 0)[0]; k = len(nb)
+        if k >= 2: c[u] = A[np.ix_(nb, nb)].sum() / 2 / (k * (k - 1) / 2)
+    return c.mean()
+
+# shortest-path distances via boolean adjacency powers; diameter = largest distance
+def dist_matrix(A):
+    n = len(A); D = np.full((n, n), np.inf); np.fill_diagonal(D, 0); reach = np.eye(n)
+    for l in range(1, n):
+        reach = (reach @ A) > 0; D[(D == np.inf) & reach] = l
+    return D
+D = dist_matrix(A)
+print("mean degree:", round(degree_v.mean(), 2), " clustering:", round(clustering(A), 3),
+      " diameter:", int(D[np.isfinite(D)].max()))
+
+bc = np.array(list(nx.betweenness_centrality(G).values()))   # betweenness (networkx)
+np.random.seed(1); pos = nx.spring_layout(G, seed=1)
+plt.figure(figsize=(6, 5))
+nx.draw(G, pos, node_size=40 + 20 * degree_v, node_color="gold", edge_color="grey")
+plt.show()
+```
+
+```{python}
+#| fig-width: 7
+#| fig-height: 3.4
+#| out-width: "80%"
+fig, axs = plt.subplots(1, 2, figsize=(7, 3.4))
+vals, counts = np.unique(degree_v, return_counts=True)
+axs[0].bar(vals, counts); axs[0].set(xlabel="degree k", ylabel="number of vertices", title="Degree distribution")
+axs[1].scatter(degree_v, bc * (n - 1) * (n - 2) / 2); axs[1].set(xlabel="degree", ylabel="betweenness", title="Betweenness vs degree")
+plt.tight_layout(); plt.show()
+```
+
+The karate club has a few high-degree hubs and many low-degree members, a mean degree
+near 4.6, a diameter of 5, and a fairly high clustering coefficient (about 0.57):
+friends of friends tend to be friends, a hallmark of the "small-world" networks of Watts
+and Strogatz [@watts1998collective]. Betweenness, the number of shortest paths passing
+through a vertex [@freeman1977set], tracks degree loosely but not exactly; the two
+highest-betweenness nodes are the instructor and the club president, the bridges through
+which most paths run.
+
+## 10C.2 Random-network models
+
+To judge whether a real network's structure is surprising, we compare it with random
+models. The *Erdős-Rényi* model [@erdos1959random] connects each pair of vertices
+independently with probability $p$, giving a Poisson-like degree distribution peaked at
+the mean. The *Barabási-Albert* model [@barabasi1999emergence] grows a network by
+*preferential attachment*: each new vertex attaches to $m$ existing ones with probability
+proportional to their degree, so hubs accumulate ever more connections. This produces a
+*scale-free* degree distribution with a heavy, power-law tail, closer to what many
+biological networks show. Both generators are short to write.
+
+### R implementation {.impl}
+
+```{r}
+# Erdos-Renyi: connect each pair with probability p
+er_network <- function(n, p) {
+  A <- matrix(0, n, n); ut <- upper.tri(A)
+  A[ut] <- rbinom(sum(ut), 1, p); A + t(A)
+}
+
+# Barabasi-Albert: grow by preferential attachment (m links per new vertex)
+ba_network <- function(n, m) {
+  A <- matrix(0, n, n); A[1:(m + 1), 1:(m + 1)] <- 1; diag(A) <- 0   # seed clique
+  for (v in (m + 2):n) {
+    deg <- rowSums(A)[1:(v - 1)]
+    targets <- sample(1:(v - 1), m, prob = deg)                      # attach prop. to degree
+    A[v, targets] <- 1; A[targets, v] <- 1
+  }
+  A
+}
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3.4
+#| out-width: "80%"
+#| rmar: false
+set.seed(1)
+er <- er_network(1000, 0.006); ba <- ba_network(1000, 3)
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+hist(rowSums(er), breaks = 20, main = "Erdos-Renyi", xlab = "degree", col = "grey")
+plot(table(rowSums(ba)), log = "xy", main = "Barabasi-Albert (log-log)",
+     xlab = "degree", ylab = "count")
+```
+
+### Python implementation {.impl}
+
+```{python}
+# Erdos-Renyi: connect each pair with probability p
+def er_network(n, p):
+    A = (np.triu(np.random.rand(n, n), 1) < p).astype(int); return A + A.T
+
+# Barabasi-Albert: grow by preferential attachment (m links per new vertex)
+def ba_network(n, m):
+    A = np.zeros((n, n), int); A[:m + 1, :m + 1] = 1; np.fill_diagonal(A, 0)   # seed clique
+    for v in range(m + 1, n):
+        deg = A[:v].sum(1)
+        targets = np.random.choice(v, m, replace=False, p=deg / deg.sum())     # attach prop. to degree
+        A[v, targets] = 1; A[targets, v] = 1
+    return A
+```
+
+```{python}
+#| fig-width: 7
+#| fig-height: 3.4
+#| out-width: "80%"
+np.random.seed(1)
+er = er_network(1000, 0.006); ba = ba_network(1000, 3)
+fig, axs = plt.subplots(1, 2, figsize=(7, 3.4))
+axs[0].hist(er.sum(1), bins=20, color="grey"); axs[0].set(title="Erdos-Renyi", xlabel="degree")
+v, c = np.unique(ba.sum(1), return_counts=True)
+axs[1].loglog(v, c, "o"); axs[1].set(title="Barabasi-Albert (log-log)", xlabel="degree", ylabel="count")
+plt.tight_layout(); plt.show()
+```
+
+The Erdős-Rényi degrees cluster tightly around the mean, so a highly connected hub is
+essentially impossible. The Barabási-Albert degrees instead fall off as a straight line
+on log-log axes, the signature of a power law: most vertices have few links but a few
+hubs have very many. Biological networks such as protein interaction networks resemble
+the scale-free model far more than the random one, which is why hubs (often essential
+genes) are a recurring theme.
+
+## 10C.3 Community detection by modularity
+
+Networks often divide into *communities*, groups of vertices more densely connected
+among themselves than to the rest. Newman's *modularity* $Q$ measures how good a division
+is, comparing the fraction of edges inside groups with the fraction expected if edges
+were placed at random while preserving degrees [@newman2006modularity],
+
+$$ Q = \frac{1}{2m} \sum_{i,j} \left( A_{ij} - \frac{k_i k_j}{2m} \right) \delta(c_i, c_j) , \tag{1} $$
+
+where $m$ is the number of edges, $k_i$ the degree of vertex $i$, and $\delta(c_i, c_j)$
+is 1 when $i$ and $j$ are in the same community. Newman's *spectral method* splits a
+network in two using the *modularity matrix* $B_{ij} = A_{ij} - k_i k_j / 2m$: the signs
+of the leading eigenvector of $B$ assign vertices to the two groups, the division that
+best increases $Q$.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "65%"
+# modularity of a given community assignment (Eq. 1)
+modularity_Q <- function(A, membership) {
+  m <- sum(A) / 2; k <- rowSums(A)
+  B <- A - outer(k, k) / (2 * m)
+  sum(B * outer(membership, membership, "==")) / (2 * m)
+}
+
+# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix
+spectral_split <- function(A) {
+  m <- sum(A) / 2; k <- rowSums(A)
+  B <- A - outer(k, k) / (2 * m)
+  ifelse(eigen(B, symmetric = TRUE)$vectors[, 1] > 0, 1, 2)
+}
+
+comm <- spectral_split(A)
+cat("community sizes:", table(comm), " modularity Q:", round(modularity_Q(A, comm), 3), "\n")
+set.seed(1)
+plot(g, vertex.color = c("tomato", "skyblue")[comm], vertex.size = 8,
+     vertex.label = NA, layout = layout_with_fr)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 6
+#| fig-height: 5
+#| out-width: "65%"
+# modularity of a given community assignment (Eq. 1)
+def modularity_Q(A, membership):
+    m = A.sum() / 2; k = A.sum(1); B = A - np.outer(k, k) / (2 * m)
+    same = membership[:, None] == membership[None, :]
+    return (B * same).sum() / (2 * m)
+
+# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix
+def spectral_split(A):
+    m = A.sum() / 2; k = A.sum(1); B = A - np.outer(k, k) / (2 * m)
+    return (np.linalg.eigh(B)[1][:, -1] > 0).astype(int)
+
+comm = spectral_split(A)
+print("community sizes:", np.bincount(comm), " modularity Q:", round(modularity_Q(A, comm), 3))
+plt.figure(figsize=(6, 5))
+nx.draw(G, pos, node_color=["tomato" if c else "skyblue" for c in comm],
+        node_size=120, edge_color="grey")
+plt.show()
+```
+
+The spectral split cleanly separates the karate club into two communities of sizes 18
+and 16, with modularity $Q \approx 0.37$, and this partition closely matches the actual
+split of the club into two factions after a dispute, the outcome Zachary recorded. For
+more than two communities one applies the bisection recursively or uses a fast optimizer
+such as the Louvain method [@blondel2008fast] (`cluster_louvain` in igraph,
+`greedy_modularity_communities` in networkx), which we would reach for on larger networks.
+
+## 10C.4 Boolean network models
+
+Gene regulatory networks can be modeled without kinetic parameters by treating each gene
+as either on (1) or off (0) and updating its state by a logical rule of its regulators'
+states [@kauffman1969metabolic]. The system state is a binary vector; in *synchronous*
+updating, every gene is updated together at each discrete time step, $x_i(t+1) =
+f_i(\mathbf{x}(t))$. Iterating from any start eventually falls into an *attractor*: a
+fixed point (a steady state, $\mathbf{x}(t+1) = \mathbf{x}(t)$) or a cycle (an
+oscillation). We enumerate the attractors by running every possible initial state to its
+repeat.
+
+### R implementation {.impl}
+
+```{r}
+# enumerate attractors: run every start state to the first repeat; the cycle is the attractor
+boolean_attractors <- function(update, n) {
+  states <- as.matrix(expand.grid(rep(list(0:1), n))); found <- list()
+  for (r in 1:nrow(states)) {
+    s <- states[r, ]; seen <- character(0); traj <- list()
+    repeat {
+      key <- paste(s, collapse = "")
+      if (key %in% seen) {
+        cyc <- traj[which(seen == key):length(seen)]
+        canon <- paste(sort(sapply(cyc, paste, collapse = "")), collapse = "|")
+        if (is.null(found[[canon]])) found[[canon]] <- cyc
+        break
+      }
+      seen <- c(seen, key); traj[[length(traj) + 1]] <- s; s <- update(s)
+    }
+  }
+  found
+}
+show_att <- function(a) sapply(a, function(cyc) paste0("{", paste(sapply(cyc, paste, collapse = ""), collapse = " -> "), "}"))
+
+# toggle switch: two mutually repressing genes, A = NOT B, B = NOT A
+toggle <- function(s) c(1 - s[2], 1 - s[1])
+cat("toggle attractors:  ", show_att(boolean_attractors(toggle, 2)), "\n")
+
+# Boolean repressilator: A -| B -| C -| A
+repressilator <- function(s) c(1 - s[3], 1 - s[1], 1 - s[2])
+cat("repressilator:      ", show_att(boolean_attractors(repressilator, 3)), "\n")
+```
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+# state-transition graph of the toggle switch (each of 4 states -> its successor)
+states <- as.matrix(expand.grid(A = 0:1, B = 0:1))
+labels <- apply(states, 1, paste, collapse = "")
+edges <- unlist(lapply(1:4, function(r) {
+  nxt <- toggle(states[r, ]); c(labels[r], paste(nxt, collapse = ""))
+}))
+gt <- graph(edges, directed = TRUE)
+set.seed(3)
+plot(gt, vertex.size = 34, vertex.color = "lightgreen", edge.arrow.size = 0.5,
+     main = "Toggle-switch state transitions")
+```
+
+### Python implementation {.impl}
+
+```{python}
+# enumerate attractors: run every start state to the first repeat; the cycle is the attractor
+from itertools import product
+def boolean_attractors(update, n):
+    found = {}
+    for s0 in product([0, 1], repeat=n):
+        s = list(s0); seen = []
+        while True:
+            key = tuple(s)
+            if key in seen:
+                cyc = seen[seen.index(key):]; found[tuple(sorted(cyc))] = cyc; break
+            seen.append(key); s = update(s)
+    return list(found.values())
+def show_att(a):
+    return [" {" + " -> ".join("".join(map(str, s)) for s in cyc) + "}" for cyc in a]
+
+# toggle switch: two mutually repressing genes, A = NOT B, B = NOT A
+toggle = lambda s: [1 - s[1], 1 - s[0]]
+print("toggle attractors: ", show_att(boolean_attractors(toggle, 2)))
+
+# Boolean repressilator: A -| B -| C -| A
+repressilator = lambda s: [1 - s[2], 1 - s[0], 1 - s[1]]
+print("repressilator:     ", show_att(boolean_attractors(repressilator, 3)))
+```
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+# state-transition graph of the toggle switch (each of 4 states -> its successor)
+states = list(product([0, 1], repeat=2))
+GT = nx.DiGraph()
+for s in states:
+    GT.add_edge("".join(map(str, s)), "".join(map(str, toggle(list(s)))))
+plt.figure(figsize=(5, 5))
+nx.draw(GT, nx.spring_layout(GT, seed=3), with_labels=True, node_size=1200,
+        node_color="lightgreen", arrowsize=15)
+plt.title("Toggle-switch state transitions"); plt.show()
+```
+
+The toggle switch has two fixed-point attractors, `10` and `01` (the two mutually
+exclusive on-states of a bistable switch), plus a two-state oscillation `00 ↔ 11`; the
+state-transition graph makes the two stable states and the cycle visible at a glance. The
+Boolean repressilator has two cyclic attractors: a short `000 -> 111` oscillation and a
+six-state cycle that is the discrete analog of the limit cycle we found for its continuous
+version in earlier chapters. Despite their
+extreme simplicity, Boolean networks reproduce the qualitative dynamics of real
+regulatory circuits: Li et al. showed that the Boolean network of the yeast cell cycle
+has a single dominant attractor corresponding to the biological cell-cycle sequence
+[@li2004yeast], evidence that the network's wiring, not finely tuned parameters, sets its
+behavior.
