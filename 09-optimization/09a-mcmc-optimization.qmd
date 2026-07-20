@@ -433,11 +433,13 @@ temp_all <- seq(5, 80, 5); weight_all <- seq(5, 1, length.out = length(temp_all)
 res_st <- st(2, f_Himmelblau, numeric(2), nstep, alpha = 0.9, dx_max = 1,
              temp_all = temp_all, weight_all = weight_all)
 
-traj <- data.frame(x = res_st$x[, 1], y = res_st$x[, 2], step = 0:nstep)
-g1 <- ggplot() + base_contour() +
-  geom_path(data = traj, aes(x, y, colour = step), linewidth = 0.2)
-print(g1)
-plot(0:nstep, temp_all[res_st$ind_t], type = "l", col = 2, xlab = "Step", ylab = "Temperature")
+library(patchwork)
+g_traj <- ggplot() + base_contour() +
+  geom_path(data = data.frame(x = res_st$x[, 1], y = res_st$x[, 2], step = 0:nstep),
+            aes(x, y, colour = step), linewidth = 0.2) + ggtitle("trajectory")
+g_temp <- ggplot(data.frame(step = 0:nstep, temp = temp_all[res_st$ind_t]), aes(step, temp)) +
+  geom_line(colour = "red") + labs(x = "Step", y = "Temperature") + theme_bw()
+g_traj + g_temp                                # side-by-side via patchwork
 ```
 
 ### Python implementation {.impl}
