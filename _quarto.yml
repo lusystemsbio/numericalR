@@ -65,6 +65,7 @@ book:
     - part: "Part 7: Partial differential equations"
       chapters:
         - 07-pde/07a-modeling-diffusion.qmd
+        - 07-pde/07b-reaction-diffusion.qmd
     - references.qmd
 
 bibliography: references.bib

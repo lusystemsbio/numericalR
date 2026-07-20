@@ -1,0 +1,305 @@
+---
+title: "7B. Reaction-diffusion systems"
+author: "Mingyang Lu"
+old_id: "07B"
+---
+
+Adding a *reaction* term $f(u, t)$ to the [diffusion equation](07a-modeling-diffusion.qmd)
+gives a reaction-diffusion equation for a field $u(X, t)$,
+
+$$ \frac{\partial u(X, t)}{\partial t} = f(u, t) + D \frac{\partial^2 u(X, t)}{\partial X^2} . \tag{1} $$
+
+The reaction term is just the ordinary rate equation of earlier chapters,
+
+$$ \frac{du}{dt} = f(u, t) , \tag{2} $$
+
+and when it vanishes we recover pure diffusion. The two ingredients together,
+local kinetics plus spatial spreading, produce traveling waves and, later,
+spatial patterns.
+
+## 7B.1 Fisher's equation
+
+Taking logistic growth as the reaction gives Fisher's equation,
+
+$$ \frac{\partial u}{\partial t} = r u \left( 1 - \frac{u}{B} \right) + D \frac{\partial^2 u}{\partial X^2} , \tag{3} $$
+
+where $u$ is a population size and $B$ its carrying capacity. Fisher introduced it
+to describe the spread of an advantageous gene, with $u$ the mutant frequency, $r$
+the selection strength, and $D$ the dispersal rate; it became a foundation of
+population genetics [@fisher1937wave]. The integrator is the diffusion solver of
+Part 7A with the reaction term added at each step (Dirichlet, $u = 0$ at the ends).
+
+### R implementation {.impl}
+
+```{r}
+# finite-difference step for a reaction-diffusion equation, Dirichlet boundaries
+pde_fd_reaction_diffusion <- function(derivs, ngrid, dX, dt, D, t0, t.total, p0, ...) {
+  t_all <- seq(t0, t.total, by = dt); nt_all <- length(t_all)
+  factor <- D / dX^2 * dt
+  p <- p0
+  for (i in seq_len(nt_all - 1)) {
+    p_plus  <- c(p[-1], 0)
+    p_minus <- c(0, p[1:(ngrid-1)])
+    f <- sapply(p, function(u) derivs(t_all[i], u, ...))    # reaction at each grid
+    p <- p + f * dt + factor * (p_plus + p_minus - 2 * p)
+  }
+  return(p)
+}
+
+fisher <- function(t, u, r, B) r * u * (1 - u / B)
+
+l <- 100; dX <- 1; dt <- 0.01; D <- 1; r <- 0.64; B <- 75
+ngrid <- as.integer(l / dX) + 1
+X_all <- (0:(ngrid - 1)) * dX
+
+u0 <- numeric(ngrid)
+u0[abs(X_all - 50) <= 2] <- 50                 # a patch at the center
+
+plot(X_all, u0, type = "l", col = 1, xlab = "X", ylab = "u", xlim = c(0, 100), ylim = c(0, 100))
+u_now <- u0
+for (i in 1:5) {
+  u_now <- pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0 = 0, t.total = 5, p0 = u_now, r = r, B = B)
+  lines(X_all, u_now, col = i + 1)
+}
+legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
+```
+
+A central patch grows to the carrying capacity and sends out two fronts that
+travel outward at a constant speed until they reach the boundaries.
+
+```{r}
+u0 <- numeric(ngrid)
+u0[1:5] <- 50                                  # a patch at the left end
+
+plot(X_all, u0, type = "l", col = 1, xlab = "X", ylab = "u", xlim = c(0, 100), ylim = c(0, 100))
+u_now <- u0
+for (i in 1:10) {
+  u_now <- pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0 = 0, t.total = 5, p0 = u_now, r = r, B = B)
+  lines(X_all, u_now, col = i + 1)
+}
+legend("topright", inset = 0.02, title = "Iterations", legend = 0:10, col = 1:11, lty = 1, cex = 0.7)
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+# finite-difference step for a reaction-diffusion equation, Dirichlet boundaries
+def pde_fd_reaction_diffusion(derivs, ngrid, dX, dt, D, t0, t_total, p0, **kwargs):
+    t_all = np.arange(t0, t_total + dt, dt); nt_all = len(t_all)
+    factor = D / dX**2 * dt
+    p = p0.copy()
+    for i in range(nt_all - 1):
+        p_plus  = np.concatenate((p[1:], [0]))
+        p_minus = np.concatenate(([0], p[:-1]))
+        f = np.array([derivs(t_all[i], u, **kwargs) for u in p])   # reaction at each grid
+        p = p + f * dt + factor * (p_plus + p_minus - 2 * p)
+    return p
+
+def fisher(t, u, r, B): return r * u * (1 - u / B)
+
+l = 100; dX = 1; dt = 0.01; D = 1; r = 0.64; B = 75
+ngrid = int(l / dX) + 1
+X_all = np.arange(0, ngrid) * dX
+
+u0 = np.zeros(ngrid)
+u0[np.abs(X_all - 50) <= 2] = 50               # a patch at the center
+
+plt.plot(X_all, u0, color="black", label="0")
+u_now = u0.copy()
+for i in range(5):
+    u_now = pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0=0, t_total=5, p0=u_now, r=r, B=B)
+    plt.plot(X_all, u_now, label=f"{i + 1}")
+plt.xlabel("X"); plt.ylabel("u"); plt.xlim(0, 100); plt.ylim(0, 100)
+plt.legend(title="Iterations", loc="upper right"); plt.show()
+```
+
+```{python}
+u0 = np.zeros(ngrid)
+u0[:5] = 50                                    # a patch at the left end
+
+plt.plot(X_all, u0, color="black", label="0")
+u_now = u0.copy()
+for i in range(10):
+    u_now = pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0=0, t_total=5, p0=u_now, r=r, B=B)
+    plt.plot(X_all, u_now, label=f"{i + 1}")
+plt.xlabel("X"); plt.ylabel("u"); plt.xlim(0, 100); plt.ylim(0, 100)
+plt.legend(title="Iterations", loc="upper right", fontsize=8); plt.show()
+```
+
+Starting instead from a patch at the left end, a single front travels rightward,
+carrying the population across the domain, exactly the wave of advance Fisher used
+to picture an advantageous gene sweeping through a range.
+
+## 7B.2 The Fokker-Planck equation
+
+An SDE with drift and (possibly state-dependent) diffusion,
+
+$$ \frac{dX}{dt} = f(X, t) + \sqrt{2 D(X, t)}\, \eta(t) , \tag{4} $$
+
+has a probability distribution $P(X, t)$ that obeys the Fokker-Planck equation
+[@gardiner2009stochastic],
+
+$$ \frac{\partial P}{\partial t} = -\frac{\partial (f P)}{\partial X} + \frac{\partial^2 (D P)}{\partial X^2} . \tag{5} $$
+
+This is a reaction-diffusion-like PDE for $P$, reducing to the plain diffusion
+equation when $f = 0$. The new drift term is a *first* space derivative, which we
+approximate with a centered difference (again from a Taylor expansion, as in
+Part 7A),
+
+$$ \frac{\partial F}{\partial X} \approx \frac{F_{i+1}^n - F_{i-1}^n}{2 \Delta X} . \tag{6} $$
+
+For constant $D$, the explicit update combines this drift term with the familiar
+diffusion term,
+
+$$
+\begin{aligned}
+P_i^{n+1} = P_i^n &- \frac{\Delta t}{2 \Delta X}\left( f_{i+1} P_{i+1}^n - f_{i-1} P_{i-1}^n \right) \\
+&+ D\, \frac{\Delta t}{\Delta X^2}\left( P_{i+1}^n + P_{i-1}^n - 2 P_i^n \right) .
+\end{aligned} \tag{7}
+$$
+
+### R implementation {.impl}
+
+```{r}
+# finite-difference step for a Fokker-Planck equation (constant D), Dirichlet boundaries
+pde_fd_fokker_planck <- function(derivs, ngrid, X_all, dX, dt, D, t0, t.total, p0, ...) {
+  t_all <- seq(t0, t.total, by = dt); nt_all <- length(t_all)
+  factor   <- D / dX^2 * dt      # diffusion-term scale
+  factor_2 <- dt / (2 * dX)      # drift-term scale
+  p <- p0
+  for (i in seq_len(nt_all - 1)) {
+    p_plus  <- c(p[-1], 0); p_minus <- c(0, p[1:(ngrid-1)])
+    fp <- sapply(X_all, function(X) derivs(t_all[i], X, ...)) * p   # drift depends on position X
+    fp_plus  <- c(fp[-1], 0); fp_minus <- c(0, fp[1:(ngrid-1)])
+    p <- p - factor_2 * (fp_plus - fp_minus) + factor * (p_plus + p_minus - 2 * p)
+  }
+  return(p)
+}
+```
+
+We test it on the Ornstein-Uhlenbeck process (a particle in a harmonic well,
+drift $f = -kX$, constant noise), whose Fokker-Planck equation is
+
+$$ \frac{\partial P}{\partial t} = -\frac{\partial (-kX P)}{\partial X} + D \frac{\partial^2 P}{\partial X^2} , \tag{8} $$
+
+with the analytic steady state (a Gaussian set by the balance of drift and
+diffusion)
+
+$$ P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}\, e^{-\frac{k X^2}{2D}} . \tag{9} $$
+
+```{r}
+spring <- function(t, X, k) -k * X
+
+l <- 100; dX <- 1; dt <- 0.01; D <- 1; k <- 0.01
+ngrid <- as.integer(l / dX) + 1
+X_all <- (1:ngrid - (ngrid + 1) / 2) * dX
+P_ss <- function(X) sqrt(k / (2 * pi * D)) * exp(-k * X^2 / (2 * D))
+
+u0 <- numeric(ngrid); u0[abs(X_all) <= 2] <- 1; u0 <- u0 / sum(u0)   # patch at the center
+plot(X_all, u0, type = "l", col = 1, xlab = "X", ylab = "u", xlim = c(-50, 50), ylim = c(0, 0.1))
+u_now <- u0
+for (i in 1:5) {
+  u_now <- pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0 = 0, t.total = 40, p0 = u_now, k = k)
+  lines(X_all, u_now, col = i + 1)
+}
+points(X_all, P_ss(X_all), col = 1)            # analytic steady state
+legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
+```
+
+The distribution starts localized at the center and relaxes to the steady-state
+Gaussian (open dots), matching the theory. A stiffer spring confines it to a
+narrower peak.
+
+```{r}
+k <- 0.03
+P_ss <- function(X) sqrt(k / (2 * pi * D)) * exp(-k * X^2 / (2 * D))
+u0 <- numeric(ngrid); u0[abs(X_all) <= 2] <- 1; u0 <- u0 / sum(u0)
+plot(X_all, u0, type = "l", col = 1, xlab = "X", ylab = "u", xlim = c(-50, 50), ylim = c(0, 0.1))
+u_now <- u0
+for (i in 1:5) {
+  u_now <- pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0 = 0, t.total = 40, p0 = u_now, k = k)
+  lines(X_all, u_now, col = i + 1)
+}
+points(X_all, P_ss(X_all), col = 1)
+legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
+```
+
+```{r}
+u0 <- rep(1, ngrid); u0 <- u0 / sum(u0)        # start from a uniform distribution
+plot(X_all, u0, type = "l", col = 1, xlab = "X", ylab = "u", xlim = c(-50, 50), ylim = c(0, 0.1))
+u_now <- u0
+for (i in 1:5) {
+  u_now <- pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0 = 0, t.total = 40, p0 = u_now, k = k)
+  lines(X_all, u_now, col = i + 1)
+}
+points(X_all, P_ss(X_all), col = 1)
+legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# finite-difference step for a Fokker-Planck equation (constant D), Dirichlet boundaries
+def pde_fd_fokker_planck(derivs, ngrid, X_all, dX, dt, D, t0, t_total, p0, **kwargs):
+    t_all = np.arange(t0, t_total + dt, dt); nt_all = len(t_all)
+    factor   = D / dX**2 * dt     # diffusion-term scale
+    factor_2 = dt / (2 * dX)      # drift-term scale
+    p = p0.copy()
+    for i in range(nt_all - 1):
+        p_plus  = np.concatenate((p[1:], [0])); p_minus = np.concatenate(([0], p[:-1]))
+        fp = np.array([derivs(t_all[i], X, **kwargs) for X in X_all]) * p   # drift depends on position X
+        fp_plus  = np.concatenate((fp[1:], [0])); fp_minus = np.concatenate(([0], fp[:-1]))
+        p = p - factor_2 * (fp_plus - fp_minus) + factor * (p_plus + p_minus - 2 * p)
+    return p
+
+def spring(t, X, k): return -k * X
+
+l = 100; dX = 1; dt = 0.01; D = 1; k = 0.01
+ngrid = int(l / dX) + 1
+X_all = (np.arange(1, ngrid + 1) - (ngrid + 1) / 2) * dX
+def P_ss(X, k): return np.sqrt(k / (2 * np.pi * D)) * np.exp(-k * X**2 / (2 * D))
+
+u0 = np.zeros(ngrid); u0[np.abs(X_all) <= 2] = 1; u0 /= np.sum(u0)   # patch at the center
+plt.plot(X_all, u0, color="black", label="0")
+u_now = u0.copy()
+for i in range(5):
+    u_now = pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0=0, t_total=40, p0=u_now, k=k)
+    plt.plot(X_all, u_now, label=f"{i + 1}")
+plt.plot(X_all, P_ss(X_all, k), "o", mec="k", mfc="w", ms=5, label="steady state")
+plt.xlabel("X"); plt.ylabel("u"); plt.xlim(-50, 50); plt.ylim(0, 0.1)
+plt.legend(title="Iterations", loc="upper right"); plt.show()
+```
+
+```{python}
+k = 0.03
+u0 = np.zeros(ngrid); u0[np.abs(X_all) <= 2] = 1; u0 /= np.sum(u0)
+plt.plot(X_all, u0, color="black", label="0")
+u_now = u0.copy()
+for i in range(5):
+    u_now = pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0=0, t_total=40, p0=u_now, k=k)
+    plt.plot(X_all, u_now, label=f"{i + 1}")
+plt.plot(X_all, P_ss(X_all, k), "o", mec="k", mfc="w", ms=5, label="steady state")
+plt.xlabel("X"); plt.ylabel("u"); plt.xlim(-50, 50); plt.ylim(0, 0.1)
+plt.legend(title="Iterations", loc="upper right"); plt.show()
+```
+
+```{python}
+u0 = np.ones(ngrid); u0 /= np.sum(u0)          # start from a uniform distribution
+plt.plot(X_all, u0, color="black", label="0")
+u_now = u0.copy()
+for i in range(5):
+    u_now = pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0=0, t_total=40, p0=u_now, k=k)
+    plt.plot(X_all, u_now, label=f"{i + 1}")
+plt.plot(X_all, P_ss(X_all, k), "o", mec="k", mfc="w", ms=5, label="steady state")
+plt.xlabel("X"); plt.ylabel("u"); plt.xlim(-50, 50); plt.ylim(0, 0.1)
+plt.legend(title="Iterations", loc="upper right"); plt.show()
+```
+
+With the stiffer spring ($k = 0.03$) the peak is narrower, and starting from a
+uniform distribution the system relaxes to the very same steady-state Gaussian,
+confirming that the Fokker-Planck dynamics forget their initial condition. Solving
+the PDE for $P$ is thus a deterministic alternative to averaging many stochastic
+[SDE trajectories](../06-stochastic/06c-sde-integrators.qmd).
