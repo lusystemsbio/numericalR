@@ -73,6 +73,7 @@ book:
     - part: "Part 8: Monte Carlo simulations"
       chapters:
         - 08-monte-carlo/08a-monte-carlo-methods.qmd
+        - 08-monte-carlo/08b-metropolis-algorithm.qmd
     - references.qmd
 
 bibliography: references.bib
