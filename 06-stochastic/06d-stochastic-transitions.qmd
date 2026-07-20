@@ -6,7 +6,8 @@ old_id: "06D"
 
 We now apply the SDE methods to the
 [toggle switch](../02-odes/02a-modeling-gene-circuits.qmd), the mutually
-repressing two-gene circuit whose deterministic phase plane we studied in Part 3.
+repressing two-gene circuit whose deterministic phase plane we studied in
+[Part 3](../03-phase-plane/03a-nullclines.qmd).
 With gene-expression noise added, each rate equation gains a noise term and the
 circuit becomes a two-variable SDE,
 

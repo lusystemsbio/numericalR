@@ -241,4 +241,5 @@ from leaking out; numerically, one copies each boundary point from its inward
 neighbor. Implementing it and comparing the dynamics is left as an
 [exercise](07f-exercises.qmd). A
 third choice, the **periodic** boundary, wraps the grid so that $P(X_0) = P(X_n)$
-and $P(X_{n+1}) = P(X_1)$; we use it for the pattern-forming systems of Part 7C.
+and $P(X_{n+1}) = P(X_1)$; we use it for the pattern-forming systems of
+[Part 7C](07c-turing-instability.qmd).

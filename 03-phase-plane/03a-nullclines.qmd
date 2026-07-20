@@ -4,7 +4,8 @@ author: "Mingyang Lu"
 old_id: "03A"
 ---
 
-Part 3 generalizes the single-variable methods of Part 2 to systems of *two*
+Part 3 generalizes the single-variable methods of
+[Part 2](../02-odes/02a-modeling-gene-circuits.qmd) to systems of *two*
 coupled ODEs, using a two-gene circuit as the running example. The main new tool
 is **phase-plane analysis** [@strogatz2015nonlinear], a visual way to characterize
 a nonlinear system by plotting its state in the plane of its two variables.
