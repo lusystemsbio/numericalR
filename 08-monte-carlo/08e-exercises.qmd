@@ -199,20 +199,30 @@ with $X_0 = Y_0 = \sqrt{2 k_{-1} / k_1}$. Hint: the forward rate of Equation (2)
 $\tfrac{1}{2} k_1 D_x Y^2$; at quasi-steady state it balances the backward rate,
 $\tfrac{1}{2} k_1 D_x Y^2 = k_{-1} C_x$, and similarly for Equation (3).
 
-**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00004$, and $k_{-1} = 0.2$ (so that
-$X_0 = Y_0 = 100$), show that the toggle switch is bistable in the deterministic
-regime. Integrate the ODEs from several initial conditions and confirm that the
-trajectories settle into two distinct stable steady states, one with high $X$ and one
-with high $Y$. (Bistability requires the maximal level $g/k$ to exceed roughly twice
-the threshold $X_0$; the smaller value $k_1 = 0.00001$ gives $X_0 = 200$, which sits
-right at that boundary and is not yet bistable.)
+**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00001$, and $k_{-1} = 0.2$ (so that
+$X_0 = Y_0 = 200$), examine the *deterministic* behavior. Integrate the ODEs from
+several initial conditions and show that they all relax to the same single steady
+state, $X = Y = 200$. With these parameters the deterministic toggle switch is
+*monostable*: it has just one stable state, not two. (The maximal level $g/k = 400$ is
+exactly twice the threshold $X_0 = 200$, which places the symmetric state right at the
+bistability boundary.)
 
-**(c)** Simulate the full network with the Gillespie algorithm using the same
-parameters, starting from $D_x = 1$, $C_x = 0$, $D_y = 0$, $C_y = 1$, $X = 300$,
-$Y = 200$, for a total time of 1000. Plot the dynamics of $X$ and $Y$; you should see
-stochastic switching between states. As in [Part 8D](08d-gillespie-algorithm.qmd),
-reuse `gillespie_step` and `ssa` and supply your own propensity and stoichiometry
-functions:
+**(c)** Now simulate the *full stochastic* network with the Gillespie algorithm, using
+the same parameters and starting from $D_x = 1$, $C_x = 0$, $D_y = 0$, $C_y = 1$,
+$X = 300$, $Y = 200$, for a total time of 1000. Plot $X(t)$ and $Y(t)$. Even though the
+deterministic model of part (b) is monostable, the stochastic trajectories switch back
+and forth between two well-separated states, one with high $X$ and low $Y$ and one with
+low $X$ and high $Y$. This is *noise-induced bistability*: the fluctuations create two
+effective states that the deterministic description does not have. To make the
+bimodality explicit, also plot the distribution of $X$ (or a 2D histogram of
+$(X, Y)$) sampled over the run, and contrast it with the single deterministic steady
+state from part (b). Note the difference from the toggle switch of
+[Part 6D](../06-stochastic/06d-stochastic-transitions.qmd), which was already
+deterministically bistable so that noise merely drove transitions between its two
+existing states; here the two states arise only because of the noise.
+
+As in [Part 8D](08d-gillespie-algorithm.qmd), reuse `gillespie_step` and `ssa` and
+supply your own propensity and stoichiometry functions:
 
 ```r
 my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)
