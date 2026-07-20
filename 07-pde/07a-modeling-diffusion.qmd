@@ -5,37 +5,43 @@ old_id: "07A"
 ---
 
 In [Part 6](../06-stochastic/06b-brownian-motion.qmd) we modeled Brownian motion
-with an SDE, tracking a single random trajectory $X(t)$ whose statistics
-($\langle X \rangle$, $\langle X^2 \rangle$) we recovered from many runs. Here we
-take the complementary view and follow the probability distribution $P(X, t)$
-directly. It obeys the *diffusion equation* [@gardiner2009stochastic],
+with an SDE. For a purely diffusive one-variable system,
 
-$$ \frac{\partial P(X, t)}{\partial t} = D \frac{\partial^2 P(X, t)}{\partial X^2} , \tag{1} $$
+$$ \frac{dX}{dt} = \sqrt{2D}\,\eta(t) , \tag{1} $$
+
+with $\eta(t)$ the Gaussian white noise, we followed a single random trajectory
+$X(t)$ and recovered its statistics ($\langle X \rangle$, $\langle X^2 \rangle$)
+from many runs. Here we take the complementary view and follow the probability
+distribution $P(X, t)$ directly. It obeys the *diffusion equation*
+[@gardiner2009stochastic],
+
+$$ \frac{\partial P(X, t)}{\partial t} = D \frac{\partial^2 P(X, t)}{\partial X^2} , \tag{2} $$
 
 a partial differential equation (PDE): $P$ depends on two variables, and $\partial
 P / \partial t$ is a *partial derivative*, taken while holding $X$ fixed,
 
-$$ \frac{\partial P(X, t)}{\partial t} = \lim_{\Delta t \to 0} \frac{P(X, t + \Delta t) - P(X, t)}{\Delta t} . \tag{2} $$
+$$ \frac{\partial P(X, t)}{\partial t} = \lim_{\Delta t \to 0} \frac{P(X, t + \Delta t) - P(X, t)}{\Delta t} . \tag{3} $$
 
 ## 7A.1 The finite difference method
 
-The most direct way to solve a PDE like Equation (1) is the *finite difference
-method* [@leveque2007finite], which replaces each derivative by a difference over
-a grid. For the time derivative, a Taylor expansion of $P(X, t + \Delta t)$ gives a
-forward difference accurate to $O(\Delta t)$,
+The most direct way to solve a PDE like Equation (2) is the *finite difference
+method* [@leveque2007finite], which replaces each derivative by a difference over a
+grid. Write $P_i^n$ for the value at grid point $X_i$ and time
+$t_n = t_0 + n\,\Delta t$. A Taylor expansion in time gives a forward difference for
+the time derivative, accurate to $O(\Delta t)$,
 
-$$ \frac{P(X, t + \Delta t) - P(X, t)}{\Delta t} = \frac{\partial P}{\partial t} + O(\Delta t) . \tag{3} $$
+$$ \frac{\partial P}{\partial t} \approx \frac{P_i^{n+1} - P_i^n}{\Delta t} . \tag{4} $$
 
-For the second space derivative, adding the Taylor expansions of $P(X + \Delta X, t)$
-and $P(X - \Delta X, t)$ cancels the odd-order terms and yields a centered
-difference accurate to $O(\Delta X^2)$,
+Adding the Taylor expansions of $P_{i+1}^n$ and $P_{i-1}^n$ cancels the odd-order
+terms and gives a centered difference for the second space derivative, accurate to
+$O(\Delta X^2)$,
 
-$$ \frac{P(X + \Delta X, t) + P(X - \Delta X, t) - 2 P(X, t)}{\Delta X^2} = \frac{\partial^2 P}{\partial X^2} + O(\Delta X^2) . \tag{4} $$
+$$ \frac{\partial^2 P}{\partial X^2} \approx \frac{P_{i+1}^n + P_{i-1}^n - 2 P_i^n}{\Delta X^2} . \tag{5} $$
 
-Substituting both into Equation (1) gives an explicit update, the diffusion analog
+Substituting both into Equation (2) gives an explicit update, the diffusion analog
 of the Euler method for ODEs,
 
-$$ P(X, t + \Delta t) = P(X, t) + D\, \frac{\Delta t}{\Delta X^2} \left[ P(X + \Delta X, t) + P(X - \Delta X, t) - 2 P(X, t) \right] . \tag{5} $$
+$$ P_i^{n+1} = P_i^n + D\, \frac{\Delta t}{\Delta X^2} \left( P_{i+1}^n + P_{i-1}^n - 2 P_i^n \right) . \tag{6} $$
 
 The prefactor $D\,\Delta t / \Delta X^2$ must stay small for stability, so the time
 step cannot be large relative to $\Delta X^2$. We also need boundary and initial
@@ -106,8 +112,10 @@ Each run broadens the distribution into a wider Gaussian, exactly the spreading 
 saw for the random walk. To quantify it we track the mean and variance of $X$,
 
 $$
-\langle X \rangle = \frac{\sum_i P(X_i, t)\, X_i}{\sum_i P(X_i, t)} , \qquad
-\langle X^2 \rangle = \frac{\sum_i P(X_i, t)\, X_i^2}{\sum_i P(X_i, t)} , \tag{6}
+\begin{aligned}
+\langle X \rangle &= \frac{\sum_i P(X_i, t)\, X_i}{\sum_i P(X_i, t)} , \\[1mm]
+\langle X^2 \rangle &= \frac{\sum_i P(X_i, t)\, X_i^2}{\sum_i P(X_i, t)} ,
+\end{aligned} \tag{7}
 $$
 
 with $\sigma^2(X) = \langle X^2 \rangle - \langle X \rangle^2$.
