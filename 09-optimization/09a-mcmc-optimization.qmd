@@ -1,0 +1,489 @@
+---
+title: "9A. MCMC optimization methods"
+author: "Mingyang Lu"
+old_id: "09A"
+---
+
+The Metropolis-Hastings algorithm of [Part 8B](../08-monte-carlo/08b-metropolis-algorithm.qmd)
+samples a probability distribution efficiently, but it struggles as a *global
+optimizer*. Treating a cost function $f$ as an energy and sampling the Boltzmann
+distribution $P \propto e^{-f/T}$, the acceptance probability
+
+$$ a = \min\left(1, e^{-(f_{x'} - f_x)/T}\right) \tag{1} $$
+
+becomes tiny at low temperature $T$. When $f$ has several local minima, a low-$T$ chain
+gets trapped in one basin and rarely crosses the barriers to the others, while a high-$T$
+chain crosses barriers freely but never settles into any minimum. This chapter develops
+MCMC methods that overcome this trade-off: simulated annealing, parallel tempering, and
+simulated tempering.
+
+## 9A.1 The Himmelblau test function
+
+We use Himmelblau's function [@himmelblau1972applied], a standard optimization
+benchmark,
+
+$$ f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2 . \tag{2} $$
+
+It has four well-separated local minima, all with $f = 0$, which makes it a good stage
+for methods that must find or sample multiple basins.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "60%"
+library(ggplot2)
+f_Himmelblau <- function(x) (x[1]^2 + x[2] - 11)^2 + (x[1] + x[2]^2 - 7)^2
+
+# contour of the landscape, reused as a background throughout the chapter
+grid_df <- expand.grid(x = seq(-6, 6, 0.1), y = seq(-6, 6, 0.1))
+grid_df$z <- apply(grid_df, 1, f_Himmelblau)
+base_contour <- function()
+  list(geom_contour(data = grid_df, aes(x, y, z = z), breaks = 10^seq(-2, 2.5, 0.5),
+                    colour = "grey60"),
+       scale_colour_gradientn(colours = c("blue", "yellow", "red"), name = "step"),
+       coord_fixed(), theme_bw())
+
+ggplot() + base_contour()
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+
+def f_Himmelblau(x):
+    return (x[0]**2 + x[1] - 11)**2 + (x[0] + x[1]**2 - 7)**2
+
+# contour of the landscape, reused as a background throughout the chapter
+gx = np.arange(-6, 6, 0.1)
+XX, YY = np.meshgrid(gx, gx); ZZ = f_Himmelblau([XX, YY])
+BYR = LinearSegmentedColormap.from_list("byr", ["blue", "yellow", "red"])
+
+def plot_traj(ax, x, title=""):
+    ax.contour(XX, YY, ZZ, levels=10**np.arange(-2, 3, 0.5), colors="grey")
+    ax.scatter(x[:, 0], x[:, 1], c=np.arange(len(x)), cmap=BYR, s=1)
+    ax.set(title=title, xlim=(-6, 6), ylim=(-6, 6), aspect="equal")
+
+fig, ax = plt.subplots(figsize=(5, 5))
+ax.contour(XX, YY, ZZ, levels=10**np.arange(-2, 3, 0.5), colors="black")
+ax.set_aspect("equal"); plt.show()
+```
+
+The four basins sit roughly at the corners of the plotted region.
+
+## 9A.2 Metropolis-Hastings sampling
+
+We first apply plain Metropolis-Hastings at several fixed temperatures. Each step
+proposes a small uniform displacement and accepts it with probability given by
+Equation (1). The `mh` function also returns its acceptance rate, which we reuse in the
+parallel-tempering method below.
+
+### R implementation {.impl}
+
+```{r}
+# Metropolis-Hastings sampler for a cost function func
+mh <- function(n, func, x0, nstep, dx_max, temp, ifprint = FALSE) {
+  x <- matrix(0, nstep + 1, n); e <- numeric(nstep + 1)
+  x[1, ] <- x0; e[1] <- func(x0); num_accept <- 0
+  for (i in 1:nstep) {
+    xnew <- x[i, ] + runif(n, -dx_max, dx_max)
+    de <- func(xnew) - e[i]
+    if (de < 0 || runif(1) < exp(-de / temp)) {
+      x[i + 1, ] <- xnew; e[i + 1] <- e[i] + de; num_accept <- num_accept + 1
+    } else { x[i + 1, ] <- x[i, ]; e[i + 1] <- e[i] }
+  }
+  rate <- num_accept / nstep
+  if (ifprint) cat("acceptance rate", rate, "\n")
+  list(x = x, e = e, rate = rate)
+}
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| out-width: "85%"
+# sample at four temperatures, each starting from the origin
+nstep <- 10^4
+traj_all <- do.call(rbind, lapply(c(1, 10, 30, 50), function(temp) {
+  set.seed(1)
+  r <- mh(2, f_Himmelblau, c(0, 0), nstep, dx_max = 0.5, temp = temp)
+  data.frame(x = r$x[, 1], y = r$x[, 2], step = 0:nstep, temp = paste0("T = ", temp))
+}))
+traj_all$temp <- factor(traj_all$temp, levels = paste0("T = ", c(1, 10, 30, 50)))
+ggplot() + base_contour() +
+  geom_path(data = traj_all, aes(x, y, colour = step), linewidth = 0.2) +
+  facet_wrap(~temp)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# Metropolis-Hastings sampler for a cost function func
+def mh(n, func, x0, nstep, dx_max, temp, ifprint=False):
+    x = np.zeros((nstep + 1, n)); e = np.zeros(nstep + 1)
+    x[0] = x0; e[0] = func(x0); num_accept = 0
+    for i in range(nstep):
+        xnew = x[i] + np.random.uniform(-dx_max, dx_max, n)
+        de = func(xnew) - e[i]
+        if de < 0 or np.random.rand() < np.exp(-de / temp):
+            x[i + 1] = xnew; e[i + 1] = e[i] + de; num_accept += 1
+        else:
+            x[i + 1] = x[i]; e[i + 1] = e[i]
+    rate = num_accept / nstep
+    if ifprint:
+        print("acceptance rate", rate)
+    return {"x": x, "e": e, "rate": rate}
+```
+
+```{python}
+#| fig-width: 8
+#| fig-height: 8
+#| out-width: "85%"
+# sample at four temperatures, each starting from the origin
+nstep = 10**4
+fig, axs = plt.subplots(2, 2, figsize=(8, 8))
+for ax, temp in zip(axs.flat, (1, 10, 30, 50)):
+    np.random.seed(1)
+    r = mh(2, f_Himmelblau, np.zeros(2), nstep, dx_max=0.5, temp=temp)
+    plot_traj(ax, r["x"], f"T = {temp}")
+plt.tight_layout(); plt.show()
+```
+
+At $T = 1$ the chain is trapped in the single basin it first reaches. As $T$ rises it
+explores more of the landscape, sampling several basins by $T = 50$, but then it no
+longer settles cleanly into any minimum. No single fixed temperature both explores
+widely and pins down a minimum.
+
+## 9A.3 Simulated annealing
+
+Simulated annealing (SA) resolves the trade-off by *lowering* the temperature during a
+single run [@kirkpatrick1983optimization]. It starts hot enough to roam across all
+basins and cools toward zero to settle into a minimum. Two common cooling schedules are
+a linear decrease and a geometric decrease (multiplying $T$ by a factor just below 1
+each step); the geometric schedule spends more steps at low temperature and usually
+converges faster. We fold both into one function.
+
+### R implementation {.impl}
+
+```{r}
+# simulated annealing with a linear or geometric cooling schedule
+sa <- function(n, func, nstep, dx_max, temp_max, schedule = "geometric", scaling = 0.999) {
+  t <- if (schedule == "linear") seq(temp_max, 0, length.out = nstep + 1)
+       else temp_max * scaling^(0:nstep)
+  x <- matrix(0, nstep + 1, n); e <- numeric(nstep + 1); e[1] <- func(x[1, ])
+  for (i in 1:nstep) {
+    xnew <- x[i, ] + runif(n, -dx_max, dx_max)
+    de <- func(xnew) - e[i]
+    if (de < 0 || runif(1) < exp(-de / t[i])) {
+      x[i + 1, ] <- xnew; e[i + 1] <- e[i] + de
+    } else { x[i + 1, ] <- x[i, ]; e[i + 1] <- e[i] }
+  }
+  list(x = x, e = e, t = t)
+}
+```
+
+```{r}
+#| fig-width: 7
+#| fig-height: 3.2
+#| out-width: "80%"
+#| rmar: false
+# the two cooling schedules
+nstep <- 10^4
+par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+plot(seq(50, 0, length.out = nstep + 1), type = "l", col = 2, xlab = "Step",
+     ylab = "T", main = "linear")
+plot(50 * 0.999^(0:nstep), type = "l", col = 4, xlab = "Step", ylab = "T", main = "geometric")
+```
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+#| out-width: "85%"
+# four independent geometric-cooling runs; different seeds land in different minima
+traj_all <- do.call(rbind, lapply(1:4, function(seed) {
+  set.seed(seed)
+  r <- sa(2, f_Himmelblau, nstep, dx_max = 0.5, temp_max = 50, scaling = 0.999)
+  data.frame(x = r$x[, 1], y = r$x[, 2], step = 0:nstep, seed = paste0("seed ", seed))
+}))
+ggplot() + base_contour() +
+  geom_path(data = traj_all, aes(x, y, colour = step), linewidth = 0.2) +
+  facet_wrap(~seed)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# simulated annealing with a linear or geometric cooling schedule
+def sa(n, func, nstep, dx_max, temp_max, schedule="geometric", scaling=0.999):
+    if schedule == "linear":
+        t = np.linspace(temp_max, 0, nstep + 1)
+    else:
+        t = temp_max * scaling**np.arange(nstep + 1)
+    x = np.zeros((nstep + 1, n)); e = np.zeros(nstep + 1); e[0] = func(x[0])
+    for i in range(nstep):
+        xnew = x[i] + np.random.uniform(-dx_max, dx_max, n)
+        de = func(xnew) - e[i]
+        if de < 0 or np.random.rand() < np.exp(-de / t[i]):
+            x[i + 1] = xnew; e[i + 1] = e[i] + de
+        else:
+            x[i + 1] = x[i]; e[i + 1] = e[i]
+    return {"x": x, "e": e, "t": t}
+```
+
+```{python}
+#| fig-width: 7
+#| fig-height: 3.2
+#| out-width: "80%"
+# the two cooling schedules
+nstep = 10**4
+fig, axs = plt.subplots(1, 2, figsize=(7, 3.2))
+axs[0].plot(np.linspace(50, 0, nstep + 1), color="red"); axs[0].set(xlabel="Step", ylabel="T", title="linear")
+axs[1].plot(50 * 0.999**np.arange(nstep + 1), color="blue"); axs[1].set(xlabel="Step", ylabel="T", title="geometric")
+plt.tight_layout(); plt.show()
+```
+
+```{python}
+#| fig-width: 8
+#| fig-height: 8
+#| out-width: "85%"
+# four independent geometric-cooling runs; different seeds land in different minima
+fig, axs = plt.subplots(2, 2, figsize=(8, 8))
+for ax, seed in zip(axs.flat, (1, 2, 3, 4)):
+    np.random.seed(seed)
+    r = sa(2, f_Himmelblau, nstep, dx_max=0.5, temp_max=50, scaling=0.999)
+    plot_traj(ax, r["x"], f"seed {seed}")
+plt.tight_layout(); plt.show()
+```
+
+Each run cools from a broad high-temperature search (blue) into one minimum (red), but
+which minimum depends on the random path, so different seeds find different basins.
+Because SA does not guarantee the global optimum, one typically runs it many times and
+keeps the best result.
+
+## 9A.4 Parallel tempering
+
+Parallel tempering (PT), or replica exchange [@hukushima1996exchange], runs several
+chains at once, each at its own fixed temperature, and periodically proposes to *swap*
+the coordinates of two replicas. Hot replicas cross barriers and feed configurations
+down to cold replicas, which refine them in the minima. A swap between replicas $i$ and
+$j$ is accepted with
+
+$$ a = \min\left(1, e^{(f_i - f_j)(1/T_i - 1/T_j)}\right) , \tag{3} $$
+
+which preserves detailed balance so every replica still samples the Boltzmann
+distribution at its own temperature. We generalize to any number of replicas, running
+the `mh` sampler on each between swaps and only swapping adjacent temperatures (in
+alternating even/odd rounds for ergodicity).
+
+### R implementation {.impl}
+
+```{r}
+# parallel tempering over nrep replicas at increasing temperatures
+pt_multi <- function(n, func, x0, nrep, niter, nstep, dx_max, temp, ifprint = FALSE) {
+  x <- lapply(1:nrep, function(j) matrix(0, niter * (nstep + 1), n))
+  e <- matrix(0, niter * (nstep + 1), nrep)
+  for (j in 1:nrep) x[[j]][1, ] <- x0[j, ]
+  num_accept <- num_proposed <- numeric(nrep - 1)
+  for (i in 1:niter) {
+    start <- (i - 1) * (nstep + 1) + 1; end <- i * (nstep + 1)
+    res <- lapply(1:nrep, function(j) mh(n, func, x[[j]][start, ], nstep, dx_max[j], temp[j]))
+    for (j in 1:nrep) { x[[j]][start:end, ] <- res[[j]]$x; e[start:end, j] <- res[[j]]$e }
+    if (i == niter) break
+    for (j in 1:nrep) { x[[j]][end + 1, ] <- x[[j]][end, ]; e[end + 1, j] <- e[end, j] }
+    j_seq <- if (i %% 2 == 1) seq(3, nrep, 2) else seq(2, nrep, 2)   # alternate swap rounds
+    for (j in j_seq) {
+      num_proposed[j - 1] <- num_proposed[j - 1] + 1
+      a <- exp((e[end, j - 1] - e[end, j]) * (1 / temp[j - 1] - 1 / temp[j]))
+      if (runif(1) < a) {
+        num_accept[j - 1] <- num_accept[j - 1] + 1
+        x[[j - 1]][end + 1, ] <- x[[j]][end, ]; x[[j]][end + 1, ] <- x[[j - 1]][end, ]
+        e[end + 1, j - 1] <- e[end, j]; e[end + 1, j] <- e[end, j - 1]
+      }
+    }
+  }
+  if (ifprint) cat("swap acceptance:", num_accept / num_proposed, "\n")
+  list(x = x, e = e)
+}
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 6
+#| out-width: "92%"
+set.seed(1)
+nrep <- 6; niter <- 100; nstep <- 100
+temp <- c(2.3, 5, 10, 20, 40, 80); dx_max <- c(0.3, 0.5, 0.7, 1, 1.5, 2.5)
+res_pt <- pt_multi(2, f_Himmelblau, matrix(0, nrep, 2), nrep, niter, nstep, dx_max, temp, ifprint = TRUE)
+
+ntot <- niter * (nstep + 1)
+traj_all <- do.call(rbind, lapply(1:nrep, function(j) {
+  data.frame(x = res_pt$x[[j]][, 1], y = res_pt$x[[j]][, 2], step = 1:ntot,
+             rep = factor(paste0("T = ", temp[j]), levels = paste0("T = ", temp)))
+}))
+ggplot() + base_contour() +
+  geom_path(data = traj_all, aes(x, y, colour = step), linewidth = 0.2) +
+  facet_wrap(~rep)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# parallel tempering over nrep replicas at increasing temperatures
+def pt_multi(n, func, x0, nrep, niter, nstep, dx_max, temp, ifprint=False):
+    x = [np.zeros((niter * (nstep + 1), n)) for _ in range(nrep)]
+    e = np.zeros((niter * (nstep + 1), nrep))
+    for j in range(nrep):
+        x[j][0] = x0[j]
+    num_accept = np.zeros(nrep - 1); num_proposed = np.zeros(nrep - 1)
+    for i in range(1, niter + 1):
+        start = (i - 1) * (nstep + 1); end = i * (nstep + 1)
+        res = [mh(n, func, x[j][start], nstep, dx_max[j], temp[j]) for j in range(nrep)]
+        for j in range(nrep):
+            x[j][start:end] = res[j]["x"]; e[start:end, j] = res[j]["e"]
+        if i == niter:
+            break
+        for j in range(nrep):
+            x[j][end] = x[j][end - 1]; e[end, j] = e[end - 1, j]
+        j_seq = range(2, nrep, 2) if i % 2 == 1 else range(1, nrep, 2)   # alternate swap rounds
+        for j in j_seq:
+            num_proposed[j - 1] += 1
+            a = np.exp((e[end, j - 1] - e[end, j]) * (1 / temp[j - 1] - 1 / temp[j]))
+            if np.random.rand() < a:
+                num_accept[j - 1] += 1
+                x[j - 1][end] = x[j][end - 1]; x[j][end] = x[j - 1][end - 1]
+                e[end, j - 1] = e[end - 1, j]; e[end, j] = e[end - 1, j - 1]
+    if ifprint:
+        print("swap acceptance:", num_accept / num_proposed)
+    return {"x": x, "e": e}
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 6
+#| out-width: "92%"
+np.random.seed(1)
+nrep = 6; niter = 100; nstep = 100
+temp = [2.3, 5, 10, 20, 40, 80]; dx_max = [0.3, 0.5, 0.7, 1, 1.5, 2.5]
+res_pt = pt_multi(2, f_Himmelblau, np.zeros((nrep, 2)), nrep, niter, nstep, dx_max, temp, ifprint=True)
+
+fig, axs = plt.subplots(2, 3, figsize=(9, 6))
+for ax, j in zip(axs.flat, range(nrep)):
+    plot_traj(ax, res_pt["x"][j], f"T = {temp[j]}")
+plt.tight_layout(); plt.show()
+```
+
+The coldest replica ($T = 2.3$) stays tightly inside minima yet still hops between them,
+thanks to configurations passed down from the hotter replicas, while the hottest
+($T = 80$) roams over the whole landscape. Monitoring the swap acceptance rate helps
+choose the temperature spacing: if adjacent temperatures are too far apart, swaps are
+rarely accepted and more replicas are needed.
+
+## 9A.5 Simulated tempering
+
+Simulated tempering (ST) achieves a similar effect with a *single* chain whose
+temperature itself performs a random walk over a discrete ladder $T_1 < \dots <
+T_{n_\text{temp}}$ [@marinari1992simulated]. A mixing parameter $\alpha$ sets the
+fraction of steps spent moving in space (ordinary MH at the current temperature) versus
+moving in temperature. A proposed temperature change to $T'$ is accepted with
+
+$$ a = \min\left(1, \frac{c'}{c}\, e^{-f(1/T' - 1/T)}\right) , \tag{4} $$
+
+where the weights $c$ bias how often each temperature is visited (larger weights at low
+temperature emphasize refining minima). The weights would be the partition functions to
+sample all temperatures equally, but since those are unknown we choose them by hand.
+
+### R implementation {.impl}
+
+```{r}
+# simulated tempering: one chain, temperature random-walks a discrete ladder
+st <- function(n, func, x0, nstep, alpha, dx_max, temp_all, weight_all, ifprint = FALSE) {
+  ntemp <- length(temp_all)
+  x <- matrix(0, nstep + 1, n); ind_t <- integer(nstep + 1); e <- numeric(nstep + 1)
+  x[1, ] <- x0; ind_t[1] <- sample(ntemp, 1); e[1] <- func(x0)
+  for (i in 1:nstep) {
+    temp <- temp_all[ind_t[i]]
+    if (runif(1) <= alpha) {                       # spatial MH move
+      ind_t[i + 1] <- ind_t[i]
+      xnew <- x[i, ] + runif(n, -dx_max, dx_max); de <- func(xnew) - e[i]
+      if (de < 0 || runif(1) < exp(-de / temp)) { x[i + 1, ] <- xnew; e[i + 1] <- e[i] + de }
+      else { x[i + 1, ] <- x[i, ]; e[i + 1] <- e[i] }
+    } else {                                        # temperature move
+      ind_new <- if (sample(2, 1) == 1) max(1, ind_t[i] - 1) else min(ind_t[i] + 1, ntemp)
+      temp_new <- temp_all[ind_new]
+      a <- weight_all[ind_new] / weight_all[ind_t[i]] * exp(-e[i] * (1 / temp_new - 1 / temp))
+      ind_t[i + 1] <- if (runif(1) < a) ind_new else ind_t[i]
+      x[i + 1, ] <- x[i, ]; e[i + 1] <- e[i]
+    }
+  }
+  list(x = x, e = e, ind_t = ind_t)
+}
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 4
+#| out-width: "92%"
+set.seed(1)
+nstep <- 10^4
+temp_all <- seq(5, 80, 5); weight_all <- seq(5, 1, length.out = length(temp_all))
+res_st <- st(2, f_Himmelblau, numeric(2), nstep, alpha = 0.9, dx_max = 1,
+             temp_all = temp_all, weight_all = weight_all)
+
+traj <- data.frame(x = res_st$x[, 1], y = res_st$x[, 2], step = 0:nstep)
+g1 <- ggplot() + base_contour() +
+  geom_path(data = traj, aes(x, y, colour = step), linewidth = 0.2)
+print(g1)
+plot(0:nstep, temp_all[res_st$ind_t], type = "l", col = 2, xlab = "Step", ylab = "Temperature")
+```
+
+### Python implementation {.impl}
+
+```{python}
+# simulated tempering: one chain, temperature random-walks a discrete ladder
+def st(n, func, x0, nstep, alpha, dx_max, temp_all, weight_all, ifprint=False):
+    ntemp = len(temp_all)
+    x = np.zeros((nstep + 1, n)); ind_t = np.zeros(nstep + 1, dtype=int); e = np.zeros(nstep + 1)
+    x[0] = x0; ind_t[0] = np.random.randint(ntemp); e[0] = func(x0)
+    for i in range(nstep):
+        temp = temp_all[ind_t[i]]
+        if np.random.rand() <= alpha:                  # spatial MH move
+            ind_t[i + 1] = ind_t[i]
+            xnew = x[i] + np.random.uniform(-dx_max, dx_max, n); de = func(xnew) - e[i]
+            if de < 0 or np.random.rand() < np.exp(-de / temp):
+                x[i + 1] = xnew; e[i + 1] = e[i] + de
+            else:
+                x[i + 1] = x[i]; e[i + 1] = e[i]
+        else:                                          # temperature move
+            ind_new = max(0, ind_t[i] - 1) if np.random.randint(2) == 0 else min(ind_t[i] + 1, ntemp - 1)
+            temp_new = temp_all[ind_new]
+            a = weight_all[ind_new] / weight_all[ind_t[i]] * np.exp(-e[i] * (1 / temp_new - 1 / temp))
+            ind_t[i + 1] = ind_new if np.random.rand() < a else ind_t[i]
+            x[i + 1] = x[i]; e[i + 1] = e[i]
+    return {"x": x, "e": e, "ind_t": ind_t}
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4
+#| out-width: "92%"
+np.random.seed(1)
+nstep = 10**4
+temp_all = np.arange(5, 81, 5); weight_all = np.linspace(5, 1, len(temp_all))
+res_st = st(2, f_Himmelblau, np.zeros(2), nstep, alpha=0.9, dx_max=1,
+            temp_all=temp_all, weight_all=weight_all)
+
+fig, axs = plt.subplots(1, 2, figsize=(9, 4))
+plot_traj(axs[0], res_st["x"], "trajectory")
+axs[1].plot(range(nstep + 1), temp_all[res_st["ind_t"]], color="red")
+axs[1].set(xlabel="Step", ylabel="Temperature")
+plt.tight_layout(); plt.show()
+```
+
+Because the temperature wanders up and down, a single ST trajectory both crosses
+barriers (when it is hot) and settles into minima (when it is cold), visiting all four
+basins in one run. Unlike simulated annealing, which ends cold and stops, simulated
+tempering keeps sampling, and unlike parallel tempering it needs only one chain.
