@@ -82,6 +82,7 @@ book:
         - 09-optimization/09a-mcmc-optimization.qmd
         - 09-optimization/09b-dynamic-programming.qmd
         - 09-optimization/09c-genetic-algorithm.qmd
+        - 09-optimization/09d-exercises.qmd
     - references.qmd
 
 bibliography: references.bib
