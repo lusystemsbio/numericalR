@@ -434,7 +434,7 @@ anim = FuncAnimation(fig, update, frames=frames, interval=50)
 anim.save("md.gif", writer="pillow", fps=20)
 ```
 
-Both the R and Python versions produce an animation of the particle dynamics.
+The code produces an animation of the particle dynamics.
 
 ::: {.content-visible when-format="html"}
 ![The box simulation as an animation, rendered here with the R `gganimate` implementation above (the Python `matplotlib` version produces an equivalent GIF). It plays only in the HTML edition.](images/05c/md.gif){width=55% fig-align="center"}

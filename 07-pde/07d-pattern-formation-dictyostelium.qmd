@@ -276,9 +276,9 @@ produces its own spiral of the same character rather than an identical picture.
 A single snapshot only hints at the dynamics. To watch the spiral rotate, we render
 every saved frame to a PNG and assemble the frames into an animated GIF. In R we use
 `magick` (the same ImageMagick tool used elsewhere in the book), and in Python
-`matplotlib.animation`. Both loops below are shown as code you can run; the resulting
-GIFs are pre-generated and embedded so the book does not rebuild them on every
-render.
+`matplotlib.animation`. The animation code below is shown as a listing you can run;
+the resulting GIFs are pre-generated and embedded so the book does not rebuild them
+on every render.
 
 ### R implementation {.impl}
 
