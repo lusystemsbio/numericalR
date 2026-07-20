@@ -1,0 +1,453 @@
+---
+title: "9C. Genetic algorithm"
+author: "Mingyang Lu"
+old_id: "09C"
+---
+
+A *genetic algorithm* (GA) is a stochastic global optimizer inspired by natural
+selection [@holland1975adaptation]. It maintains a *population* of candidate solutions
+and improves it over successive *generations* by three operators borrowed from
+evolution: *crossover* (combining two solutions), *mutation* (randomly perturbing one),
+and *selection* (keeping the fittest). It needs only a genetic representation of a
+solution (usually a vector) and a fitness function to optimize.
+
+## 9C.1 Genetic algorithm for continuous variables
+
+We first optimize a continuous function, Rosenbrock's function
+[@rosenbrock1960automatic],
+
+$$ f(x_1, x_2) = 100(x_1^2 - x_2)^2 + (1 - x_1)^2 , $$
+
+a classic benchmark whose minimum at $(1, 1)$ sits in a long, curved, shallow valley
+that is hard to descend. The genetic representation is the vector $(x_1, x_2)$ and the
+fitness is $f$ (to be minimized). Crossover swaps variables between two parents to make
+two offspring; mutation nudges one randomly chosen variable by a small uniform step.
+Each generation we make `np` offspring from `np` parents, then keep the best `np` of the
+combined pool.
+
+### R implementation {.impl}
+
+```{r}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+library(ggplot2)
+f_rosenbrock <- function(x) 100 * (x[1]^2 - x[2])^2 + (1 - x[1])^2
+
+grid_df <- expand.grid(x1 = seq(-3, 3, 0.05), x2 = seq(-3, 3, 0.05))
+grid_df$z <- apply(grid_df, 1, f_rosenbrock)
+ggplot(grid_df, aes(x1, x2, z = z)) +
+  geom_contour(breaks = 10^seq(-2, 2.5, 0.2), colour = "grey50") + coord_fixed() + theme_bw()
+```
+
+```{r}
+# swap variables between two parents; nudge one variable of a parent
+crossover_opt <- function(n, x1, x2) {
+  w <- sample(0:1, n, replace = TRUE)
+  rbind(x1 * w + x2 * (1 - w), x2 * w + x1 * (1 - w))
+}
+mutation_opt <- function(n, x, xrange, dx_max) {
+  i <- sample(n, 1); x[i] <- x[i] + runif(1, -dx_max[i], dx_max[i])
+  x[i] <- min(max(x[i], xrange[i, 1]), xrange[i, 2]); x
+}
+
+# genetic algorithm for a continuous function (minimized)
+ga_opt <- function(n, func, np, rate_x, ngen, xrange, dx_ratio) {
+  np <- ceiling(np / 2) * 2
+  dx_max <- (xrange[, 2] - xrange[, 1]) * dx_ratio
+  x_par <- sapply(1:n, function(i) runif(np, xrange[i, 1], xrange[i, 2]))
+  s_par <- apply(x_par, 1, func)
+  x_off <- matrix(0, np, n); s_keep <- matrix(0, ngen, np)
+  for (g in 1:ngen) {
+    ir <- sample(np)
+    for (j in 1:(np / 2)) {
+      x1 <- x_par[ir[2 * j - 1], ]; x2 <- x_par[ir[2 * j], ]
+      if (runif(1) < rate_x) x_off[(2 * j - 1):(2 * j), ] <- crossover_opt(n, x1, x2)
+      else { x_off[2 * j - 1, ] <- mutation_opt(n, x1, xrange, dx_max)
+             x_off[2 * j, ] <- mutation_opt(n, x2, xrange, dx_max) }
+    }
+    s_off <- apply(x_off, 1, func)
+    x_all <- rbind(x_par, x_off); s_all <- c(s_par, s_off)
+    keep <- order(s_all)[1:np]                     # keep the fittest np
+    x_par <- x_all[keep, ]; s_par <- s_all[keep]; s_keep[g, ] <- s_par
+  }
+  list(x = x_par[1, ], s = s_par[1], s_keep = s_keep)
+}
+
+set.seed(1)
+xrange <- matrix(c(-3, 3, -3, 3), 2, byrow = TRUE)
+res <- ga_opt(2, f_rosenbrock, np = 50, rate_x = 0.7, ngen = 100, xrange, dx_ratio = 0.1)
+cat("best x:", round(res$x, 3), " best score:", signif(res$s, 3), "\n")
+matplot(1:100, cbind(apply(res$s_keep, 1, min), rowMeans(res$s_keep), apply(res$s_keep, 1, max)),
+        type = "l", lty = 1, col = c(2, 1, 4), xlab = "Generation", ylab = "Score", log = "y")
+legend("topright", c("min", "mean", "max"), col = c(2, 1, 4), lty = 1, cex = 0.8)
+```
+
+### Python implementation {.impl}
+
+```{python}
+#| fig-width: 5
+#| fig-height: 5
+#| out-width: "55%"
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f_rosenbrock(x):
+    return 100 * (x[0]**2 - x[1])**2 + (1 - x[0])**2
+
+gx = np.arange(-3, 3, 0.05)
+X1, X2 = np.meshgrid(gx, gx); Z = f_rosenbrock([X1, X2])
+plt.figure(figsize=(5, 5))
+plt.contour(X1, X2, Z, levels=10**np.arange(-2, 2.5, 0.2), colors="grey")
+plt.gca().set_aspect("equal"); plt.xlabel("x1"); plt.ylabel("x2"); plt.show()
+```
+
+```{python}
+# swap variables between two parents; nudge one variable of a parent
+def crossover_opt(n, x1, x2):
+    w = np.random.randint(0, 2, n)
+    return np.vstack((x1 * w + x2 * (1 - w), x2 * w + x1 * (1 - w)))
+def mutation_opt(n, x, xrange, dx_max):
+    i = np.random.randint(n); x = x.copy()
+    x[i] = np.clip(x[i] + np.random.uniform(-dx_max[i], dx_max[i]), xrange[i, 0], xrange[i, 1])
+    return x
+
+# genetic algorithm for a continuous function (minimized)
+def ga_opt(n, func, np_, rate_x, ngen, xrange, dx_ratio):
+    np_ += np_ % 2
+    dx_max = (xrange[:, 1] - xrange[:, 0]) * dx_ratio
+    x_par = np.random.uniform(xrange[:, 0], xrange[:, 1], size=(np_, n))
+    s_par = np.apply_along_axis(func, 1, x_par)
+    x_off = np.zeros((np_, n)); s_keep = np.zeros((ngen, np_))
+    for g in range(ngen):
+        ir = np.random.permutation(np_)
+        for j in range(np_ // 2):
+            x1, x2 = x_par[ir[2 * j]], x_par[ir[2 * j + 1]]
+            if np.random.rand() < rate_x:
+                x_off[2 * j:2 * j + 2] = crossover_opt(n, x1, x2)
+            else:
+                x_off[2 * j] = mutation_opt(n, x1, xrange, dx_max)
+                x_off[2 * j + 1] = mutation_opt(n, x2, xrange, dx_max)
+        s_off = np.apply_along_axis(func, 1, x_off)
+        x_all = np.vstack((x_par, x_off)); s_all = np.concatenate((s_par, s_off))
+        keep = np.argsort(s_all)[:np_]                 # keep the fittest np
+        x_par, s_par = x_all[keep], s_all[keep]; s_keep[g] = s_par
+    return {"x": x_par[0], "s": s_par[0], "s_keep": s_keep}
+
+np.random.seed(1)
+xrange = np.array([[-3, 3], [-3, 3]])
+res = ga_opt(2, f_rosenbrock, 50, 0.7, 100, xrange, 0.1)
+print("best x:", np.round(res["x"], 3), " best score:", float(f"{res['s']:.3g}"))
+s = res["s_keep"]
+plt.plot(range(100), s.min(1), "r", label="min")
+plt.plot(range(100), s.mean(1), "k", label="mean")
+plt.plot(range(100), s.max(1), "b", label="max")
+plt.yscale("log"); plt.xlabel("Generation"); plt.ylabel("Score"); plt.legend(); plt.show()
+```
+
+The best score drops toward zero over the generations, converging near the minimum at
+$(1, 1)$. The min/mean/max curves show the whole population improving, with the spread
+narrowing as it converges. Performance depends on the crossover rate, population size,
+and number of generations.
+
+## 9C.2 Genetic algorithm for the TSP
+
+For the traveling salesman problem the genetic representation is a *permutation* of the
+city indices, and the fitness is the total tour length. Permutations need
+permutation-preserving operators. For mutation we use either a *point* swap (exchange
+two cities) or an *inversion* (reverse the order of a segment).
+
+### R implementation {.impl}
+
+```{r}
+# total tour length for a city order z
+cal_s <- function(n, d, z) {
+  dis <- 0; for (i in 1:(n - 1)) dis <- dis + d[z[i], z[i + 1]]
+  dis + d[z[1], z[n]]
+}
+# point mutation: swap two cities
+mut_point <- function(n, z) { s <- sample(n, 2); z[s] <- z[rev(s)]; z }
+# inversion mutation: reverse a segment
+mut_inverse <- function(n, z) { s <- sample(n, 2); z[s[1]:s[2]] <- z[s[2]:s[1]]; z }
+```
+
+### Python implementation {.impl}
+
+```{python}
+# total tour length for a city order z
+def cal_s(n, d, z):
+    dis = sum(d[z[i], z[i + 1]] for i in range(n - 1))
+    return dis + d[z[0], z[n - 1]]
+# point mutation: swap two cities
+def mut_point(n, z):
+    s = np.random.choice(n, 2, replace=False); z = z.copy()
+    z[s[0]], z[s[1]] = z[s[1]], z[s[0]]; return z
+# inversion mutation: reverse a segment
+def mut_inverse(n, z):
+    s = sorted(np.random.choice(n, 2, replace=False)); z = z.copy()
+    z[s[0]:s[1] + 1] = z[s[0]:s[1] + 1][::-1]; return z
+```
+
+## 9C.3 Crossover operators for permutations
+
+Ordinary crossover would produce invalid tours with repeated or missing cities, so
+permutations use special operators [@goldberg1989genetic]. We implement three classic
+ones. *Partially mapped crossover* (PMX) copies a segment from one parent and repairs
+the rest through the position mapping between parents. *Order crossover* (OX) keeps a
+segment from one parent and fills the rest in the order they appear in the other.
+*Cycle crossover* (CX) builds offspring from cycles of positions shared by the parents.
+
+### R implementation {.impl}
+
+```{r}
+# PMX: partially mapped crossover
+pmx <- function(n, z1, z2) {
+  s <- sort(sample(n, 2)); if (s[1] == 1 && s[2] == n) return(rbind(z1, z2))
+  seg <- s[1]:s[2]; rest <- setdiff(1:n, seg)
+  c1 <- z1[seg]; c2 <- z2[seg]; z1n <- z2n <- numeric(n)
+  z1n[seg] <- c2
+  for (i in rest) { cand <- z1[i]; while (cand %in% c2) cand <- c1[c2 == cand]; z1n[i] <- cand }
+  z2n[seg] <- c1
+  for (i in rest) { cand <- z2[i]; while (cand %in% c1) cand <- c2[c1 == cand]; z2n[i] <- cand }
+  rbind(z1n, z2n)
+}
+
+# OX: order crossover
+ox <- function(n, z1, z2) {
+  s <- sort(sample(n, 2)); if (s[1] == 1 && s[2] == n) return(rbind(z1, z2))
+  fill_from <- function(keep, other) {
+    ordered <- c(tail(other, -s[2]), head(other, s[2]))
+    c(keep, setdiff(ordered, keep))
+  }
+  z2n <- fill_from(z1[s[1]:s[2]], z2); z1n <- fill_from(z2[s[1]:s[2]], z1)
+  if (s[1] > 1) { sh <- s[1] - 1
+    z2n <- c(tail(z2n, sh), head(z2n, -sh)); z1n <- c(tail(z1n, sh), head(z1n, -sh)) }
+  rbind(z1n, z2n)
+}
+
+# CX: cycle crossover
+cx <- function(n, z1, z2) {
+  z1n <- numeric(n); z1n[1] <- z1[1]; ind <- which(z1 == z2[1])
+  while (z1n[ind] == 0) { z1n[ind] <- z1[ind]; ind <- which(z1 == z2[ind]) }
+  rest <- which(z1n == 0); z1n[rest] <- z2[rest]
+  rbind(z1n, z1 + z2 - z1n)
+}
+```
+
+```{r}
+# demonstrate the operators on two example tours
+set.seed(1)
+n <- 8; z1 <- c(3, 4, 8, 2, 7, 1, 6, 5); z2 <- c(4, 2, 5, 1, 6, 8, 3, 7)
+rbind(point = mut_point(n, z1), inverse = mut_inverse(n, z1))
+pmx(n, z1, z2); ox(n, z1, z2); cx(n, z1, z2)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# PMX: partially mapped crossover
+def pmx(n, z1, z2):
+    s = sorted(np.random.choice(n, 2, replace=False))
+    if s[0] == 0 and s[1] == n - 1: return np.vstack((z1, z2))
+    seg = np.arange(s[0], s[1] + 1); rest = np.setdiff1d(np.arange(n), seg)
+    c1, c2 = z1[seg], z2[seg]; z1n = np.zeros(n, int); z2n = np.zeros(n, int)
+    z1n[seg] = c2
+    for i in rest:
+        cand = z1[i]
+        while cand in c2: cand = c1[np.where(c2 == cand)[0][0]]
+        z1n[i] = cand
+    z2n[seg] = c1
+    for i in rest:
+        cand = z2[i]
+        while cand in c1: cand = c2[np.where(c1 == cand)[0][0]]
+        z2n[i] = cand
+    return np.vstack((z1n, z2n))
+
+# OX: order crossover
+def ox(n, z1, z2):
+    s = sorted(np.random.choice(n, 2, replace=False))
+    if s[0] == 0 and s[1] == n - 1: return np.vstack((z1, z2))
+    def fill_from(keep, other):
+        ordered = np.concatenate((other[s[1] + 1:], other[:s[1] + 1]))
+        return np.concatenate((keep, np.array([c for c in ordered if c not in keep])))
+    z2n = fill_from(z1[s[0]:s[1] + 1], z2); z1n = fill_from(z2[s[0]:s[1] + 1], z1)
+    if s[0] > 0:
+        z2n = np.concatenate((z2n[-s[0]:], z2n[:-s[0]])); z1n = np.concatenate((z1n[-s[0]:], z1n[:-s[0]]))
+    return np.vstack((z1n, z2n))
+
+# CX: cycle crossover
+def cx(n, z1, z2):
+    z1n = np.zeros(n, int); mask = np.zeros(n, bool)
+    z1n[0] = z1[0]; mask[0] = True; ind = np.where(z1 == z2[0])[0][0]
+    while not mask[ind]:
+        z1n[ind] = z1[ind]; mask[ind] = True; ind = np.where(z1 == z2[ind])[0][0]
+    z1n[~mask] = z2[~mask]
+    return np.vstack((z1n, z1 + z2 - z1n))
+```
+
+```{python}
+# demonstrate the operators on two example tours
+np.random.seed(1)
+n = 8; z1 = np.array([3, 4, 8, 2, 7, 1, 6, 5]); z2 = np.array([4, 2, 5, 1, 6, 8, 3, 7])
+print("point:  ", mut_point(n, z1)); print("inverse:", mut_inverse(n, z1))
+print("pmx:\n", pmx(n, z1, z2)); print("ox:\n", ox(n, z1, z2)); print("cx:\n", cx(n, z1, z2))
+```
+
+## 9C.4 Testing on the TSP
+
+The GA for the TSP follows the same loop as the continuous version, now with the
+permutation operators. We start from random tours and, each generation, pair parents to
+produce offspring by crossover or mutation, then keep the fittest.
+
+### R implementation {.impl}
+
+```{r}
+# genetic algorithm for the TSP
+tsp_ga <- function(n, d, np, rate_x, ngen, func_x, func_m) {
+  np <- ceiling(np / 2) * 2
+  z_par <- t(replicate(np, sample(n))); s_par <- apply(z_par, 1, function(z) cal_s(n, d, z))
+  z_off <- matrix(0, np, n); s_keep <- matrix(0, ngen, np)
+  for (g in 1:ngen) {
+    ir <- sample(np)
+    for (j in 1:(np / 2)) {
+      z1 <- z_par[ir[2 * j - 1], ]; z2 <- z_par[ir[2 * j], ]
+      if (runif(1) < rate_x) z_off[(2 * j - 1):(2 * j), ] <- func_x(n, z1, z2)
+      else { z_off[2 * j - 1, ] <- func_m(n, z1); z_off[2 * j, ] <- func_m(n, z2) }
+    }
+    s_off <- apply(z_off, 1, function(z) cal_s(n, d, z))
+    z_all <- rbind(z_par, z_off); s_all <- c(s_par, s_off)
+    keep <- order(s_all)[1:np]
+    z_par <- z_all[keep, ]; s_par <- s_all[keep]; s_keep[g, ] <- s_par
+  }
+  list(z = z_par[1, ], s = s_par[1], s_keep = s_keep)
+}
+
+# helper to plot the tour and the score convergence side by side
+plot_tsp <- function(cities, res, ngen, title) {
+  p <- c(res$z, res$z[1]); s <- res$s_keep
+  par(mfrow = c(1, 2), mar = c(4, 4, 2, 1), pty = "s")
+  plot(cities$x, cities$y, pch = 19, cex = 0.6, xlab = "x", ylab = "y", main = title, asp = 1)
+  lines(cities$x[p], cities$y[p], col = 2)
+  par(pty = "m")
+  matplot(1:ngen, cbind(apply(s, 1, min), rowMeans(s), apply(s, 1, max)),
+          type = "l", lty = 1, col = c(2, 1, 4), xlab = "Generation", ylab = "Score")
+}
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+#| rmar: false
+# ten-city instance: the GA finds the exact optimum
+c10 <- data.frame(
+  x = c(0, -28.87, -14.66, -29.06, -36.04, -50.48, -50.59, -0.14, -21.50, -43.07),
+  y = c(0,   0.00,  43.39,  43.22,  21.61,  -7.37,  21.59, 28.73,  -7.32, -14.55))
+d10 <- as.matrix(dist(c10))
+set.seed(1)
+res <- tsp_ga(10, d10, np = 10, rate_x = 0.8, ngen = 50, func_x = pmx, func_m = mut_point)
+plot_tsp(c10, res, 50, paste("10 cities, length", round(res$s, 1)))
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+#| rmar: false
+# the 52-city berlin52 instance (TSPLIB): a much harder problem
+c52 <- read.table("09-optimization/data/berlin52.tsp", col.names = c("ind", "x", "y"))
+d52 <- as.matrix(dist(c52[, c("x", "y")]))     # distances from x, y only
+set.seed(1)
+res_pp <- tsp_ga(52, d52, np = 40, rate_x = 0.7, ngen = 2000, func_x = pmx, func_m = mut_point)
+plot_tsp(c52, res_pp, 2000, paste("PMX + point swap, length", round(res_pp$s)))
+```
+
+```{r}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+#| rmar: false
+# order crossover with inversion mutation does much better
+set.seed(1)
+res_oi <- tsp_ga(52, d52, np = 40, rate_x = 0.7, ngen = 2000, func_x = ox, func_m = mut_inverse)
+plot_tsp(c52, res_oi, 2000, paste("OX + inversion, length", round(res_oi$s)))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# genetic algorithm for the TSP
+def tsp_ga(n, d, np_, rate_x, ngen, func_x, func_m):
+    np_ += np_ % 2
+    z_par = np.array([np.random.permutation(n) for _ in range(np_)])
+    s_par = np.array([cal_s(n, d, z) for z in z_par])
+    z_off = np.zeros((np_, n), int); s_keep = np.zeros((ngen, np_))
+    for g in range(ngen):
+        ir = np.random.permutation(np_)
+        for j in range(np_ // 2):
+            z1, z2 = z_par[ir[2 * j]], z_par[ir[2 * j + 1]]
+            if np.random.rand() < rate_x:
+                z_off[2 * j:2 * j + 2] = func_x(n, z1, z2)
+            else:
+                z_off[2 * j] = func_m(n, z1); z_off[2 * j + 1] = func_m(n, z2)
+        s_off = np.array([cal_s(n, d, z) for z in z_off])
+        z_all = np.vstack((z_par, z_off)); s_all = np.concatenate((s_par, s_off))
+        keep = np.argsort(s_all)[:np_]
+        z_par, s_par = z_all[keep], s_all[keep]; s_keep[g] = s_par
+    return {"z": z_par[0], "s": s_par[0], "s_keep": s_keep}
+
+# helper to plot the tour and the score convergence side by side
+def plot_tsp(cities, res, ngen, title):
+    p = list(res["z"]) + [res["z"][0]]; s = res["s_keep"]
+    fig, ax = plt.subplots(1, 2, figsize=(9, 4.5))
+    ax[0].plot(cities[:, 0], cities[:, 1], "o", color="black", ms=3)
+    ax[0].plot(cities[p, 0], cities[p, 1], color="red")
+    ax[0].set(xlabel="x", ylabel="y", title=title, aspect="equal")
+    ax[1].plot(range(ngen), s.min(1), "r"); ax[1].plot(range(ngen), s.mean(1), "k")
+    ax[1].plot(range(ngen), s.max(1), "b")
+    ax[1].set(xlabel="Generation", ylabel="Score")
+    plt.tight_layout(); plt.show()
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+# ten-city instance: the GA finds the exact optimum
+c10 = np.array([[0, 0], [-28.87, 0], [-14.66, 43.39], [-29.06, 43.22], [-36.04, 21.61],
+                [-50.48, -7.37], [-50.59, 21.59], [-0.14, 28.73], [-21.50, -7.32], [-43.07, -14.55]])
+d10 = np.linalg.norm(c10[:, None, :] - c10[None, :, :], axis=-1)
+np.random.seed(1)
+res = tsp_ga(10, d10, 10, 0.8, 50, pmx, mut_point)
+plot_tsp(c10, res, 50, f"10 cities, length {res['s']:.1f}")
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+# the 52-city berlin52 instance (TSPLIB): a much harder problem
+c52 = np.loadtxt("09-optimization/data/berlin52.tsp")[:, 1:]    # x, y columns
+d52 = np.linalg.norm(c52[:, None, :] - c52[None, :, :], axis=-1)
+np.random.seed(1)
+res_pp = tsp_ga(52, d52, 40, 0.7, 2000, pmx, mut_point)
+plot_tsp(c52, res_pp, 2000, f"PMX + point swap, length {res_pp['s']:.0f}")
+```
+
+```{python}
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "92%"
+# order crossover with inversion mutation does much better
+np.random.seed(1)
+res_oi = tsp_ga(52, d52, 40, 0.7, 2000, ox, mut_inverse)
+plot_tsp(c52, res_oi, 2000, f"OX + inversion, length {res_oi['s']:.0f}")
+```
+
+On the ten-city instance the GA readily finds the exact optimum from Part 9B. The
+52-city berlin52 instance [@reinelt1991tsplib] is far harder: partially mapped crossover
+with point-swap mutation converges to a poor, self-crossing tour, whereas order
+crossover with inversion mutation, which better preserves useful sub-tours, reaches a
+much shorter route. The choice of operators, not just the parameters, drives the
+performance, and unlike the exact Held-Karp algorithm the GA gives only a heuristic
+solution with no guarantee of optimality.
