@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Quarto post-render hook: for every dual-language chapter, write two
-single-language source variants next to its HTML in the output dir, so the
-HTML download buttons (see lang-toggle.html) can serve them.
+"""Generate single-language practice copies of every dual-language chapter,
+written IN PLACE next to each original .qmd (e.g. 02-odes/02b-numerical-integration-R.qmd
+beside 02-odes/02b-numerical-integration.qmd). Run this once as a setup step after
+installing/cloning the book; the files are for readers to practice with and are NOT part
+of the rendered book (they are not listed in _quarto.yml and are git-ignored).
+
+Because each copy sits in its chapter's own folder, every relative resource the chapter
+uses (images/<id>/..., src/*.f90, data/...) resolves exactly as for the original, and
+rendering a copy inside the project also picks up the book's bibliography and filters.
 
 R-only  (<name>-R.qmd):  Python implementation heading + ```{python} chunks removed,
                          engine forced to knitr.
@@ -11,7 +17,7 @@ Py-only (<name>-py.qmd): R implementation heading + ```{r} chunks removed,
 Prose is kept verbatim (concept text and the shared post-Python discussion), and the
 retained language's ### implementation heading is kept, matching the design settled
 with the author. Display-only listings (```r / ```python / ```bash, no braces) are
-kept in both variants. Idempotent and fast; safe to run on every render.
+kept in both variants. Exercises pages are skipped. Idempotent and fast.
 """
 import os
 import re
@@ -94,26 +100,21 @@ def set_engine(fm, keep):
 
 def main():
     proj = os.environ.get("QUARTO_PROJECT_DIR") or os.getcwd()
-    out = os.environ.get("QUARTO_PROJECT_OUTPUT_DIR") or "_book"
-    if not os.path.isabs(out):
-        out = os.path.join(proj, out)
 
     n = 0
     for src in sorted(glob.glob(os.path.join(proj, "[0-9][0-9]-*", "*.qmd"))):
-        if src.endswith("-exercises.qmd"):
-            continue  # exercises pages are skipped (per author)
+        base = os.path.basename(src)
+        if base.endswith("-exercises.qmd") or base.endswith("-R.qmd") or base.endswith("-py.qmd"):
+            continue  # skip exercises pages and any previously generated variants
         text = open(src, encoding="utf-8").read()
         if not (re.search(r"^###\s+R\s+implementation", text, re.M) and
                 re.search(r"^###\s+Python\s+implementation", text, re.M)):
             continue  # not a dual-language chapter -> no variants
-        rel = os.path.relpath(src, proj)
-        dest_dir = os.path.join(out, os.path.dirname(rel))
-        os.makedirs(dest_dir, exist_ok=True)
-        stem = os.path.splitext(os.path.basename(src))[0]
-        open(os.path.join(dest_dir, stem + "-R.qmd"), "w", encoding="utf-8").write(strip(text, "r"))
-        open(os.path.join(dest_dir, stem + "-py.qmd"), "w", encoding="utf-8").write(strip(text, "python"))
+        stem = os.path.splitext(src)[0]  # write in place, beside the original
+        open(stem + "-R.qmd", "w", encoding="utf-8").write(strip(text, "r"))
+        open(stem + "-py.qmd", "w", encoding="utf-8").write(strip(text, "python"))
         n += 1
-    print("make-lang-variants: wrote R/Python source variants for %d chapters" % n)
+    print("make-lang-variants: wrote in-place R/Python practice copies for %d chapters" % n)
 
 
 if __name__ == "__main__":

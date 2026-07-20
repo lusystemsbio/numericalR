@@ -1,14 +1,14 @@
-<!-- HTML-only R/Python implementation switch + single-language source download.
+<!-- HTML-only R/Python implementation switch.
      Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
      (which keep both languages, per the no-tabsets convention). On load it tags each
      `### R/Python implementation {.impl}` heading and its code cells, then a small
      "Both / R / Python" control hides the non-selected language's CODE only. Prose
      (shared concept text, shared post-Python discussion) is never tagged, so it stays
-     visible in every mode. The choice persists across chapters via localStorage.
-     Alongside it, two download links serve the single-language .qmd variants that
-     scripts/make-lang-variants.py writes next to each chapter's HTML. The controls
-     appear only on dual-language chapter pages (both languages present, not an
-     exercises page), matching where the variant files are generated. -->
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
 <style>
 .lang-switch {
   display: inline-flex; margin: 0.25rem 0 1.25rem 0;
@@ -22,15 +22,6 @@
 .lang-switch button:last-child { border-right: none; }
 .lang-switch button:hover { background: #f2f6fb; }
 .lang-switch button.active { background: #2780e3; color: #fff; }
-.lang-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.9rem; margin: 0.25rem 0 1.25rem 0; }
-.lang-tools .lang-switch { margin: 0; }
-.lang-download { font-size: 0.78rem; color: #666; }
-.lang-download a {
-  display: inline-block; margin-left: 0.4rem; padding: 3px 10px;
-  border: 1px solid #d0d0d0; border-radius: 6px; background: #fff;
-  color: #2780e3; text-decoration: none;
-}
-.lang-download a:hover { background: #f2f6fb; }
 /* hide the non-selected implementation (heading + code cells only) */
 body.lang-r  .impl-py { display: none !important; }
 body.lang-py .impl-r  { display: none !important; }
@@ -60,12 +51,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  if (!hasR || !hasPy) return;   // controls only on genuinely dual-language pages
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
 
-  // 2. build the controls: Both / R / Python switch + single-language downloads
-  var tools = document.createElement("div");
-  tools.className = "lang-tools";
-
+  // 2. build the Both / R / Python switch
   var bar = document.createElement("div");
   bar.className = "lang-switch";
   bar.setAttribute("aria-label", "Show R or Python implementation");
@@ -76,28 +64,12 @@ document.addEventListener("DOMContentLoaded", function () {
     b.addEventListener("click", function () { setLang(lab); });
     bar.appendChild(b);
   });
-  tools.appendChild(bar);
-
-  var file = (location.pathname.split("/").pop() || "").replace(/\.html?$/, "");
-  if (file) {
-    var dl = document.createElement("span");
-    dl.className = "lang-download";
-    dl.appendChild(document.createTextNode("Download source:"));
-    [["R", "-R.qmd"], ["Python", "-py.qmd"]].forEach(function (p) {
-      var a = document.createElement("a");
-      a.href = file + p[1];
-      a.setAttribute("download", "");
-      a.textContent = p[0] + " .qmd";
-      dl.appendChild(a);
-    });
-    tools.appendChild(dl);
-  }
 
   var title = document.getElementById("title-block-header");
-  if (title) title.insertAdjacentElement("afterend", tools);
+  if (title) title.insertAdjacentElement("afterend", bar);
   else {
     var main = document.querySelector("main") || document.body;
-    main.insertBefore(tools, main.firstChild);
+    main.insertBefore(bar, main.firstChild);
   }
 
   function setLang(lab) {

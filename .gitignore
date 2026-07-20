@@ -61,3 +61,8 @@ vignettes/*.pdf
 
 # Quarto per-chapter execution cache (regenerated locally)
 /_freeze/
+
+# Single-language practice copies generated in place by scripts/make-lang-variants.py
+# (setup step, not part of the book render; see README)
+[0-9][0-9]-*/*-R.qmd
+[0-9][0-9]-*/*-py.qmd

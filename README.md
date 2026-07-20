@@ -68,3 +68,23 @@ quarto preview             # live-reloading local preview
 ```
 
 The rendered site is written to `_book/` (git-ignored).
+
+## Single-language practice copies
+
+Every chapter presents both an R and a Python implementation. For readers who want to
+work in just one language, a setup script generates a single-language copy of each
+dual-language chapter, written **in place** beside the original:
+
+```bash
+python3 scripts/make-lang-variants.py
+```
+
+For `02-odes/02b-numerical-integration.qmd` this writes
+`02-odes/02b-numerical-integration-R.qmd` (Python implementation removed, `engine: knitr`)
+and `02-odes/02b-numerical-integration-py.qmd` (R removed, `engine: jupyter`, so it needs
+no R). Because each copy lives in its chapter's own folder, all of the chapter's
+resources (`images/`, `src/`, data files) resolve normally, and you can open and run the
+copy directly. These copies are git-ignored and are **not** part of the rendered book;
+regenerate them any time by re-running the script. The online HTML edition additionally
+offers a **Both / R / Python** switch at the top of each chapter to hide one language's
+code while reading.
