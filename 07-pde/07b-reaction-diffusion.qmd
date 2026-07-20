@@ -302,4 +302,4 @@ With the stiffer spring ($k = 0.03$) the peak is narrower, and starting from a
 uniform distribution the system relaxes to the very same steady-state Gaussian,
 confirming that the Fokker-Planck dynamics forget their initial condition. Solving
 the PDE for $P$ is thus a deterministic alternative to averaging many stochastic
-[SDE trajectories](../06-stochastic/06c-sde-integrators.qmd).
+trajectories from the [SDE integrators of Part 6C](../06-stochastic/06c-sde-integrators.qmd).
