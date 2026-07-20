@@ -74,6 +74,7 @@ book:
       chapters:
         - 08-monte-carlo/08a-monte-carlo-methods.qmd
         - 08-monte-carlo/08b-metropolis-algorithm.qmd
+        - 08-monte-carlo/08c-particles-in-a-box.qmd
     - references.qmd
 
 bibliography: references.bib
