@@ -86,6 +86,7 @@ book:
     - part: "Part 10: High-dimensional data analysis"
       chapters:
         - 10-high-dim-data/10a-dimensionality-reduction.qmd
+        - 10-high-dim-data/10b-clustering.qmd
     - references.qmd
 
 bibliography: references.bib
