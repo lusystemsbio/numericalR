@@ -49,11 +49,11 @@ target takes the state dictated by the regulation, $s \cdot X_\text{regulator}$ 
 $s = \pm 1$ is the regulation type), and with probability $1 - \alpha$ it takes the
 opposite state.
 
-We apply the model to the three-gene ring in Figure 1: $X$ inhibits $Y$, $Y$ activates
-$Z$, and $Z$ activates $X$. The single inhibition makes the loop a net-negative
-feedback ring, a repressilator-type oscillator [@elowitz2000repressilator].
+We apply the model to the repressilator in Figure 1: $X$ inhibits $Y$, $Y$ inhibits
+$Z$, and $Z$ inhibits $X$. This ring of three repressions is a net-negative feedback
+loop that oscillates, the classic repressilator [@elowitz2000repressilator].
 
-![](images/08E/three-node.png){width=30% fig-align="center"}
+![](images/08E/repressilator.png){width=30% fig-align="center"}
 
 **(a)** Write a function that runs the Markov chain simulation. It should take
 
