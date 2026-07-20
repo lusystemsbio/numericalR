@@ -13,17 +13,20 @@ solution (usually a vector) and a fitness function to optimize.
 
 ## 9C.1 Genetic algorithm for continuous variables
 
-We first optimize a continuous function, Rosenbrock's function
-[@rosenbrock1960automatic],
+We first optimize a continuous function, the Rastrigin function [@torn1989global],
 
-$$ f(x_1, x_2) = 100(x_1^2 - x_2)^2 + (1 - x_1)^2 , $$
+$$ f(x_1, x_2) = 20 + \sum_{i=1}^{2} \left( x_i^2 - 10\cos(2\pi x_i) \right) , $$
 
-a classic benchmark whose minimum at $(1, 1)$ sits in a long, curved, shallow valley
-that is hard to descend. The genetic representation is the vector $(x_1, x_2)$ and the
-fitness is $f$ (to be minimized). Crossover swaps variables between two parents to make
-two offspring; mutation nudges one randomly chosen variable by a small uniform step.
-Each generation we make `np` offspring from `np` parents, then keep the best `np` of the
-combined pool.
+a standard benchmark that is strongly *multimodal*: a regular lattice of local minima
+sits on a broad bowl, with the global minimum $f = 0$ at the origin. Escaping the many
+local minima is exactly the kind of global search a genetic algorithm is built for. The
+function is also *separable* (each coordinate contributes independently), which suits the
+crossover below: it recombines whole coordinates from two parents, so a good $x_1$ from
+one parent can join a good $x_2$ from another. The genetic representation is the vector
+$(x_1, x_2)$ and the fitness is $f$ (to be minimized). Crossover swaps variables between
+two parents to make two offspring; mutation nudges one randomly chosen variable by a
+small uniform step. Each generation we make `np` offspring from `np` parents, then keep
+the best `np` of the combined pool.
 
 ### R implementation {.impl}
 
@@ -32,12 +35,12 @@ combined pool.
 #| fig-height: 5
 #| out-width: "55%"
 library(ggplot2)
-f_rosenbrock <- function(x) 100 * (x[1]^2 - x[2])^2 + (1 - x[1])^2
+f_rastrigin <- function(x) 20 + sum(x^2 - 10 * cos(2 * pi * x))
 
-grid_df <- expand.grid(x1 = seq(-3, 3, 0.05), x2 = seq(-3, 3, 0.05))
-grid_df$z <- apply(grid_df, 1, f_rosenbrock)
+grid_df <- expand.grid(x1 = seq(-5.12, 5.12, 0.05), x2 = seq(-5.12, 5.12, 0.05))
+grid_df$z <- apply(grid_df, 1, f_rastrigin)
 ggplot(grid_df, aes(x1, x2, z = z)) +
-  geom_contour(breaks = 10^seq(-2, 2.5, 0.2), colour = "grey50") + coord_fixed() + theme_bw()
+  geom_contour(breaks = c(1, 3, 6, 12, 22, 38, 60), colour = "grey50") + coord_fixed() + theme_bw()
 ```
 
 ```{r}
@@ -75,8 +78,8 @@ ga_opt <- function(n, func, np, rate_x, ngen, xrange, dx_ratio) {
 }
 
 set.seed(1)
-xrange <- matrix(c(-3, 3, -3, 3), 2, byrow = TRUE)
-res <- ga_opt(2, f_rosenbrock, np = 50, rate_x = 0.7, ngen = 100, xrange, dx_ratio = 0.1)
+xrange <- matrix(c(-5.12, 5.12, -5.12, 5.12), 2, byrow = TRUE)
+res <- ga_opt(2, f_rastrigin, np = 50, rate_x = 0.7, ngen = 100, xrange, dx_ratio = 0.1)
 cat("best x:", round(res$x, 3), " best score:", signif(res$s, 3), "\n")
 matplot(1:100, cbind(apply(res$s_keep, 1, min), rowMeans(res$s_keep), apply(res$s_keep, 1, max)),
         type = "l", lty = 1, col = c(2, 1, 4), xlab = "Generation", ylab = "Score", log = "y")
@@ -92,13 +95,14 @@ legend("topright", c("min", "mean", "max"), col = c(2, 1, 4), lty = 1, cex = 0.8
 import numpy as np
 import matplotlib.pyplot as plt
 
-def f_rosenbrock(x):
-    return 100 * (x[0]**2 - x[1])**2 + (1 - x[0])**2
+def f_rastrigin(x):
+    x = np.asarray(x)
+    return 20 + np.sum(x**2 - 10 * np.cos(2 * np.pi * x), axis=0)
 
-gx = np.arange(-3, 3, 0.05)
-X1, X2 = np.meshgrid(gx, gx); Z = f_rosenbrock([X1, X2])
+gx = np.arange(-5.12, 5.12, 0.05)
+X1, X2 = np.meshgrid(gx, gx); Z = f_rastrigin([X1, X2])
 plt.figure(figsize=(5, 5))
-plt.contour(X1, X2, Z, levels=10**np.arange(-2, 2.5, 0.2), colors="grey")
+plt.contour(X1, X2, Z, levels=[1, 3, 6, 12, 22, 38, 60], colors="grey")
 plt.gca().set_aspect("equal"); plt.xlabel("x1"); plt.ylabel("x2"); plt.show()
 ```
 
@@ -135,8 +139,8 @@ def ga_opt(n, func, np_, rate_x, ngen, xrange, dx_ratio):
     return {"x": x_par[0], "s": s_par[0], "s_keep": s_keep}
 
 np.random.seed(1)
-xrange = np.array([[-3, 3], [-3, 3]])
-res = ga_opt(2, f_rosenbrock, 50, 0.7, 100, xrange, 0.1)
+xrange = np.array([[-5.12, 5.12], [-5.12, 5.12]])
+res = ga_opt(2, f_rastrigin, 50, 0.7, 100, xrange, 0.1)
 print("best x:", np.round(res["x"], 3), " best score:", float(f"{res['s']:.3g}"))
 s = res["s_keep"]
 plt.plot(range(100), s.min(1), "r", label="min")
@@ -145,10 +149,10 @@ plt.plot(range(100), s.max(1), "b", label="max")
 plt.yscale("log"); plt.xlabel("Generation"); plt.ylabel("Score"); plt.legend(); plt.show()
 ```
 
-The best score drops toward zero over the generations, converging near the minimum at
-$(1, 1)$. The min/mean/max curves show the whole population improving, with the spread
-narrowing as it converges. Performance depends on the crossover rate, population size,
-and number of generations.
+The best score drops toward zero, converging on the global minimum at the origin
+despite the many local minima that would trap a purely local method. The min/mean/max
+curves show the whole population improving, with the spread narrowing as it converges.
+Performance depends on the crossover rate, population size, and number of generations.
 
 ## 9C.2 Genetic algorithm for the TSP
 
@@ -444,10 +448,21 @@ res_oi = tsp_ga(52, d52, 40, 0.7, 2000, ox, mut_inverse)
 plot_tsp(c52, res_oi, 2000, f"OX + inversion, length {res_oi['s']:.0f}")
 ```
 
-On the ten-city instance the GA readily finds the exact optimum from Part 9B. The
-52-city berlin52 instance [@reinelt1991tsplib] is far harder: partially mapped crossover
-with point-swap mutation converges to a poor, self-crossing tour, whereas order
-crossover with inversion mutation, which better preserves useful sub-tours, reaches a
-much shorter route. The choice of operators, not just the parameters, drives the
-performance, and unlike the exact Held-Karp algorithm the GA gives only a heuristic
-solution with no guarantee of optimality.
+On the ten-city instance the GA recovers the exact optimum found by dynamic programming
+in [Part 9B](09b-dynamic-programming.qmd). That Held-Karp solution is guaranteed to be
+optimal, but its cost grows exponentially ($O(n^2 2^n)$) and becomes hopeless well
+before 52 cities; the GA reproduces the known answer here and, unlike the exact method,
+still runs on the larger instance. The 52-city berlin52 instance [@reinelt1991tsplib] is
+much harder (its known optimal tour length is about 7542). Partially mapped crossover
+with point-swap mutation converges to a poor, self-crossing tour, whereas order crossover
+with inversion mutation, which better preserves useful sub-tours, reaches a considerably
+shorter one, though still above the optimum. The choice of operators, not just the
+parameters, drives the performance.
+
+The convergence plots also show the population losing diversity and plateauing well
+above 7542: the greedy "keep the best `np`" selection converges prematurely. A basic GA
+like this can be pushed much closer to the optimum with a less greedy selection that
+preserves diversity (for example tournament selection), or by hybridizing it with a
+local search such as 2-opt that refines each tour (a memetic algorithm). Even so, unlike
+the exact Held-Karp algorithm, the GA gives only a heuristic solution with no guarantee
+of optimality.
