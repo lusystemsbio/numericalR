@@ -68,3 +68,56 @@ the Arrhenius (Kramers) form for noise-activated barrier crossing
 $$ \kappa \propto e^{-\frac{\Delta U}{D}} , \tag{3} $$
 
 where $D$ is the noise level and $\Delta U$ the barrier height.
+
+## 6E.6 Deterministic versus stochastic repressilator
+
+The repressilator is a synthetic gene circuit of three genes wired in a repression
+ring: gene 1 represses gene 2, gene 2 represses gene 3, and gene 3 represses gene 1
+[@elowitz2000repressilator]. This cyclic inhibition can drive sustained
+oscillations in gene expression. We met its deterministic limit cycle in
+[Part 3H](../03-phase-plane/03h-multi-component.qmd); here we add gene-expression
+noise and ask how robust the oscillation is.
+
+Writing $x(t)$, $y(t)$, $z(t)$ for the three protein concentrations, the
+deterministic dynamics are
+
+$$
+\begin{aligned}
+\frac{dx}{dt} &= \frac{g}{1 + z^n} - x , \\
+\frac{dy}{dt} &= \frac{g}{1 + x^n} - y , \\
+\frac{dz}{dt} &= \frac{g}{1 + y^n} - z ,
+\end{aligned} \tag{4}
+$$
+
+where $g$ is the maximal production rate, $n$ the Hill coefficient of repression,
+and the degradation rate is normalized to 1.
+
+**(a)** Simulate the deterministic system with $g = 50$, $n = 2$, and initial
+condition $x(0) = 1$, $y(0) = 2$, $z(0) = 3$. Plot $x(t)$, $y(t)$, and $z(t)$ as
+functions of time.
+
+**(b)** Add a constant noise term to each gene, turning the model into a system of
+SDEs,
+
+$$
+\begin{aligned}
+dx &= \left( \frac{g}{1 + z^n} - x \right) dt + \sigma\, dW_x , \\
+dy &= \left( \frac{g}{1 + x^n} - y \right) dt + \sigma\, dW_y , \\
+dz &= \left( \frac{g}{1 + y^n} - z \right) dt + \sigma\, dW_z ,
+\end{aligned} \tag{5}
+$$
+
+where $W_x$, $W_y$, $W_z$ are independent Wiener processes and $\sigma$ sets the
+noise strength. Simulate with the Euler-Maruyama method for $\sigma = 0.05$,
+$\sigma = 0.5$, and $\sigma = 2.0$, and plot the trajectories in each case.
+
+**(c)** Compare the deterministic and stochastic trajectories. Describe how the
+amplitude, phase, and period of the oscillations change with the noise level, and
+comment on whether the oscillation persists or degrades as $\sigma$ increases.
+
+Hint: you will need a multi-variable integrator, a derivative function, and a noise
+function. The generic multi-variable RK4 routine `RK4_generic` from
+[Part 3H](../03-phase-plane/03h-multi-component.qmd) handles the deterministic part;
+for the stochastic part, extend the constant-noise Euler-Maruyama integrator
+`SDE_Euler_2D` of [Part 6D](06d-stochastic-transitions.qmd) from two variables to
+three.
