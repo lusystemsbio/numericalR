@@ -147,8 +147,19 @@ genes <- colnames(X)
 
 res <- pca(X)                                      # used again in 10A.4
 top <- order(abs(res$loadings[, 1]), decreasing = TRUE)[1:10]   # top PC1 genes
-barplot(res$loadings[top, 1], names.arg = genes[top], las = 2,
-        ylab = "PC1 loading", main = "Genes contributing most to PC1")
+barplot(res$loadings[top, 1], names.arg = genes[top], las = 2, ylab = "PC1 loading")
+```
+
+```{r}
+#| fig-width: 5.5
+#| fig-height: 5.5
+#| out-width: "60%"
+# loadings plot: every gene's PC1 vs PC2 contribution, with the top PC1 genes marked
+plot(res$loadings[, 1], res$loadings[, 2], pch = 20, col = "grey70",
+     xlab = "PC1 loading", ylab = "PC2 loading")
+abline(h = 0, v = 0, lty = 3, col = "grey50")
+points(res$loadings[top, 1], res$loadings[top, 2], pch = 19, col = 2)
+text(res$loadings[top, 1], res$loadings[top, 2], labels = genes[top], pos = 3, cex = 0.6)
 ```
 
 ### Python implementation {.impl}
@@ -171,10 +182,27 @@ plt.xticks(rotation=90); plt.ylabel("PC1 loading")
 plt.title("Genes contributing most to PC1"); plt.tight_layout(); plt.show()
 ```
 
+```{python}
+#| fig-width: 5.5
+#| fig-height: 5.5
+#| out-width: "60%"
+# loadings plot: every gene's PC1 vs PC2 contribution, with the top PC1 genes marked
+plt.figure(figsize=(5.5, 5.5))
+plt.scatter(res["loadings"][:, 0], res["loadings"][:, 1], color="grey", s=12)
+plt.axhline(0, color="grey", lw=0.7, ls=":"); plt.axvline(0, color="grey", lw=0.7, ls=":")
+plt.scatter(res["loadings"][top, 0], res["loadings"][top, 1], color="red", s=25)
+for i in top:
+    plt.text(res["loadings"][i, 0], res["loadings"][i, 1], genes[i], fontsize=6)
+plt.xlabel("PC1 loading"); plt.ylabel("PC2 loading"); plt.title("Gene loadings"); plt.show()
+```
+
 Each principal component is a weighted combination of all 500 genes. The handful of
 genes with the largest loadings dominate that component, so PC1 can be read as the
 coordinated expression pattern of these top genes, the axis along which the samples vary
-most.
+most. Plotting each gene's PC1 and PC2 loadings together shows most of the 500 genes
+clustered near the origin, contributing little to either component, while the ten genes
+highlighted above stand out along PC1; several of them also carry a substantial PC2
+loading, showing that a gene's influence is not always confined to a single component.
 
 ## 10A.4 Visualizing the samples
 
@@ -190,9 +218,10 @@ two components then reveals their structure.
 #| out-width: "70%"
 # scree plot: proportion of variance explained
 var_prop <- res$values / sum(res$values)
+cum_prop <- cumsum(var_prop[1:10])
 barplot(var_prop[1:10], names.arg = 1:10, xlab = "Principal component",
-        ylab = "Proportion of variance", main = "Scree plot")
-lines(seq_along(var_prop[1:10]) * 1.2 - 0.5, cumsum(var_prop[1:10]), type = "b", col = 2)
+        ylab = "Proportion of variance", main = "Scree plot", ylim = c(0, max(cum_prop) * 1.1))
+lines(seq_along(var_prop[1:10]) * 1.2 - 0.5, cum_prop, type = "b", col = 2)
 legend("topright", c("individual", "cumulative"), col = c("grey30", 2), pch = c(15, 1), lty = c(0, 1))
 ```
 
@@ -201,27 +230,16 @@ legend("topright", c("individual", "cumulative"), col = c("grey30", 2), pch = c(
 #| fig-height: 5.5
 #| out-width: "60%"
 # project onto PC1-PC2, colored by condition, with a fitted principal curve
+library(princurve)
 cond <- factor(substr(rownames(X), 1, 1))
 pc <- res$scores[, 1:2]
+pc_lab <- sprintf("PC%d (%.1f%%)", 1:2, var_prop[1:2] * 100)
 
-# principal curve from scratch (Hastie-Stuetzle: project, order, smooth; repeat)
-principal_curve <- function(P, n_iter = 8, k = 5) {
-  n <- nrow(P); lambda <- P[, 1]
-  ma <- function(v) { s <- as.numeric(stats::filter(v, rep(1 / k, k), sides = 2)); s[is.na(s)] <- v[is.na(s)]; s }
-  for (it in 1:n_iter) {
-    ord <- order(lambda); f <- P
-    for (d in 1:ncol(P)) f[ord, d] <- ma(P[ord, d])
-    curve <- f[ord, ]
-    seg <- c(0, cumsum(sqrt(rowSums(diff(curve)^2))))
-    for (i in 1:n) lambda[i] <- seg[which.min(rowSums((curve - matrix(P[i, ], n, 2, byrow = TRUE))^2))]
-  }
-  f[order(lambda), ]
-}
-curve <- principal_curve(pc)
+fit <- principal_curve(pc)                 # Hastie-Stuetzle principal curve (princurve package)
 
-plot(pc[, 1], pc[, 2], col = cond, pch = 19, xlab = "PC1", ylab = "PC2")
+plot(pc[, 1], pc[, 2], col = cond, pch = 19, xlab = pc_lab[1], ylab = pc_lab[2])
 text(pc[, 1], pc[, 2], labels = rownames(X), pos = 3, cex = 0.6)
-lines(curve[, 1], curve[, 2], col = "red", lwd = 2)
+lines(fit$s[fit$ord, ], col = "red", lwd = 2)
 ```
 
 ### Python implementation {.impl}
@@ -244,31 +262,25 @@ plt.show()
 #| fig-height: 5.5
 #| out-width: "60%"
 # project onto PC1-PC2, colored by condition, with a fitted principal curve
+from pcurvepy2 import PrincipalCurve
 cond = np.array([s[0] for s in samples])
 pc = res["scores"][:, :2]
+pc_lab = [f"PC{i + 1} ({v * 100:.1f}%)" for i, v in enumerate(var_prop[:2])]
 
-# principal curve from scratch (Hastie-Stuetzle: project, order, smooth; repeat)
-def principal_curve(P, n_iter=8, k=5):
-    n = len(P); lam = P[:, 0].copy()
-    ma = lambda v: np.convolve(v, np.ones(k) / k, mode="same")
-    for _ in range(n_iter):
-        o = np.argsort(lam); f = P.copy()
-        for d in range(P.shape[1]):
-            f[o, d] = ma(P[o, d])
-        curve = f[o]
-        seg = np.concatenate([[0], np.cumsum(np.sqrt((np.diff(curve, axis=0) ** 2).sum(1)))])
-        for i in range(n):
-            lam[i] = seg[np.argmin(((curve - P[i]) ** 2).sum(1))]
-    return f[np.argsort(lam)]
-curve = principal_curve(pc)
+fit = PrincipalCurve()                     # Python port of R's princurve, same Hastie-Stuetzle algorithm
+fit.fit(pc, param_s=20)                    # R's princurve auto-tunes its spline smoothing by
+                                            # cross-validation; pcurvepy2 needs it supplied directly,
+                                            # and the unsmoothed default overfits this small dataset
+fit.project_to_curve(pc, points=fit.points, stretch=2.0)   # match R's default curve-end stretch
+curve = fit.points_interp[fit.order]
 
 codes = {c: i for i, c in enumerate(sorted(set(cond)))}
 plt.figure(figsize=(5.5, 5.5))
 plt.scatter(pc[:, 0], pc[:, 1], c=[codes[c] for c in cond], cmap="tab10")
-for i, s in enumerate(samples):
-    plt.text(pc[i, 0], pc[i, 1], s, fontsize=6)
+for i, name in enumerate(samples):
+    plt.text(pc[i, 0], pc[i, 1], name, fontsize=6)
 plt.plot(curve[:, 0], curve[:, 1], color="red", lw=2)
-plt.xlabel("PC1"); plt.ylabel("PC2"); plt.show()
+plt.xlabel(pc_lab[0]); plt.ylabel(pc_lab[1]); plt.show()
 ```
 
 The first component alone explains most of the variance, and the samples fall into an
@@ -276,7 +288,10 @@ ordered arc from condition A to I in the PC1-PC2 plane. Fitting a principal curv
 smooth one-dimensional path that threads through the middle of the points
 [@hastie1989principal], summarizes this trajectory: the experiment traces a continuous
 progression of gene-expression states, and the position along the curve is a natural
-one-dimensional coordinate for each sample.
+one-dimensional coordinate for each sample. Rather than implementing the fitting
+algorithm (project, order, smooth, repeat) from scratch, we use the R `princurve`
+package and its Python port `pcurvepy2`, both established implementations of the same
+Hastie-Stuetzle procedure.
 
 ## 10A.5 Nonlinear embeddings: MDS, t-SNE, and UMAP
 
@@ -316,10 +331,18 @@ plot(emb_umap, col = cond, pch = 19, xlab = "dim 1", ylab = "dim 2", main = "UMA
 #| out-width: "95%"
 #| warning: false
 import warnings; warnings.filterwarnings("ignore")
-from sklearn.manifold import MDS, TSNE
+from scipy.spatial.distance import pdist, squareform
+from sklearn.decomposition import KernelPCA
+from sklearn.manifold import TSNE
 import umap
 
-emb_mds  = MDS(n_components=2, random_state=1, normalized_stress="auto").fit_transform(X)
+# classical (Torgerson) MDS is eigen-decomposition of the Gower-centered squared-distance
+# matrix, equivalent to KernelPCA on that matrix as a precomputed kernel; this matches R's
+# cmdscale, unlike sklearn.manifold.MDS, which instead runs the iterative SMACOF algorithm
+# and gives a materially different embedding
+D2 = squareform(pdist(X)) ** 2
+n = D2.shape[0]; J = np.eye(n) - np.ones((n, n)) / n
+emb_mds  = KernelPCA(n_components=2, kernel="precomputed").fit_transform(-0.5 * J @ D2 @ J)
 emb_tsne = TSNE(n_components=2, perplexity=5, random_state=1).fit_transform(X)
 emb_umap = umap.UMAP(n_components=2, n_neighbors=5, random_state=1).fit_transform(X)
 
@@ -332,8 +355,13 @@ plt.tight_layout(); plt.show()
 ```
 
 All three separate the nine conditions, and MDS, like PCA, lays them out along the A-to-I
-progression because it preserves global distances. t-SNE and UMAP emphasize tight local
-clusters (the replicates of each condition group together) but their between-cluster
-distances should not be read as meaningful. For this small, smoothly varying dataset PCA
-already captures the essential structure; the nonlinear methods become more valuable for
-larger datasets with distinct, non-linear cluster structure.
+progression because it preserves global distances (R's `cmdscale` and the classical MDS
+computed above are the same algorithm, so the two panels agree up to rotation and
+reflection). t-SNE and UMAP emphasize tight local clusters (the replicates of each
+condition group together) but their between-cluster distances should not be read as
+meaningful. The R and Python t-SNE/UMAP panels will not overlay exactly: `Rtsne`/`uwot`
+and `scikit-learn`/`umap-learn` are independent implementations with different default
+optimizers and initializations, so a shared random seed does not make them numerically
+identical, only comparable in the cluster structure they recover. For this small, smoothly
+varying dataset PCA already captures the essential structure; the nonlinear methods become
+more valuable for larger datasets with distinct, non-linear cluster structure.
