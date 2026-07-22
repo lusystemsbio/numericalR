@@ -21,7 +21,10 @@ pkgs <- c(
   "mclust",          # 6.1.3  -- Gaussian mixture models (10B)
   "igraph",          # 2.3.3  -- graph drawing, betweenness, community detection (10C)
   "princurve",       # 2.1.6  -- principal curve (10A.4)
-  "bio3d"            # 2.4.5  -- PDB structure parsing (1D.1)
+  "bio3d",           # 2.4.5  -- PDB structure parsing (1D.1)
+  "gganimate",       # 1.0.11 -- animation generation (1A.5, 5B, 5C)
+  "gifski",          # 1.32.0.2 -- renders gganimate output to GIF (1A.5, 5B, 5C)
+  "transformr"       # 0.1.5  -- gganimate dependency for tweening between frames
 )
 
 installed <- rownames(installed.packages())

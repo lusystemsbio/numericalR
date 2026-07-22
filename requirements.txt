@@ -18,3 +18,4 @@ umap-learn==0.5.12     # 10A/10B: UMAP
 networkx==3.6.1        # 10C: graph drawing, betweenness, community detection
 pcurvepy2==0.2.1       # 10A.4: principal curve (Python port of R's princurve)
 biopython==1.87        # 1D.1: PDB structure parsing (Bio.PDB)
+numba==0.66.0           # 1B.3: JIT compilation (@njit)
