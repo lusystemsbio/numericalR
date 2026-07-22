@@ -19,6 +19,15 @@ differs (or where one language uses a library and the other does not), the colum
 show it. The final table lists the R and Python libraries used across the book, as a
 quick translation guide.
 
+```{=html}
+<style>
+/* Keep the wide reference tables inside the content column: a table wider than the
+   column scrolls horizontally within it instead of overflowing the page. */
+main table.table { display: block; overflow-x: auto; font-size: 0.85rem; }
+main table.table td, main table.table th { vertical-align: top; }
+</style>
+```
+
 ## Programming foundations (Part 1)
 
 | Task | R | Python | Chapter |
