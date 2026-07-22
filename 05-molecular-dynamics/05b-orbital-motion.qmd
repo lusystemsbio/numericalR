@@ -408,6 +408,6 @@ anim.save("3-body.gif", writer="pillow", fps=20)
 The code writes `3-body.gif`, in which the three particles orbit, scatter, and
 finally fling one member away.
 
-::: {.content-visible when-format="html"}
+::: {.content-visible when-format="html:js"}
 ![The three-body run as an animation, rendered here with the R `gganimate` implementation above (the Python `matplotlib` version produces an equivalent GIF). It plays only in the HTML edition; the print editions show the static trajectory plot from the previous section.](images/05b/3-body.gif){width=70% fig-align="center"}
 :::

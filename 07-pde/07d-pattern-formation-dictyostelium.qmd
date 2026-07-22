@@ -334,7 +334,7 @@ anim = FuncAnimation(fig, frame_con, frames=frames, blit=True)
 anim.save("images/07D/dicty_con.gif", writer=PillowWriter(fps=10))
 ```
 
-::: {.content-visible when-format="html"}
+::: {.content-visible when-format="html:js"}
 The cell-state animation shows the excitation wave sweeping around the spiral core.
 Black: inactive; red: excited; green: refractory.
 
@@ -346,7 +346,7 @@ concentration; red: low.
 ![](images/07D/dicty_con.gif){width=60% fig-align="center"}
 :::
 
-::: {.content-visible unless-format="html"}
+::: {.content-visible unless-format="html:js"}
 The animated spiral waves are available in the online HTML edition of this book; the
 snapshots in Section 7D.2 show one frame of each.
 :::
