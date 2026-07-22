@@ -51,6 +51,10 @@ vignettes/*.pdf
 # Quarto book build output
 /_book/
 
+# Per-chapter output from single-file `quarto render <chapter>.qmd` (full-book
+# renders go to /_book/ instead; these are the standalone-render equivalent)
+[0-9][0-9]-*/*_files/
+
 # R session temp dumps
 .RDataTmp*
 

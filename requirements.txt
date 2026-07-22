@@ -1,0 +1,19 @@
+# Python packages required to render this book. Install into the global
+# /usr/local/bin/python3 (no virtual environment is used -- see CLAUDE.md
+# "Confirmed working environment"):
+#
+#   /usr/local/bin/python3 -m pip install -r requirements.txt
+#
+# Versions are pinned to what has been tested end-to-end; newer versions will
+# likely work too, but if a chapter starts failing to render, pinning down to
+# these first isolates whether it's a version drift issue.
+matplotlib==3.11.0
+numpy==2.4.6
+scipy==1.18.0
+pandas==3.0.3          # 3D/3G tables
+jupyter==1.1.1
+ipykernel==7.3.0
+scikit-learn==1.9.0    # 10A/10B: MDS, t-SNE, GMM
+umap-learn==0.5.12     # 10A/10B: UMAP
+networkx==3.6.1        # 10C: graph drawing, betweenness, community detection
+pcurvepy2==0.2.1       # 10A.4: principal curve (Python port of R's princurve)

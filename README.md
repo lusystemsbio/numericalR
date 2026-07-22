@@ -27,6 +27,8 @@ The live HTML version is published at
   under `src/`.
 - `index.qmd` — book preface; `references.qmd` — consolidated bibliography.
 - `references.bib` — shared bibliography for the whole book.
+- `requirements.txt` / `scripts/install-packages.R` — the full Python/R package
+  lists needed to render the book (see Prerequisites below).
 - `scripts/` — build helpers run automatically during rendering.
 - `archive/` — original R Markdown / Jupyter source material retained for
   reference during the migration; not part of the rendered book.
@@ -36,14 +38,28 @@ The live HTML version is published at
 ### Prerequisites
 
 - **[Quarto](https://quarto.org/docs/get-started/)** (1.9 or newer).
-- **R** (4.6+) with the packages: `reticulate`, `deSolve`, `microbenchmark`,
-  `ggplot2` (install via `install.packages(...)`).
-- **Python** (3.x) on your `PATH` with `numpy`, `scipy`, `matplotlib`, `jupyter`,
-  and `ipykernel`. R and Python chunks run in the same document via `knitr` +
-  `reticulate`; the interpreter is pinned once in the repo-root `.Rprofile`.
+- **R** (4.6+) with the packages listed in `scripts/install-packages.R`; install
+  them all with:
+  ```bash
+  Rscript scripts/install-packages.R
+  ```
+- **Python** (3.x) on your `PATH` with the packages listed in `requirements.txt`;
+  install them all with:
+  ```bash
+  python3 -m pip install -r requirements.txt
+  ```
+  R and Python chunks run in the same document via `knitr` + `reticulate`; the
+  interpreter is pinned once in the repo-root `.Rprofile`.
 - **gfortran** — required for the pre-build step below
   (macOS: `brew install gcc`; Debian/Ubuntu: `apt-get install gfortran`).
+- **ImageMagick** (`convert`/`magick` on your `PATH`) — required for the
+  figure-crop hook (macOS: `brew install imagemagick`; Debian/Ubuntu:
+  `apt-get install imagemagick`).
 - **TinyTeX** for PDF output: `quarto install tinytex` (one time).
+
+If a chapter fails to render with a missing-package error, re-run the two
+install commands above before troubleshooting further — package lists here
+have drifted out of sync with the actual environment before.
 
 ### Pre-build step (automatic)
 
