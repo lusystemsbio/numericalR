@@ -12,10 +12,12 @@ work in, and use the other column to translate.
 **How to read the tables.** A name in `monospace` is a function *defined from
 scratch in the book* (the method is built up so you understand it, not called as a
 black box). A name written as `package::function` or as a library (for example
-`scipy.integrate`) is a standard library used where it is the practical choice. Many
-tasks appear in both forms: the book first builds the method by hand, then points to
-the library you would reach for in practice. The final table lists the R and Python
-libraries used throughout, as a quick translation guide.
+`scipy.integrate`) is a standard library used where it is the practical choice. The
+R and Python implementations use parallel function names throughout, so a
+homemade function usually appears under the same name in both columns; where a name
+differs (or where one language uses a library and the other does not), the columns
+show it. The final table lists the R and Python libraries used across the book, as a
+quick translation guide.
 
 ## Programming foundations (Part 1)
 
@@ -26,119 +28,120 @@ libraries used throughout, as a quick translation guide.
 | Speeding up code (compilation / JIT) | `compiler`, vectorization | `numba` (`@njit`) | [1B](01-intro/01b-efficient-programming.qmd) |
 | Calling compiled code | `.Fortran` / `dyn.load` | `ctypes` | [1B](01-intro/01b-efficient-programming.qmd) |
 | Parallel execution | `parallel::mclapply` | `multiprocessing` (fork) | [1B](01-intro/01b-efficient-programming.qmd) |
-| A first numerical method (`babylonian` square root) | from scratch | from scratch | [1C](01-intro/01c-numerical-methods.qmd) |
+| A first numerical method (square root) | `babylonian` | `babylonian` | [1C](01-intro/01c-numerical-methods.qmd) |
 | Parsing a protein structure | `bio3d` | `Bio.PDB` (`biopython`) | [1D](01-intro/01d-exercises.qmd) |
 
 ## Ordinary differential equations (Part 2)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Explicit integrators (Euler, Heun/RK2, RK4) | `Euler`, `Heun`, `RK4` | `Euler`, `Heun`, `RK4` | [2B](02-odes/02b-numerical-integration.qmd) |
-| Backward (implicit) Euler | `Euler_backward_1g` | from scratch | [2B](02-odes/02b-numerical-integration.qmd) |
+| Explicit integrators (Euler, Heun/RK2, RK4) | `Euler`, `Heun`, `RK2`, `RK4` | `Euler`, `Heun`, `RK2`, `RK4` | [2B](02-odes/02b-numerical-integration.qmd) |
+| Backward (implicit) Euler | `Euler_backward_1g` | `euler_backward_1g` | [2B](02-odes/02b-numerical-integration.qmd) |
 | ODE integration via library | `deSolve::ode` | `scipy.integrate.odeint` / `solve_ivp` | [2B](02-odes/02b-numerical-integration.qmd) |
-| Hill functions | `hill_ex`, `hill_inh` | from scratch | [2A](02-odes/02a-modeling-gene-circuits.qmd) |
-| Analytical / closed-form solutions | `ode1`, `N_exact`, `logistic_exact` | from scratch | [2A](02-odes/02a-modeling-gene-circuits.qmd), [2C](02-odes/02c-bacterial-growth.qmd) |
-| Effective potential (1D) | `cal_int`, `cal_dfdx` | from scratch | [2D](02-odes/02d-effective-potential.qmd) |
-| Steady states / root finding (bracketing, bisection, false position) | `bisection`, `false_position`, `all_roots_bracketing`; `rootSolve::uniroot.all` | from scratch; `scipy.optimize.fsolve` | [2E](02-odes/02e-bifurcation.qmd) |
-| Newton's method and arc-length continuation | `find_root_Newton`, `contour_segment_bilinear` | from scratch | [2F](02-odes/02f-bifurcation-curves.qmd) |
+| Hill functions | `hill_ex`, `hill_inh` | `hill_ex`, `hill_inh` | [2A](02-odes/02a-modeling-gene-circuits.qmd) |
+| Analytical / closed-form solutions | `ode1`, `N_exact`, `logistic_exact` | `ode1`, `N_exact`, `logistic_exact` | [2A](02-odes/02a-modeling-gene-circuits.qmd), [2C](02-odes/02c-bacterial-growth.qmd) |
+| Effective potential (1D) | `cal_int`, `cal_dfdx` | `cal_int`, `cal_dfdx` | [2D](02-odes/02d-effective-potential.qmd) |
+| Root finding (bisection, false position, bracketing) | `bisection`, `false_position`, `all_roots_bracketing` | `bisection`, `false_position`, `all_roots_bracketing` | [2E](02-odes/02e-bifurcation.qmd) |
+| Root finding via library | `rootSolve::uniroot.all` | `scipy.optimize.fsolve` | [2E](02-odes/02e-bifurcation.qmd) |
+| Newton's method and arc-length continuation | `find_root_Newton`, `contour_segment_bilinear` | `find_root_Newton`, `contour_segment_bilinear` | [2F](02-odes/02f-bifurcation-curves.qmd) |
 | Compiled ODE right-hand side (Fortran) | `.Fortran` / `dyn.load` | `ctypes` | [2B](02-odes/02b-numerical-integration.qmd) |
 
 ## Phase-plane analysis (Part 3)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Generic multi-variable RK4 | `RK4_generic` | from scratch | [3A](03-phase-plane/03a-nullclines.qmd) |
-| Nullclines (separation of variables, numerical continuation) | `nullcline1/2`, `nullcline_numcont` | from scratch | [3A](03-phase-plane/03a-nullclines.qmd) |
-| Nullcline intersections (2D steady states) | `find_intersection`, `find_intersection_all_fast` | from scratch | [3B](03-phase-plane/03b-steady-states-2d.qmd) |
-| Linear stability (Jacobian eigenvalues) | `stability_2D` + `eigen` | from scratch + `np.linalg.eigvals` | [3B](03-phase-plane/03b-steady-states-2d.qmd) |
-| Two-parameter bifurcation | `find_steady_states` + stability sweep | from scratch | [3E](03-phase-plane/03e-bifurcation-2d.qmd) |
-| Separatrix (reverse-time integration) | `derivs_ts_rev` | from scratch | [3F](03-phase-plane/03f-separatrix.qmd) |
-| Effective potential (2D line integral) | `cal_int_2D_line` | from scratch | [3G](03-phase-plane/03g-effective-potential-2d.qmd) |
+| Generic multi-variable RK4 | `RK4_generic` | `RK4_generic` | [3A](03-phase-plane/03a-nullclines.qmd) |
+| Nullclines | `nullcline1`, `nullcline2`, `nullcline_numcont` | `nullcline1`, `nullcline2` | [3A](03-phase-plane/03a-nullclines.qmd) |
+| Nullcline intersections (2D steady states) | `find_intersection`, `find_intersection_all_fast` | `find_intersection`, `find_intersection_all_fast` | [3B](03-phase-plane/03b-steady-states-2d.qmd) |
+| Linear stability (Jacobian eigenvalues) | `stability_2D` + `eigen` | `stability_2D` + `np.linalg.eigvals` | [3B](03-phase-plane/03b-steady-states-2d.qmd) |
+| Two-parameter bifurcation | `find_steady_states` + stability sweep | `find_steady_states` + stability sweep | [3E](03-phase-plane/03e-bifurcation-2d.qmd) |
+| Separatrix (reverse-time integration) | `derivs_ts_rev` | `derivs_ts_rev` | [3F](03-phase-plane/03f-separatrix.qmd) |
+| Effective potential (2D line integral) | `cal_int_2D_line` | `cal_int_2D_line` | [3G](03-phase-plane/03g-effective-potential-2d.qmd) |
 | Model fitting | `optim`, `nlm`, `lm` | `scipy.optimize` | [3D](03-phase-plane/03d-predator-prey.qmd) |
-| Multi-component circuits / phase-plane plotting | `derivs_many`, `plot_phase_plane` | from scratch | [3H](03-phase-plane/03h-multi-component.qmd) |
+| Multi-component circuits / phase-plane plotting | `derivs_many`, `plot_phase_plane` | `derivs_many`, `plot_phase_plane` | [3H](03-phase-plane/03h-multi-component.qmd) |
 
 ## Time-delay systems (Part 4)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| DDE integrators (Euler, Heun) | `DDE_Euler`, `DDE_Heun`, `DDE_Heun_generic` | from scratch | [4A](04-time-delays/04a-delayed-differential-equations.qmd), [4B](04-time-delays/04b-modeling-time-delays.qmd) |
-| Delayed logistic and Lotka-Volterra | `dN_logistic_delays`, `derivs_LV_delays` | from scratch | [4B](04-time-delays/04b-modeling-time-delays.qmd) |
-| Indirect (multi-node) delays vs explicit delay | `derivs_neg_3node`, `derivs_neg_4node` | from scratch | [4C](04-time-delays/04c-indirect-interactions.qmd) |
+| DDE integrators (Euler, Heun) | `DDE_Euler`, `DDE_Heun`, `DDE_Heun_generic` | `DDE_Euler`, `DDE_Heun`, `DDE_Heun_generic` | [4A](04-time-delays/04a-delayed-differential-equations.qmd), [4B](04-time-delays/04b-modeling-time-delays.qmd) |
+| Delayed logistic and Lotka-Volterra | `dN_logistic_delays`, `derivs_LV_delays` | `dN_logistic_delays`, `derivs_LV_delays` | [4B](04-time-delays/04b-modeling-time-delays.qmd) |
+| Indirect (multi-node) delays vs explicit delay | `derivs_neg_3node`, `derivs_neg_4node` | `derivs_neg_3node`, `derivs_neg_4node` | [4C](04-time-delays/04c-indirect-interactions.qmd) |
 
 ## Molecular dynamics (Part 5)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Second-order integrators (Verlet, leapfrog, velocity Verlet) | `verlet`, `leapfrog`, `velocity_verlet` | from scratch | [5A](05-molecular-dynamics/05a-second-order-integrators.qmd) |
-| Generic N-body velocity Verlet | `velocity_verlet_generic` | from scratch | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
-| Gravitational forces (two-, three-body) | `f_2body_2d`, `f_3body_2d` | from scratch | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
-| Lennard-Jones force and potential | `force`, `E_LJ` | from scratch | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
-| Periodic boundaries / minimum image | `bc_periodic`, `force_all` | from scratch | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
-| Radial distribution function | `cal_rdf` | from scratch | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
+| Second-order integrators (Verlet, leapfrog, velocity Verlet) | `verlet`, `leapfrog`, `velocity_verlet` | `verlet`, `leapfrog`, `velocity_verlet` | [5A](05-molecular-dynamics/05a-second-order-integrators.qmd) |
+| Generic N-body velocity Verlet | `velocity_verlet_generic` | `velocity_verlet_generic` | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
+| Gravitational forces (two-, three-body) | `f_2body_2d`, `f_3body_2d` | `f_2body_2d`, `f_3body_2d` | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
+| Lennard-Jones force and potential | `force`, `E_LJ` | `force`, `E_LJ` | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
+| Periodic boundaries / minimum image | `bc_periodic`, `force_all` | `bc_periodic`, `force_all` | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
+| Radial distribution function | `cal_rdf` | `cal_rdf` | [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
 | Trajectory animation | `gganimate` (+ `gifski`) | `matplotlib.animation` | [5B](05-molecular-dynamics/05b-orbital-motion.qmd), [5C](05-molecular-dynamics/05c-box-of-particles.qmd) |
 
 ## Stochastic differential equations (Part 6)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Random number generation, Gaussian sampling | `rnorm`; `ran_gaussian` | `np.random.Generator`; from scratch | [6A](06-stochastic/06a-random-number-generators.qmd) |
-| Brownian motion / Wiener process | `brownian`, `brownian_wiener` | from scratch | [6B](06-stochastic/06b-brownian-motion.qmd) |
-| SDE integrators (Euler-Maruyama, Milstein) | `SDE_Euler`, `SDE_Milstein` | from scratch | [6C](06-stochastic/06c-sde-integrators.qmd) |
-| Ornstein-Uhlenbeck process | `f_ou`, `noise_ou` | from scratch | [6C](06-stochastic/06c-sde-integrators.qmd) |
-| 2D SDE / noise-induced transitions | `SDE_Euler_2D` | from scratch | [6D](06-stochastic/06d-stochastic-transitions.qmd) |
+| Gaussian random number generation | `rnorm`, `ran_gaussian` | `np.random.Generator`, `ran_gaussian` | [6A](06-stochastic/06a-random-number-generators.qmd) |
+| Brownian motion / Wiener process | `brownian`, `brownian_wiener` | `brownian`, `brownian_wiener` | [6B](06-stochastic/06b-brownian-motion.qmd) |
+| SDE integrators (Euler-Maruyama, Milstein) | `SDE_Euler`, `SDE_Milstein` | `SDE_Euler`, `SDE_Milstein` | [6C](06-stochastic/06c-sde-integrators.qmd) |
+| Ornstein-Uhlenbeck process | `f_ou`, `noise_ou` | `f_ou`, `noise_ou` | [6C](06-stochastic/06c-sde-integrators.qmd) |
+| 2D SDE / noise-induced transitions | `SDE_Euler_2D` | `SDE_Euler_2D` | [6D](06-stochastic/06d-stochastic-transitions.qmd) |
 | Compiled SDE drift/noise (Fortran) | `.Fortran` / `dyn.load` | `ctypes` | [6D](06-stochastic/06d-stochastic-transitions.qmd) |
 
 ## Partial differential equations (Part 7)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Finite-difference diffusion (1D) | `pde_fd_diffusion` | from scratch | [7A](07-pde/07a-modeling-diffusion.qmd) |
-| Reaction-diffusion (1D), Fisher wave | `pde_fd_reaction_diffusion`, `fisher` | from scratch | [7B](07-pde/07b-reaction-diffusion.qmd) |
-| Fokker-Planck by finite differences | `pde_fd_fokker_planck` | from scratch | [7B](07-pde/07b-reaction-diffusion.qmd) |
-| Turing instability (multi-species) | `pde_fd_reaction_diffusion_multi`, `run_turing` | from scratch | [7C](07-pde/07c-turing-instability.qmd) |
-| Excitable cells coupled to a field (Dictyostelium) | `dicty_modeling`, `update_states` | from scratch | [7D](07-pde/07d-pattern-formation-dictyostelium.qmd) |
-| 2D reaction-diffusion (Gierer-Meinhardt) | `pde_fd_rd_2d`, `lap2d` | from scratch | [7E](07-pde/07e-2d-reaction-diffusion.qmd) |
+| Finite-difference diffusion (1D) | `pde_fd_diffusion` | `pde_fd_diffusion` | [7A](07-pde/07a-modeling-diffusion.qmd) |
+| Reaction-diffusion (1D), Fisher wave | `pde_fd_reaction_diffusion`, `fisher` | `pde_fd_reaction_diffusion`, `fisher` | [7B](07-pde/07b-reaction-diffusion.qmd) |
+| Fokker-Planck by finite differences | `pde_fd_fokker_planck` | `pde_fd_fokker_planck` | [7B](07-pde/07b-reaction-diffusion.qmd) |
+| Turing instability (multi-species) | `pde_fd_reaction_diffusion_multi`, `run_turing` | `pde_fd_reaction_diffusion_multi`, `run_turing` | [7C](07-pde/07c-turing-instability.qmd) |
+| Excitable cells coupled to a field (Dictyostelium) | `dicty_modeling`, `update_states` | `dicty_modeling`, `update_states` | [7D](07-pde/07d-pattern-formation-dictyostelium.qmd) |
+| 2D reaction-diffusion (Gierer-Meinhardt) | `pde_fd_rd_2d`, `lap2d` | `pde_fd_rd_2d`, `lap2d` | [7E](07-pde/07e-2d-reaction-diffusion.qmd) |
 
 ## Monte Carlo simulation (Part 8)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Monte Carlo integration, $\pi$ estimation, Buffon's needle | `mc_integration`, `mc_pi`, `buffon` | from scratch | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
-| Importance sampling | `mc_integration_importance_exp` | from scratch | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
-| Metropolis algorithm | `metropolis_exp`, `metropolis_gene`, `metropolis_ising` | from scratch | [8B](08-monte-carlo/08b-metropolis-algorithm.qmd) |
-| Ising model, Markov-chain gene promoter | `e_ising`, `markov_gene` | from scratch | [8B](08-monte-carlo/08b-metropolis-algorithm.qmd) |
-| Metropolis Monte Carlo for a particle box | `metropolis_particle` | from scratch | [8C](08-monte-carlo/08c-particles-in-a-box.qmd) |
-| Gillespie stochastic simulation (SSA) | `ssa`, `gillespie_step` | from scratch | [8D](08-monte-carlo/08d-gillespie-algorithm.qmd) |
+| Monte Carlo integration, $\pi$ estimation, Buffon's needle | `mc_integration`, `mc_pi`, `buffon` | `mc_integration`, `mc_pi`, `buffon` | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
+| Importance sampling | `mc_integration_importance_exp` | `mc_integration_importance_exp` | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
+| Metropolis algorithm | `metropolis_exp`, `metropolis_gene`, `metropolis_ising` | `metropolis_exp`, `metropolis_gene`, `metropolis_ising` | [8B](08-monte-carlo/08b-metropolis-algorithm.qmd) |
+| Ising model, Markov-chain gene promoter | `e_ising`, `markov_gene` | `e_ising`, `markov_gene` | [8B](08-monte-carlo/08b-metropolis-algorithm.qmd) |
+| Metropolis Monte Carlo for a particle box | `metropolis_particle` | `metropolis_particle` | [8C](08-monte-carlo/08c-particles-in-a-box.qmd) |
+| Gillespie stochastic simulation (SSA) | `ssa`, `gillespie_step` | `ssa`, `gillespie_step` | [8D](08-monte-carlo/08d-gillespie-algorithm.qmd) |
 
 ## Global optimization (Part 9)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| Simulated annealing / MCMC optimization | `sa`, `mh` | from scratch | [9A](09-optimization/09a-mcmc-optimization.qmd) |
-| Parallel tempering | `pt_multi`, `st` | from scratch | [9A](09-optimization/09a-mcmc-optimization.qmd) |
-| Test landscapes (Himmelblau, Rastrigin) | `f_Himmelblau`, `f_rastrigin` | from scratch | [9A](09-optimization/09a-mcmc-optimization.qmd), [9C](09-optimization/09c-genetic-algorithm.qmd) |
-| Dynamic programming (sequence alignment) | `global_align`, `local_align` | from scratch | [9B](09-optimization/09b-dynamic-programming.qmd) |
-| Dynamic programming (travelling salesman) | `tsp_dp` | from scratch | [9B](09-optimization/09b-dynamic-programming.qmd) |
-| Genetic algorithm (crossover, mutation operators) | `ga_opt`, `tsp_ga` | from scratch | [9C](09-optimization/09c-genetic-algorithm.qmd) |
+| Simulated annealing / MCMC optimization | `sa`, `mh` | `sa`, `mh` | [9A](09-optimization/09a-mcmc-optimization.qmd) |
+| Parallel tempering | `pt_multi`, `st` | `pt_multi`, `st` | [9A](09-optimization/09a-mcmc-optimization.qmd) |
+| Test landscapes (Himmelblau, Rastrigin) | `f_Himmelblau`, `f_rastrigin` | `f_Himmelblau`, `f_rastrigin` | [9A](09-optimization/09a-mcmc-optimization.qmd), [9C](09-optimization/09c-genetic-algorithm.qmd) |
+| Dynamic programming (sequence alignment) | `global_align`, `local_align` | `global_align`, `local_align` | [9B](09-optimization/09b-dynamic-programming.qmd) |
+| Dynamic programming (travelling salesman) | `tsp_dp` | `tsp_dp` | [9B](09-optimization/09b-dynamic-programming.qmd) |
+| Genetic algorithm (crossover, mutation operators) | `ga_opt`, `tsp_ga` | `ga_opt`, `tsp_ga` | [9C](09-optimization/09c-genetic-algorithm.qmd) |
 
 ## High-dimensional data analysis (Part 10)
 
 | Task | R | Python | Chapter |
 |------|-----|--------|:--:|
-| PCA (covariance-eigen and SVD) | `pca` (`eigen`, `svd`); `prcomp` | from scratch (`numpy`); `sklearn.decomposition.PCA` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
-| Principal curve | from scratch; `princurve` | `pcurvepy2` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
+| PCA (covariance-eigen and SVD) | `pca` (`eigen`, `svd`); `prcomp` | `pca` (`numpy`); `sklearn.decomposition.PCA` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
+| Principal curve | `princurve::principal_curve` | `pcurvepy2` (`PrincipalCurve`) | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
 | Multidimensional scaling (MDS) | `cmdscale` | `sklearn.manifold.MDS` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
 | t-SNE | `Rtsne` | `sklearn.manifold.TSNE` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
 | UMAP | `uwot::umap` | `umap-learn` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
-| k-means (from scratch + elbow) | `kmeans_once`, `kmeans_cluster`; `kmeans` | from scratch; `sklearn.cluster.KMeans` | [10B](10-high-dim-data/10b-clustering.qmd) |
+| k-means (from scratch + elbow) | `kmeans_once`, `kmeans_cluster`; `kmeans` | `kmeans_once`, `kmeans_cluster`; `sklearn.cluster.KMeans` | [10B](10-high-dim-data/10b-clustering.qmd) |
 | Hierarchical clustering | `hclust` + `dist` | `scipy.cluster.hierarchy` | [10B](10-high-dim-data/10b-clustering.qmd) |
 | Gaussian mixture model | `mclust::Mclust` | `sklearn.mixture.GaussianMixture` | [10B](10-high-dim-data/10b-clustering.qmd) |
-| Network properties (degree, clustering, distances) | `clustering`, `dist_matrix` | from scratch (`numpy`) | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
+| Network properties (degree, clustering, distances) | `clustering`, `dist_matrix` | `clustering`, `dist_matrix` | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
 | Betweenness, community detection (Louvain) | `igraph::betweenness`, `cluster_louvain` | `networkx` | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
 | Graph layout (Kamada-Kawai) | `igraph::layout_with_kk` | `networkx.kamada_kawai_layout` | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
-| Random-graph models (Erdos-Renyi, Barabasi-Albert) | `er_network`, `ba_network` | from scratch | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
-| Modularity, spectral bisection | `modularity_Q`, `spectral_split` + `eigen` | from scratch (`numpy`) | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
-| Boolean networks (synchronous update, attractors) | `boolean_attractors` | from scratch | [10C](10-high-dim-data/10c-network-algorithms.qmd), [10D](10-high-dim-data/10d-exercises.qmd) |
+| Random-graph models (Erdos-Renyi, Barabasi-Albert) | `er_network`, `ba_network` | `er_network`, `ba_network` | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
+| Modularity, spectral bisection | `modularity_Q`, `spectral_split` + `eigen` | `modularity_Q`, `spectral_split` (`numpy`) | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
+| Boolean networks (synchronous update, attractors) | `boolean_attractors` | `boolean_attractors` | [10C](10-high-dim-data/10c-network-algorithms.qmd), [10D](10-high-dim-data/10d-exercises.qmd) |
 
 ## R and Python library map
 
