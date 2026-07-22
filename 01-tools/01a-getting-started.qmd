@@ -58,7 +58,11 @@ and AI assistants do produce those.
 
 The rest of this chapter works through three examples, in increasing depth: a
 script small enough to read in one glance, three specific R/Python quirks,
-and a complete small simulation.
+and a complete small simulation. Every example session shown was tested with
+Claude Opus 4.8. A different model, or a later version of the same one, may
+phrase its answer differently; the point is the technique, and the same
+paste-ask-verify process applies regardless of which model or version you
+are actually running.
 
 ## 1A.3 A minimal example
 
@@ -94,10 +98,31 @@ VS Code, paste in the code above, and use the Run button the R or Python
 extension adds to the editor, or run `Rscript classify.R` /
 `python3 classify.py` from the integrated terminal.
 
-Then open a Claude Code session in the same folder and ask about the one
-part that is not obvious on a first read: the inline `if (...) "even" else
-"odd"` in R, or the equivalent conditional expression in Python. A session
-might go like this:
+Then open a Claude Code session in the same folder: split the editor so the
+file you are reading stays visible on one side while Claude Code runs on the
+other, rather than switching back and forth between two overlapping windows.
+
+```
+┌─ VS Code ────────────────────────────────┬────────────────────────────────┐
+│ 01a-getting-started.qmd                  │ TERMINAL - claude              │
+│ ───────────────────────────────────────  │ ─────────────────────────────  │
+│ ## 1A.3 A minimal example                 │ > Explain the classify         │
+│                                            │ > function below, line by      │
+│ ```{r}                                    │ > line.                        │
+│ numbers <- c(4, 7, 10, 13)               │                                 │
+│ classify <- function(x) {                │ In R, a function returns the   │
+│   if (x %% 2 == 0) "even" else "odd"     │ value of the last expression   │
+│ }                                         │ it evaluates, and an if/else   │
+│ for (n in numbers) {                     │ block is itself an             │
+│   cat(n, "is", classify(n), "\n")        │ expression...                  │
+│ }                                         │                                 │
+│ ```                                       │                                 │
+└────────────────────────────────────────────┴────────────────────────────────┘
+```
+
+Ask about the one part that is not obvious on a first read: the inline
+`if (...) "even" else "odd"` in R, or the equivalent conditional expression
+in Python. A session might go like this:
 
 ```
 > What does `if (x %% 2 == 0) "even" else "odd"` return, and why is there no
