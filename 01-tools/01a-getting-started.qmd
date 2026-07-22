@@ -1,10 +1,328 @@
 ---
 title: "1A. Getting started with R and Python"
+author: "Mingyang Lu"
+old_id: "01A"
 ---
 
-::: {.callout-note title="Placeholder chapter"}
-This introductory chapter is under construction. The material on getting started
-with R and Python — installation, the basics of each language, efficient
-programming, and useful libraries — will be migrated here in a later pass. It is
-included now so that the chapters that follow are labelled correctly.
+## 1A.1 Setting up your environment
+
+This book runs R and Python side by side, with [Quarto](https://quarto.org)
+rendering both into one document and [VS Code](https://code.visualstudio.com)
+as the editor. Install, in this order:
+
+1. **R**, from [CRAN](https://cran.r-project.org).
+2. **Python** (3.x), from [python.org](https://www.python.org/downloads/) or
+   your system's package manager.
+3. **Quarto**, from [quarto.org/docs/get-started](https://quarto.org/docs/get-started/).
+4. **VS Code**, from [code.visualstudio.com](https://code.visualstudio.com),
+   then add three extensions from the Extensions panel: **R** (by
+   REditorSupport), **Python** (by Microsoft), and **Quarto**.
+5. **Claude Code**, a command-line AI assistant that reads, edits, and runs
+   code inside your own project rather than a generic chat window. Install it
+   with
+
+   ```bash
+   npm install -g @anthropic-ai/claude-code
+   ```
+
+   which requires [Node.js](https://nodejs.org). Anthropic also publishes a
+   VS Code extension for it, so a Claude Code panel can sit next to your
+   editor; check Anthropic's current documentation for the exact setup, since
+   install methods change over time.
+
+Once these are installed, open a project folder in VS Code and run `claude`
+from the integrated terminal to start a session there. The rest of this
+chapter is about what to do with that session once it's open.
+
+## 1A.2 Learning from provided code, with AI as a tool
+
+Every chapter in this book gives you working R and Python code before it
+gives you a syntax explanation. That is deliberate. A language reference
+teaches every keyword whether or not you will ever use it. A real script
+teaches exactly the keywords its author needed, in the order they needed
+them. The faster way into R or Python is to read code that does something you
+care about and ask about the parts you do not recognize.
+
+This is where an AI coding assistant earns its place. It can explain what a
+specific line does, why a function is written one way rather than another,
+and what would happen if you changed something. The skill worth building is
+not memorizing syntax. It is asking a good question and checking the answer.
+
+A good question names the actual code and the actual confusion: paste the
+function, then ask what a specific operator, argument, or line is doing and
+why. A vague question such as "explain this file" gets a vague answer back.
+Once you have an explanation, verify it: change an input, predict what should
+happen, run the code, and compare. An explanation checked against real output
+is one you can trust. One you have not checked is a plausible-sounding guess,
+and AI assistants do produce those.
+
+The rest of this chapter works through three examples, in increasing depth: a
+script small enough to read in one glance, three specific R/Python quirks,
+and a complete small simulation.
+
+## 1A.3 A minimal example
+
+Here is the smallest script that still has something worth asking about: a
+comment, a variable, a function, and a loop with a condition inside it.
+
+### R implementation {.impl}
+
+```{r}
+# classify each number in a list as even or odd
+numbers <- c(4, 7, 10, 13)
+classify <- function(x) {
+  if (x %% 2 == 0) "even" else "odd"
+}
+for (n in numbers) {
+  cat(n, "is", classify(n), "\n")
+}
+```
+
+### Python implementation {.impl}
+
+```{python}
+# classify each number in a list as even or odd
+numbers = [4, 7, 10, 13]
+def classify(x):
+    return "even" if x % 2 == 0 else "odd"
+for n in numbers:
+    print(n, "is", classify(n))
+```
+
+To run this yourself, create a new file `classify.R` (or `classify.py`) in
+VS Code, paste in the code above, and use the Run button the R or Python
+extension adds to the editor, or run `Rscript classify.R` /
+`python3 classify.py` from the integrated terminal.
+
+Then open a Claude Code session in the same folder and ask about the one
+part that is not obvious on a first read: the inline `if (...) "even" else
+"odd"` in R, or the equivalent conditional expression in Python. A session
+might go like this:
+
+```
+> What does `if (x %% 2 == 0) "even" else "odd"` return, and why is there no
+> explicit `return`?
+
+In R, a function returns the value of the last expression it evaluates, and
+an if/else block is itself an expression: it evaluates to whichever branch
+ran. So this line evaluates to the string "even" or "odd", and because it is
+the only expression in `classify`, that string becomes the function's return
+value. `%%` is R's modulo operator, so `x %% 2 == 0` is TRUE exactly when x
+is even.
+```
+
+Verify it: call `classify(11)` and confirm you get `"odd"`, then try
+`classify(0)` and check the answer still makes sense.
+
+## 1A.4 A second example: three R and Python quirks
+
+Some R and Python behavior looks fine until it silently is not. These three
+come up constantly in scientific code and reward a deliberate AI-assisted
+read rather than a guess.
+
+**Ellipsis and `**kwargs`.** R's `...` and Python's `**kwargs` let a function
+forward whatever arguments it received on to another function whose full
+signature it does not need to know. This pattern shows up in nearly every
+integrator in this book, starting with `Euler()` in
+[Part 2B](../02-odes/02b-numerical-integration.qmd).
+
+### R implementation {.impl}
+
+```{r}
+# a function whose second argument is itself a function, forwarded extra
+# arguments via ...
+func_main <- function(a, func_2nd, ...) {
+  return(a + func_2nd(...))
+}
+func1 <- function(d, e) d + e
+func_main(a = 1, func_2nd = func1, d = 2.4, e = 0.6)
+```
+
+### Python implementation {.impl}
+
+```{python}
+# a function whose second argument is itself a function, forwarded extra
+# arguments via **kwargs
+def func_main(a, func_2nd, **kwargs):
+    return a + func_2nd(**kwargs)
+def func1(d, e):
+    return d + e
+func_main(a=1, func_2nd=func1, d=2.4, e=0.6)
+```
+
+Paste `func_main` into Claude Code and ask "what does `...`/`**kwargs` do
+here, and why does `func1` need to accept exactly `d` and `e`?" A good answer
+explains that the ellipsis collects any named arguments beyond `a` and
+`func_2nd`, then re-expands them at `func_2nd(...)`. If `func1`'s parameter
+names do not match what was forwarded, the call fails. Verify it: rename
+`func1`'s parameters to `f` and `g` without changing the call, and confirm
+you get an error, since neither `d` nor `e` is among `func1`'s parameter
+names anymore.
+
+**The factor-vs-string default.** R's `data.frame()` used to convert every
+character column into a factor by default. R 4.0, released in 2020, flipped
+that default so strings stay strings. Code written for the older default, or
+a tutorial that assumes it, can behave differently on a modern R install with
+no error at all, just a different column type. This is R-specific: Python's
+`pandas.DataFrame` never auto-converts strings this way, so there is no
+equivalent quirk to show on the Python side.
+
+### R implementation {.impl}
+
+```{r}
+my_data <- data.frame(
+  atom = c("N", "CA", "CB", "C", "O"),
+  mass = c(14, 12, 12, 12, 16)
+)
+class(my_data$atom)   # character, on R 4.0 and later
+
+my_data_old_default <- data.frame(
+  atom = c("N", "CA", "CB", "C", "O"),
+  mass = c(14, 12, 12, 12, 16),
+  stringsAsFactors = TRUE
+)
+class(my_data_old_default$atom)   # factor, matching R's pre-4.0 default
+```
+
+Ask Claude Code "why would the same `data.frame()` call produce a character
+column on one R installation and a factor on another?" A good answer names
+the R 4.0 default change directly, not just "it depends on your settings."
+Verify it: run `R.version.string` and check which behavior your own
+installation gives by default.
+
+**Data frame vs. matrix.** A matrix requires every element to be the same
+type and supports linear algebra directly. A data frame allows a different
+type per column and is what most statistics and plotting functions in R
+expect. This is also R-specific enough to leave as a single example: Python's
+analogous distinction (a NumPy array vs. a pandas DataFrame) is less prone to
+this particular mix-up, since the two rarely get passed to the same function
+interchangeably.
+
+### R implementation {.impl}
+
+```{r}
+my_data <- data.frame(
+  mass = c(14, 12, 12, 12, 16),
+  size = c(1.2, 1.4, 1.4, 1.4, 1.1)
+)
+model <- lm(size ~ mass, data = my_data)
+coef(model)
+```
+
+Ask Claude Code "why does `lm()` take a data frame here instead of a matrix,
+and what would break if `my_data` had a character column mixed in with `mass`
+and `size`?" Verify it: add an `atom` character column to `my_data` and
+confirm `lm(size ~ mass, data = my_data)` still runs unaffected, since a
+column not named in the formula just comes along for the ride.
+
+## 1A.5 A worked example: Conway's Game of Life
+
+Conway's Game of Life is a grid of cells, each alive or dead, updated
+together at every step by three rules applied to each cell's eight
+neighbors [@gardner1970game]:
+
+- A live cell with 2 or 3 live neighbors survives.
+- A dead cell with exactly 3 live neighbors becomes alive.
+- Every other cell dies or stays dead.
+
+### R implementation {.impl}
+
+The code below is shown only in R; the point of this example is the
+AI-assisted reading technique, not the simulation itself, and the technique
+applies the same way in Python.
+
+```r
+n <- 10
+grid <- matrix(0, n, n)
+
+# a glider: a five-cell pattern that translates diagonally across the grid
+# one cell every four generations, without changing shape
+glider <- rbind(c(1, 2), c(2, 3), c(3, 1), c(3, 2), c(3, 3))
+for (i in seq_len(nrow(glider))) grid[glider[i, 1], glider[i, 2]] <- 1
+
+# count each cell's live neighbors
+neighbor_sum <- function(g) {
+  n <- nrow(g)
+  idx_r <- row(g); idx_c <- col(g)
+  total <- matrix(0, n, n)
+  for (di in -1:1) for (dj in -1:1) {
+    if (di == 0 && dj == 0) next
+    r  <- ((idx_r - 1 + di) %% n) + 1
+    cc <- ((idx_c - 1 + dj) %% n) + 1
+    total <- total + matrix(g[cbind(as.vector(r), as.vector(cc))], n, n)
+  }
+  total
+}
+
+# apply the three rules to every cell at once
+step <- function(g) {
+  nb <- neighbor_sum(g)
+  ((nb == 3) | (g == 1 & nb == 2)) * 1
+}
+
+library(ggplot2); library(gganimate); library(gifski)
+
+n_gen <- 40
+frames <- vector("list", n_gen)
+g <- grid
+for (t in seq_len(n_gen)) {
+  frames[[t]] <- data.frame(row = as.vector(row(g)), col = as.vector(col(g)),
+                             state = as.vector(g), generation = t)
+  g <- step(g)
+}
+df <- do.call(rbind, frames)
+df$state <- factor(df$state, levels = c(0, 1))
+
+p <- ggplot(df, aes(x = col, y = row, fill = state)) +
+  geom_tile(color = "grey80") +
+  scale_fill_manual(values = c("0" = "white", "1" = "red"), guide = "none") +
+  scale_y_reverse() + coord_fixed() +
+  labs(title = "Generation: {current_frame}", x = NULL, y = NULL) +
+  theme_void() + theme(plot.title = element_text(hjust = 0.5))
+
+anim <- animate(p + transition_manual(generation), fps = 5, nframes = n_gen,
+                 width = 400, height = 400, renderer = gifski_renderer())
+anim_save("game-of-life.gif", animation = anim)
+```
+
+::: {.content-visible when-format="html:js"}
+![Forty generations of a glider on a 10x10 grid. Red cells are alive, white
+cells are dead.](images/01A/game-of-life.gif){width=40% fig-align="center"}
+:::
+
+Watch the animation closely around generation 35 to 40: part of the glider
+appears to jump to the opposite side of the grid rather than sliding off it.
+The `neighbor_sum` function above never says anything about what happens at
+the edges of the 10x10 grid, so paste it into Claude Code and ask directly:
+
+```
+> What is `((idx_r - 1 + di) %% n) + 1` doing, and why does the glider
+> reappear on the opposite edge instead of just disappearing off the grid?
+
+The %% (modulo) here wraps an index back into the range 1..n whenever di or
+dj would push it past an edge: a neighbor "above row 1" becomes row n, and a
+neighbor "past column n" becomes column 1. That makes the grid a torus
+rather than a flat sheet with edges, so a cell near row 1 is a genuine
+neighbor of a cell in row n. This is called a periodic boundary condition:
+instead of an edge where nothing happens or a wall, the far edge of the grid
+is treated as touching the near edge. That is exactly why the glider
+reappears on the opposite side rather than vanishing.
+```
+
+Verify it: pick a cell in the top row and compute `((0 - 1 + -1) %% 10) + 1`
+by hand to confirm it does map to row 10, not to a negative or out-of-range
+index.
+
+Periodic boundaries are not just a trick for a small grid of cells.
+[Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd) applies the same
+idea to a continuous-space molecular dynamics simulation: a particle leaving
+one side of a simulation box re-enters from the opposite side, using a
+function (`bc_periodic`) built on the same wraparound rule shown here.
+
+::: {.callout-tip title="Try it yourself"}
+Pick any function elsewhere in this book that you have not already read in
+depth, a later chapter's ODE integrator, or `neighbor_sum` above with a
+different neighborhood shape. Paste it into Claude Code, ask one specific
+question about the one part you do not understand, and check the answer by
+changing an input and predicting the output before you run it.
 :::
