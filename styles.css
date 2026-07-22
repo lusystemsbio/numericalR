@@ -62,3 +62,41 @@ math[display="block"] {
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+/* 1A.3 VS Code split-pane mockup (HTML only; see 01a-getting-started.qmd) */
+table.vscode-mockup {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.82em;
+}
+table.vscode-mockup th {
+  text-align: left;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ccc;
+  background-color: #eaeaea;
+  font-weight: 600;
+}
+table.vscode-mockup td {
+  vertical-align: top;
+  border: 1px solid #ccc;
+  padding: 0.6rem;
+  width: 50%;
+}
+table.vscode-mockup td:first-child {
+  background-color: #fafafa;
+}
+table.vscode-mockup td:last-child {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+}
+table.vscode-mockup pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+}

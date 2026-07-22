@@ -102,23 +102,47 @@ Then open a Claude Code session in the same folder: split the editor so the
 file you are reading stays visible on one side while Claude Code runs on the
 other, rather than switching back and forth between two overlapping windows.
 
+::: {.content-visible when-format="html:js"}
+<table class="vscode-mockup">
+<tr><th>01a-getting-started.qmd</th><th>TERMINAL - claude</th></tr>
+<tr>
+<td><pre>## 1A.3 A minimal example
+
+numbers &lt;- c(4, 7, 10, 13)
+classify &lt;- function(x) {
+  if (x %% 2 == 0) "even" else "odd"
+}
+for (n in numbers) {
+  cat(n, "is", classify(n), "\n")
+}</pre></td>
+<td><pre>&gt; Explain the classify function
+&gt; below, line by line.
+
+In R, a function returns the value of
+the last expression it evaluates, and
+an if/else block is itself an
+expression...</pre></td>
+</tr>
+</table>
+:::
+
+::: {.content-visible unless-format="html:js"}
 ```
 ┌─ VS Code ────────────────────────────────┬────────────────────────────────┐
 │ 01a-getting-started.qmd                  │ TERMINAL - claude              │
 │ ───────────────────────────────────────  │ ─────────────────────────────  │
 │ ## 1A.3 A minimal example                 │ > Explain the classify         │
 │                                            │ > function below, line by      │
-│ ```{r}                                    │ > line.                        │
-│ numbers <- c(4, 7, 10, 13)               │                                 │
-│ classify <- function(x) {                │ In R, a function returns the   │
-│   if (x %% 2 == 0) "even" else "odd"     │ value of the last expression   │
-│ }                                         │ it evaluates, and an if/else   │
-│ for (n in numbers) {                     │ block is itself an             │
-│   cat(n, "is", classify(n), "\n")        │ expression...                  │
-│ }                                         │                                 │
-│ ```                                       │                                 │
+│ numbers <- c(4, 7, 10, 13)               │ > line.                        │
+│ classify <- function(x) {                │                                 │
+│   if (x %% 2 == 0) "even" else "odd"     │ In R, a function returns the   │
+│ }                                         │ value of the last expression   │
+│ for (n in numbers) {                     │ it evaluates, and an if/else   │
+│   cat(n, "is", classify(n), "\n")        │ block is itself an             │
+│ }                                         │ expression...                  │
 └────────────────────────────────────────────┴────────────────────────────────┘
 ```
+:::
 
 Ask about the one part that is not obvious on a first read: the inline
 `if (...) "even" else "odd"` in R, or the equivalent conditional expression
