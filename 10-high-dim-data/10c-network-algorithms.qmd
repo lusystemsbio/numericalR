@@ -24,7 +24,10 @@ how interconnected a vertex's neighbors are: for a vertex of degree $k$ with $e$
 among its neighbors, $c = e / \binom{k}{2}$. The *distance* between two vertices is the
 length of the shortest path between them, and the *diameter* is the largest such
 distance. We illustrate on Zachary's karate club [@zachary1977information], a classic
-34-member social network.
+34-member social network, drawn with the Kamada-Kawai layout [@kamada1989algorithm]: unlike
+a force-directed layout, this is a deterministic stress-majorization of the shortest-path
+distances, so the R and Python renderings closely agree instead of depending on each
+library's own stochastic algorithm.
 
 ### R implementation {.impl}
 
@@ -57,9 +60,13 @@ cat("mean degree:", round(mean(degree_v), 2), " clustering:", round(clustering(A
     " diameter:", max(D[is.finite(D)]), "\n")
 
 bc <- betweenness(g)                                     # betweenness (igraph)
-set.seed(1)
-plot(g, vertex.size = 4 + degree_v, vertex.color = "gold",
-     vertex.label = NA, layout = layout_with_fr)
+# Kamada-Kawai layout: a deterministic stress-majorization of the shortest-path distances
+# computed above (no random initialization), so it reproduces closely in Python, unlike a
+# force-directed layout; unlike raw classical MDS, it also optimizes for readability, so
+# nodes spread out instead of clustering
+lay <- layout_with_kk(g)
+plot(g, vertex.size = 4 + degree_v, vertex.color = "gold", vertex.frame.color = NA,
+     vertex.label = NA, edge.color = "#B3B3B3", layout = lay)
 ```
 
 ```{r}
@@ -102,9 +109,15 @@ print("mean degree:", round(degree_v.mean(), 2), " clustering:", round(clusterin
       " diameter:", int(D[np.isfinite(D)].max()))
 
 bc = np.array(list(nx.betweenness_centrality(G).values()))   # betweenness (networkx)
-np.random.seed(1); pos = nx.spring_layout(G, seed=1)
+# Kamada-Kawai layout: a deterministic stress-majorization of the graph's shortest-path
+# distances (no random initialization), so it reproduces closely in R, unlike a
+# force-directed layout; unlike raw classical MDS, it also optimizes for readability, so
+# nodes spread out instead of clustering
+pos = nx.kamada_kawai_layout(G)
 plt.figure(figsize=(6, 5))
-nx.draw(G, pos, node_size=40 + 20 * degree_v, node_color="gold", edge_color="grey")
+# node_size is an AREA in networkx (vs. a diameter-like scale in igraph's vertex.size),
+# so square the same "4 + degree" formula used in R to match the visual size contrast
+nx.draw(G, pos, node_size=(4 + degree_v) ** 2 * 1.2, node_color="gold", edge_color="#B3B3B3")
 plt.show()
 ```
 
@@ -168,8 +181,11 @@ set.seed(1)
 er <- er_network(1000, 0.006); ba <- ba_network(1000, 3)
 par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
 hist(rowSums(er), breaks = 20, main = "Erdos-Renyi", xlab = "degree", col = "grey")
-plot(table(rowSums(ba)), log = "xy", main = "Barabasi-Albert (log-log)",
-     xlab = "degree", ylab = "count")
+# plot(table(...)) draws value-to-zero bars, which log-scaling breaks (log(0) = -Inf);
+# plot the (degree, count) points directly instead, as a proper log-log scatter
+ba_tab <- table(rowSums(ba))
+plot(as.numeric(names(ba_tab)), as.numeric(ba_tab), log = "xy", pch = 19,
+     main = "Barabasi-Albert (log-log)", xlab = "degree", ylab = "count")
 ```
 
 ### Python implementation {.impl}
@@ -177,7 +193,9 @@ plot(table(rowSums(ba)), log = "xy", main = "Barabasi-Albert (log-log)",
 ```{python}
 # Erdos-Renyi: connect each pair with probability p
 def er_network(n, p):
-    A = (np.triu(np.random.rand(n, n), 1) < p).astype(int); return A + A.T
+    # compare to p FIRST, then restrict to the upper triangle -- np.triu(rand, 1) zeroes
+    # the lower triangle before comparing, so those zeros would wrongly satisfy `< p`
+    A = np.triu((np.random.rand(n, n) < p).astype(int), 1); return A + A.T
 
 # Barabasi-Albert: grow by preferential attachment (m links per new vertex)
 def ba_network(n, m):
@@ -196,7 +214,11 @@ def ba_network(n, m):
 np.random.seed(1)
 er = er_network(1000, 0.006); ba = ba_network(1000, 3)
 fig, axs = plt.subplots(1, 2, figsize=(7, 3.4))
-axs[0].hist(er.sum(1), bins=20, color="grey"); axs[0].set(title="Erdos-Renyi", xlabel="degree")
+er_deg = er.sum(1)
+# bin edges at half-integers so each bin holds exactly one degree value; bins=20 alone
+# misaligns with these integer degrees and leaves visible gaps between some bars
+bins = np.arange(er_deg.min(), er_deg.max() + 2) - 0.5
+axs[0].hist(er_deg, bins=bins, color="grey"); axs[0].set(title="Erdos-Renyi", xlabel="degree")
 v, c = np.unique(ba.sum(1), return_counts=True)
 axs[1].loglog(v, c, "o"); axs[1].set(title="Barabasi-Albert (log-log)", xlabel="degree", ylabel="count")
 plt.tight_layout(); plt.show()
@@ -237,18 +259,21 @@ modularity_Q <- function(A, membership) {
   sum(B * outer(membership, membership, "==")) / (2 * m)
 }
 
-# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix
+# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix.
+# An eigensolver may return either v or -v equally validly, so fix a sign convention
+# (vertex 1 always in group 1) to make the assignment reproducible across languages.
 spectral_split <- function(A) {
   m <- sum(A) / 2; k <- rowSums(A)
   B <- A - outer(k, k) / (2 * m)
-  ifelse(eigen(B, symmetric = TRUE)$vectors[, 1] > 0, 1, 2)
+  v <- eigen(B, symmetric = TRUE)$vectors[, 1]
+  if (v[1] < 0) v <- -v
+  ifelse(v > 0, 1, 2)
 }
 
 comm <- spectral_split(A)
 cat("community sizes:", table(comm), " modularity Q:", round(modularity_Q(A, comm), 3), "\n")
-set.seed(1)
-plot(g, vertex.color = c("tomato", "skyblue")[comm], vertex.size = 8,
-     vertex.label = NA, layout = layout_with_fr)
+plot(g, vertex.color = c("tomato", "skyblue")[comm], vertex.size = 8, vertex.frame.color = NA,
+     vertex.label = NA, edge.color = "#B3B3B3", layout = lay)   # same layout as 10C.1
 ```
 
 ### Python implementation {.impl}
@@ -263,16 +288,20 @@ def modularity_Q(A, membership):
     same = membership[:, None] == membership[None, :]
     return (B * same).sum() / (2 * m)
 
-# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix
+# Newman spectral bisection: sign of the leading eigenvector of the modularity matrix.
+# An eigensolver may return either v or -v equally validly, so fix a sign convention
+# (vertex 1 always in group 1) to make the assignment reproducible across languages.
 def spectral_split(A):
     m = A.sum() / 2; k = A.sum(1); B = A - np.outer(k, k) / (2 * m)
-    return (np.linalg.eigh(B)[1][:, -1] > 0).astype(int)
+    v = np.linalg.eigh(B)[1][:, -1]
+    if v[0] < 0: v = -v
+    return (v > 0).astype(int)
 
 comm = spectral_split(A)
 print("community sizes:", np.bincount(comm), " modularity Q:", round(modularity_Q(A, comm), 3))
 plt.figure(figsize=(6, 5))
 nx.draw(G, pos, node_color=["tomato" if c else "skyblue" for c in comm],
-        node_size=120, edge_color="grey")
+        node_size=8 ** 2 * 1.2, edge_color="#B3B3B3")
 plt.show()
 ```
 
@@ -292,7 +321,8 @@ updating, every gene is updated together at each discrete time step, $x_i(t+1) =
 f_i(\mathbf{x}(t))$. Iterating from any start eventually falls into an *attractor*: a
 fixed point (a steady state, $\mathbf{x}(t+1) = \mathbf{x}(t)$) or a cycle (an
 oscillation). We enumerate the attractors by running every possible initial state to its
-repeat.
+repeat, then apply this to two circuits already studied as continuous systems in
+[Part 3H](../03-phase-plane/03h-multi-component.qmd): a toggle switch and a repressilator.
 
 ### R implementation {.impl}
 
@@ -316,30 +346,6 @@ boolean_attractors <- function(update, n) {
   found
 }
 show_att <- function(a) sapply(a, function(cyc) paste0("{", paste(sapply(cyc, paste, collapse = ""), collapse = " -> "), "}"))
-
-# toggle switch: two mutually repressing genes, A = NOT B, B = NOT A
-toggle <- function(s) c(1 - s[2], 1 - s[1])
-cat("toggle attractors:  ", show_att(boolean_attractors(toggle, 2)), "\n")
-
-# Boolean repressilator: A -| B -| C -| A
-repressilator <- function(s) c(1 - s[3], 1 - s[1], 1 - s[2])
-cat("repressilator:      ", show_att(boolean_attractors(repressilator, 3)), "\n")
-```
-
-```{r}
-#| fig-width: 5
-#| fig-height: 5
-#| out-width: "55%"
-# state-transition graph of the toggle switch (each of 4 states -> its successor)
-states <- as.matrix(expand.grid(A = 0:1, B = 0:1))
-labels <- apply(states, 1, paste, collapse = "")
-edges <- unlist(lapply(1:4, function(r) {
-  nxt <- toggle(states[r, ]); c(labels[r], paste(nxt, collapse = ""))
-}))
-gt <- graph(edges, directed = TRUE)
-set.seed(3)
-plot(gt, vertex.size = 34, vertex.color = "lightgreen", edge.arrow.size = 0.5,
-     main = "Toggle-switch state transitions")
 ```
 
 ### Python implementation {.impl}
@@ -359,39 +365,75 @@ def boolean_attractors(update, n):
     return list(found.values())
 def show_att(a):
     return [" {" + " -> ".join("".join(map(str, s)) for s in cyc) + "}" for cyc in a]
-
-# toggle switch: two mutually repressing genes, A = NOT B, B = NOT A
-toggle = lambda s: [1 - s[1], 1 - s[0]]
-print("toggle attractors: ", show_att(boolean_attractors(toggle, 2)))
-
-# Boolean repressilator: A -| B -| C -| A
-repressilator = lambda s: [1 - s[2], 1 - s[0], 1 - s[1]]
-print("repressilator:     ", show_att(boolean_attractors(repressilator, 3)))
 ```
+
+## 10C.5 Toggle switch
+
+A toggle switch is two genes that mutually repress each other:
+
+![](images/10C/toggle.png){width=38% fig-align="center"}
+
+$$ X(t+1) = \neg Y(t), \qquad Y(t+1) = \neg X(t) $$
+
+Its Boolean form reduces each gene to on or off; applying `boolean_attractors` to this
+update rule enumerates all its attractors from every one of the 4 possible starting states.
+
+### R implementation {.impl}
+
+```{r}
+# toggle switch: two mutually repressing genes, X = NOT Y, Y = NOT X
+toggle <- function(s) c(1 - s[2], 1 - s[1])
+show_att(boolean_attractors(toggle, 2))
+```
+
+### Python implementation {.impl}
 
 ```{python}
-#| fig-width: 5
-#| fig-height: 5
-#| out-width: "55%"
-# state-transition graph of the toggle switch (each of 4 states -> its successor)
-states = list(product([0, 1], repeat=2))
-GT = nx.DiGraph()
-for s in states:
-    GT.add_edge("".join(map(str, s)), "".join(map(str, toggle(list(s)))))
-plt.figure(figsize=(5, 5))
-nx.draw(GT, nx.spring_layout(GT, seed=3), with_labels=True, node_size=1200,
-        node_color="lightgreen", arrowsize=15)
-plt.title("Toggle-switch state transitions"); plt.show()
+# toggle switch: two mutually repressing genes, X = NOT Y, Y = NOT X
+toggle = lambda s: [1 - s[1], 1 - s[0]]
+print(show_att(boolean_attractors(toggle, 2)))
 ```
 
-The toggle switch has two fixed-point attractors, `10` and `01` (the two mutually
-exclusive on-states of a bistable switch), plus a two-state oscillation `00 ↔ 11`; the
-state-transition graph makes the two stable states and the cycle visible at a glance. The
-Boolean repressilator has two cyclic attractors: a short `000 -> 111` oscillation and a
-six-state cycle that is the discrete analog of the limit cycle we found for its continuous
-version in earlier chapters. Despite their
-extreme simplicity, Boolean networks reproduce the qualitative dynamics of real
-regulatory circuits: Li et al. showed that the Boolean network of the yeast cell cycle
-has a single dominant attractor corresponding to the biological cell-cycle sequence
+The toggle switch has two attractors:
+
+- Fixed points: `01` and `10`, the two mutually exclusive on-states of a bistable switch
+- Oscillation: `00 -> 11 -> 00`, a two-state cycle
+
+## 10C.6 Boolean repressilator
+
+A repressilator is a ring of three repressions, each gene repressing the next:
+
+![](images/10C/repressilator.png){width=28% fig-align="center"}
+
+$$ X(t+1) = \neg Z(t), \qquad Y(t+1) = \neg X(t), \qquad Z(t+1) = \neg Y(t) $$
+
+Its continuous version oscillates on a limit cycle [@elowitz2000repressilator]; the
+Boolean version has the same three-gene ring topology, reduced to on/off states.
+
+### R implementation {.impl}
+
+```{r}
+# repressilator: a ring of three repressions, X -| Y -| Z -| X
+repressilator <- function(s) c(1 - s[3], 1 - s[1], 1 - s[2])
+show_att(boolean_attractors(repressilator, 3))
+```
+
+### Python implementation {.impl}
+
+```{python}
+# repressilator: a ring of three repressions, X -| Y -| Z -| X
+repressilator = lambda s: [1 - s[2], 1 - s[0], 1 - s[1]]
+print(show_att(boolean_attractors(repressilator, 3)))
+```
+
+The Boolean repressilator has no fixed points, only two cyclic attractors:
+
+- `000 -> 111 -> 000`, a short two-state oscillation
+- `100 -> 101 -> 001 -> 011 -> 010 -> 110 -> 100`, a six-state cycle, the discrete analog
+  of the continuous limit cycle
+
+Despite their extreme simplicity, Boolean networks reproduce the qualitative dynamics of
+real regulatory circuits: Li et al. showed that the Boolean network of the yeast cell
+cycle has a single dominant attractor corresponding to the biological cell-cycle sequence
 [@li2004yeast], evidence that the network's wiring, not finely tuned parameters, sets its
 behavior.
