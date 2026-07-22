@@ -20,10 +20,10 @@ book:
     collapse-level: 1
   chapters:
     - index.qmd
-    - part: "Part 1: Introduction to R and Python programming"
+    - part: "Part 1: Introduction to numerical methods"
       chapters:
-        - 01-tools/01a-getting-started.qmd
-        - 01-tools/01b-efficient-programming.qmd
+        - 01-intro/01a-getting-started.qmd
+        - 01-intro/01b-efficient-programming.qmd
     - part: "Part 2: Ordinary differential equations"
       chapters:
         - 02-odes/02a-modeling-gene-circuits.qmd

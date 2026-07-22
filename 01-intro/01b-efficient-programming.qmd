@@ -281,7 +281,7 @@ Python never compiles the interpreted version on its own.
 
 Both languages can call a function written in a compiled language directly.
 Here is a Fortran subroutine computing the same standard deviation, in
-`01-tools/src/sub_cal_sd.f90`:
+`01-intro/src/sub_cal_sd.f90`:
 
 ```fortran
 subroutine cal_sd(n,x,sd)
@@ -308,13 +308,13 @@ Fortran-R or Fortran-Python interface. Compile it to a shared library with
 `gfortran`:
 
 ```bash
-gfortran -fpic -shared 01-tools/src/sub_cal_sd.f90 -o 01-tools/src/sub_cal_sd.so
+gfortran -fpic -shared 01-intro/src/sub_cal_sd.f90 -o 01-intro/src/sub_cal_sd.so
 ```
 
 ### R implementation {.impl}
 
 ```{r}
-dyn.load("01-tools/src/sub_cal_sd.so")
+dyn.load("01-intro/src/sub_cal_sd.so")
 
 my_sd_R <- function(x) {
   if (!is.numeric(x)) stop("argument x must be numeric")
@@ -335,7 +335,7 @@ reference:
 ```{python}
 import ctypes
 
-_lib = ctypes.CDLL("01-tools/src/sub_cal_sd.so")
+_lib = ctypes.CDLL("01-intro/src/sub_cal_sd.so")
 
 def my_sd_fortran(x):
     x = np.asarray(x, dtype=np.float64)
