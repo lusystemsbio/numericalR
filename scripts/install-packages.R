@@ -20,7 +20,8 @@ pkgs <- c(
   "uwot",            # 0.2.4  -- UMAP (10A/10B)
   "mclust",          # 6.1.3  -- Gaussian mixture models (10B)
   "igraph",          # 2.3.3  -- graph drawing, betweenness, community detection (10C)
-  "princurve"        # 2.1.6  -- principal curve (10A.4)
+  "princurve",       # 2.1.6  -- principal curve (10A.4)
+  "bio3d"            # 2.4.5  -- PDB structure parsing (1D.1)
 )
 
 installed <- rownames(installed.packages())

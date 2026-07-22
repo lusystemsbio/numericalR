@@ -1,0 +1,279 @@
+---
+title: "1D. Exercises"
+author: "Mingyang Lu"
+old_id: "01D"
+---
+
+## 1D.1 Radius of gyration
+
+In this exercise, we compute the radius of gyration of a protein structure.
+
+The radius of gyration $R_g$ is defined as
+
+$$R_g=\sqrt{\frac{\sum_{j=1}^{N}m_j \Delta \mathbf{r_j} \cdot \Delta \mathbf{r_j}}{\sum_{j=1}^{N}m_j}} ,$$
+
+where $\mathbf{r_j}$ is the coordinate vector of atom $j$ (its x, y, and z values),
+$m_j$ is the atomic mass of atom $j$, and $N$ is the total number of atoms. The center
+of mass $\mathbf{\overline{r}}$ is
+
+$$\mathbf{\overline{r}}=\frac{\sum_{j=1}^{N}m_j\mathbf{r_j}}{\sum_{j=1}^{N}m_j} ,$$
+
+and the displacement vector $\Delta \mathbf{r_j}$ is $\mathbf{r_j} - \mathbf{\overline{r}}$.
+
+### R implementation {.impl}
+
+The `bio3d` package downloads and parses structures from the Protein Data Bank
+directly.
+
+```{r}
+#| warning: false
+if (!"bio3d" %in% rownames(installed.packages())) {
+  install.packages("bio3d")
+}
+library(bio3d)
+
+mystructure <- read.pdb("7l3u")   # load online data
+coord <- mystructure$atom
+class(coord)
+head(coord, 3)
+```
+
+`coord` is a data frame with one row per atom; the atom type needed for its mass is
+in the `elesy` column.
+
+### Python implementation {.impl}
+
+`Bio.PDB` (from `biopython`) plays the same role. This helper downloads a structure
+and collects its atomic coordinates into a `pandas` DataFrame:
+
+```{python}
+#| warning: false
+import tempfile
+from Bio import PDB
+import pandas as pd
+
+def pdb_to_dataframe(pdb_id):
+    pdbl = PDB.PDBList()
+    pdb_file_path = pdbl.retrieve_pdb_file(pdb_id, pdir=tempfile.gettempdir(), file_format="pdb")
+    pdb_parser = PDB.PDBParser(QUIET=True)
+    structure = pdb_parser.get_structure(pdb_id, pdb_file_path)
+    atom_data = []
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    atom_data.append({
+                        "atom_name": atom.get_name(),
+                        "residue_name": residue.resname,
+                        "chain_id": chain.id,
+                        "residue_number": residue.id[1],
+                        "x": atom.coord[0],
+                        "y": atom.coord[1],
+                        "z": atom.coord[2],
+                        "b": atom.bfactor,
+                    })
+    return pd.DataFrame(atom_data)
+
+coord = pdb_to_dataframe("7l3u")
+coord.shape
+coord.head(3)
+```
+
+**(a)** Starting from `coord`, compute $R_g$ for structure `7l3u`. Watch the dot
+product in the definition of $R_g$: it is $\Delta \mathbf{r_j} \cdot \Delta
+\mathbf{r_j}$, not $|\Delta \mathbf{r_j}|$. Atomic masses can be looked up from the
+element symbol; `bio3d` provides `atom2mass()` for this (`?atom2mass`), or use any
+periodic-table lookup you like in Python.
+
+**(b)** Ask an AI assistant to explain any part of the provided code you find
+unfamiliar (the nested loop over `model`/`chain`/`residue`/`atom` in the Python
+version, or what `read.pdb()` returns in R), following the same read-then-verify
+approach from [Part 1A](01a-getting-started.qmd).
+
+## 1D.2 Gene expression analysis
+
+You are given a gene expression dataset (derived from GEO accession GSE17708)
+recording expression levels for 500 genes across 26 samples. Your task is to
+compute summary statistics, filter out the least variable genes, and look at
+correlations between the remaining ones.
+
+### R implementation {.impl}
+
+```{r}
+exp_data <- read.csv("01-intro/data/exp_data.csv", row.names = 1)
+class(exp_data)
+dim(exp_data)   # 500 genes, 26 conditions
+```
+
+### Python implementation {.impl}
+
+```{python}
+import pandas as pd
+
+exp_data = pd.read_csv("01-intro/data/exp_data.csv", index_col=0)
+type(exp_data)
+exp_data.shape   # 500 genes, 26 conditions
+```
+
+Each row of `exp_data` is a gene, and each column is a sample.
+
+**(a) Summary statistics.** For each sample, compute the mean, median, and standard
+deviation of expression across genes, and make a bar plot showing the mean and
+standard deviation per sample.
+
+**(b) Filtering.** Remove genes whose standard deviation (across samples) is below
+0.5. Report how many genes remain (you should get fewer than 50).
+
+**(c) Gene expression correlations.** Within the filtered set, compute the
+Pearson correlation between every pair of genes' expression profiles, and report
+the 10 most correlated pairs.
+
+## 1D.3 Stirling's approximation
+
+The naive way to compute $\ln n!$ is to take the log of the factorial directly:
+
+### R implementation {.impl}
+
+```{r}
+ln_fact <- function(n) {
+  return(log(factorial(n)))
+}
+ln_fact(10)
+ln_fact(170)
+ln_fact(171)
+```
+
+### Python implementation {.impl}
+
+```{python}
+import math
+
+def ln_fact(n):
+    return math.log(math.factorial(n))
+
+ln_fact(10)
+ln_fact(170)
+ln_fact(1000)
+```
+
+R's `factorial(171)` returns `Inf`, so `ln_fact` breaks there: R represents
+`factorial(n)` as a double, and doubles overflow past about $1.8 \times 10^{308}$,
+which $171!$ already exceeds. Python's `math.factorial` instead returns an
+arbitrary-precision integer, so `ln_fact(1000)` still gives a finite answer, but
+try `ln_fact(100000)` and time it: multiplying out a thousands-of-digits integer,
+one factor at a time, gets slow well before it overflows anything.
+
+Both languages hit a wall for large $n$, just for different reasons and at
+different points (think about why, for each). A more scalable approach avoids
+forming $n!$ at all and instead sums logs directly:
+
+$$f(n) = \ln n!=\sum_{j=1}^{n}\ln j .$$
+
+**(a) Benchmarking.** Implement $f(n)$ for large $n$ using each of the following,
+in both R and Python:
+
+  (1) a loop that accumulates the sum term by term;
+  (2) a vectorized sum (R: `sum(log(1:n))`; Python: `numpy`);
+  (3) an apply-family construct (R: `sapply`/`vapply`; Python: `map`, or a list
+      comprehension);
+  (4) a compiled C or Fortran routine, called the way [Part 1B](01b-efficient-programming.qmd)
+      calls compiled code.
+
+  Benchmark each method's runtime (R: `microbenchmark`; Python: `timeit`) for a
+  moderately large $n$ (say $10^5$ or $10^6$), consistent with the previous
+  chapter.
+
+**(b) Deviation of Stirling's approximation.** Stirling's approximation
+[@stirling1730methodus] states
+
+$$\ln n! \approx n\ln n - n .$$
+
+Using any method from (a) to compute the left-hand side, plot the relative
+deviation
+
+$$1-\frac{n\ln n - n}{\ln n!}$$
+
+as a function of $n$, and describe how it behaves as $n$ grows.
+
+## 1D.4 Prime numbers
+
+A prime number is a positive integer greater than 1 with no divisors other than 1
+and itself.
+
+**(a)** Write a function that takes an integer and returns whether it is prime,
+by testing divisibility by every integer from 2 up to its square root.
+
+**(b)** Apply your function to every integer up to 100 and print the primes you
+find.
+
+## 1D.5 Explaining an unfamiliar one-liner
+
+R and Python both let you fold a sequence down to a single value without writing
+an explicit loop: R's `Reduce()`, and Python's `functools.reduce()` paired with a
+generator expression. Here is one such line in each language, computing something
+about a list of numbers without saying what:
+
+```r
+x <- c(3, 1, 4, 1, 5, 9, 2, 6)
+Reduce(function(acc, v) if (v > acc) v else acc, x)
+```
+
+```python
+from functools import reduce
+x = [3, 1, 4, 1, 5, 9, 2, 6]
+reduce(lambda acc, v: v if v > acc else acc, x)
+```
+
+**(a)** Before running either snippet, ask an AI assistant to explain what it
+computes and how the accumulator argument (`acc`) changes on each step.
+
+**(b)** Run the code and confirm the AI's explanation against the actual output.
+
+**(c)** Hand-trace the R version for a shorter list, say `c(3, 1, 4)`, writing out
+the value of `acc` after each step, and check it matches what the AI described.
+
+## 1D.6 Finding an injected bug
+
+The function below is meant to return the *second-largest* distinct value in a
+numeric vector/list (for example, the second-largest of `c(5, 1, 5, 3)` is 3, since
+the two 5's count as one distinct value). It has a bug.
+
+```r
+second_largest <- function(x) {
+  u <- sort(unique(x), decreasing = TRUE)
+  return(u[1])
+}
+```
+
+```python
+def second_largest(x):
+    u = sorted(set(x), reverse=True)
+    return u[0]
+```
+
+**(a)** Without running the code, predict what `second_largest(c(5, 1, 5, 3))` (or
+the Python equivalent) returns, and check whether it matches the description
+above.
+
+**(b)** Paste the (buggy) function into an AI assistant and ask it to find and fix
+the bug. Compare the fix it proposes to your own diagnosis in (a).
+
+**(c)** In your own words, explain why the fix is correct, and test it on an edge
+case the original description doesn't cover: a vector with fewer than two distinct
+values.
+
+## 1D.7 Porting and critiquing a translation
+
+Pick one function you wrote for [Part 1B](01b-efficient-programming.qmd) (for
+example the growing-vector fix from 1B.1, or one of the `ln_fact` variants from
+1D.3) in whichever of R or Python you find more natural. Ask an AI assistant to
+translate it into the other language.
+
+**(a)** Run the translation and confirm it produces the same output as the
+original on a few test inputs.
+
+**(b)** Critique the translation: does it use the idioms a fluent programmer in
+the target language would actually use, or does it read like a line-by-line
+transliteration (for example, an explicit index-based loop in Python where a
+vectorized `numpy` expression would be natural, or vice versa)? Note any subtle
+difference in edge-case behavior between the two versions.
