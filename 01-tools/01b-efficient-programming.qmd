@@ -1,0 +1,443 @@
+---
+title: "1B. Efficient programming"
+author: "Mingyang Lu"
+old_id: "01B"
+---
+
+Writing R or Python code is not hard. Writing it efficiently is a different
+skill, and it matters most for the numerical work in this book: a simulation
+that reruns thousands of times, or a loop over every particle in a system, is
+where a slow first draft becomes a real problem. Both languages are
+interpreted, so neither competes with a compiled language like C or Fortran on
+raw speed, but each has its own set of levers for closing most of that gap
+without leaving the language.
+
+## 1B.1 Avoid growing vectors
+
+The following is slow for large `n`, because R copies the entire vector every
+time it grows by one element.
+
+### R implementation {.impl}
+
+```{r}
+n <- 10
+v <- c()
+for (i in seq_len(n)) {
+  v <- c(v, i^2)
+}
+v
+```
+
+A better approach allocates the final length up front and fills it in place.
+
+```{r}
+n <- 10
+v <- numeric(n)
+for (i in seq_len(n)) {
+  v[i] <- i^2
+}
+v
+```
+
+### Python implementation {.impl}
+
+```{python}
+n = 10
+v = []
+for i in range(1, n + 1):
+    v.append(i**2)
+print(v)
+```
+
+```{python}
+import numpy as np
+
+n = 10
+v = np.zeros(n)
+for i in range(1, n + 1):
+    v[i - 1] = i**2
+print(v)
+```
+
+## 1B.2 Vectorize your code
+
+An even better approach replaces the loop with a single vector operation.
+
+### R implementation {.impl}
+
+```{r}
+n <- 10
+v <- seq_len(n)
+v <- v * v
+v
+```
+
+### Python implementation {.impl}
+
+```{python}
+n = 10
+v = np.arange(1, n + 1)
+v = v**2
+print(v)
+```
+
+Loops are especially costly when they run thousands of times inside a larger
+calculation. Consider computing the mean and standard deviation of a series
+of numbers,
+
+$$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}} ,$$
+
+which is algebraically equal to, and cheaper to compute as,
+
+$$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}\mathbf{x_j}^2}{n} - \left(\frac{\sum_{j=1}^{n}\mathbf{x_j}}{n}\right)^2} .$$
+
+### R implementation {.impl}
+
+```{r}
+# a running-sum loop, the way this would be written in C or Fortran
+num <- 100
+my_sum <- 0
+my_sum2 <- 0
+for (i in seq_len(num)) {
+  my_sum <- my_sum + i
+  my_sum2 <- my_sum2 + i^2
+}
+my_mean <- my_sum / num
+my_sd <- sqrt(my_sum2 / num - my_mean^2)
+c(my_mean, my_sd)
+```
+
+```{r}
+# vectorized: mean() and mean(v^2) replace both running sums
+num <- 100
+v <- seq_len(num)
+my_mean <- mean(v)
+my_sd <- sqrt(mean(v^2) - my_mean^2)
+c(my_mean, my_sd)
+```
+
+`apply` performs the same calculation for every column of a matrix at once.
+
+```{r}
+mat <- matrix(rnorm(16), nrow = 4)
+means <- apply(mat, 2, mean)
+sd <- sqrt(apply(mat^2, 2, mean) - means^2)
+sd
+```
+
+R's own `sd()` divides by $n-1$ rather than $n$, the usual statistical
+convention for an unbiased estimate from a sample:
+
+```{r}
+apply(mat, 2, sd)
+```
+
+### Python implementation {.impl}
+
+```{python}
+import math
+
+# a running-sum loop, the way this would be written in C or Fortran
+num = 100
+my_sum = 0
+my_sum2 = 0
+for i in range(1, num + 1):
+    my_sum += i
+    my_sum2 += i**2
+my_mean = my_sum / num
+my_sd = math.sqrt(my_sum2 / num - my_mean**2)
+print(my_mean, my_sd)
+```
+
+```{python}
+# vectorized: np.mean(v) and np.mean(v**2) replace both running sums
+num = 100
+v = np.arange(1, num + 1)
+my_mean = np.mean(v)
+my_sd = np.sqrt(np.mean(v**2) - my_mean**2)
+print(my_mean, my_sd)
+```
+
+`apply` on a `pandas` DataFrame performs the same calculation for every column
+of a matrix at once.
+
+```{python}
+import pandas as pd
+
+mat = np.random.normal(size=(4, 4))
+df = pd.DataFrame(mat)
+means = df.apply(np.mean, axis=0)
+sd = np.sqrt(df.apply(lambda col: np.mean(col**2), axis=0) - means**2)
+print(sd)
+```
+
+## 1B.3 Byte-compiling and JIT compilation
+
+R can compile a function to byte code with `compiler::cmpfun`, which used to
+give a reliable speedup for a function built around an explicit loop.
+
+### R implementation {.impl}
+
+A loop-based standard deviation function is the kind of code `cmpfun` is
+meant for:
+
+```{r}
+library(compiler)
+
+make_sd_loop <- function() {
+  function(x) {
+    n <- length(x)
+    s <- 0; s2 <- 0
+    for (i in seq_len(n)) {
+      s <- s + x[i]
+      s2 <- s2 + x[i]^2
+    }
+    m <- s / n
+    sqrt(s2 / n - m^2)
+  }
+}
+```
+
+`make_sd_loop()` returns a fresh, never-yet-called function each time, so
+comparing a new copy against a `cmpfun`-compiled copy of that same fresh
+function isolates the effect of compiling. On a modern R install, disabling
+automatic compilation first is required to see any difference at all:
+
+```{r}
+library(microbenchmark)
+v <- rnorm(1000)
+
+compiler::enableJIT(0)   # turn off R's automatic compilation
+my_sd_loop <- make_sd_loop()
+cmp_sd_loop <- cmpfun(make_sd_loop())
+microbenchmark(interpreted = my_sd_loop(v), compiled = cmp_sd_loop(v), times = 50)
+```
+
+That gap is what `cmpfun` used to buy on every call, back when R did not
+compile functions on its own. Re-enabling the default and repeating the same
+comparison with two more freshly made functions shows why: R has compiled
+every function to byte code automatically, the first time it is called, by
+default since R 3.4 (2017), so an explicitly `cmpfun`-compiled copy and a
+plain one now perform about the same.
+
+```{r}
+compiler::enableJIT(3)   # restore the default
+my_sd_loop2 <- make_sd_loop()
+cmp_sd_loop2 <- cmpfun(make_sd_loop())
+microbenchmark(interpreted = my_sd_loop2(v), compiled = cmp_sd_loop2(v), times = 50)
+```
+
+`cmpfun` still exists and still works. It is mostly doing today what R
+already does on its own.
+
+### Python implementation {.impl}
+
+Python has no equivalent manual step, because CPython does not automatically
+compile hot functions the way R now does; a plain Python loop stays
+interpreted no matter how many times it runs. The nearest lever is
+[Numba](https://numba.pydata.org)'s `@njit` decorator, a just-in-time
+compiler applied explicitly to one function:
+
+```{python}
+from numba import njit
+import time
+
+def my_sd_loop(x):
+    n = len(x)
+    s = 0.0; s2 = 0.0
+    for i in range(n):
+        s += x[i]
+        s2 += x[i]**2
+    m = s / n
+    return math.sqrt(s2 / n - m**2)
+
+@njit
+def my_sd_loop_jit(x):
+    n = len(x)
+    s = 0.0; s2 = 0.0
+    for i in range(n):
+        s += x[i]
+        s2 += x[i]**2
+    m = s / n
+    return math.sqrt(s2 / n - m**2)
+
+v = np.random.normal(size=1000)
+_ = my_sd_loop_jit(v)   # first call triggers compilation; excluded from the timing below
+
+t0 = time.time()
+for _ in range(1000):
+    _ = my_sd_loop(v)   # assigned to `_` so reticulate doesn't echo all 1000 return values
+t1 = time.time()
+for _ in range(1000):
+    _ = my_sd_loop_jit(v)
+t2 = time.time()
+print("interpreted:", t1 - t0, " compiled:", t2 - t1)
+```
+
+Unlike R's `cmpfun` today, `@njit` gives a real, large speedup here, since
+Python never compiles the interpreted version on its own.
+
+## 1B.4 Calling compiled Fortran code
+
+Both languages can call a function written in a compiled language directly.
+Here is a Fortran subroutine computing the same standard deviation, in
+`01-tools/src/sub_cal_sd.f90`:
+
+```fortran
+subroutine cal_sd(n,x,sd)
+  implicit none
+  integer,intent(in) :: n
+  double precision, intent(in) :: x(n)
+  double precision, intent(out) :: sd
+  integer :: i
+  double precision :: mean, mean2
+  mean = 0.d0
+  mean2 = 0.d0
+  do i = 1, n
+    mean = mean + x(i)
+    mean2 = mean2 + x(i)**2
+  end do
+  mean = mean/n
+  mean2 = mean2/n
+  sd = sqrt(mean2 - mean**2)
+end subroutine cal_sd
+```
+
+Only integer, double precision, and logical arguments are allowed across the
+Fortran-R or Fortran-Python interface. Compile it to a shared library with
+`gfortran`:
+
+```bash
+gfortran -fpic -shared 01-tools/src/sub_cal_sd.f90 -o 01-tools/src/sub_cal_sd.so
+```
+
+### R implementation {.impl}
+
+```{r}
+dyn.load("01-tools/src/sub_cal_sd.so")
+
+my_sd_R <- function(x) {
+  if (!is.numeric(x)) stop("argument x must be numeric")
+  my_sd <- 0.0
+  results <- .Fortran("cal_sd", as.integer(length(x)), as.double(x), my_sd)
+  return(results[[3]])   # the third argument, sd, is the one returned by the subroutine
+}
+my_sd_R(seq_len(100))
+```
+
+### Python implementation {.impl}
+
+The same compiled shared library can be called from Python through `ctypes`.
+As in [Part 2B](../02-odes/02b-numerical-integration.qmd), gfortran appends a
+trailing underscore to the subroutine name, and arguments are passed by
+reference:
+
+```{python}
+import ctypes
+
+_lib = ctypes.CDLL("01-tools/src/sub_cal_sd.so")
+
+def my_sd_fortran(x):
+    x = np.asarray(x, dtype=np.float64)
+    n = ctypes.c_int(len(x))
+    sd = ctypes.c_double(0.0)   # written into by the Fortran call, then read back
+    _lib.cal_sd_(ctypes.byref(n), x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+                 ctypes.byref(sd))
+    return sd.value
+
+my_sd_fortran(np.arange(1, 101))
+```
+
+## 1B.5 Parallelization
+
+If a calculation is repeated many times independently, splitting the
+repetitions across CPU cores can help, provided each repetition does enough
+work to outweigh the cost of coordinating across processes.
+
+### R implementation {.impl}
+
+```{r}
+library(parallel)
+numCores <- detectCores()
+numCores
+
+tests <- seq(1, 150)
+my_test <- function(test_id) {
+  v <- rnorm(1000000)
+  my_sd_R(v)
+}
+
+t0 <- Sys.time()
+results_serial <- lapply(tests, my_test)
+t1 <- Sys.time()
+results_parallel <- mclapply(tests, my_test, mc.cores = numCores)
+t2 <- Sys.time()
+cat("serial:", as.numeric(t1 - t0), "s  parallel:", as.numeric(t2 - t1), "s\n")
+```
+
+### Python implementation {.impl}
+
+```{python}
+import multiprocessing as mp
+
+# "fork" duplicates the current process directly, so the worker functions
+# defined above are already present in each child; Python's plain
+# multiprocessing.Pool defaults to "spawn" on macOS, which instead
+# re-imports the calling script from scratch in each worker, and fails here
+# with "module '__main__' has no attribute 'my_test'" since this chunk isn't
+# running as a standalone script
+ctx = mp.get_context("fork")
+numCores = ctx.cpu_count()
+print(numCores)
+
+def my_test(test_id):
+    rng = np.random.default_rng(test_id)
+    v = rng.normal(size=1_000_000)
+    return my_sd_fortran(v)
+
+tests = list(range(150))
+
+t0 = time.time()
+results_serial = [my_test(t) for t in tests]
+t1 = time.time()
+with ctx.Pool(numCores) as pool:
+    results_parallel = pool.map(my_test, tests)
+t2 = time.time()
+print("serial:", t1 - t0, "s  parallel:", t2 - t1, "s")
+```
+
+R's `mclapply` also forks directly, so it needs no equivalent adjustment.
+Forking is a Unix feature (macOS and Linux, not Windows); on Windows, Python
+falls back to `spawn` regardless, and code meant to run there needs to live
+in an actual script file with a `if __name__ == "__main__":` guard, not in a
+notebook cell or a document chunk like this one.
+
+## 1B.6 Using AI to speed up your code
+
+The techniques above are exactly the kind of thing worth asking an AI
+assistant about, both to get a first pass and to sanity-check your own
+optimization. Paste the growing-vector loop from 1B.1 into Claude Code and
+ask something concrete: "this loop rebuilds `v` on every iteration; how would
+you rewrite it to avoid that, and why is the rewrite faster?" A useful answer
+does not just hand you the vectorized version. It names the actual
+mechanism, that `c(v, i^2)` allocates an entirely new, longer vector and
+copies the old contents into it every single iteration, so the loop's cost
+grows with the square of `n` rather than linearly.
+
+Verify it the same way you would verify any other AI-assisted explanation:
+time both versions yourself.
+
+```{r}
+n <- 20000
+t0 <- Sys.time()
+v <- c(); for (i in seq_len(n)) v <- c(v, i^2)
+t1 <- Sys.time()
+v2 <- numeric(n); for (i in seq_len(n)) v2[i] <- i^2
+t2 <- Sys.time()
+cat("growing:", as.numeric(t1 - t0), "s  preallocated:", as.numeric(t2 - t1), "s\n")
+```
+
+The gap you measure, not the explanation on its own, is what confirms the
+fix actually worked. This same paste-explain-verify loop applies to any
+inefficiency you run into later in this book: an unexpectedly slow chunk is
+worth asking about before you assume it has to be that slow.

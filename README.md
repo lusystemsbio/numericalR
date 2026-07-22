@@ -1,6 +1,6 @@
-# Numerical RPy
+# Numerical ReciPy
 
-### *In the Era of AI*
+### *Computational Systems Biology and Biophysics in R and Python*
 
 #### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 

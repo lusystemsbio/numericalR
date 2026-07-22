@@ -11,9 +11,9 @@ execute:
   freeze: auto
 
 book:
-  title: "Numerical RPy"
-  subtitle: "In the Era of AI"
-  output-file: "NumericalRPy"   # base name for the PDF/EPUB downloads
+  title: "Numerical ReciPy"
+  subtitle: "Computational Systems Biology and Biophysics in R and Python"
+  output-file: "NumericalReciPy"   # base name for the PDF/EPUB downloads
   # Fold the left nav: parts collapsed by default, only the current part
   # expands to show its chapters (keeps the sidebar short as chapters grow).
   sidebar:
@@ -23,6 +23,7 @@ book:
     - part: "Part 1: Introduction to R and Python programming"
       chapters:
         - 01-tools/01a-getting-started.qmd
+        - 01-tools/01b-efficient-programming.qmd
     - part: "Part 2: Ordinary differential equations"
       chapters:
         - 02-odes/02a-modeling-gene-circuits.qmd
