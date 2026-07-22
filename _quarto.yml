@@ -24,6 +24,7 @@ book:
       chapters:
         - 01-intro/01a-getting-started.qmd
         - 01-intro/01b-efficient-programming.qmd
+        - 01-intro/01c-numerical-methods.qmd
         - 01-intro/01d-exercises.qmd
     - part: "Part 2: Ordinary differential equations"
       chapters:
