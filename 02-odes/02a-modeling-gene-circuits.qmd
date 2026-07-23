@@ -90,21 +90,6 @@ X(t) = X_0 + \left(\frac{g}{k} - X_0\right)\left(1 - e^{-kt}\right) . \tag{6}
 Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
-::: {.callout-note title="Recipe card"}
-**Objective.** Plot the time course of a constitutively expressed gene from several
-initial conditions and watch them settle to a common steady state.
-
-**Method.** The exact solution of the rate equation `dX/dt = g - k*X`, which is
-`X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
-
-**Test.** g = 50 (nM/min), k = 0.1 (1/min), initial values X0 = 300, 400, 500, 600,
-700 nM, over t = 0 to 80 min.
-
-**Verification.** Every curve begins at its own X0 and approaches the same steady
-state `g/k = 500` nM; curves that start above 500 decay to it and those below rise
-to it.
-:::
-
 ### R implementation {.impl}
 
 ```{r}
@@ -188,19 +173,6 @@ to describe cooperative protein interactions and transcription-factor–DNA
 binding [@alon2019systems]. The plots below show $H^{ex}$ for several Hill
 coefficients.
 
-::: {.callout-note title="Recipe card"}
-**Objective.** Plot the excitatory Hill function for several Hill coefficients and
-see how cooperativity sharpens the response.
-
-**Method.** The excitatory Hill function `H(X) = (X/Xth)^n / (1 + (X/Xth)^n)`,
-evaluated over a range of X, where Xth is a threshold and n the Hill coefficient.
-
-**Test.** Xth = 1, Hill coefficients n = 1, 2, 3, 4, 5, for X/Xth from 0 to 3.
-
-**Verification.** Every curve rises from 0 at X = 0 toward 1 and passes through 0.5
-at X = Xth; a larger n gives a steeper, more switch-like transition.
-:::
-
 ### R implementation {.impl}
 
 ```{r}
@@ -271,18 +243,6 @@ H^{inh}(X) \equiv \frac{1}{1 + (X/X_{th})^{n_X}} . \tag{11}
 
 By construction $H^{inh}(X) \equiv 1 - H^{ex}(X)$. The plots below show $H^{inh}$
 for several Hill coefficients.
-
-::: {.callout-note title="Recipe card"}
-**Objective.** Plot the inhibitory Hill function for several Hill coefficients.
-
-**Method.** The inhibitory Hill function `H(X) = 1 / (1 + (X/Xth)^n)`, evaluated over
-a range of X, where Xth is a threshold and n the Hill coefficient.
-
-**Test.** Xth = 1, Hill coefficients n = 1, 2, 3, 4, 5, for X/Xth from 0 to 3.
-
-**Verification.** Every curve falls from 1 at X = 0 toward 0 and passes through 0.5
-at X = Xth; it equals 1 minus the excitatory Hill function at every point.
-:::
 
 ### R implementation {.impl}
 
