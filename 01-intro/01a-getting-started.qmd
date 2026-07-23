@@ -71,10 +71,47 @@ A good way to work through each method is:
    earlier steps keeps the extension honest. This is also where your work stops
    resembling everyone else's.
 
-To support this, each method in the chapters that follow opens with a short box
-giving its objective, the method, a test case, and how to verify the result.
-Read it, then pause and attempt the code before reading the implementation.
-Even a failed attempt makes the reference far more useful when you turn to it.
+To support this, each method in the chapters that follow opens with a **recipe
+card**, a short box with four fields: **Objective** (what the code should
+accomplish), **Method** (the approach, described at the level of the chapter's
+concept rather than any coding trick), **Test** (a concrete case to run), and
+**Verification** (how to tell the result is right). Read the card, then pause and
+attempt the code before reading the implementation. Even a failed attempt makes
+the reference far more useful when you turn to it. A card looks like this:
+
+::: {.callout-note title="Recipe card"}
+**Objective.** Approximate the derivative of $f(x) = x^2$ at $x = 3$.
+
+**Method.** A forward finite difference, $f'(x) \approx (f(x+h) - f(x))/h$ for a
+small step $h$.
+
+**Test.** $f(x) = x^2$, $x = 3$, $h = 10^{-5}$.
+
+**Verification.** Compare against the exact derivative $f'(3) = 2 \cdot 3 = 6$.
+:::
+
+The card also turns directly into a prompt, which is how you get help on the
+parts you cannot yet write without giving up the understanding. A prompt that
+keeps you in control follows the card field by field:
+
+> In [R or Python], [Objective]. Use [Method]. Test it on [Test], and include the
+> verification I can run: [Verification]. Implement the method explicitly with
+> short comments rather than calling a routine that does it in one step, and
+> explain in a sentence why the verification confirms the result.
+
+Filled in from the card above, that becomes:
+
+> In Python, approximate the derivative of $f(x) = x^2$ at $x = 3$ with a forward
+> finite difference $(f(x+h) - f(x))/h$ for a small $h$. Test with $h = 10^{-5}$,
+> and verify by comparing to the exact derivative $f'(3) = 6$. Implement it
+> explicitly with short comments rather than calling a library that
+> differentiates for you, and explain in a sentence why matching 6 confirms the
+> result.
+
+The last two requests are what make this a learning prompt rather than one that
+just vends code: writing the method out so you can see it, and saying why the
+check confirms correctness. Whatever the assistant returns, run the verification
+yourself before you trust it.
 
 When you do ask the assistant, ask well. Name the actual code and the actual
 confusion: paste the function, then ask what a specific operator, argument, or
