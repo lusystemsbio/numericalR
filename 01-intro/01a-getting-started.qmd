@@ -34,35 +34,61 @@ Once these are installed, open a project folder in VS Code and run `claude`
 from the integrated terminal to start a session there. The rest of this
 chapter is about what to do with that session once it's open.
 
-## 1A.2 Learning from provided code, with AI as a tool
+## 1A.2 Learning numerical methods with AI
 
-Every chapter in this book gives you working R and Python code before it
-gives you a syntax explanation. That is deliberate. A language reference
-teaches every keyword whether or not you will ever use it. A real script
-teaches exactly the keywords its author needed, in the order they needed
-them. The faster way into R or Python is to read code that does something you
-care about and ask about the parts you do not recognize.
+An AI assistant can now turn a short description into a working script, so
+producing code is no longer the hard part of programming. What an assistant
+cannot do reliably is tell you whether the result is right. That gap matters
+most in numerical work, where a wrong method rarely crashes: it returns a
+number that still plots as a smooth curve. The skills worth building are the
+ones the assistant lacks, understanding a method well enough to know what it
+should produce, and checking that it did.
 
-This is where an AI coding assistant earns its place. It can explain what a
-specific line does, why a function is written one way rather than another,
-and what would happen if you changed something. The skill worth building is
-not memorizing syntax. It is asking a good question and checking the answer.
+This is where the code in this book earns its place. Every method is given as a
+correct, tested implementation, already checked against a known answer. That
+makes it a fixed reference you can trust, while code an assistant generates is
+only plausible until you prove otherwise. You will use the provided code four
+ways: as a worked example to read, as a target to rebuild, as the reference to
+check your own or an assistant's version against, and as a starting point to
+modify once you want to go beyond the chapter.
 
-A good question names the actual code and the actual confusion: paste the
-function, then ask what a specific operator, argument, or line is doing and
-why. A vague question such as "explain this file" gets a vague answer back.
-Once you have an explanation, verify it: change an input, predict what should
-happen, run the code, and compare. An explanation checked against real output
-is one you can trust. One you have not checked is a plausible-sounding guess,
-and AI assistants do produce those.
+A good way to work through each method is:
 
-The rest of this chapter works through three examples, in increasing depth: a
-script small enough to read in one glance, three specific R/Python quirks,
-and a complete small simulation. Every example session shown was tested with
-Claude Opus 4.8. A different model, or a later version of the same one, may
-phrase its answer differently; the point is the technique, and the same
-paste-ask-verify process applies regardless of which model or version you
-are actually running.
+1. **Understand the method before looking at any code.** From the concept and
+   the equations, decide what the result should be and how you will know it is
+   right, for instance a closed-form solution or a quantity that must stay
+   constant.
+2. **Read the provided implementation** to see one correct version, and ask the
+   assistant to explain any line you do not recognize.
+3. **Rebuild it yourself**, letting the assistant fill in parts you can describe
+   precisely. Rewriting the method is what fixes it in your mind; accepting
+   generated code without this step does not.
+4. **Verify against the reference and the check from step 1**, not against how
+   the output looks. Run your version and the book's on the same input and
+   compare. Where they disagree is where the learning is.
+5. **Extend it past the chapter**: change the model, add a variable, alter a
+   boundary. The assistant makes this quick, and the understanding from the
+   earlier steps keeps the extension honest. This is also where your work stops
+   resembling everyone else's.
+
+To support this, each method in the chapters that follow opens with a short box
+giving its objective, the method, a test case, and how to verify the result.
+Read it, then pause and attempt the code before reading the implementation.
+Even a failed attempt makes the reference far more useful when you turn to it.
+
+When you do ask the assistant, ask well. Name the actual code and the actual
+confusion: paste the function, then ask what a specific operator, argument, or
+line does and why. A vague request such as "explain this file" returns a vague
+answer. Verify the explanation the same way you verify code: change an input,
+predict the result, run it, and compare. An explanation you have not checked is
+a plausible guess, and assistants produce those freely.
+
+The rest of this chapter demonstrates the reading-and-checking part of this loop
+on three small examples of increasing depth: a script you can read at a glance,
+three R and Python quirks that reward a careful read, and one complete
+simulation. Every session shown was tested with Claude Opus 4.8; a different
+model or version will phrase things differently, but the paste-ask-verify
+technique is the same.
 
 ## 1A.3 A minimal example
 
