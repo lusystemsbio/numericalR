@@ -37,6 +37,22 @@ Euler at the same step size. Finally, each language's built-in ODE solver
 reproduces the same result: `deSolve` in R (here a fixed-step Euler) and SciPy's
 `solve_ivp` in Python (adaptive RK45).
 
+::: {.callout-note title="Recipe card"}
+**Objective.** Model exponential bacterial growth and reproduce the exact solution
+numerically.
+
+**Method.** The ODE $dN/dt = rN$, whose closed form is $N(t) = N_0 e^{rt}$
+(Equations 1-2), integrated with the Euler and RK4 schemes from Part 2B and with a
+built-in ODE solver.
+
+**Test.** $r = 0.1$, $N_0 = 1$, over $t = 0$ to $100$, with step $\Delta t = 0.1$ for
+the integrators.
+
+**Verification.** On a log-scaled $y$ axis the exact solution is a straight line;
+zooming in at large $t$, RK4 tracks it far more closely than Euler at the same step,
+and the library solver's final value matches $N(100) = e^{10}$.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -195,6 +211,19 @@ N(t) = \frac{N_0 B}{N_0 + (B - N_0)e^{-rt}} . \tag{4}
 
 The exact solution is plotted below (for $r = 0.1$, $B = 100$, $N_0 = 1$) to give
 you a target to check your simulations against.
+
+::: {.callout-note title="Recipe card"}
+**Objective.** Plot the exact logistic-growth curve as a target to check simulations
+against.
+
+**Method.** The logistic ODE $dN/dt = rN(1 - N/B)$, whose closed form is
+$N(t) = N_0 B / (N_0 + (B - N_0)e^{-rt})$ (Equations 3-4).
+
+**Test.** $r = 0.1$, $B = 100$, $N_0 = 1$, over $t = 0$ to $100$.
+
+**Verification.** The curve rises sigmoidally from $N_0$ and levels off at the
+carrying capacity $B = 100$.
+:::
 
 ### R implementation {.impl}
 
