@@ -106,12 +106,7 @@ Filled in from the card above, that becomes the following, which you can type or
 paste straight into an assistant:
 
 ```{.prompt}
-In R (or Python), approximate the derivative of f(x) = x^2 at x = 3. Use a
-forward finite difference, f'(x) = (f(x+h) - f(x)) / h, for a small step h. Test
-it on f(x) = x^2, x = 3, h = 1e-5, and include the verification I can run:
-compare against the exact derivative f'(3) = 2*3 = 6. Implement the method
-explicitly with short comments rather than calling a routine that does it in one
-step, and explain in one sentence why the verification confirms the result.
+In R (or Python), approximate the derivative of f(x) = x^2 at x = 3. Use a forward finite difference, f'(x) = (f(x+h) - f(x)) / h, for a small step h. Test it on f(x) = x^2, x = 3, h = 1e-5, and include the verification I can run: compare against the exact derivative f'(3) = 2*3 = 6. Implement the method explicitly with short comments rather than calling a routine that does it in one step, and explain in one sentence why the verification confirms the result.
 ```
 
 The last two requests are what make this a learning prompt rather than one that
