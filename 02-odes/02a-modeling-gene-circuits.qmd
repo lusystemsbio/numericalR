@@ -90,6 +90,21 @@ X(t) = X_0 + \left(\frac{g}{k} - X_0\right)\left(1 - e^{-kt}\right) . \tag{6}
 Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
+::: {.callout-note title="Recipe card"}
+**Objective.** Plot the time course $X(t)$ of a constitutively expressed gene from
+several initial conditions and watch them settle to a common steady state.
+
+**Method.** Evaluate the closed-form solution of $dX/dt = g - kX$, namely
+$X(t) = g/k + (X_0 - g/k)\,e^{-kt}$ (Equation 6), over time.
+
+**Test.** $g = 50$ nM/min, $k = 0.1$ min$^{-1}$, initial values
+$X_0 = 300, 400, 500, 600, 700$ nM, for $t = 0$ to $80$ min.
+
+**Verification.** Every curve should approach the same steady state
+$X_s = g/k = 500$ nM; each begins at its own $X_0$ at $t = 0$; curves above 500 decay
+to it and those below rise to it.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -173,6 +188,19 @@ to describe cooperative protein interactions and transcription-factor–DNA
 binding [@alon2019systems]. The plots below show $H^{ex}$ for several Hill
 coefficients.
 
+::: {.callout-note title="Recipe card"}
+**Objective.** Plot the excitatory Hill function for several Hill coefficients and
+see how cooperativity sharpens the response.
+
+**Method.** Evaluate $H^{ex}(X) = (X/X_{th})^{n} / (1 + (X/X_{th})^{n})$ (Equation 8)
+over a range of $X$.
+
+**Test.** $X_{th} = 1$, Hill coefficients $n = 1$ to $5$, for $X/X_{th} = 0$ to $3$.
+
+**Verification.** Every curve rises from $0$ at $X = 0$ toward $1$ and passes through
+$0.5$ at $X = X_{th}$; a larger $n$ gives a steeper, more switch-like transition.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -243,6 +271,18 @@ H^{inh}(X) \equiv \frac{1}{1 + (X/X_{th})^{n_X}} . \tag{11}
 
 By construction $H^{inh}(X) \equiv 1 - H^{ex}(X)$. The plots below show $H^{inh}$
 for several Hill coefficients.
+
+::: {.callout-note title="Recipe card"}
+**Objective.** Plot the inhibitory Hill function for several Hill coefficients.
+
+**Method.** Evaluate $H^{inh}(X) = 1 / (1 + (X/X_{th})^{n})$ (Equation 11) over a
+range of $X$.
+
+**Test.** $X_{th} = 1$, Hill coefficients $n = 1$ to $5$, for $X/X_{th} = 0$ to $3$.
+
+**Verification.** Every curve falls from $1$ at $X = 0$ toward $0$, passes through
+$0.5$ at $X = X_{th}$, and equals $1 - H^{ex}(X)$ at every point.
+:::
 
 ### R implementation {.impl}
 
