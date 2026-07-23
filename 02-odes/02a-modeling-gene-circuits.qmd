@@ -91,18 +91,18 @@ Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
 ::: {.callout-note title="Recipe card"}
-**Objective.** Plot the time course $X(t)$ of a constitutively expressed gene from
-several initial conditions and watch them settle to a common steady state.
+**Objective.** Plot the time course of a constitutively expressed gene from several
+initial conditions and watch them settle to a common steady state.
 
-**Method.** Evaluate the closed-form solution of $dX/dt = g - kX$, namely
-$X(t) = g/k + (X_0 - g/k)\,e^{-kt}$ (Equation 6), over time.
+**Method.** The exact solution of the rate equation `dX/dt = g - k*X`, which is
+`X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
 
-**Test.** $g = 50$ nM/min, $k = 0.1$ min$^{-1}$, initial values
-$X_0 = 300, 400, 500, 600, 700$ nM, for $t = 0$ to $80$ min.
+**Test.** g = 50 (nM/min), k = 0.1 (1/min), initial values X0 = 300, 400, 500, 600,
+700 nM, over t = 0 to 80 min.
 
-**Verification.** Every curve should approach the same steady state
-$X_s = g/k = 500$ nM; each begins at its own $X_0$ at $t = 0$; curves above 500 decay
-to it and those below rise to it.
+**Verification.** Every curve begins at its own X0 and approaches the same steady
+state `g/k = 500` nM; curves that start above 500 decay to it and those below rise
+to it.
 :::
 
 ### R implementation {.impl}
@@ -192,13 +192,13 @@ coefficients.
 **Objective.** Plot the excitatory Hill function for several Hill coefficients and
 see how cooperativity sharpens the response.
 
-**Method.** Evaluate $H^{ex}(X) = (X/X_{th})^{n} / (1 + (X/X_{th})^{n})$ (Equation 8)
-over a range of $X$.
+**Method.** The excitatory Hill function `H(X) = (X/Xth)^n / (1 + (X/Xth)^n)`,
+evaluated over a range of X, where Xth is a threshold and n the Hill coefficient.
 
-**Test.** $X_{th} = 1$, Hill coefficients $n = 1$ to $5$, for $X/X_{th} = 0$ to $3$.
+**Test.** Xth = 1, Hill coefficients n = 1, 2, 3, 4, 5, for X/Xth from 0 to 3.
 
-**Verification.** Every curve rises from $0$ at $X = 0$ toward $1$ and passes through
-$0.5$ at $X = X_{th}$; a larger $n$ gives a steeper, more switch-like transition.
+**Verification.** Every curve rises from 0 at X = 0 toward 1 and passes through 0.5
+at X = Xth; a larger n gives a steeper, more switch-like transition.
 :::
 
 ### R implementation {.impl}
@@ -275,13 +275,13 @@ for several Hill coefficients.
 ::: {.callout-note title="Recipe card"}
 **Objective.** Plot the inhibitory Hill function for several Hill coefficients.
 
-**Method.** Evaluate $H^{inh}(X) = 1 / (1 + (X/X_{th})^{n})$ (Equation 11) over a
-range of $X$.
+**Method.** The inhibitory Hill function `H(X) = 1 / (1 + (X/Xth)^n)`, evaluated over
+a range of X, where Xth is a threshold and n the Hill coefficient.
 
-**Test.** $X_{th} = 1$, Hill coefficients $n = 1$ to $5$, for $X/X_{th} = 0$ to $3$.
+**Test.** Xth = 1, Hill coefficients n = 1, 2, 3, 4, 5, for X/Xth from 0 to 3.
 
-**Verification.** Every curve falls from $1$ at $X = 0$ toward $0$, passes through
-$0.5$ at $X = X_{th}$, and equals $1 - H^{ex}(X)$ at every point.
+**Verification.** Every curve falls from 1 at X = 0 toward 0 and passes through 0.5
+at X = Xth; it equals 1 minus the excitatory Hill function at every point.
 :::
 
 ### R implementation {.impl}
