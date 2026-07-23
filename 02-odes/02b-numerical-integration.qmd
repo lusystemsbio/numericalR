@@ -33,17 +33,16 @@ accurate the integration, but the more iterations (and the more compute time)
 are needed to simulate a fixed duration.
 
 ::: {.callout-note title="Recipe card"}
-**Objective.** Integrate the gene-expression ODE $dX/dt = g - kX$ from an initial
-condition and compare the numerical solution to the exact one at two step sizes.
+**Objective.** Integrate the gene-expression ODE from an initial value and compare
+the numerical solution to the exact one at two step sizes.
 
-**Method.** The Euler method, $X(t+\Delta t) = X(t) + f(X,t)\,\Delta t$ (Equation 2),
-iterated from $t = 0$.
+**Method.** The Euler method, `X(t+dt) = X(t) + (g - k*X(t))*dt`, stepped from t = 0.
 
-**Test.** $g = 50$, $k = 0.1$, $X_0 = 300$, over $t = 0$ to $80$, with $\Delta t = 1$
-and $\Delta t = 0.1$.
+**Test.** g = 50, k = 0.1, X0 = 300, from t = 0 to 80, with dt = 1 and dt = 0.1.
 
-**Verification.** Overlay the analytical solution from Part 2A: the $\Delta t = 0.1$
-curve should track it closely, while $\Delta t = 1$ shows a visible gap near $t \approx 10$.
+**Verification.** The exact solution is `X(t) = g/k + (X0 - g/k)*exp(-k*t)`. At dt = 0.1
+the numerical curve tracks it closely (largest error well under 1 nM); at dt = 1 there
+is a visible gap near t = 10 (error a few nM); both reach the steady state g/k = 500.
 :::
 
 ### R implementation {.impl}
@@ -149,18 +148,17 @@ integration: a hand-written implementation, a library routine, and a compiled
 function, and benchmark them.
 
 ::: {.callout-note title="Recipe card"}
-**Objective.** Run the same Euler integration three ways, a hand-written loop, an
-ODE library, and a compiled routine, and compare their speed.
+**Objective.** Run the same Euler integration three ways, a hand-written loop, a
+general ODE library, and a compiled routine, and compare their speed.
 
-**Method.** The first-order Euler scheme of 2B.1, carried out by hand, through an
-ODE library, and as compiled code called from R or Python, then timed.
+**Method.** The first-order Euler scheme for `dX/dt = g - k*X`, carried out by hand,
+through an ODE library, and as compiled code called from R or Python, then timed.
 
-**Test.** The same system ($g = 50$, $k = 0.1$, $X_0 = 300$, $t = 0$ to $80$),
-benchmarked at $\Delta t = 0.01$.
+**Test.** g = 50, k = 0.1, X0 = 300, from t = 0 to 80; benchmark at dt = 0.01.
 
-**Verification.** All three should produce the same trajectory; the timing should
-show the compiled routine fastest, with the library no faster than the hand-written
-loop for this simple fixed-step problem.
+**Verification.** All three produce the same trajectory; the timing shows the compiled
+routine fastest, with the library no faster than the hand-written loop for this simple
+fixed-step problem.
 :::
 
 ### R implementation {.impl}
@@ -398,15 +396,16 @@ so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2
 which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 
 ::: {.callout-note title="Recipe card"}
-**Objective.** Implement a second-order Heun integrator as a reusable function.
+**Objective.** Implement a second-order Heun integrator for a one-variable ODE.
 
-**Method.** Heun's method (Equation 4): take an Euler step, evaluate the slope at
-that predicted point, and advance by the average of the two slopes.
+**Method.** Heun's method: take an Euler step to a predicted endpoint, evaluate the
+slope there, and advance by the average of the starting and predicted slopes.
 
-**Test.** Integrate $dX/dt = g - kX$ ($g = 50$, $k = 0.1$, $X_0 = 300$) as in 2B.1.
+**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
 
-**Verification.** At the same $\Delta t$ it should sit closer to the analytical
-solution than Euler; its per-step error scales as $O(\Delta t^3)$ (measured in 2B.7).
+**Verification.** At the same step size it should sit closer to the exact solution
+`X(t) = g/k + (X0 - g/k)*exp(-k*t)` than the Euler method; halving the step should cut
+its error by roughly a factor of 4 (second-order accuracy).
 :::
 
 ### R implementation {.impl}
@@ -459,13 +458,13 @@ X(t+\Delta t) &= X(t) + k_2
 ::: {.callout-note title="Recipe card"}
 **Objective.** Implement the second-order Runge-Kutta (midpoint) integrator.
 
-**Method.** RK2 (Equation 5): take a trial half-step to the midpoint of the interval
-and use the slope there for the full step.
+**Method.** RK2: take a trial half-step to the midpoint of the interval and use the
+slope there for the full step.
 
-**Test.** The same system as 2B.1 ($g = 50$, $k = 0.1$, $X_0 = 300$).
+**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
 
-**Verification.** Accuracy comparable to Heun (both second order), and better than
-Euler at the same $\Delta t$ (measured in 2B.7).
+**Verification.** Accuracy comparable to Heun and better than the Euler method at the
+same step size, checked against `X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
 :::
 
 ### R implementation {.impl}
@@ -518,13 +517,14 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}
 ::: {.callout-note title="Recipe card"}
 **Objective.** Implement the fourth-order Runge-Kutta integrator.
 
-**Method.** RK4 (Equation 6): combine four slope evaluations across the step with
-weights 1, 2, 2, 1.
+**Method.** RK4: combine four slope evaluations across the step (at the start, twice at
+the midpoint, and at the end) with weights 1, 2, 2, 1.
 
-**Test.** The same system as 2B.1 ($g = 50$, $k = 0.1$, $X_0 = 300$).
+**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
 
-**Verification.** Far more accurate than RK2 or Euler at the same $\Delta t$; its
-per-step error scales as $O(\Delta t^5)$ (measured in 2B.7).
+**Verification.** Far more accurate than RK2 or Euler at the same step size, checked
+against `X(t) = g/k + (X0 - g/k)*exp(-k*t)`; halving the step should cut its error by
+roughly a factor of 16 (fourth-order accuracy).
 :::
 
 ### R implementation {.impl}
@@ -579,15 +579,15 @@ $$d_{RMSD}(X_1, X_2) = \sqrt{\frac{\sum_{i=1}^{n} [X_1(t_i)-X_2(t_i)]^2}{n}} .$$
 ::: {.callout-note title="Recipe card"}
 **Objective.** Measure how each integrator's error shrinks as the step size decreases.
 
-**Method.** Compute the root-mean-square deviation (RMSD) between each integrator's
-result and the exact solution across a range of $\Delta t$.
+**Method.** The root-mean-square deviation between each integrator's result and the
+exact solution, computed across a range of step sizes.
 
-**Test.** $dX/dt = g - kX$ ($g = 50$, $k = 0.1$, $X_0 = 300$, $t = 0$ to $80$),
-with $\Delta t$ from $0.1$ to $1$.
+**Test.** `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300, from t = 0 to 80, step
+sizes from 0.1 to 1.
 
-**Verification.** On a log scale the error falls with $\Delta t$ at a rate set by each
-method's order (Euler shallowest, RK4 steepest); a compiled RK4 matches the
-hand-written RK4 to a tiny RMSD.
+**Verification.** On a log scale the error falls with step size at a rate set by each
+method's order: Euler shallowest (first order), Heun and RK2 steeper (second order),
+RK4 steepest (fourth order). The exact solution is `X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
 :::
 
 ### R implementation {.impl}
@@ -703,17 +703,18 @@ We use stiff parameters ($k = 10$) where forward Euler with $\Delta t = 0.2$ is
 unstable.
 
 ::: {.callout-note title="Recipe card"}
-**Objective.** Integrate a stiff version of the model where forward Euler blows up,
-using an implicit step.
+**Objective.** Integrate a stiff version of the model where the forward Euler method
+blows up, using an implicit step.
 
-**Method.** Backward (implicit) Euler (Equation 8), evaluating the derivative at the
-new point; for this linear $f$ it has the closed form $X_{n+1} = (X_n + hg)/(1 + hk)$.
+**Method.** Backward (implicit) Euler, `X(t+dt) = X(t) + (g - k*X(t+dt))*dt`; since the
+right-hand side is linear this rearranges to `X_next = (X + dt*g) / (1 + dt*k)`.
 
-**Test.** Stiff parameters $g = 50$, $k = 10$, $X_0 = 3$, $t = 0$ to $4$,
-$\Delta t = 0.2$ (where forward Euler diverges).
+**Test.** Stiff parameters g = 50, k = 10, X0 = 3, from t = 0 to 4, with dt = 0.2
+(where forward Euler diverges).
 
-**Verification.** Forward Euler at $\Delta t = 0.2$ oscillates and diverges, while
-backward Euler stays stable and tracks the exact solution.
+**Verification.** Forward Euler at dt = 0.2 oscillates and diverges, while backward
+Euler stays stable and tracks the exact solution `X(t) = g/k + (X0 - g/k)*exp(-k*t)`
+toward the steady state g/k = 5.
 :::
 
 ### R implementation {.impl}
