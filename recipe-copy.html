@@ -11,6 +11,11 @@
   padding: 1px 9px; white-space: nowrap;
 }
 .recipe-copy-btn:hover { background: #f2f6fb; }
+/* the illustrative prompt block (```{.prompt}) wraps to fit the column, no scrollbar */
+pre.prompt, pre.prompt code, .prompt pre, .prompt code {
+  white-space: pre-wrap !important; word-break: break-word; overflow-x: visible !important;
+}
+div.sourceCode.prompt, .prompt div.sourceCode { overflow-x: visible !important; }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {

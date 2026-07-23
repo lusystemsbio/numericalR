@@ -71,8 +71,7 @@ A good way to work through each method is:
    earlier steps keeps the extension honest. This is also where your work stops
    resembling everyone else's.
 
-To support this, each method in the chapters that follow opens with a **recipe
-card**, a short box with four fields: **Objective** (what the code should
+A **recipe card** is a short box with four fields: **Objective** (what the code should
 accomplish), **Method** (the approach, described at the level of the chapter's
 concept rather than any coding trick), **Test** (a concrete case to run), and
 **Verification** (how to tell the result is right). Read the card, then pause and
@@ -106,7 +105,7 @@ control follows the card field by field:
 Filled in from the card above, that becomes the following, which you can type or
 paste straight into an assistant:
 
-```
+```{.prompt}
 In R (or Python), approximate the derivative of f(x) = x^2 at x = 3. Use a
 forward finite difference, f'(x) = (f(x+h) - f(x)) / h, for a small step h. Test
 it on f(x) = x^2, x = 3, h = 1e-5, and include the verification I can run:
