@@ -307,7 +307,7 @@ step lets us reconstruct the optimal tour. The implementation is remarkably shor
 
 **Method.** Dynamic programming for the traveling salesman problem (the Held-Karp algorithm).
 
-**Test.** 10 cities at fixed coordinates, the tour starting and ending at city 1.
+**Test.** 10 cities with x = (0, -28.87, -14.66, -29.06, -36.04, -50.48, -50.59, -0.14, -21.50, -43.07) and y = (0, 0, 43.39, 43.22, 21.61, -7.37, 21.59, 28.73, -7.32, -14.55), Euclidean distances; the tour starting and ending at city 1.
 
 **Show.** The shortest tour drawn through the ten cities, with its length.
 

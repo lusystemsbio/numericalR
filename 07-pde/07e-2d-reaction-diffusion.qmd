@@ -224,7 +224,7 @@ gives a different pattern from the same initial conditions and the same paramete
 
 **Method.** The 2D finite-difference reaction-diffusion integrator (from 7E.1), run in successive blocks.
 
-**Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10), identical to 7E.2.
+**Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10); integrate to `t = 100` in successive blocks of 20 (the same initial condition and run length as 7E.2).
 
 **Show.** A 2D image of the u field forming an array of spots.
 
