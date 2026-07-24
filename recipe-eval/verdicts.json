@@ -1,0 +1,548 @@
+{
+ "10B.1.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Lloyd, 10 restarts by min WCSS, centroids within 0.12, scatter with centroids produced"
+ },
+ "10B.1.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Lloyd, restarts by min WCSS, centroids within 0.18, plot produced."
+ },
+ "10B.1.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Lloyd with restarts by WSS; centroids within 0.18; scatter with centroids produced"
+ },
+ "10B.1.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Lloyd with restarts by min WCSS; centroids within 0.18; scatter+centroids saved."
+ },
+ "10B.1.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Lloyd with restarts by WCSS; centroids within 0.18 of true means; scatter with centroids produced."
+ },
+ "10C.5.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Iterates all 4 states to repeat; finds exactly FP 01, FP 10, and 00<->11 cycle."
+ },
+ "10C.5.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Enumerates from all 4 states; finds FP 10, 01, and 2-cycle 00<->11."
+ },
+ "10C.5.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Enumerates all 4 states to repeat; finds FP 10, FP 01, 2-cycle 00<->11 exactly."
+ },
+ "10C.5.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Enumerates all 4 states; finds fp 10, fp 01, 2-cycle 00<->11 exactly."
+ },
+ "10C.5.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Enumerates from all 4 states; attractors 10, 01, 00<->11 exactly correct"
+ },
+ "2C.1.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Euler and RK4 hand-coded; RK4 N(100)=22026.47 within 1%; RK4 more accurate; semilogy plot produced"
+ },
+ "2C.1.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-written Euler and RK4; N(100)=22026.47 matches exp(10); RK4 more accurate; semilogy plot produced."
+ },
+ "2C.1.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate than Euler; semilogy plot produced"
+ },
+ "2C.1.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate; semilogy plot produced."
+ },
+ "2C.1.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true,
+   "d": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate; semilogy plot produced."
+ },
+ "2E.3.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded bisection, windowed scan; 3 roots at k=0.15, 1 each at k=0.12/0.20, all within tolerance."
+ },
+ "2E.3.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand bisection, windowed scan, all root counts and values match within tolerance."
+ },
+ "2E.3.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded bisection, windowed scan; k=0.15 gives 3 roots, k=0.12/0.20 give 1 each, all in tolerance."
+ },
+ "2E.3.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded bisection, windowed scan, roots match all three k values within tolerance"
+ },
+ "2E.3.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded bisection, windowed scan, correct root counts and values at all k."
+ },
+ "3A.1.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Vector RK4, 10 ICs converge to two states (52.9,361.6) and (542.4,35.3), phase plot produced"
+ },
+ "3A.1.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Vector RK4, 10 ICs converge to two states (53,362)/(542,35), phase plot made"
+ },
+ "3A.1.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Vector RK4, two states (53,362)/(542,35) match, phase-plane plot saved"
+ },
+ "3A.1.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Vector RK4, two states (53,362)/(542,35) matched, phase-plane plot produced"
+ },
+ "3A.1.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Vector RK4, 10 ICs to two states (53,362)/(542,35), phase plot produced."
+ },
+ "5A.4.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Verlet with two half-kicks; energy bounded (~2e-6, 2e-4 drift); x(t) and e(t) plotted."
+ },
+ "5A.4.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Verlet with two half-steps; energy drift 2.4e-6 and 2.4e-4; both plots produced"
+ },
+ "5A.4.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Verlet with two half-step updates; energy drift ~1e-6 and 5e-4; both plots produced"
+ },
+ "5A.4.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Verlet with two half-step updates; energy drift <0.03% at both dt; x(t),e(t) plotted."
+ },
+ "5A.4.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Verlet with two half-steps; energy drift ~2e-6 and 2e-4, bounded; x(t) and e(t) plotted."
+ },
+ "6A.4.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-implemented Marsaglia polar, mean~0 sd~1, density histogram vs N(0,1)."
+ },
+ "6A.4.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded polar Box-Muller, rejects R2 outside (0,1), stats near 0/1, density hist vs N(0,1)."
+ },
+ "6A.4.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded polar Box-Muller, rejects R2 outside (0,1); mean~0 sd~1.008; density histogram vs N(0,1) plotted."
+ },
+ "6A.4.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-implemented polar Box-Muller, rejects R2 outside (0,1), mean~0 sd~1, density hist vs N(0,1)"
+ },
+ "6A.4.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded Marsaglia polar, rejects R2 outside (0,1); mean\u2248-0.015, sd\u22481.002; density hist vs N(0,1)."
+ },
+ "7E.3.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": false
+  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Pattern is labyrinthine/worm-like connected ridges, not a regular array of isolated round spots."
+ },
+ "7E.3.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": false
+  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Kinetics correct but final u field is labyrinthine stripes/mixed, not isolated round spots."
+ },
+ "7E.3.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": false
+  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Correct GM kinetics/integrator, but final field is labyrinthine/reticulate ridges, not isolated round spots."
+ },
+ "7E.3.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": false
+  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Kinetics correct, but final u is labyrinthine/reticulate network, not a regular array of isolated spots."
+ },
+ "7E.3.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true
+  },
+  "pass": true,
+  "note": "GM kinetics hand-coded FD; u field shows array of isolated round bright peaks (spots), bounded range."
+ },
+ "8D.2.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded SSA; std grows, rel noise shrinks, ratios 0.60-1.0; trajectories plotted."
+ },
+ "8D.2.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded SSA; std grows, rel noise shrinks, std/sqrt(x_bar)=0.81,1.12,0.81 all in range; plotted."
+ },
+ "8D.2.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded SSA; std grows, rel noise shrinks, std/sqrt(x_bar) 0.59-1.03 in range; trajectories plotted."
+ },
+ "8D.2.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded SSA; std grows with mean, relative noise shrinks, std/sqrt in [0.6,0.88]; trajectories plotted."
+ },
+ "8D.2.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Hand-coded SSA; std grows, rel noise shrinks, ratios 0.74/1.01/0.73 in range; plots present"
+ },
+ "9B.3.1_s1": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Held-Karp DP with brute-force check, correct coords, length 193.73, plot produced."
+ },
+ "9B.3.1_s2": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Held-Karp DP implemented, correct coords, tour length 193.73, plot produced."
+ },
+ "9B.3.1_s3": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Held-Karp DP implemented, uses given coords, length 193.73, plot produced"
+ },
+ "9B.3.1_s4": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Held-Karp DP correct, length 193.73, brute-force check matches, plot produced"
+ },
+ "9B.3.1_s5": {
+  "ran": true,
+  "checks": {
+   "a": true,
+   "b": true,
+   "c": true
+  },
+  "pass": true,
+  "failure_class": "none",
+  "note": "Held-Karp DP implemented, correct coords, length 193.73 matches, plot saved"
+ }
+}
