@@ -80,6 +80,21 @@ for a chosen tolerance $\epsilon$. (This is in fact a special case of Newton's
 method for finding the root of $f(x) = x^2 - a$; [Part 2F](../02-odes/02f-bifurcation-curves.qmd)
 implements Newton's method for a general $f$.)
 
+::: {.callout-note title="Recipe"}
+**Objective.** Compute the square root of a positive number by iteration, without a
+built-in square-root function.
+
+**Method.** The Babylonian iteration `x_next = (x + a/x) / 2`, starting from any
+positive guess and repeating until `|x_next^2 - a| < epsilon` for a small tolerance.
+
+**Test.** Find the square root of a = 2 from the starting guesses 1, 100, and 200,
+with tolerance 1e-6.
+
+**Verification.** Every starting guess converges to about 1.41421; the returned value
+squared is within the tolerance of 2, and a guess far from the answer just needs a few
+more iterations.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
