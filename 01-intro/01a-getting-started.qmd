@@ -361,36 +361,34 @@ neighbors [@gardner1970game]:
 - Every other cell dies or stays dead.
 
 ::: {.callout-note title="Recipe"}
-**Objective.** Simulate Conway's Game of Life on a small grid and animate a glider
+**Objective.** Simulate Conway's Game of Life on a small grid and follow a glider
 moving across it.
 
-**Method.** Each generation, count every cell's eight neighbors on a grid whose
-edges wrap around (a periodic boundary), then apply the three birth-and-survival
-rules to all cells at once.
+**Method.** Hold the grid as a matrix of 0s (dead) and 1s (alive). Each generation,
+count every cell's eight neighbors on a grid whose edges wrap around (a periodic
+boundary), then update all cells at once by three rules: a live cell with 2 or 3
+live neighbors stays alive; a dead cell with exactly 3 live neighbors becomes alive;
+every other cell is dead next generation.
 
-**Test.** A 10 by 10 grid seeded with a glider, run for 40 generations.
+**Test.** A 10 by 10 grid seeded with a glider, the five cells at (1,2), (2,3),
+(3,1), (3,2), (3,3), run for several generations.
 
 **Verification.** The glider keeps its five-cell shape and drifts one step
-diagonally every four generations; when it reaches an edge it reappears on the
-opposite side rather than vanishing.
+diagonally every four generations; because the edges wrap, on reaching a border it
+reappears on the opposite side rather than vanishing.
 :::
 
 ### R implementation {.impl}
 
-The code below is shown only in R; the point of this example is the
-AI-assisted reading technique, not the simulation itself, and the technique
-applies the same way in Python.
-
-```r
+```{r}
+#| rmar: false
 n <- 10
 grid <- matrix(0, n, n)
-
-# a glider: a five-cell pattern that translates diagonally across the grid
-# one cell every four generations, without changing shape
+# a glider: a five-cell pattern that translates diagonally without changing shape
 glider <- rbind(c(1, 2), c(2, 3), c(3, 1), c(3, 2), c(3, 3))
 for (i in seq_len(nrow(glider))) grid[glider[i, 1], glider[i, 2]] <- 1
 
-# count each cell's live neighbors
+# count each cell's eight live neighbors, with wraparound (periodic) edges
 neighbor_sum <- function(g) {
   n <- nrow(g)
   idx_r <- row(g); idx_c <- col(g)
@@ -404,12 +402,69 @@ neighbor_sum <- function(g) {
   total
 }
 
-# apply the three rules to every cell at once
+# one generation: apply the three rules to every cell at once
 step <- function(g) {
   nb <- neighbor_sum(g)
   ((nb == 3) | (g == 1 & nb == 2)) * 1
 }
 
+# run four generations (one full glider cycle) and show the start and end
+g_end <- grid
+for (t in 1:4) g_end <- step(g_end)
+par(mfrow = c(1, 2), mar = c(1, 1, 2, 1), pty = "s")
+image(1:n, 1:n, t(grid[n:1, ]),  col = c("white", "red"), axes = FALSE,
+      xlab = "", ylab = "", main = "generation 1")
+image(1:n, 1:n, t(g_end[n:1, ]), col = c("white", "red"), axes = FALSE,
+      xlab = "", ylab = "", main = "generation 5")
+```
+
+### Python implementation {.impl}
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+n = 10
+grid = np.zeros((n, n), dtype=int)
+# a glider: a five-cell pattern that translates diagonally without changing shape
+glider = [(0, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+for i, j in glider:
+    grid[i, j] = 1
+
+# count each cell's eight live neighbors, with wraparound (periodic) edges
+def neighbor_sum(g):
+    total = np.zeros_like(g)
+    for di in (-1, 0, 1):
+        for dj in (-1, 0, 1):
+            if di == 0 and dj == 0:
+                continue
+            total += np.roll(np.roll(g, di, axis=0), dj, axis=1)  # roll wraps around
+    return total
+
+# one generation: apply the three rules to every cell at once
+def step(g):
+    nb = neighbor_sum(g)
+    return ((nb == 3) | ((g == 1) & (nb == 2))).astype(int)
+
+# run four generations (one full glider cycle) and show the start and end
+g_end = grid.copy()
+for _ in range(4):
+    g_end = step(g_end)
+fig, ax = plt.subplots(1, 2, figsize=(6, 3))
+ax[0].imshow(grid,  cmap="Reds", vmin=0, vmax=1); ax[0].set_title("generation 1")
+ax[1].imshow(g_end, cmap="Reds", vmin=0, vmax=1); ax[1].set_title("generation 5")
+for a in ax:
+    a.axis("off")
+plt.show()
+```
+
+The two snapshots show the glider one full cycle later: the same five-cell shape,
+shifted one step diagonally. A pair of frames only hints at the motion, so for a
+clearer view we render the whole run as an animation. The code below (R's `gganimate`
+here) is shown as a listing you can run; the resulting GIF is pre-generated and
+embedded, so the book does not rebuild it on every render.
+
+```r
 library(ggplot2); library(gganimate); library(gifski)
 
 n_gen <- 40
@@ -470,9 +525,11 @@ one side of a simulation box re-enters from the opposite side, using a
 function (`bc_periodic`) built on the same wraparound rule shown here.
 
 ::: {.callout-tip title="Try it yourself"}
-Pick any function elsewhere in this book that you have not already read in
-depth, a later chapter's ODE integrator, or `neighbor_sum` above with a
-different neighborhood shape. Paste it into Claude Code, ask one specific
-question about the one part you do not understand, and check the answer by
-changing an input and predicting the output before you run it.
+Compare the two `neighbor_sum` functions above: the R version wraps indices with the
+modulo operator (`%%`), while the Python version shifts the whole grid with
+`np.roll`. Ask the assistant why both produce the same periodic boundary. Then pick
+any function you have not read closely, this one or a later chapter's ODE integrator,
+paste one version into Claude Code, ask one specific question about the part you do
+not understand, and check the answer by changing an input and predicting the output
+before you run it.
 :::

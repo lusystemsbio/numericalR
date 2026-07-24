@@ -11,10 +11,12 @@
   padding: 1px 9px; white-space: nowrap;
 }
 .recipe-copy-btn:hover { background: #f2f6fb; }
-/* the illustrative prompt block (```{.prompt}) reflows to the content-column width
-   (breaking only at spaces) instead of showing a horizontal scrollbar */
-pre.prompt, pre.prompt code {
-  white-space: pre-wrap !important; overflow-x: visible !important;
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so the
+   book's code-wrap rule misses them and long lines spill outside the content column.
+   Wrap them here. This is HTML-only (recipe-copy.html is an html include-after-body),
+   so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  white-space: pre-wrap !important; overflow-wrap: break-word; overflow-x: visible !important;
 }
 </style>
 <script>

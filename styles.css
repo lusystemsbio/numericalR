@@ -4,7 +4,8 @@ nav#TOC ul {
   display: block !important;
 }
 
-/* "R implementation" / "Python implementation" labels — styled, unnumbered */
+/* "R implementation" / "Python implementation" labels — styled, unnumbered.
+   R is blue; Python is light purple (distinguished by its section anchor id). */
 h3.impl {
   background-color: #e7f0fb;
   border-left: 4px solid #4a86c7;
@@ -14,6 +15,10 @@ h3.impl {
   font-weight: 600;
   margin-top: 1.4rem;
   margin-bottom: 0.8rem;
+}
+h3.impl[data-anchor-id^="python-implementation"] {
+  background-color: #f0e7fb;
+  border-left-color: #8a5cc7;
 }
 
 /* Code blocks: smaller text, and soft-wrap so lines never need horizontal
