@@ -40,6 +40,16 @@ function `find_steady_states` packages the three steps; `find_intersection`,
 `find_intersection_all_fast`, and `stability_2D` are exactly the routines from
 Part 3B.
 
+::: {.callout-note title="Recipe 3E.1.1"}
+**Objective.** Trace a bifurcation diagram: the steady states of the toggle switch versus a control parameter, colored by stability.
+
+**Method.** At each parameter value, build the nullclines (separation of variables), find their intersections (steady states), and classify each by its Jacobian eigenvalues; sweep the parameter and plot steady-state X against it.
+
+**Test.** The toggle switch, sweeping a control parameter across a range.
+
+**Verification.** Stable and unstable branches appear and merge at bifurcation points, so the number and stability of steady states change with the parameter.
+:::
+
 ### R implementation {.impl}
 
 ```{r}

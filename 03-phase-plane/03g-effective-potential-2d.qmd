@@ -111,6 +111,16 @@ local minimum at the stable states and rises to a maximum at the saddle, so it
 does locate the steady states as extrema. The two paths, however, do not agree on
 the potential values.
 
+::: {.callout-note title="Recipe 3G.2.1"}
+**Objective.** Compute an effective potential for the two-variable toggle switch along its nullclines, to locate the steady states as extrema.
+
+**Method.** Integrate the potential by the trapezoidal rule along each nullcline and plot the accumulated value against X and against Y.
+
+**Test.** The toggle-switch nullclines.
+
+**Verification.** Each curve dips to a minimum at the stable states and rises to a maximum at the saddle; the two paths do not agree on the potential values, since the flow is not a true gradient.
+:::
+
 ### R implementation {.impl}
 
 ```{r}

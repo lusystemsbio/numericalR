@@ -166,6 +166,16 @@ nullcline once, flag the consecutive pairs where the relevant derivative changes
 sign, and only test those. Both methods return the same steady states, but the
 sign-flip version is far faster.
 
+::: {.callout-note title="Recipe 3B.2.1"}
+**Objective.** Find every steady state of the toggle switch as the intersections of its nullclines.
+
+**Method.** Build the two nullclines, then find where they cross with a segment-intersection test; a faster version first narrows to segments that change sign before testing pairs.
+
+**Test.** The toggle-switch nullclines.
+
+**Verification.** It returns three steady states (two stable, one unstable); the fast version agrees with the exhaustive all-pairs search while testing far fewer pairs.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -321,6 +331,16 @@ The eigenvalues of a Jacobian are not necessarily real; a complex conjugate pair
 signals a spiral. [Part 3H](03h-multi-component.qmd) shows gene circuits that produce spirals. For the toggle
 switch, the two outer steady states are stable and the
 middle one is a saddle point.
+
+::: {.callout-note title="Recipe 3B.3.1"}
+**Objective.** Classify each steady state of a two-variable system as stable or unstable.
+
+**Method.** Linearize about the steady state and take the eigenvalues of the 2x2 Jacobian (computed numerically); the state is stable when both eigenvalues have negative real part.
+
+**Test.** The three steady states of the toggle switch.
+
+**Verification.** The two outer states are stable and the middle one is an unstable saddle, matching the bistable simulations.
+:::
 
 ### R implementation {.impl}
 

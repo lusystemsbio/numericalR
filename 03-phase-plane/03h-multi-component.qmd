@@ -18,6 +18,16 @@ number of variables: it only requires that the derivative function return a vect
 the same length as the state `X0`. Nothing about the integrator itself is
 two-dimensional.
 
+::: {.callout-note title="Recipe 3H.1.1"}
+**Objective.** Integrate a system with any number of components using a single RK4 routine.
+
+**Method.** The generic `RK4_generic` from Part 3A, unchanged; it works whenever the derivative function returns a vector the same length as the state.
+
+**Test.** Apply it to the two-, three-, and many-gene systems of this chapter.
+
+**Verification.** The same integrator handles each system correctly with no modification.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -76,6 +86,16 @@ with maximum production rates $g$ and $h$. We set $g = h = 10$. Drawing the unit
 vector field and overlaying trajectories from ten random starts shows every
 trajectory spiraling inward to a single steady state: the negative feedback
 produces damped oscillations.
+
+::: {.callout-note title="Recipe 3H.2.1"}
+**Objective.** Simulate a two-gene negative-feedback loop (X activates Y, Y represses X).
+
+**Method.** Integrate the nondimensionalized system `dx/dt = g/(1 + y^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y` with the generic RK4.
+
+**Test.** The negative-feedback circuit at the chapter's g and h.
+
+**Verification.** Trajectories converge to a single stable steady state, spiraling in.
+:::
 
 ### R implementation {.impl}
 
@@ -232,6 +252,16 @@ With $g = h = 5$, the reusable function draws the whole phase portrait in one
 call. The trajectories separate into two basins and settle on the two stable
 states, the bistability we analyzed before.
 
+::: {.callout-note title="Recipe 3H.4.1"}
+**Objective.** Simulate the toggle switch (X and Y repress each other) in nondimensionalized form.
+
+**Method.** Integrate `dx/dt = g/(1 + y^3) - x`, `dy/dt = h/(1 + x^3) - y` with the generic RK4.
+
+**Test.** The double-negative circuit at the chapter's g and h, from several initial conditions.
+
+**Verification.** There are two stable steady states (x-high/y-low and x-low/y-high); which one a trajectory reaches depends on its initial condition.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -283,6 +313,16 @@ $Z$ is at its quasi-steady state $dZ/dt = 0$, i.e. $z = l/(1 + y^3)$. The
 trajectories, in contrast, are simulated with the full three-variable system and
 then projected. With $g = h = l = 5$ the trajectories converge to a closed loop, a
 **limit cycle**: the repressilator is a genetic oscillator.
+
+::: {.callout-note title="Recipe 3H.5.1"}
+**Objective.** Simulate a three-gene repressilator (a ring of three repressions) and see sustained oscillations.
+
+**Method.** Integrate `dx/dt = g/(1 + z^3) - x`, `dy/dt = h/(1 + x^3) - y`, `dz/dt = l/(1 + y^3) - z` with the generic RK4.
+
+**Test.** The three-gene ring at the chapter's parameters.
+
+**Verification.** The three genes settle into a sustained limit-cycle oscillation, each peaking in turn in a fixed order.
+:::
 
 ### R implementation {.impl}
 
@@ -367,6 +407,16 @@ $a_{ii} = 1$, and the off-diagonal $a_{ij}$ are drawn uniformly from $(0, 2a)$,
 where $a$ is the mean interaction strength. Sweeping $a$ moves the community
 between qualitatively different regimes: at weak interaction it settles to stable
 coexistence, and at strong interaction it never settles, fluctuating persistently.
+
+::: {.callout-note title="Recipe 3H.6.1"}
+**Objective.** Simulate a large system of many interacting species with the same integrator.
+
+**Method.** A generalized Lotka-Volterra model of S species, `dN_i/dt = N_i*(1 - sum_j a_ij*N_j) + D`, with self-terms `a_ii = 1`, random off-diagonals, and a small dispersal D, integrated with the generic RK4.
+
+**Test.** S interacting bacterial species with a random interaction matrix.
+
+**Verification.** The same RK4 routine scales to S variables, and the community relaxes to a steady state in which some species coexist while others fall to near-extinction.
+:::
 
 ### R implementation {.impl}
 

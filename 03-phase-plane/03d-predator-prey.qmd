@@ -43,6 +43,16 @@ starting from different initial conditions traces a family of nested loops, none
 of which spirals in or out. This is the signature of a conservative (center-type)
 system and is qualitatively different from the attractor dynamics of Parts 3A-3C.
 
+::: {.callout-note title="Recipe 3D.2.1"}
+**Objective.** Simulate the Lotka-Volterra predator-prey model and see its oscillations and closed orbits.
+
+**Method.** Integrate the two-variable system `dN/dt = N*(a - b*P)`, `dP/dt = P*(c*N - d)` with the generic RK4, from several initial conditions.
+
+**Test.** Positive rates a, b, c, d, from several starting prey/predator counts.
+
+**Verification.** The two populations oscillate out of phase in time, and in the phase plane the trajectories form a family of nested closed loops.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -385,6 +395,16 @@ minimum, so it needs a reasonable starting guess; here we begin from a hand-pick
 one. The fitted trajectory follows both the time courses and the phase-plane loop
 of the data.
 
+::: {.callout-note title="Recipe 3D.6.1"}
+**Objective.** Fit the Lotka-Volterra parameters to observed data by minimizing the error.
+
+**Method.** Simulate the model for trial parameters, measure the sum of squared differences from the data, and adjust the parameters with a local optimizer (Newton or BFGS) from a reasonable starting guess.
+
+**Test.** The lynx-hare data, from a hand-picked parameter guess.
+
+**Verification.** The fitted trajectory follows both the time courses and the phase-plane loop of the data.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -490,6 +510,16 @@ predator, which ordinary least squares solves directly (no intercept). It is exa
 only for closely spaced data, so on the sparse yearly record the fit is rougher
 than error minimization. It is deterministic and cheap, though, which makes it an
 excellent starting guess for the error minimization (Practice Q5).
+
+::: {.callout-note title="Recipe 3D.7.1"}
+**Objective.** Fit the Lotka-Volterra parameters by linear regression, using that the model is linear in its parameters.
+
+**Method.** Replace the time derivatives with centered finite differences at each data point, turning the rate equations into a linear system, and solve it by ordinary least squares (no intercept).
+
+**Test.** The lynx-hare yearly data.
+
+**Verification.** It returns parameters directly and deterministically; on the sparse yearly data the fit is rougher than error minimization but far cheaper.
+:::
 
 ### R implementation {.impl}
 

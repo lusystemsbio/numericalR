@@ -107,6 +107,16 @@ in blue are trajectories of the *original* system from ten random starts. Each
 blue trajectory settles onto one of the two attractors, and none of them crosses
 the red separatrix, confirming that it is the boundary between the two basins.
 
+::: {.callout-note title="Recipe 3F.2.1"}
+**Objective.** Trace the separatrix dividing the toggle switch's two basins of attraction.
+
+**Method.** Integrate the time-reversed system `dX/dt = -f(X)` from points just beside the saddle; the reversed flow carries them outward along the separatrix.
+
+**Test.** The toggle switch, seeding ten points near the saddle (about (190, 127)).
+
+**Verification.** The reversed trajectories trace a curve that no forward trajectory from random starts ever crosses, confirming it is the boundary between the two basins.
+:::
+
 ### R implementation {.impl}
 
 ```{r}

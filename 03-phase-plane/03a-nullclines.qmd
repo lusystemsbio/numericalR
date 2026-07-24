@@ -34,6 +34,16 @@ otherwise identical. Simulating from ten random initial conditions, every
 trajectory settles on one of **two** distinct stable steady states (different
 levels of $X$ and $Y$), the hallmark of the toggle switch's bistability.
 
+::: {.callout-note title="Recipe 3A.1.1"}
+**Objective.** Simulate a two-gene toggle switch from many initial conditions and see which steady states they settle on.
+
+**Method.** A vector form of the RK4 integrator, advancing the state (X, Y) with the same four-stage scheme used for one variable.
+
+**Test.** The toggle switch (X and Y repress each other), started from ten random initial conditions.
+
+**Verification.** Every trajectory settles on one of two distinct stable steady states (different X and Y levels), showing the switch is bistable.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -266,6 +276,16 @@ the stable states and the middle one is the saddle. Separation of variables is
 the easiest route whenever it is available, but it fails for most systems, so the
 next two sections give general numerical alternatives.
 
+::: {.callout-note title="Recipe 3A.4.1"}
+**Objective.** Draw the X- and Y-nullclines of the toggle switch, whose intersections are the steady states.
+
+**Method.** Solve each nullcline in closed form by separation of variables: rearrange `fX(X,Y) = 0` for X and `fY(X,Y) = 0` for Y, sweeping the other variable.
+
+**Test.** The toggle-switch nullclines.
+
+**Verification.** The two nullclines cross three times, matching the two stable steady states and one unstable state seen by simulation.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -318,6 +338,16 @@ grid and drawing their $Z = 0$ contours recovers both nullclines. The method is
 robust as long as the grid is fine enough for the contour routine to interpolate,
 though a fine grid over two dimensions can be costly.
 
+::: {.callout-note title="Recipe 3A.5.1"}
+**Objective.** Draw the nullclines with a general method that does not need separation of variables.
+
+**Method.** Treat each nullcline as the zero-level contour of the surface `Z = fX(X,Y)` (and `Z = fY(X,Y)`), evaluated on a grid and traced by a contour routine.
+
+**Test.** The toggle switch on a grid over the (X, Y) plane.
+
+**Verification.** The zero contours reproduce the same nullclines as separation of variables, and their crossings match the steady states.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -360,6 +390,16 @@ the partial derivatives $\partial f/\partial X$ and $\partial f/\partial Y$ (the
 Jacobian). The code below adapts the 2F routine to two variables; because the
 method is identical to 2F, the Python implementation is omitted (see
 [Part 2F](../02-odes/02f-bifurcation-curves.qmd)).
+
+::: {.callout-note title="Recipe 3A.6.1"}
+**Objective.** Trace a nullcline by following it as a curve, when neither separation nor a grid contour is convenient.
+
+**Method.** Arc-length numerical continuation (predictor-corrector): treat Y as the control parameter, follow `X(Y)` along `fX(X,Y) = 0`, stepping by arc length and correcting back with Newton's method using the Jacobian.
+
+**Test.** The toggle switch's X-nullcline `fX(X,Y) = 0`.
+
+**Verification.** The traced curve matches the nullcline found by the other two methods.
+:::
 
 ### R implementation {.impl}
 

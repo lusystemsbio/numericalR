@@ -51,6 +51,16 @@ coexistence state $\bar{X}_2 = (8, 1)$: the trajectory first drifts toward
 $\bar{X}_1$, then peels away and ends at $\bar{X}_2$. The phase plane below shows
 both trajectories.
 
+::: {.callout-note title="Recipe 3C.2.1"}
+**Objective.** Simulate a chemostat (population N and substrate) and see it reach either washout or coexistence.
+
+**Method.** The generic multi-variable RK4 from Part 3A, integrating the chemostat ODEs with the feed and dilution parameters.
+
+**Test.** The chemostat model from N(0) = 0 and from a tiny seed N(0) = 0.01.
+
+**Verification.** Starting at N = 0 relaxes to the washout state (0, 5); a tiny seed instead ends at the coexistence state (8, 1), first drifting toward washout then peeling away.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
