@@ -33,16 +33,15 @@ accurate the integration, but the more iterations (and the more compute time)
 are needed to simulate a fixed duration.
 
 ::: {.callout-note title="Recipe 2B.1.1"}
-**Objective.** Integrate the gene-expression ODE from an initial value and compare
-the numerical solution to the exact one at two step sizes.
+**Objective.** Integrate the gene-expression ODE from an initial value and compare the numerical solution to the exact one at two step sizes.
+
+**Model.** A constitutively expressed gene: transcription at a constant rate g with linear degradation at rate k, `dX/dt = g - k*X` (exact solution `X(t) = g/k + (X0 - g/k)*exp(-k*t)`).
 
 **Method.** The Euler method, `X(t+dt) = X(t) + (g - k*X(t))*dt`, stepped from t = 0.
 
-**Test.** g = 50, k = 0.1, X0 = 300, from t = 0 to 80, with dt = 1 and dt = 0.1.
+**Test.** `g = 50`, `k = 0.1`, `X0 = 300`; t = 0 to 80; dt = 1 and dt = 0.1.
 
-**Verification.** The exact solution is `X(t) = g/k + (X0 - g/k)*exp(-k*t)`. At dt = 0.1
-the numerical curve tracks it closely (largest error well under 1 nM); at dt = 1 there
-is a visible gap near t = 10; both reach the steady state g/k = 500.
+**Verification.** At dt = 0.1 the numerical curve tracks the exact solution closely (max error well under 1 nM); at dt = 1 there is a visible gap near t = 10; both reach `g/k = 500`.
 :::
 
 ### R implementation {.impl}
@@ -384,14 +383,13 @@ which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 ::: {.callout-note title="Recipe 2B.4.1"}
 **Objective.** Implement a second-order Heun integrator for a one-variable ODE.
 
-**Method.** Heun's method: take an Euler step to a predicted endpoint, evaluate the
-slope there, and advance by the average of the starting and predicted slopes.
+**Model.** A constitutively expressed gene: transcription at a constant rate g with linear degradation at rate k, `dX/dt = g - k*X` (exact solution `X(t) = g/k + (X0 - g/k)*exp(-k*t)`).
 
-**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
+**Method.** Heun's method: take an Euler step to a predicted endpoint, evaluate the slope there, and advance by the average of the starting and predicted slopes.
 
-**Verification.** At the same step size it should sit closer to the exact solution
-`X(t) = g/k + (X0 - g/k)*exp(-k*t)` than the Euler method; halving the step should cut
-its error by roughly a factor of 4.
+**Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
+
+**Verification.** At the same step size it is closer to the exact solution than Euler; halving the step cuts its error by roughly a factor of 4.
 :::
 
 ### R implementation {.impl}
@@ -444,13 +442,13 @@ X(t+\Delta t) &= X(t) + k_2
 ::: {.callout-note title="Recipe 2B.5.1"}
 **Objective.** Implement the second-order Runge-Kutta (midpoint) integrator.
 
-**Method.** RK2: take a trial half-step to the midpoint of the interval and use the
-slope there for the full step.
+**Model.** A constitutively expressed gene: transcription at a constant rate g with linear degradation at rate k, `dX/dt = g - k*X` (exact solution `X(t) = g/k + (X0 - g/k)*exp(-k*t)`).
 
-**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
+**Method.** RK2: take a trial half-step to the interval midpoint and use the slope there for the full step.
 
-**Verification.** Accuracy comparable to Heun and better than the Euler method at the
-same step size, checked against `X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
+**Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
+
+**Verification.** Accuracy comparable to Heun and better than Euler at the same step size, checked against the exact solution.
 :::
 
 ### R implementation {.impl}
@@ -503,13 +501,13 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}
 ::: {.callout-note title="Recipe 2B.6.1"}
 **Objective.** Implement the fourth-order Runge-Kutta integrator.
 
-**Method.** RK4: combine four slope evaluations across the step (at the start, twice
-at the midpoint, and at the end) with weights 1, 2, 2, 1.
+**Model.** A constitutively expressed gene: transcription at a constant rate g with linear degradation at rate k, `dX/dt = g - k*X` (exact solution `X(t) = g/k + (X0 - g/k)*exp(-k*t)`).
 
-**Test.** Integrate `dX/dt = g - k*X` with g = 50, k = 0.1, X0 = 300.
+**Method.** RK4: combine four slope evaluations across the step (start, twice at the midpoint, end) with weights 1, 2, 2, 1.
 
-**Verification.** Far more accurate than RK2 or Euler at the same step size; halving
-the step should cut its error by roughly a factor of 16.
+**Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
+
+**Verification.** Far more accurate than RK2 or Euler at the same step size; halving the step cuts its error by roughly a factor of 16.
 :::
 
 ### R implementation {.impl}
@@ -674,16 +672,15 @@ We use stiff parameters ($k = 10$) where forward Euler with $\Delta t = 0.2$ is
 unstable.
 
 ::: {.callout-note title="Recipe 2B.8.1"}
-**Objective.** Integrate a stiff version of the model where the forward Euler method
-blows up, using an implicit step.
+**Objective.** Integrate a stiff version of the model where the forward Euler method blows up, using an implicit step.
 
-**Method.** Backward (implicit) Euler, `X(t+dt) = X(t) + (g - k*X(t+dt))*dt`; since the
-right-hand side is linear this rearranges to `X_next = (X + dt*g) / (1 + dt*k)`.
+**Model.** A constitutively expressed gene with a large degradation rate (stiff), `dX/dt = g - k*X`; the exact solution still decays to `g/k`.
 
-**Test.** Stiff parameters g = 50, k = 10, X0 = 3, from t = 0 to 4, with dt = 0.2.
+**Method.** Backward (implicit) Euler, `X(t+dt) = X(t) + (g - k*X(t+dt))*dt`; since the right-hand side is linear this rearranges to `X_next = (X + dt*g) / (1 + dt*k)`.
 
-**Verification.** Forward Euler at dt = 0.2 oscillates and diverges, while backward
-Euler stays stable and tracks the exact solution toward the steady state g/k = 5.
+**Test.** Stiff parameters `g = 50`, `k = 10`, `X0 = 3`; t = 0 to 4; dt = 0.2.
+
+**Verification.** Forward Euler at dt = 0.2 oscillates and diverges, while backward Euler stays stable and tracks the exact solution toward `g/k = 5`.
 :::
 
 ### R implementation {.impl}

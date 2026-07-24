@@ -91,17 +91,15 @@ Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
 ::: {.callout-note title="Recipe 2A.1.1"}
-**Objective.** Plot the time course of a constitutively expressed gene from several
-initial conditions and watch them settle to a common steady state.
+**Objective.** Plot the time course of a constitutively expressed gene from several initial conditions and watch them settle to a common steady state.
 
-**Method.** The exact solution of the rate equation `dX/dt = g - k*X`, which is
-`X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
+**Model.** A gene transcribed at a constant rate g with linear degradation at rate k: `dX/dt = g - k*X`; its exact solution is `X(t) = g/k + (X0 - g/k)*exp(-k*t)`.
 
-**Test.** g = 50 (nM/min), k = 0.1 (1/min), initial values X0 = 300, 400, 500, 600,
-700 nM, over t = 0 to 80 min.
+**Method.** Direct evaluation of the exact solution over time (no numerical integration).
 
-**Verification.** Every curve begins at its own X0 and approaches the same steady
-state `g/k = 500` nM; curves that start above 500 decay to it and those below rise to it.
+**Test.** `g = 50` nM/min, `k = 0.1` per min; initial values `X0 = 300, 400, 500, 600, 700` nM; t = 0 to 80 min.
+
+**Verification.** Every curve begins at its own X0 and approaches the steady state `g/k = 500` nM; curves above 500 decay to it and those below rise.
 :::
 
 ### R implementation {.impl}

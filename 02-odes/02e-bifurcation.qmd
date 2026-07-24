@@ -97,18 +97,15 @@ inverse-distance matrix used below, the nearest point is the one with the larges
 score.)
 
 ::: {.callout-note title="Recipe 2E.2.1"}
-**Objective.** Trace the bifurcation curve: at each value of the parameter k, find
-every steady state and mark it stable or unstable.
+**Objective.** Trace the bifurcation curve: at each value of the parameter k, find every steady state and mark it stable or unstable.
 
-**Method.** Sample k on a grid; at each k find all roots of `f(X, k) = 0` with a
-library root-finder, classify each by the sign of `df/dX` (stable if negative), and
-reorder the scattered points along the curve with a nearest-neighbor walk.
+**Model.** A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, `f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X`, with k the control parameter.
 
-**Test.** The self-activating gene `f(X, k) = g0 + g1*H_ex(X) - k*X` across a range of k.
+**Method.** Sample k on a grid; at each k find all roots of `f(X, k) = 0` with a library root-finder, classify each by the sign of `df/dX`, and order the scattered points with a nearest-neighbor walk.
 
-**Verification.** The result is an S-shaped curve: over a middle range of k there are
-three steady states (two stable branches and one unstable between them), collapsing to
-a single state outside it.
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`; k swept across a range (bistable near k = 0.15).
+
+**Verification.** The result is an S-shaped curve: over a middle k range there are three steady states (two stable, one unstable), collapsing to one outside it.
 :::
 
 ### R implementation {.impl}
@@ -281,19 +278,15 @@ the curve is the identical nearest-neighbor walk from 2E.2 and is omitted here.
 Both implementations reuse the model derivative `derivs_k` defined in 2E.2.
 
 ::: {.callout-note title="Recipe 2E.3.1"}
-**Objective.** Find steady states with a homemade bracketing root-finder, and recover
-all roots by scanning windows.
+**Objective.** Find steady states with a homemade bracketing root-finder, and recover all roots by scanning windows.
 
-**Method.** The bisection method: on an interval where `f` changes sign, repeatedly
-halve it, keeping the half that still brackets the root; to find every root, apply it
-to each small window that shows a sign change.
+**Model.** A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, `f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X`, with k the control parameter.
 
-**Test.** `f(X, k) = g0 + g1*H_ex(X) - k*X` on the interval [0, 600], at k = 0.12, 0.15,
-and 0.2.
+**Method.** Bisection: on an interval where f changes sign, repeatedly halve it, keeping the half that still brackets the root; apply it to each small window with a sign change to find all roots.
 
-**Verification.** On the whole interval, bisection returns the single root at monostable
-k (0.12, 0.2) but only one of the three at bistable k = 0.15; the windowed scan recovers
-all three.
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4` on [0, 600], at k = 0.12, 0.15, and 0.2.
+
+**Verification.** On the whole interval, bisection returns the single root at monostable k (0.12, 0.2) but only one of the three at bistable k = 0.15; the windowed scan recovers all three.
 :::
 
 ### R implementation {.impl}
@@ -433,15 +426,13 @@ takes a different path.
 ::: {.callout-note title="Recipe 2E.4.1"}
 **Objective.** Find roots with the false-position bracketing method.
 
-**Method.** False position: like bisection, but replace the midpoint with the point
-where the straight line through the interval endpoints crosses zero,
-`x_new = (xmin*f2 - xmax*f1) / (f2 - f1)`; drive it over windows to find all roots.
+**Model.** A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, `f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X`, with k the control parameter.
 
-**Test.** The same self-activating gene on [0, 600] at k = 0.15.
+**Method.** False position: like bisection, but replace the midpoint with the point where the line through the interval endpoints crosses zero, `x_new = (xmin*f2 - xmax*f1) / (f2 - f1)`; drive it over windows to find all roots.
 
-**Verification.** On the whole interval at k = 0.15 it returns only one of the three
-roots (possibly a different one than bisection, since it takes a different path); the
-windowed scan finds all three, often in fewer iterations than bisection.
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4` on [0, 600] at k = 0.15.
+
+**Verification.** On the whole interval at k = 0.15 it returns only one of the three roots (possibly a different one than bisection); the windowed scan finds all three, often in fewer iterations.
 :::
 
 ### R implementation {.impl}
@@ -564,18 +555,15 @@ bifurcation, and finishes up the low stable branch. The initial $X_0$ is random;
 we fix a seed here so the figure is reproducible.
 
 ::: {.callout-note title="Recipe 2E.5.1"}
-**Objective.** Trace the full S-shaped bifurcation curve, including the unstable branch,
-by following steady states with ODE integration rather than root-finding.
+**Objective.** Trace the full S-shaped bifurcation curve, including the unstable branch, by following steady states with ODE integration rather than root-finding.
 
-**Method.** From a starting state, integrate `dX/dt = f(X, k)` to a stable steady state,
-nudge k by a small step, and continue from the previous state; reverse the k-sweep when
-a branch disappears (a large jump in X), and integrate `dX/dt = -f(X, k)` to capture the
-unstable branch as an attractor.
+**Model.** A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, `f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X`, with k the control parameter.
 
-**Test.** The self-activating gene, sweeping k across the bistable range.
+**Method.** From a starting state, integrate `dX/dt = f(X, k)` to a stable steady state, nudge k, and continue from the previous state; reverse the k-sweep at a large jump, and integrate `dX/dt = -f(X, k)` to capture the unstable branch as an attractor.
 
-**Verification.** The traced points reproduce the S-curve of 2E.2, now including the
-unstable middle branch.
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, sweeping k across the bistable range.
+
+**Verification.** The traced points reproduce the S-curve of 2E.2, now including the unstable middle branch.
 :::
 
 ### R implementation {.impl}

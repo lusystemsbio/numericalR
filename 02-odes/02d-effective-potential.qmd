@@ -39,15 +39,13 @@ steady state (around 250 nM) it is negative, so the state is stable.
 ::: {.callout-note title="Recipe 2D.1.1"}
 **Objective.** Decide whether a gene circuit's steady state is stable or unstable.
 
-**Method.** Linear stability: a steady state where `f(X) = 0` is stable if the slope
-`df/dX` there is negative and unstable otherwise; estimate the slope numerically with a
-central finite difference.
+**Model.** A self-inhibiting gene: basal transcription plus a repressive Hill function, minus linear degradation, `f(X) = g0 + g1/(1 + (X/Xth)^n) - k*X`.
 
-**Test.** The self-inhibiting gene `f(X) = g0 + g1*H_inh(X) - k*X`, whose single steady
-state is near 250 nM.
+**Method.** Linear stability: a steady state (`f(X) = 0`) is stable if the slope `df/dX` there is negative, estimated with a central finite difference.
 
-**Verification.** `df/dX` at the steady state (about 250 nM) is negative, so the state
-is stable.
+**Test.** `g0 = 10, g1 = 60, Xth = 200, n = 4, k = 0.1`; the single steady state is near 250 nM.
+
+**Verification.** `df/dX` at the steady state (about 250 nM) is negative, so the state is stable.
 :::
 
 ### R implementation {.impl}
@@ -293,17 +291,15 @@ $k = 0.2$ and $k = 0.1$; both have a single well (monostable), in contrast to th
 bistable $k = 0.15$.
 
 ::: {.callout-note title="Recipe 2D.3.1"}
-**Objective.** Compute and plot the effective potential of a one-variable gene circuit
-to see its stable and unstable states as valleys and peaks.
+**Objective.** Compute and plot the effective potential of a one-variable gene circuit to see its stable and unstable states as valleys and peaks.
 
-**Method.** The effective potential `U(X) = -integral of f(x) dx` with `U(0) = 0`,
-accumulated by the trapezoidal rule `U(X+dx) = U(X) - (f(X) + f(X+dx))/2 * dx`.
+**Model.** A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, `f(X) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X`.
 
-**Test.** The self-activating gene at k = 0.15, and again at k = 0.2 and k = 0.1.
+**Method.** The effective potential `U(X) = -integral of f(x) dx` with `U(0) = 0`, accumulated by the trapezoidal rule `U(X+dx) = U(X) - (f(X) + f(X+dx))/2 * dx`.
 
-**Verification.** At k = 0.15 the potential has two basins (near 100 and 300 nM, the
-stable states) split by a barrier near 200 nM (the unstable state); at k = 0.2 and
-k = 0.1 it has a single well (monostable).
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, at `k = 0.15` (and again `k = 0.2` and `k = 0.1`).
+
+**Verification.** At k = 0.15 the potential has two basins (near 100 and 300 nM, the stable states) split by a barrier near 200 nM (the unstable state); at k = 0.2 and k = 0.1 it has a single well.
 :::
 
 ### R implementation {.impl}

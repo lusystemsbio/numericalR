@@ -81,18 +81,15 @@ method for finding the root of $f(x) = x^2 - a$; [Part 2F](../02-odes/02f-bifurc
 implements Newton's method for a general $f$.)
 
 ::: {.callout-note title="Recipe 1C.3.1"}
-**Objective.** Compute the square root of a positive number by iteration, without a
-built-in square-root function.
+**Objective.** Compute the square root of a positive number by iteration, without a built-in square-root function.
 
-**Method.** The Babylonian iteration `x_next = (x + a/x) / 2`, starting from any
-positive guess and repeating until `|x_next^2 - a| < epsilon` for a small tolerance.
+**Model.** The square root of `a > 0` is the positive solution of `x^2 = a`.
 
-**Test.** Find the square root of a = 2 from the starting guesses 1, 100, and 200,
-with tolerance 1e-6.
+**Method.** The Babylonian iteration `x_next = (x + a/x) / 2`, from any positive guess, repeated until `|x_next^2 - a| < epsilon`.
 
-**Verification.** Every starting guess converges to about 1.41421; the returned value
-squared is within the tolerance of 2, and a guess far from the answer just needs a few
-more iterations.
+**Test.** `a = 2`; starting guesses 1, 100, 200; tolerance `epsilon = 1e-6`.
+
+**Verification.** Every guess converges to about 1.41421; the result squared is within the tolerance of 2, and a far starting guess just needs a few more iterations.
 :::
 
 ### R implementation {.impl}

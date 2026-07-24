@@ -372,21 +372,15 @@ neighbors [@gardner1970game]:
 - Every other cell dies or stays dead.
 
 ::: {.callout-note title="Recipe 1A.5.1"}
-**Objective.** Simulate Conway's Game of Life on a small grid and follow a glider
-moving across it.
+**Objective.** Simulate Conway's Game of Life and follow a glider across the grid.
 
-**Method.** Hold the grid as a matrix of 0s (dead) and 1s (alive). Each generation,
-count every cell's eight neighbors on a grid whose edges wrap around (a periodic
-boundary), then update all cells at once by three rules: a live cell with 2 or 3
-live neighbors stays alive; a dead cell with exactly 3 live neighbors becomes alive;
-every other cell is dead next generation.
+**Model.** A grid of cells, each alive (1) or dead (0), updated synchronously by three rules applied to each cell's eight neighbors: a live cell with 2 or 3 live neighbors survives; a dead cell with exactly 3 live neighbors becomes alive; every other cell is dead next generation. The grid edges wrap around (a periodic boundary), so it is a torus.
 
-**Test.** A 10 by 10 grid seeded with a glider, the five cells at (1,2), (2,3),
-(3,1), (3,2), (3,3), run for several generations.
+**Method.** Count each cell's live neighbors with wraparound, then apply the three rules to all cells at once.
 
-**Verification.** The glider keeps its five-cell shape and drifts one step
-diagonally every four generations; because the edges wrap, on reaching a border it
-reappears on the opposite side rather than vanishing.
+**Test.** A 10x10 grid seeded with a glider at cells (1,2), (2,3), (3,1), (3,2), (3,3); run for several generations.
+
+**Verification.** The glider keeps its five-cell shape and drifts one step diagonally every four generations; on reaching an edge it reappears on the opposite side.
 :::
 
 ### R implementation {.impl}
