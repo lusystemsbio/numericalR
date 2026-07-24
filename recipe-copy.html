@@ -11,12 +11,13 @@
   padding: 1px 9px; white-space: nowrap;
 }
 .recipe-copy-btn:hover { background: #f2f6fb; }
-/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so the
-   book's code-wrap rule misses them and long lines spill outside the content column.
-   Wrap them here. This is HTML-only (recipe-copy.html is an html include-after-body),
-   so EPUB keeps its fixed-width ASCII mockups intact. */
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
 pre:not(.sourceCode), pre:not(.sourceCode) > code {
-  white-space: pre-wrap !important; overflow-wrap: break-word; overflow-x: visible !important;
+  font-size: 0.85em; white-space: pre-wrap;
 }
 </style>
 <script>

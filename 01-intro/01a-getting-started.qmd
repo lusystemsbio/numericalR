@@ -451,10 +451,11 @@ g_end = grid.copy()
 for _ in range(4):
     g_end = step(g_end)
 fig, ax = plt.subplots(1, 2, figsize=(6, 3))
-ax[0].imshow(grid,  cmap="Reds", vmin=0, vmax=1); ax[0].set_title("generation 1")
-ax[1].imshow(g_end, cmap="Reds", vmin=0, vmax=1); ax[1].set_title("generation 5")
-for a in ax:
-    a.axis("off")
+# assign each call to _ so its matplotlib return object is not echoed as output
+for a, g, title in zip(ax, [grid, g_end], ["generation 1", "generation 5"]):
+    _ = a.imshow(g, cmap="Reds", vmin=0, vmax=1)
+    _ = a.set_title(title)
+    _ = a.axis("off")
 plt.show()
 ```
 
