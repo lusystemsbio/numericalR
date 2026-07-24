@@ -84,7 +84,7 @@ Each was first drafted by an AI assistant (Claude Opus 4.8) and then checked and
 corrected by hand. Producing them this way doubles as a test of the assistant itself:
 a method it cannot compress into a correct objective, test, and verification is one it
 has not really understood. Every box is collected in the
-[recipe index](reference-tables.qmd).
+[recipe index](appendix-recipe-index.qmd).
 
 A recipe also converts into a **structured prompt**, which is how you get help on
 the parts you cannot yet write without giving up the understanding. Instead of a

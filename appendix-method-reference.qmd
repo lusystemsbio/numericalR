@@ -1,23 +1,21 @@
 ---
-title: "Method and library reference"
+title: "Appendix 1. Method reference"
 author: "Mingyang Lu"
 ---
 
-This closing chapter is a cheat sheet for the whole book. Each table maps a
-computational task to its R and Python implementation and to the chapter where it
-is developed. The idea behind a method is language-agnostic, so the two
-implementation columns are meant to be read side by side: pick the language you
-work in, and use the other column to translate.
+This appendix maps each computational task in the book to its R and Python
+implementation and to the chapter where it is developed. The idea behind a method is
+language-agnostic, so the two implementation columns are meant to be read side by
+side: pick the language you work in, and use the other column to translate.
 
-**How to read the tables.** A name in `monospace` is a function *defined from
-scratch in the book* (the method is built up so you understand it, not called as a
-black box). A name written as `package::function` or as a library (for example
-`scipy.integrate`) is a standard library used where it is the practical choice. The
-R and Python implementations use parallel function names throughout, so a
-homemade function usually appears under the same name in both columns; where a name
-differs (or where one language uses a library and the other does not), the columns
-show it. The final table lists the R and Python libraries used across the book, as a
-quick translation guide.
+**How to read the tables.** A name in `monospace` is a function *defined from scratch
+in the book* (the method is built up so you understand it, not called as a black box).
+A name written as `package::function` or as a library (for example `scipy.integrate`)
+is a standard library used where it is the practical choice. The R and Python
+implementations use parallel function names throughout, so a homemade function usually
+appears under the same name in both columns; where a name differs (or where one
+language uses a library and the other does not), the columns show it. The libraries
+themselves are collected in [Appendix 2](appendix-library-map.qmd).
 
 ```{=html}
 <style>
@@ -151,33 +149,3 @@ main table.table td, main table.table th { vertical-align: top; }
 | Random-graph models (Erdos-Renyi, Barabasi-Albert) | `er_network`, `ba_network` | `er_network`, `ba_network` | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
 | Modularity, spectral bisection | `modularity_Q`, `spectral_split` + `eigen` | `modularity_Q`, `spectral_split` (`numpy`) | [10C](10-high-dim-data/10c-network-algorithms.qmd) |
 | Boolean networks (synchronous update, attractors) | `boolean_attractors` | `boolean_attractors` | [10C](10-high-dim-data/10c-network-algorithms.qmd), [10D](10-high-dim-data/10d-exercises.qmd) |
-
-## R and Python library map
-
-The libraries used across the book, grouped by domain.
-
-| Domain | R | Python |
-|--------|-----|--------|
-| ODE solving | `deSolve` (`ode`, `dede`) | `scipy.integrate` (`odeint`, `solve_ivp`) |
-| Root finding and optimization | `rootSolve` (`uniroot.all`, `multiroot`), `stats` (`uniroot`, `optim`, `nlm`, `nls`, `lm`) | `scipy.optimize` (`fsolve`, `minimize`, `curve_fit`) |
-| Linear algebra, eigenvalues | base (`eigen`, `svd`, `solve`) | `numpy.linalg` (`eig`, `eigvals`, `svd`, `solve`) |
-| Plotting | `ggplot2`, base graphics | `matplotlib.pyplot` |
-| Animation | `gganimate` (+ `gifski`) | `matplotlib.animation` |
-| Data frames and tables | `data.frame`, `knitr::kable` | `pandas` |
-| Benchmarking | `microbenchmark` | `timeit` |
-| Compiled / just-in-time code | `compiler`, `.Fortran` / `dyn.load` | `numba` (`@njit`), `ctypes` |
-| Parallelism | `parallel` (`mclapply`) | `multiprocessing` |
-| Dimensionality reduction | `Rtsne`, `uwot`, `princurve`, base (`prcomp`, `cmdscale`) | `scikit-learn` (`decomposition`, `manifold`), `umap-learn`, `pcurvepy2` |
-| Clustering | `stats` (`kmeans`, `hclust`), `mclust` | `scikit-learn` (`cluster`, `mixture`), `scipy.cluster.hierarchy` |
-| Networks | `igraph` | `networkx` |
-| Structural biology | `bio3d` | `biopython` (`Bio.PDB`) |
-
-## Index of recipe boxes
-
-Every recipe box in the book, in order, linked to its section. A recipe box states an
-objective, a method, a test case, and how to verify the result, and can be turned into
-a prompt with its **Copy prompt** button (see
-[Part 1A](01-intro/01a-getting-started.qmd)). This table is generated automatically
-from the boxes.
-
-{{< include recipe-index-generated.qmd >}}

@@ -44,13 +44,14 @@ def main():
                     break
             if sec is None:
                 continue
-            om = re.search(r"\*\*Objective\.\*\*\s*(.*?)(?:\n\n|\Z)", body, re.S)
-            obj = " ".join(om.group(1).split()) if om else ""
-            obj = (obj.split(". ")[0].rstrip(".") + ".") if obj else ""
-            rows.append(f"| [{label}]({rel}#{slug(sec)}) | {obj} |")
+            number = label.replace("Recipe ", "")          # "2B.1.1"
+            parts = sec.split(None, 1)
+            name = parts[1] if len(parts) > 1 else sec       # section title without its number
+            rows.append(f"| [{number}]({rel}#{slug(sec)}) | {name} |")
             total += 1
 
-    frag = ["| Recipe | Objective |", "|:-------|:----------|", *rows, ""]
+    frag = ["| Recipe | Method / application |",
+            "|:-------|:---------------------|", *rows, ""]
     dest = os.path.join(ROOT, "recipe-index-generated.qmd")
     open(dest, "w", encoding="utf-8").write("\n".join(frag) + "\n")
     print(f"make-recipe-index: indexed {total} recipe boxes")

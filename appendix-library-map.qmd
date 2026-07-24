@@ -1,0 +1,33 @@
+---
+title: "Appendix 2. R and Python libraries"
+author: "Mingyang Lu"
+---
+
+The libraries used across the book, grouped by domain, as a quick R-to-Python
+translation guide. See [Appendix 1](appendix-method-reference.qmd) for the
+task-by-task method reference.
+
+```{=html}
+<style>
+/* Keep the wide table inside the content column: if it is wider than the column it
+   scrolls horizontally within it instead of overflowing the page. */
+main table.table { display: block; overflow-x: auto; font-size: 0.85rem; }
+main table.table td, main table.table th { vertical-align: top; }
+</style>
+```
+
+| Domain | R | Python |
+|--------|-----|--------|
+| ODE solving | `deSolve` (`ode`, `dede`) | `scipy.integrate` (`odeint`, `solve_ivp`) |
+| Root finding and optimization | `rootSolve` (`uniroot.all`, `multiroot`), `stats` (`uniroot`, `optim`, `nlm`, `nls`, `lm`) | `scipy.optimize` (`fsolve`, `minimize`, `curve_fit`) |
+| Linear algebra, eigenvalues | base (`eigen`, `svd`, `solve`) | `numpy.linalg` (`eig`, `eigvals`, `svd`, `solve`) |
+| Plotting | `ggplot2`, base graphics | `matplotlib.pyplot` |
+| Animation | `gganimate` (+ `gifski`) | `matplotlib.animation` |
+| Data frames and tables | `data.frame`, `knitr::kable` | `pandas` |
+| Benchmarking | `microbenchmark` | `timeit` |
+| Compiled / just-in-time code | `compiler`, `.Fortran` / `dyn.load` | `numba` (`@njit`), `ctypes` |
+| Parallelism | `parallel` (`mclapply`) | `multiprocessing` |
+| Dimensionality reduction | `Rtsne`, `uwot`, `princurve`, base (`prcomp`, `cmdscale`) | `scikit-learn` (`decomposition`, `manifold`), `umap-learn`, `pcurvepy2` |
+| Clustering | `stats` (`kmeans`, `hclust`), `mclust` | `scikit-learn` (`cluster`, `mixture`), `scipy.cluster.hierarchy` |
+| Networks | `igraph` | `networkx` |
+| Structural biology | `bio3d` | `biopython` (`Bio.PDB`) |
