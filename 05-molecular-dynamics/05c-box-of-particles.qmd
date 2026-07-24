@@ -242,6 +242,18 @@ $$ m_i \frac{d^2 x_i}{dt^2} = \sum_{j \neq i} f_x(j \rightarrow i) , \tag{3} $$
 and likewise for $y_i$, with all masses $m_i = 1$. We reuse velocity Verlet, but
 after each position update we fold every coordinate back into the box.
 
+::: {.callout-note title="Recipe 5C.4.1"}
+**Objective.** Build a velocity-Verlet integrator that keeps particles inside a periodic box.
+
+**Model.** Each unit-mass particle obeys `d^2x_i/dt^2 = sum over j of the pair force`, where the pair force is the Lennard-Jones force `F(r) = 1/r^13 - 1/r^7` projected along the minimum-image separation between particles i and j.
+
+**Method.** The velocity-Verlet integrator with a periodic-boundary correction `x -> x - floor(x/a)*a`, applied to positions (not velocities) after each position update.
+
+**Test.** Box side `a = 6.25` with 25 particles (the run in 5C.5); the folding rule is `bc_periodic(x, a) = x - floor(x/a)*a`.
+
+**Verification.** A particle that leaves one side of the box reappears on the opposite side, while velocities are never wrapped.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -292,6 +304,18 @@ languages start from exactly the same initial condition and the setup is fully
 reproducible. A short warm-up run to $t = 10$ lets the ordered grid relax; a
 longer run to $t = 100$ (time step $dt = 0.01$) then brings the system to a
 disordered, liquid-like state. We plot the configuration at the end of each stage.
+
+::: {.callout-note title="Recipe 5C.5.1"}
+**Objective.** Simulate a 2D box of Lennard-Jones particles from an ordered start into a disordered liquid.
+
+**Model.** 25 unit-mass particles in a square box of side `a = 6.25` interacting through the Lennard-Jones force `F(r) = 1/r^13 - 1/r^7` with minimum-image periodic boundaries.
+
+**Method.** The velocity-Verlet integrator with periodic boundaries (from 5C.4).
+
+**Test.** 25 particles on a 5x5 grid at spacing 1.25; deterministic initial velocities spread over (-0.05, 0.05) by a golden-ratio sequence; a warm-up run to t = 10 then a production run to t = 100, both at `dt = 0.01`.
+
+**Verification.** Particles start on the regular grid and end in an irregular liquid-like arrangement; because the many-body dynamics are chaotic, the exact final configuration differs between R and Python while structural averages match.
+:::
 
 ### R implementation {.impl}
 
@@ -457,6 +481,18 @@ around a reference particle, averaged over all particles and all time steps.
 We bin pairwise minimum-image distances up to $r = a/2$ (beyond that, a shell no
 longer fits inside the periodic box) with $\Delta r = 0.05$, normalizing each bin
 by its shell area and the mean density.
+
+::: {.callout-note title="Recipe 5C.7.1"}
+**Objective.** Measure the radial distribution function of the simulated particle box.
+
+**Model.** The radial distribution function `g(r) = <dN(r)> / (2*pi*r*dr*rho0)`, where `rho0 = N/a^2` is the mean density and `<dN(r)>` is the average number of particles in a shell of radius r and thickness dr around a reference particle.
+
+**Method.** The radial distribution function g(r), computed by histogramming minimum-image pair distances and normalizing each bin by its shell area `2*pi*r*dr` and the mean density.
+
+**Test.** The t = 100 trajectory from 5C.5 (25 particles, box side `a = 6.25`); bin width `dr = 0.05`, radii up to `a/2 = 3.125`.
+
+**Verification.** g(r) has the classic liquid shape: near zero below about r = 0.8, a sharp first peak near r = 1 (the Lennard-Jones equilibrium separation), a weaker second peak near r = 2, settling toward 1 at large r.
+:::
 
 ### R implementation {.impl}
 

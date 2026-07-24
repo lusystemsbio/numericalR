@@ -67,6 +67,18 @@ $$
 where $r^2 = x^2 + y^2$. We simulate two initial conditions and view each both as
 time series of $x(t)$ and $y(t)$ and as a trajectory in the $x$-$y$ plane.
 
+::: {.callout-note title="Recipe 5B.1.1"}
+**Objective.** Simulate a single particle orbiting under a central attractive force.
+
+**Model.** A central force of magnitude `G/r` pointing toward the origin, with Cartesian components `fx = -G*x/r^2`, `fy = -G*y/r^2`, and `r^2 = x^2 + y^2`.
+
+**Method.** The generic vector velocity-Verlet integrator applied to one 2D particle.
+
+**Test.** `G = 1`, `dt = 0.1`; two runs, initial position (4, 0) with velocity (0, 1) to t = 100, and (2, 2) with velocity (-1, 1) to t = 1000.
+
+**Verification.** The first initial condition gives a closed, nearly elliptical orbit; the second traces a precessing rosette that fills an annulus and never quite closes.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -170,6 +182,18 @@ other, so the force function returns all four components at once. Unlike the
 random starting conditions one might reach for, we use fixed initial positions and
 velocities so the R and Python runs trace exactly the same trajectory.
 
+::: {.callout-note title="Recipe 5B.2.1"}
+**Objective.** Simulate two equal masses orbiting under mutual attraction, and remove their overall drift.
+
+**Model.** Two unit masses attracting each other with a `1/r`-type central force, `f1x = G*(x2-x1)/r12^2` and the equal-and-opposite `f2x = G*(x1-x2)/r12^2` (likewise in y), with `r12^2 = (x1-x2)^2 + (y1-y2)^2`.
+
+**Method.** The generic vector velocity-Verlet integrator on the four coordinates, with a shift to the center-of-mass frame (subtract the mean velocity per axis).
+
+**Test.** `G = 1`, `dt = 0.01`, to t = 100; initial positions (2, 0, -2, 0), velocities (0, 0.4, 0, -0.2); a second run centers the velocities to zero total momentum.
+
+**Verification.** With nonzero total momentum the pair orbits while drifting across the plane; subtracting the mean velocity yields a stationary pattern about the common center of mass.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -268,6 +292,18 @@ attracts every other. The two-body motion was regular, but three mutually
 attracting bodies are famously chaotic: their trajectories are exquisitely
 sensitive to the initial conditions, and a small perturbation eventually sends
 one particle careening away from the other two.
+
+::: {.callout-note title="Recipe 5B.3.1"}
+**Objective.** Simulate the chaotic three-body problem.
+
+**Model.** Three unit masses, each attracting every other by a `1/r^2`-scaled central force summed over partners, `f1x = G*((x2-x1)/r12^2 + (x3-x1)/r13^2)` (likewise for the other bodies and for y).
+
+**Method.** The generic vector velocity-Verlet integrator on the six coordinates, started in the center-of-mass frame.
+
+**Test.** `G = 1`, `dt = 0.01`, to t = 100; initial positions (-2, 0, 2, 0, 0, 3), velocities centered from (0.1, 0, -0.1, 0, 0, -0.05).
+
+**Verification.** The three bodies stay bound and weave for a while, then one gains enough energy to escape while the remaining pair recoils, the hallmark of three-body chaos.
+:::
 
 ### R implementation {.impl}
 

@@ -41,6 +41,18 @@ Its exact motion is a pure sinusoid with a constant energy, so any growth in
 amplitude or drift in energy that appears in a simulation is a numerical
 artifact we can spot at a glance.
 
+::: {.callout-note title="Recipe 5A.1.1"}
+**Objective.** Set up a harmonic oscillator as the test system for comparing integrators, and state what a correct simulation must preserve.
+
+**Model.** A mass on a spring of stiffness k, `d^2x/dt^2 = -k*x`, written as the pair `dx/dt = v`, `dv/dt = -k*x`; the energy per unit mass `e = 0.5*k*x^2 + 0.5*v^2` is exactly constant for the true motion.
+
+**Method.** Direct evaluation of the force `f(x) = -k*x`; the numerical integrators come in the following sections.
+
+**Test.** `k = 0.1`; initial displacement `x0 = 1`, velocity `v0 = 2`.
+
+**Verification.** The exact motion is a pure sinusoid at constant energy, so any amplitude growth or energy drift in a simulation is a numerical artifact.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -77,6 +89,18 @@ To judge a simulation we track the *massic energy* (energy per unit mass),
 $e = \tfrac{1}{2} k x^2 + \tfrac{1}{2} v^2$, which is exactly conserved for the
 true oscillator. We run each integrator with a small step ($h = 0.01$) and a
 larger one ($h = 0.1$) from the same initial condition.
+
+::: {.callout-note title="Recipe 5A.2.1"}
+**Objective.** Integrate the harmonic oscillator with the Euler method and check whether it conserves energy.
+
+**Model.** A mass on a spring of stiffness k, `d^2x/dt^2 = -k*x`, written as the pair `dx/dt = v`, `dv/dt = -k*x`; the energy per unit mass `e = 0.5*k*x^2 + 0.5*v^2` is exactly constant for the true motion.
+
+**Method.** The explicit (forward) Euler integrator for Newton's equations, updating velocity then position, `v_next = v + dt*f`, `x_next = x + dt*v`.
+
+**Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Verification.** Euler does not conserve energy: at dt = 0.1 the amplitude and energy grow steadily, and even at dt = 0.01 the energy drifts slowly upward.
+:::
 
 ### R implementation {.impl}
 
@@ -216,6 +240,18 @@ It needs the position $x_0$ and the half-step velocity $v_{1/2}$ to start; the
 latter is obtained from the initial velocity by a half Euler step,
 $v_{1/2} = v_0 + \tfrac{1}{2} h f_0$.
 
+::: {.callout-note title="Recipe 5A.3.1"}
+**Objective.** Integrate the harmonic oscillator with the leapfrog method and compare its energy behavior to Euler.
+
+**Model.** A mass on a spring of stiffness k, `d^2x/dt^2 = -k*x`, written as the pair `dx/dt = v`, `dv/dt = -k*x`; the energy per unit mass `e = 0.5*k*x^2 + 0.5*v^2` is exactly constant for the true motion.
+
+**Method.** The leapfrog integrator, carrying velocity at half-integer steps: a startup half-step `v_half = v0 + 0.5*dt*f0`, then `x_next = x + dt*v_half` and `v_next_half = v_half + dt*f_next`.
+
+**Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Verification.** Leapfrog energy does not drift even at the large step (it is symplectic and time-reversible); a small energy ripple at dt = 0.1 comes only from x and v being stored at staggered times.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -303,6 +339,18 @@ x_{n+1} &= x_n + h v_{n+1/2} \\
 v_{n+1} &= v_{n+1/2} + \tfrac{1}{2} h f_{n+1} .
 \end{aligned}
 $$
+
+::: {.callout-note title="Recipe 5A.4.1"}
+**Objective.** Integrate the harmonic oscillator with velocity Verlet, the standard molecular-dynamics integrator.
+
+**Model.** A mass on a spring of stiffness k, `d^2x/dt^2 = -k*x`, written as the pair `dx/dt = v`, `dv/dt = -k*x`; the energy per unit mass `e = 0.5*k*x^2 + 0.5*v^2` is exactly constant for the true motion.
+
+**Method.** The velocity-Verlet integrator, splitting the velocity update into two half-steps around the position update, `v_half = v + 0.5*dt*f`, `x_next = x + dt*v_half`, `v_next = v_half + 0.5*dt*f_next`.
+
+**Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Verification.** Velocity Verlet conserves the energy at both step sizes and returns position and velocity at the same time points.
+:::
 
 ### R implementation {.impl}
 
@@ -395,6 +443,18 @@ The scheme needs two starting positions; the second is obtained from the initial
 position and velocity by
 
 $$ x_1 = x_0 + h v_0 + \tfrac{1}{2} h^2 f_0 . $$
+
+::: {.callout-note title="Recipe 5A.5.1"}
+**Objective.** Integrate the harmonic oscillator with the original position-only Verlet method.
+
+**Model.** A mass on a spring of stiffness k, `d^2x/dt^2 = -k*x`, written as the pair `dx/dt = v`, `dv/dt = -k*x`; the energy per unit mass `e = 0.5*k*x^2 + 0.5*v^2` is exactly constant for the true motion. This method does not store the velocity.
+
+**Method.** The Verlet integrator, advancing position from the two previous positions, `x_{n+2} = 2*x_{n+1} - x_n + dt^2*f_{n+1}`, with a startup step `x_1 = x0 + dt*v0 + 0.5*dt^2*f0`.
+
+**Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Verification.** Verlet reproduces the oscillation at both step sizes while storing only positions, which is why it and velocity Verlet underlie most practical MD codes.
+:::
 
 ### R implementation {.impl}
 
