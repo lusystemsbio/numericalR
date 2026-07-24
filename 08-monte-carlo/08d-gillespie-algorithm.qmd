@@ -44,6 +44,18 @@ Repeating until a stopping time gives one exact realization. The generic driver 
 takes user-supplied `propensity` and `stoichiometry` functions, so the same code runs
 any reaction network.
 
+::: {.callout-note title="Recipe 8D.1.1"}
+**Objective.** Build a Gillespie stochastic simulation for a general chemical reaction network.
+
+**Model.** A generic reaction network: a state vector of molecule counts, each reaction j with a propensity `R_j` and a stoichiometry vector `gamma_j` that updates the state.
+
+**Method.** The Gillespie stochastic simulation algorithm (the direct method): compute all propensities, draw a waiting time from an exponential with rate equal to their sum, pick reaction j with probability `R_j/R_tot`, then advance time and update the state.
+
+**Test.** A generic driver taking user-supplied propensity and stoichiometry functions, with stop conditions `tmax` and a maximum iteration count.
+
+**Verification.** The routine generates exact sample trajectories of a reaction network from its master equation.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -112,6 +124,18 @@ $$ 0 \xrightarrow{g} x \xrightarrow{k} 0 , $$
 whose deterministic rate equation $dx/dt = g - kx$ has steady state
 $\bar{x} = g/k$. We specify the network with two functions: the propensities
 $(g,\, kx)$ and the stoichiometry ($+1$ for production, $-1$ for degradation).
+
+::: {.callout-note title="Recipe 8D.2.1"}
+**Objective.** Simulate a constitutively transcribed gene with Gillespie and measure its intrinsic noise.
+
+**Model.** A birth-death process `0 -> x` at rate g and `x -> 0` at rate `k*x`, with deterministic steady state `x_bar = g/k`.
+
+**Method.** The Gillespie stochastic simulation algorithm, with time-weighted mean and standard deviation.
+
+**Test.** `k = 0.1`, production `g = 100, 10, 1` (steady states 1000, 100, 10), `tmax = 100`; started at the steady state and separately from zero; seed 101.
+
+**Verification.** The standard deviation follows `sqrt(x_bar)` (Poisson), so relative noise falls as `1/sqrt(x_bar)`, and from zero the trajectories climb along `x_bar*(1 - exp(-k*t))`.
+:::
 
 ### R implementation {.impl}
 
@@ -299,6 +323,18 @@ state $\bar{x} = g/k$) stay fixed as $n$ varies,
 
 $$ 0 \xrightarrow{g/n} n\,x , \qquad x \xrightarrow{k} 0 . $$
 
+::: {.callout-note title="Recipe 8D.3.1"}
+**Objective.** Show that transcriptional bursting adds noise beyond the Poisson floor.
+
+**Model.** A bursting birth-death process `0 -> n*x` at rate `g/n` and `x -> 0` at rate `k*x`, so each event adds n molecules while the mean production rate g stays fixed.
+
+**Method.** The Gillespie stochastic simulation algorithm, varying the burst size at fixed mean rate.
+
+**Test.** `g = 16`, `k = 0.1` (steady state 160), burst sizes `n = 1, 2, 4, 8`, started at steady state, `tmax = 2000`; seed 91.
+
+**Verification.** The mean stays at 160 for every n, but the standard deviation grows with burst size, so larger rarer bursts inject more noise than single-molecule events.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -407,6 +443,18 @@ The binding propensity carries the degeneracy factor $M(M-1)/2$ for choosing two
 the $M$ molecules, and the effective dissociation constant is
 $K = \sqrt{2 k_\text{off} / k_\text{on}}$. We omit the promoter-occupancy traces and
 focus on the $M$ dynamics.
+
+::: {.callout-note title="Recipe 8D.4.1"}
+**Objective.** Show that negative autoregulation suppresses gene-expression noise.
+
+**Model.** A self-repressing gene with promoter states (unbound D, bound C) and molecules M: production from D at rate g0 and from C at the slower g1, degradation `M -> 0` at rate k, and dimer binding/unbinding `2M + D <-> C` at rates kon, koff.
+
+**Method.** The Gillespie stochastic simulation algorithm for a gene circuit with promoter binding.
+
+**Test.** `k = 0.1` throughout; self-inhibition (`g0 = 55, g1 = 5, kon = 0.002, koff = 90`), no feedback (`g0 = g1 = 30`), and low copy number (`g0 = 5.5, g1 = 0.5, kon = 0.2, koff = 90`); seed 101.
+
+**Verification.** The self-inhibiting gene has a lower standard deviation than the no-feedback case, and at low copy number the few-molecule binding makes the dynamics strongly bursty.
+:::
 
 ### R implementation {.impl}
 

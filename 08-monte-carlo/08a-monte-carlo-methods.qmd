@@ -24,6 +24,18 @@ so we can estimate $\pi$ as
 
 $$ \pi = 4 P . \tag{2} $$
 
+::: {.callout-note title="Recipe 8A.1.1"}
+**Objective.** Estimate pi by Monte Carlo sampling of a circle's area.
+
+**Model.** The fraction of uniform points in the square [-1, 1]^2 that fall inside the unit circle is `pi/4`, so `pi = 4*P`.
+
+**Method.** Monte Carlo estimation of pi by area sampling (the fraction of uniform points inside the unit circle, times four).
+
+**Test.** Uniform points in [-1, 1]^2; a single estimate at `n = 1e4` and a convergence run to `n = 1e5`; seed 1.
+
+**Verification.** The estimate is noticeably off at n = 1e4 but settles near pi by n = 1e5, showing the slow 1/sqrt(n) Monte Carlo convergence.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -141,6 +153,18 @@ and the needle crosses a line when $x_3$ falls outside $(0, d)$, that is when
 
 $$ x_3 (d - x_3) \le 0 . \tag{6} $$
 
+::: {.callout-note title="Recipe 8A.2.1"}
+**Objective.** Estimate pi with Buffon's needle experiment.
+
+**Model.** Dropping a needle of length l on a floor ruled with lines a distance d apart (l < d) crosses a line with probability `2*l/(pi*d)`, so `pi = 2*l/(P*d)`.
+
+**Method.** Buffon's needle Monte Carlo estimation of pi, using rejection sampling for a uniform random needle direction.
+
+**Test.** Line spacing `d = 1`, needle lengths `l = 0.2, 0.4, ..., 1.4`; `n = 1e4` then `n = 1e5` drops; seed 1.
+
+**Verification.** At n = 1e4 the estimate wanders around pi (and breaks for l > d), and n = 1e5 tightens it.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -230,6 +254,18 @@ $x$ uniformly in $(x_1, x_2)$ and averages,
 $$ I \approx \frac{x_2 - x_1}{n} \sum_{i=1}^n f(x_i) , \tag{9} $$
 
 where the prefactor $(x_2 - x_1)/n$ plays the role of $\Delta x$.
+
+::: {.callout-note title="Recipe 8A.3.1"}
+**Objective.** Integrate a function by Monte Carlo sampling and compare it to a deterministic rule.
+
+**Model.** The integral of `f(x) = exp(-x^2)`; the reference is the midpoint rule, and the exact value over [0, inf) is `sqrt(pi)/2`.
+
+**Method.** Monte Carlo integration by uniform sampling, `I = (x2 - x1)/n * sum f(x_i)`, alongside the deterministic midpoint rule.
+
+**Test.** Interval [0, 3]; midpoint rule at `n = 1000`, Monte Carlo at `n = 1e4`; seed 1.
+
+**Verification.** Both land near `sqrt(pi)/2 = 0.886`; the midpoint rule is more accurate for this smooth 1D integrand, but Monte Carlo's error is dimension-independent.
+:::
 
 ### R implementation {.impl}
 
@@ -331,6 +367,18 @@ convergence. For $f(x) = e^{-x^2}$ we sample from the exponential density
 $p(x) = e^{-x}$ on $[0, \infty)$, drawing $x$ by the inverse-transform method
 ($x = -\ln u$ with $u$ uniform). This lets us cover a much wider range of $x$ than
 uniform sampling would afford.
+
+::: {.callout-note title="Recipe 8A.4.1"}
+**Objective.** Reduce the variance of a Monte Carlo integral with importance sampling.
+
+**Model.** The same integral of `f(x) = exp(-x^2)`, rewritten as `I = integral of f(x)/p(x) * p(x) dx` and estimated by the mean of `f(x_i)/p(x_i)` with `x_i` drawn from p.
+
+**Method.** Monte Carlo importance sampling with an exponential density `p(x) = exp(-x)` (drawn by inverse transform), compared against uniform Monte Carlo.
+
+**Test.** Range [0, 100], `n = 1e4`, 100 replicates each of importance and uniform sampling; seed 1.
+
+**Verification.** Over the wide range, uniform sampling scatters badly by wasting points where f is negligible, while importance sampling concentrates points where f is large and converges with far less variance.
+:::
 
 ### R implementation {.impl}
 

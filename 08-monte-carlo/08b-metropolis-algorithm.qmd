@@ -28,6 +28,18 @@ column $j$ is the probability of moving from state $i$ to state $j$. Each row su
 1, since the chain must go somewhere. To simulate the chain, at each step we draw a
 uniform random number and use it to pick the next state from the current row of $T$.
 
+::: {.callout-note title="Recipe 8B.1.1"}
+**Objective.** Simulate a two-state promoter as a Markov chain and find its long-run state fractions.
+
+**Model.** A two-state promoter Markov chain with transition matrix `T = [[0.7, 0.3], [0.1, 0.9]]` (rows from active, from inactive), so the active state leaves with probability 0.3 and the inactive with 0.1.
+
+**Method.** Direct simulation of a two-state Markov chain (draw a uniform, pick the next state from the current row of T).
+
+**Test.** The transition matrix above, starting active, `1e4` steps; seed 1.
+
+**Verification.** The trajectory bursts (short active spells, long silent stretches), and the running fractions converge to about 25% active and 75% inactive.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -197,6 +209,18 @@ to
 
 $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) . \tag{5} $$
 
+::: {.callout-note title="Recipe 8B.3.1"}
+**Objective.** Sample a target distribution with Metropolis-Hastings and confirm it reproduces the target.
+
+**Model.** The two-state bursting-gene promoter of 8B.1, now specified only by its stationary distribution `p_ss = (0.25, 0.75)` as the target `P(x)`.
+
+**Method.** The Metropolis-Hastings algorithm with a symmetric two-state proposal (always propose the other state), so acceptance is `a = min(1, P(x')/P(x))`.
+
+**Test.** Target `p_ss = (0.25, 0.75)`, starting active, `1e4` steps; seed 1.
+
+**Verification.** The sampler has a different transition matrix from the original chain yet reproduces the same stationary distribution, showing that many chains can share one stationary distribution.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -288,6 +312,18 @@ $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) = \min\left(1, e^{-x'^2 + x^2}\rig
 
 The step size $dx_\text{max}$ is a tuning knob. We try several values and compare the
 sampled histogram with the true density.
+
+::: {.callout-note title="Recipe 8B.4.1"}
+**Objective.** Sample a continuous Gaussian with Metropolis-Hastings and see how the step size affects the result.
+
+**Model.** A continuous target `P(x) proportional to exp(-x^2)`, a Gaussian of variance 1/2.
+
+**Method.** The Metropolis-Hastings algorithm with a uniform random-walk proposal `x' = x + Uniform(-dx_max, dx_max)` and acceptance `a = min(1, exp(-x'^2 + x^2))`.
+
+**Test.** Start at x = 0, `1e4` steps, proposal widths `dx_max = 0.1, 0.5, 2, 10`; seed 1.
+
+**Verification.** The sampled histogram matches the true Gaussian best at an intermediate dx_max (about 50% acceptance); too-small steps barely explore and too-large steps mostly reject.
+:::
 
 ### R implementation {.impl}
 
@@ -383,6 +419,18 @@ sample configurations with Metropolis-Hastings, proposing a move by flipping one
 randomly chosen spin. The proposal is symmetric, so the move is accepted with
 
 $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) = \min\left(1, e^{-(E_{x'} - E_x) / T}\right) . \tag{9} $$
+
+::: {.callout-note title="Recipe 8B.5.1"}
+**Objective.** Sample the 1D Ising model with Metropolis Monte Carlo.
+
+**Model.** A 1D Ising chain of n spins `s_i = +-1` with open ends, energy `E = -J*sum s_i*s_{i+1}`, sampled from the Boltzmann distribution `p proportional to exp(-E/T)`.
+
+**Method.** The Metropolis-Hastings algorithm with single-spin-flip proposals and acceptance `a = min(1, exp(-(E' - E)/T))`.
+
+**Test.** `n = 10` spins, `J = 1`, temperature `T = 1`, 1000 steps, random initial spins; seed 1.
+
+**Verification.** At T = 1 the sampler moves between the minimum-energy aligned configuration (`E = -9`) and higher-energy ones, with about 20% acceptance.
+:::
 
 ### R implementation {.impl}
 

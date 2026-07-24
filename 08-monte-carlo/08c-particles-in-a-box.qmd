@@ -162,6 +162,18 @@ particle, proposes a small uniform displacement, wraps it back into the box, and
 accepts the move with the Metropolis rule using the incremental energy `dp`. As with
 the Ising model, a move that lowers the energy is always accepted.
 
+::: {.callout-note title="Recipe 8C.3.1"}
+**Objective.** Sample equilibrium configurations of a Lennard-Jones particle box with Metropolis Monte Carlo.
+
+**Model.** A 2D box of N particles interacting through the Lennard-Jones potential `U(r) = 1/(12*r^12) - 1/(6*r^6)` with minimum-image periodic boundaries, sampled from the Boltzmann distribution `proportional to exp(-U/T)` over positions.
+
+**Method.** The Metropolis-Hastings algorithm with local single-particle moves and an incremental energy update.
+
+**Test.** 25 particles on a 5x5 grid at spacing 1.25 (box side `a = 6.25`), move size `dxmax = 0.25`, temperature `T = 0.05`, 5000 equilibration then 10000 sampling steps; seed 10.
+
+**Verification.** During equilibration the energy falls as particles condense from the open grid into a denser cluster, then fluctuates around a low plateau.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
