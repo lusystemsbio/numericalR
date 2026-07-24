@@ -44,6 +44,18 @@ mistake is to fold $\sqrt{2 D}$ into the drift and use the plain ODE Euler step:
 that is wrong, because it gives the noise a variance of $\Delta t^2$ rather than
 $\Delta t$. We test the method first on pure Brownian motion, $f(X) = 0$.
 
+::: {.callout-note title="Recipe 6C.1.1"}
+**Objective.** Integrate a stochastic differential equation and recover free Brownian motion as a test.
+
+**Model.** A general SDE `dX = f(X)*dt + sqrt(2*D(X))*dW`, tested on pure diffusion (`f(X) = 0`, constant D).
+
+**Method.** The Euler-Maruyama method, `X_next = X + f(X)*dt + sqrt(2*D(X))*dW` with `dW ~ N(0, dt)`.
+
+**Test.** `f = 0`, `D = 10`, `X0 = 0`, to t = 200, `dt = 0.01`, 10 trajectories; seed 1.
+
+**Verification.** The trajectories reproduce the free Brownian motion of the previous chapter.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -120,6 +132,18 @@ Unlike free Brownian motion, $X$ now fluctuates around zero with a variance set 
 the balance of drift and noise, $\langle x^2 \rangle = D/k$. We run three noise
 levels and check the variance against this prediction.
 
+::: {.callout-note title="Recipe 6C.2.1"}
+**Objective.** Simulate the Ornstein-Uhlenbeck process and confirm its stationary variance.
+
+**Model.** A restoring drift with constant noise, `dX = -k*X*dt + sqrt(2*D)*dW`, whose stationary variance is `<x^2> = D/k`.
+
+**Method.** The Euler-Maruyama method applied to the Ornstein-Uhlenbeck process.
+
+**Test.** `k = 1`, noise levels `D = 100, 25, 1`, `X0 = 0`, to t = 1000, `dt = 0.01`; seed 1.
+
+**Verification.** Larger D gives noisier trajectories, and the measured variances fall on the line `<x^2> = D` (since k = 1), confirming `<x^2> = D/k`.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -186,6 +210,18 @@ where $s'$ is the derivative of $s(X)$ with respect to $X$ and $s(X) = \sqrt{2 D
 When $D$ is constant, $s' = 0$ and the method reduces to Euler-Maruyama; the extra
 term only matters, and improves convergence, when the noise depends on the state.
 
+::: {.callout-note title="Recipe 6C.3.1"}
+**Objective.** Implement the Milstein integrator, which improves on Euler-Maruyama when the noise depends on the state.
+
+**Model.** An SDE `dX = f(X)*dt + s(X)*dW` with state-dependent noise `s(X) = sqrt(2*D(X))`.
+
+**Method.** The Milstein method, adding the stochastic-Taylor correction `0.5*s(X)*s'(X)*(dW^2 - dt)` to the Euler-Maruyama step (this term vanishes when the noise is constant).
+
+**Test.** Wiener increments `dW ~ N(0, dt)`; the integrator is applied to the gene-circuit model of 6C.4.
+
+**Verification.** The correction term improves convergence only when the noise depends on the state; for constant noise it reduces to Euler-Maruyama.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -234,6 +270,18 @@ The noise standard deviation grows with $\sqrt{X}$, so it is large at high
 expression and vanishes as $X \to 0$. A similar square-root noise underlies the
 Cox-Ingersoll-Ross model of interest rates in finance [@cox1985theory]. Because the
 noise depends on $X$, we integrate with the Milstein method.
+
+::: {.callout-note title="Recipe 6C.4.1"}
+**Objective.** Simulate expression noise in a bistable self-activating gene whose noise depends on the state.
+
+**Model.** A self-activating gene SDE, Hill self-activation drift with square-root noise, `dX = [g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X]*dt + b*sqrt(X)*dW`.
+
+**Method.** The Milstein method (the noise `b*sqrt(X)` depends on the state).
+
+**Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4, k = 0.15`; noise amplitudes `b = 5, 2, 0.5`; `X0 = 300`, to t = 1000, `dt = 0.01`; seed 1.
+
+**Verification.** The circuit is bistable (stable states near X = 100 and X = 300), and noise drives transitions between them whose frequency rises with b.
+:::
 
 ### R implementation {.impl}
 

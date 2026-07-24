@@ -18,6 +18,18 @@ implementations: one with an explicit loop (like an ODE integrator) and one usin
 only vector operations. The vectorized version is concise but less flexible for
 more complex dynamics; both give statistically identical walks.
 
+::: {.callout-note title="Recipe 6B.1.1"}
+**Objective.** Simulate an ensemble of one-dimensional random walks and see how they spread.
+
+**Model.** A walker starts at 0 and at each step moves `+dx` or `-dx` with equal probability, `x_next = x + dx*(+-1)`.
+
+**Method.** A discrete symmetric 1D random walk, written as an explicit loop and as a cumulative sum of random steps.
+
+**Test.** `dx = 1`, `dt = 1`, 1000 steps, 1000 independent walks; seed 12.
+
+**Verification.** Each walk wanders differently, but as a group they spread symmetrically about the origin.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -179,6 +191,18 @@ Nothing forces the steps to be discrete $\pm \Delta x$. Drawing each step from a
 Gaussian of mean $0$ and standard deviation $\Delta x$ gives the same large-scale
 statistics.
 
+::: {.callout-note title="Recipe 6B.3.1"}
+**Objective.** Repeat the random walk with continuous Gaussian steps and compare the spread to discrete steps.
+
+**Model.** The same 1D walk, but each step is drawn from a Gaussian of mean 0 and standard deviation dx, `x_next = x + N(0, dx)`.
+
+**Method.** A 1D random walk with Gaussian-distributed step sizes.
+
+**Test.** `dx = 1`, `dt = 1`, 1000 steps, 1000 walks; seed 12; the spread compared at times 1, 101, ..., 901.
+
+**Verification.** The spread is statistically identical to the discrete-step walk, so the step distribution does not matter for the long-time behavior, only its mean and variance.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -223,6 +247,18 @@ matter for the long-time behavior, only its mean and variance.
 
 The walk generalizes to a plane by drawing an independent Gaussian step for each
 of $x$ and $y$ at every time.
+
+::: {.callout-note title="Recipe 6B.4.1"}
+**Objective.** Simulate Brownian motion in a plane.
+
+**Model.** A walker at (0, 0) takes an independent Gaussian step in x and in y at each time, `x_next = x + N(0, 1)*dx`.
+
+**Method.** Two-dimensional Brownian motion via independent per-axis Gaussian steps.
+
+**Test.** `dx = (1, 1)`, `dt = 1`, 10000 steps; seed 12.
+
+**Verification.** The path is a tangled 2D walk that drifts from the origin, with typical distance growing like sqrt(t).
+:::
 
 ### R implementation {.impl}
 
@@ -292,6 +328,18 @@ Our Gaussian-step walk is essentially a Wiener process. To make the diffusion
 constant explicit, we scale the step standard deviation as $\sqrt{2 D \Delta t}$,
 so that the variance grows as $2 D t$ regardless of the step size. This scaling is
 essential: a common mistake is to set the standard deviation to $\Delta t$.
+
+::: {.callout-note title="Recipe 6B.5.1"}
+**Objective.** Simulate a Wiener process whose variance stays correct regardless of the step size.
+
+**Model.** A Gaussian random walk `x_next = x + N(0, step_sd)` with the scaling `step_sd = sqrt(2*D*dt)`, so the variance grows as `2*D*t`.
+
+**Method.** A Wiener-process simulation via Gaussian increments scaled by `sqrt(2*D*dt)`.
+
+**Test.** `D = 0.5`, a deliberately large step `dt = 10`, to t = 1000, 1000 walks; seed 12.
+
+**Verification.** Even at the large step the variance follows `2*D*t`, because the `sqrt(2*D*dt)` scaling keeps it on track.
+:::
 
 ### R implementation {.impl}
 

@@ -107,6 +107,18 @@ cumulative distribution [@devroye1986nonuniform],
 
 $$ y = -\ln x . \tag{1} $$
 
+::: {.callout-note title="Recipe 6A.3.1"}
+**Objective.** Generate exponentially distributed random numbers from uniform ones.
+
+**Model.** The target is the exponential distribution on `y >= 0`.
+
+**Method.** Inverse-transform sampling of the exponential distribution: for a uniform `x` on (0, 1), take `y = -ln(x)`.
+
+**Test.** `n = 10000` uniform draws on (0, 1), transformed and shown as a density histogram.
+
+**Verification.** The flat uniform input becomes the characteristic decaying exponential density after the transform.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -149,6 +161,18 @@ $$
 
 In practice one simply calls `rnorm` or `np.random.randn`, but it is instructive
 to see how such a sampler works.
+
+::: {.callout-note title="Recipe 6A.4.1"}
+**Objective.** Generate standard-normal random numbers from uniform ones.
+
+**Model.** The target is the standard normal distribution `N(0, 1)`.
+
+**Method.** The polar (Marsaglia) Box-Muller method: draw a point uniform in the square [-1, 1]^2, keep it if `R2 = x^2 + y^2` lies in (0, 1), and return `x*sqrt(-2*ln(R2)/R2)` and `y*sqrt(-2*ln(R2)/R2)` as two independent normals.
+
+**Test.** `n = 10000` accepted draws, shown as a density histogram.
+
+**Verification.** Both output streams follow the bell-shaped normal density.
+:::
 
 ### R implementation {.impl}
 

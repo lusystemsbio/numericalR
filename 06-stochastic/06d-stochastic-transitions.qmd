@@ -24,6 +24,18 @@ vectors.
 
 ## 6D.1 A toggle switch with noise
 
+::: {.callout-note title="Recipe 6D.1.1"}
+**Objective.** Simulate a two-gene toggle switch with noise and watch it hop between states.
+
+**Model.** A toggle-switch SDE with mutual repression and constant additive noise, `dX = [gX0 + gX1/(1 + (Y/Y0)^nY) - kX*X]*dt + b*dW_X`, `dY = [gY0 + gY1/(1 + (X/X0)^nX) - kY*Y]*dt + b*dW_Y`, with X and Y kept non-negative.
+
+**Method.** The Euler-Maruyama method for a two-variable SDE.
+
+**Test.** `g0 = 10, g1 = 40, X0 = Y0 = 100, n = 4, k = 0.1` for both genes; noise `b = 20`; initial (X, Y) = (50, 200), to t = 1000, `dt = 0.01`; seed 3.
+
+**Verification.** The switch is bistable (low-X/high-Y and high-X/low-Y states), and noise drives transitions where the trajectory hops between them, swapping which gene is highly expressed.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -130,6 +142,18 @@ cloud of points on each side by eigen-decomposing its covariance matrix. A point
 is assigned to a state only when it lies inside that state's ellipse; if it lies
 outside both, the state is left unchanged, and a transition is recorded when the
 system enters the opposite ellipse.
+
+::: {.callout-note title="Recipe 6D.2.1"}
+**Objective.** Count how often the noisy toggle switch jumps between its two states.
+
+**Model.** The same toggle-switch SDE and trajectory as 6D.1 (seed 3, `b = 20`, `dt = 0.01`, to t = 1000).
+
+**Method.** Counting transitions by fitting an ellipse to each state's cloud (from the covariance eigen-decomposition), assigning a point to a state when it lies inside that ellipse, and detecting a transition from the change in assigned state.
+
+**Test.** The 6D.1 trajectory, with each state's ellipse axes enlarged by a factor of 1.5, splitting the plane along Y = X.
+
+**Verification.** The crude counter over-counts: a single boundary-jitter event registers as a cluster of transitions within a few steps, motivating a more robust statistic.
+:::
 
 ### R implementation {.impl}
 
@@ -256,6 +280,18 @@ gfortran -fpic -shared 06-stochastic/src/sub_sde_2g.f90 -o 06-stochastic/src/sub
 which both languages then call: R through `.Fortran`, Python through `ctypes`. The
 routine `sde_simulation(iseed, t_total, kappa, nrun)` returns the two transition
 rates and the numbers of transitions counted.
+
+::: {.callout-note title="Recipe 6D.3.1"}
+**Objective.** Measure the transition rate of the noisy toggle switch from its mean first-passage time.
+
+**Model.** The same two-variable toggle-switch SDE (`g0 = 10, g1 = 40`, threshold 100, `k = 0.1`, `n = 4` per gene, noise `b = 20`), implemented in compiled Fortran.
+
+**Method.** The mean first-passage time: simulate until the trajectory crosses the separatrix, record the passage time, relax, and repeat, then take the rate `kappa = 1/(2*tau)` from the mean time tau.
+
+**Test.** The compiled Fortran routine called from both R (`.Fortran`) and Python (`ctypes`); seed 11, total time `1e5`, `dt = 0.01`, relaxation time 100.
+
+**Verification.** Both languages call the identical compiled routine with the same seed and return identical rates, showing the numerics live in the shared library; a longer total time gives more accurate rates.
+:::
 
 ### R implementation {.impl}
 
