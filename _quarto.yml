@@ -1,7 +1,9 @@
 project:
   type: book
   execute-dir: project
-  pre-render: scripts/build-fortran.sh
+  pre-render:
+    - scripts/build-fortran.sh
+    - scripts/make-recipe-index.py   # (re)generate recipe-index.qmd from the Recipe boxes
 
 # Cache each chapter's executed R/Python output under _freeze/. `quarto render`
 # then re-runs only chapters whose source changed and loads the rest from cache,
@@ -92,6 +94,7 @@ book:
         - 10-high-dim-data/10b-clustering.qmd
         - 10-high-dim-data/10c-network-algorithms.qmd
         - 10-high-dim-data/10d-exercises.qmd
+    - recipe-index.qmd
     - reference-tables.qmd
     - references.qmd
 
