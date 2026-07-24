@@ -21,6 +21,8 @@ two-dimensional.
 ::: {.callout-note title="Recipe 3H.1.1"}
 **Objective.** Integrate a system with any number of components using a single RK4 routine.
 
+**Model.** Any autonomous system of ODEs `dX/dt = f(X)`, where the state X and the derivative f(X) are vectors of the same length.
+
 **Method.** The generic `RK4_generic` from Part 3A, unchanged; it works whenever the derivative function returns a vector the same length as the state.
 
 **Test.** Apply it to the two-, three-, and many-gene systems of this chapter.
@@ -90,9 +92,11 @@ produces damped oscillations.
 ::: {.callout-note title="Recipe 3H.2.1"}
 **Objective.** Simulate a two-gene negative-feedback loop (X activates Y, Y represses X).
 
-**Method.** Integrate the nondimensionalized system `dx/dt = g/(1 + y^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y` with the generic RK4.
+**Model.** A two-gene negative-feedback loop in nondimensional form, with Hill coefficient 3 and unit degradation: `dx/dt = g/(1 + y^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y`.
 
-**Test.** The negative-feedback circuit at the chapter's g and h.
+**Method.** Integrate the nondimensionalized system with the generic RK4.
+
+**Test.** `g = 10`, `h = 10`.
 
 **Verification.** Trajectories converge to a single stable steady state, spiraling in.
 :::
@@ -255,9 +259,11 @@ states, the bistability we analyzed before.
 ::: {.callout-note title="Recipe 3H.4.1"}
 **Objective.** Simulate the toggle switch (X and Y repress each other) in nondimensionalized form.
 
-**Method.** Integrate `dx/dt = g/(1 + y^3) - x`, `dy/dt = h/(1 + x^3) - y` with the generic RK4.
+**Model.** The toggle switch in nondimensional form, Hill coefficient 3 and unit degradation: `dx/dt = g/(1 + y^3) - x`, `dy/dt = h/(1 + x^3) - y`.
 
-**Test.** The double-negative circuit at the chapter's g and h, from several initial conditions.
+**Method.** Integrate the system with the generic RK4.
+
+**Test.** `g = 5`, `h = 5`, from several initial conditions.
 
 **Verification.** There are two stable steady states (x-high/y-low and x-low/y-high); which one a trajectory reaches depends on its initial condition.
 :::
@@ -317,9 +323,11 @@ then projected. With $g = h = l = 5$ the trajectories converge to a closed loop,
 ::: {.callout-note title="Recipe 3H.5.1"}
 **Objective.** Simulate a three-gene repressilator (a ring of three repressions) and see sustained oscillations.
 
-**Method.** Integrate `dx/dt = g/(1 + z^3) - x`, `dy/dt = h/(1 + x^3) - y`, `dz/dt = l/(1 + y^3) - z` with the generic RK4.
+**Model.** A ring of three mutual repressions in nondimensional form (X repressed by Z, Y by X, Z by Y), Hill coefficient 3 and unit degradation: `dx/dt = g/(1 + z^3) - x`, `dy/dt = h/(1 + x^3) - y`, `dz/dt = l/(1 + y^3) - z`.
 
-**Test.** The three-gene ring at the chapter's parameters.
+**Method.** Integrate the three-variable ring with the generic RK4.
+
+**Test.** `g = h = l = 5`.
 
 **Verification.** The three genes settle into a sustained limit-cycle oscillation, each peaking in turn in a fixed order.
 :::
@@ -411,9 +419,11 @@ coexistence, and at strong interaction it never settles, fluctuating persistentl
 ::: {.callout-note title="Recipe 3H.6.1"}
 **Objective.** Simulate a large system of many interacting species with the same integrator.
 
-**Method.** A generalized Lotka-Volterra model of S species, `dN_i/dt = N_i*(1 - sum_j a_ij*N_j) + D`, with self-terms `a_ii = 1`, random off-diagonals, and a small dispersal D, integrated with the generic RK4.
+**Model.** A generalized Lotka-Volterra community of S species with a small immigration term, `dN_i/dt = N_i*(1 - sum_j a_ij*N_j) + D`, with self-interaction `a_ii = 1` and random off-diagonal interactions `a_ij`.
 
-**Test.** S interacting bacterial species with a random interaction matrix.
+**Method.** Build the interaction matrix, then integrate with the generic RK4.
+
+**Test.** `S = 50` species, dispersal `D = 1e-6`, off-diagonal `a_ij` drawn from Uniform(0, 2a) with mean interaction strength a = 0.08 (weak), 0.16, and 0.64 (strong).
 
 **Verification.** The same RK4 routine scales to S variables, and the community relaxes to a steady state in which some species coexist while others fall to near-extinction.
 :::

@@ -169,9 +169,11 @@ sign-flip version is far faster.
 ::: {.callout-note title="Recipe 3B.2.1"}
 **Objective.** Find every steady state of the toggle switch as the intersections of its nullclines.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Build the two nullclines, then find where they cross with a segment-intersection test; a faster version first narrows to segments that change sign before testing pairs.
 
-**Test.** The toggle-switch nullclines.
+**Test.** The toggle-switch nullclines with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
 **Verification.** It returns three steady states (two stable, one unstable); the fast version agrees with the exhaustive all-pairs search while testing far fewer pairs.
 :::
@@ -335,9 +337,11 @@ middle one is a saddle point.
 ::: {.callout-note title="Recipe 3B.3.1"}
 **Objective.** Classify each steady state of a two-variable system as stable or unstable.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Linearize about the steady state and take the eigenvalues of the 2x2 Jacobian (computed numerically); the state is stable when both eigenvalues have negative real part.
 
-**Test.** The three steady states of the toggle switch.
+**Test.** The three steady states of the toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`).
 
 **Verification.** The two outer states are stable and the middle one is an unstable saddle, matching the bistable simulations.
 :::

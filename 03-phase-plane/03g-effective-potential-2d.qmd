@@ -114,9 +114,11 @@ the potential values.
 ::: {.callout-note title="Recipe 3G.2.1"}
 **Objective.** Compute an effective potential for the two-variable toggle switch along its nullclines, to locate the steady states as extrema.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Integrate the potential by the trapezoidal rule along each nullcline and plot the accumulated value against X and against Y.
 
-**Test.** The toggle-switch nullclines.
+**Test.** The toggle-switch nullclines with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
 **Verification.** Each curve dips to a minimum at the stable states and rises to a maximum at the saddle; the two paths do not agree on the potential values, since the flow is not a true gradient.
 :::

@@ -43,9 +43,11 @@ Part 3B.
 ::: {.callout-note title="Recipe 3E.1.1"}
 **Objective.** Trace a bifurcation diagram: the steady states of the toggle switch versus a control parameter, colored by stability.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** At each parameter value, build the nullclines (separation of variables), find their intersections (steady states), and classify each by its Jacobian eigenvalues; sweep the parameter and plot steady-state X against it.
 
-**Test.** The toggle switch, sweeping a control parameter across a range.
+**Test.** The toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`), sweeping the X production rate gX1 from 0 to 100.
 
 **Verification.** Stable and unstable branches appear and merge at bifurcation points, so the number and stability of steady states change with the parameter.
 :::

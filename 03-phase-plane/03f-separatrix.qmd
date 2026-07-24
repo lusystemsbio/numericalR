@@ -110,9 +110,11 @@ the red separatrix, confirming that it is the boundary between the two basins.
 ::: {.callout-note title="Recipe 3F.2.1"}
 **Objective.** Trace the separatrix dividing the toggle switch's two basins of attraction.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Integrate the time-reversed system `dX/dt = -f(X)` from points just beside the saddle; the reversed flow carries them outward along the separatrix.
 
-**Test.** The toggle switch, seeding ten points near the saddle (about (190, 127)).
+**Test.** The toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`), seeding ten points near the saddle (about (190, 127)).
 
 **Verification.** The reversed trajectories trace a curve that no forward trajectory from random starts ever crosses, confirming it is the boundary between the two basins.
 :::

@@ -46,9 +46,11 @@ system and is qualitatively different from the attractor dynamics of Parts 3A-3C
 ::: {.callout-note title="Recipe 3D.2.1"}
 **Objective.** Simulate the Lotka-Volterra predator-prey model and see its oscillations and closed orbits.
 
-**Method.** Integrate the two-variable system `dN/dt = N*(a - b*P)`, `dP/dt = P*(c*N - d)` with the generic RK4, from several initial conditions.
+**Model.** The Lotka-Volterra predator-prey model: prey N grow and are eaten by predators P, which grow on the prey and die off, `dN/dt = N*(a - b*P)`, `dP/dt = P*(c*N - d)`.
 
-**Test.** Positive rates a, b, c, d, from several starting prey/predator counts.
+**Method.** Integrate the two-variable system with the generic RK4, from several initial conditions.
+
+**Test.** `a = 1, b = 0.03, c = 0.02, d = 1`; starting counts including (N, P) = (30, 10), (40, 20), (30, 25), (20, 40); integrated 50 time units at dt = 0.01.
 
 **Verification.** The two populations oscillate out of phase in time, and in the phase plane the trajectories form a family of nested closed loops.
 :::
@@ -398,9 +400,11 @@ of the data.
 ::: {.callout-note title="Recipe 3D.6.1"}
 **Objective.** Fit the Lotka-Volterra parameters to observed data by minimizing the error.
 
+**Model.** The Lotka-Volterra predator-prey model: prey N grow and are eaten by predators P, which grow on the prey and die off, `dN/dt = N*(a - b*P)`, `dP/dt = P*(c*N - d)`.
+
 **Method.** Simulate the model for trial parameters, measure the sum of squared differences from the data, and adjust the parameters with a local optimizer (Newton or BFGS) from a reasonable starting guess.
 
-**Test.** The lynx-hare data, from a hand-picked parameter guess.
+**Test.** The lynx-hare yearly data, from a hand-picked starting guess for a, b, c, d.
 
 **Verification.** The fitted trajectory follows both the time courses and the phase-plane loop of the data.
 :::
@@ -513,6 +517,8 @@ excellent starting guess for the error minimization (Practice Q5).
 
 ::: {.callout-note title="Recipe 3D.7.1"}
 **Objective.** Fit the Lotka-Volterra parameters by linear regression, using that the model is linear in its parameters.
+
+**Model.** The Lotka-Volterra predator-prey model: prey N grow and are eaten by predators P, which grow on the prey and die off, `dN/dt = N*(a - b*P)`, `dP/dt = P*(c*N - d)`.
 
 **Method.** Replace the time derivatives with centered finite differences at each data point, turning the rate equations into a linear system, and solve it by ordinary least squares (no intercept).
 

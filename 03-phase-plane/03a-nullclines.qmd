@@ -281,9 +281,11 @@ next two sections give general numerical alternatives.
 ::: {.callout-note title="Recipe 3A.4.1"}
 **Objective.** Draw the X- and Y-nullclines of the toggle switch, whose intersections are the steady states.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Solve each nullcline in closed form by separation of variables: rearrange `fX(X,Y) = 0` for X and `fY(X,Y) = 0` for Y, sweeping the other variable.
 
-**Test.** The toggle-switch nullclines.
+**Test.** The toggle switch with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
 **Verification.** The two nullclines cross three times, matching the two stable steady states and one unstable state seen by simulation.
 :::
@@ -343,9 +345,11 @@ though a fine grid over two dimensions can be costly.
 ::: {.callout-note title="Recipe 3A.5.1"}
 **Objective.** Draw the nullclines with a general method that does not need separation of variables.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Treat each nullcline as the zero-level contour of the surface `Z = fX(X,Y)` (and `Z = fY(X,Y)`), evaluated on a grid and traced by a contour routine.
 
-**Test.** The toggle switch on a grid over the (X, Y) plane.
+**Test.** The toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`) on a grid over the (X, Y) plane.
 
 **Verification.** The zero contours reproduce the same nullclines as separation of variables, and their crossings match the steady states.
 :::
@@ -396,9 +400,11 @@ method is identical to 2F, the Python implementation is omitted (see
 ::: {.callout-note title="Recipe 3A.6.1"}
 **Objective.** Trace a nullcline by following it as a curve, when neither separation nor a grid contour is convenient.
 
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
+
 **Method.** Arc-length numerical continuation (predictor-corrector): treat Y as the control parameter, follow `X(Y)` along `fX(X,Y) = 0`, stepping by arc length and correcting back with Newton's method using the Jacobian.
 
-**Test.** The toggle switch's X-nullcline `fX(X,Y) = 0`.
+**Test.** The toggle switch's X-nullcline `fX(X,Y) = 0`, with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
 **Verification.** The traced curve matches the nullcline found by the other two methods.
 :::
