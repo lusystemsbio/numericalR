@@ -28,6 +28,18 @@ two parents to make two offspring; mutation nudges one randomly chosen variable 
 small uniform step. Each generation we make `np` offspring from `np` parents, then keep
 the best `np` of the combined pool.
 
+::: {.callout-note title="Recipe 9C.1.1"}
+**Objective.** Minimize a rugged multimodal function with a genetic algorithm.
+
+**Model.** The Rastrigin function `f(x1, x2) = 20 + sum(x_i^2 - 10*cos(2*pi*x_i))`, whose global minimum f = 0 sits at the origin amid many local minima.
+
+**Method.** A genetic algorithm for continuous variables: crossover swaps whole variables between parents, mutation nudges one variable, and the fittest members are kept each generation (elitist selection).
+
+**Test.** Two variables on `[-5.12, 5.12]^2`, population 50, crossover rate 0.7, 100 generations, mutation step 10% of the range; seed 1.
+
+**Verification.** The best score drops toward zero, converging on the global minimum at the origin despite the many local minima.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -160,6 +172,18 @@ For the traveling salesman problem the genetic representation is a *permutation*
 city indices, and the fitness is the total tour length. Permutations need
 permutation-preserving operators. For mutation we use either a *point* swap (exchange
 two cities) or an *inversion* (reverse the order of a segment).
+
+::: {.callout-note title="Recipe 9C.2.1"}
+**Objective.** Approximate the shortest tour of many cities with a genetic algorithm.
+
+**Model.** The traveling salesman problem with the tour-length objective (the sum of consecutive city distances plus the return leg); a candidate solution is a permutation of the city indices.
+
+**Method.** A genetic algorithm on permutations, using permutation-preserving mutation (swap two cities, or reverse a segment) and order-preserving crossover.
+
+**Test.** A 10-city instance, population 10, crossover rate 0.8, 50 generations.
+
+**Verification.** The genetic algorithm recovers the exact shortest tour found by dynamic programming on the small instance, and scales to larger instances where exact methods cannot.
+:::
 
 ### R implementation {.impl}
 

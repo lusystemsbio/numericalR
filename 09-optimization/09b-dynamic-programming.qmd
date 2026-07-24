@@ -37,6 +37,18 @@ $$
 We fill the score matrix $F$ row by row, then *trace back* from $F_{n_A, n_B}$ to recover
 the alignment (several alignments can share the optimal score).
 
+::: {.callout-note title="Recipe 9B.1.1"}
+**Objective.** Compute the optimal end-to-end alignment of two sequences.
+
+**Model.** Sequence-alignment scoring with a match score `s_match`, mismatch `s_mismatch`, and gap penalty g; the score matrix follows `F_{i,j} = max(F_{i-1,j-1} + S(A_i, B_j), F_{i,j-1} + g, F_{i-1,j} + g)`.
+
+**Method.** The Needleman-Wunsch global alignment dynamic program (fill the score matrix, then trace back from the last cell).
+
+**Test.** Sequences `A = GAATTCAGTTA`, `B = GGATCGA`; two schemes, match-only (`s_match = 1`, others 0) and (`s_match = 3, s_mismatch = -3, gap = -2`).
+
+**Verification.** Rewarding only matches maximizes matches regardless of gaps, while adding mismatch and gap penalties balances matches against gap cost, giving a different optimal alignment.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -171,6 +183,18 @@ $$
 The traceback starts from the largest entry of $H$ and stops when it reaches a zero, so
 only the most similar stretch is aligned.
 
+::: {.callout-note title="Recipe 9B.2.1"}
+**Objective.** Find the best-matching subsegment of two sequences.
+
+**Model.** The same match/mismatch/gap scoring, with negative scores clamped to zero, `H_{i,j} = max(H_{i-1,j-1} + S(A_i, B_j), H_{i,j-1} + g, H_{i-1,j} + g, 0)`.
+
+**Method.** The Smith-Waterman local alignment dynamic program (trace back from the largest entry, stopping at a zero).
+
+**Test.** Sequences `A = GAATTCAGTTA`, `B = GGATCGA`, scoring `s_match = 3, s_mismatch = -3, gap = -2`.
+
+**Verification.** The global alignment spans both sequences end to end, while the local alignment reports only the best-matching internal segment.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -271,6 +295,18 @@ $$ g(x, z) = \min_{i \in z}\left( g(i, z \setminus i) + d(i, x) \right) , \tag{4
 where $z \setminus i$ removes city $i$ from $z$ and $d(i, x)$ is the distance between
 cities $i$ and $x$. Recursing down to the empty set and remembering the best $i$ at each
 step lets us reconstruct the optimal tour. The implementation is remarkably short.
+
+::: {.callout-note title="Recipe 9B.3.1"}
+**Objective.** Find the exact shortest tour through a set of cities.
+
+**Model.** The traveling salesman problem: the shortest closed route visiting each of n cities once, from a Euclidean distance matrix; the Held-Karp recurrence is `g(x, S) = min over i in S of (g(i, S without i) + d(i, x))`.
+
+**Method.** Dynamic programming for the traveling salesman problem (the Held-Karp algorithm).
+
+**Test.** 10 cities at fixed coordinates, the tour starting and ending at city 1.
+
+**Verification.** It returns the exact shortest tour through all ten cities; the cost is `O(n^2 * 2^n)`, so it stays practical only for small n.
+:::
 
 ### R implementation {.impl}
 

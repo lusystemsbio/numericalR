@@ -82,6 +82,18 @@ proposes a small uniform displacement and accepts it with probability given by
 Equation (1). The `mh` function also returns its acceptance rate, which we reuse in the
 parallel-tempering method below.
 
+::: {.callout-note title="Recipe 9A.2.1"}
+**Objective.** Explore a multi-minimum landscape with Metropolis-Hastings at fixed temperature.
+
+**Model.** Himmelblau's function `f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2`, which has four equal minima at f = 0.
+
+**Method.** The Metropolis-Hastings algorithm at fixed temperature, with a uniform proposal displacement and acceptance `a = min(1, exp(-de/T))`.
+
+**Test.** Start at (0, 0), `1e4` steps, step size 0.5, temperatures `T = 1, 10, 30, 50`; seed 1 per temperature.
+
+**Verification.** No single temperature both explores widely and settles: T = 1 traps in one basin, while T = 50 roams but never pins a minimum.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -166,6 +178,18 @@ basins and cools toward zero to settle into a minimum. Two common cooling schedu
 a linear decrease and a geometric decrease (multiplying $T$ by a factor just below 1
 each step); the geometric schedule spends more steps at low temperature and usually
 converges faster. We fold both into one function.
+
+::: {.callout-note title="Recipe 9A.3.1"}
+**Objective.** Find a global minimum by cooling a Metropolis chain.
+
+**Model.** Himmelblau's function `f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2`, which has four equal minima at f = 0.
+
+**Method.** Simulated annealing, lowering the temperature during a single run on a geometric (or linear) cooling schedule with Metropolis acceptance.
+
+**Test.** Start at (0, 0), `1e4` steps, step size 0.5, maximum temperature 50, geometric schedule (scaling 0.999); four runs with seeds 1 to 4.
+
+**Verification.** Each run cools from a broad search into a single minimum, but which minimum depends on the random path, so different seeds land in different basins.
+:::
 
 ### R implementation {.impl}
 
@@ -278,6 +302,18 @@ which preserves detailed balance so every replica still samples the Boltzmann
 distribution at its own temperature. We generalize to any number of replicas, running
 the `mh` sampler on each between swaps and only swapping adjacent temperatures (in
 alternating even/odd rounds for ergodicity).
+
+::: {.callout-note title="Recipe 9A.4.1"}
+**Objective.** Sample every basin in one run by exchanging replicas across temperatures.
+
+**Model.** Himmelblau's function `f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2`, which has four equal minima at f = 0.
+
+**Method.** Parallel tempering (replica exchange): run a Metropolis chain at each of several temperatures and swap adjacent-temperature replicas with acceptance `a = min(1, exp((f_i - f_j)*(1/T_i - 1/T_j)))`.
+
+**Test.** 6 replicas at `T = 2.3, 5, 10, 20, 40, 80` with step sizes 0.3 to 2.5, all started at the origin, 100 swap rounds of 100 steps; seed 1.
+
+**Verification.** The coldest replica stays inside minima yet still hops between them via configurations passed down from hotter replicas, while the hottest roams the whole landscape.
+:::
 
 ### R implementation {.impl}
 
@@ -395,6 +431,18 @@ $$ a = \min\left(1, \frac{c'}{c}\, e^{-f(1/T' - 1/T)}\right) , \tag{4} $$
 where the weights $c$ bias how often each temperature is visited (larger weights at low
 temperature emphasize refining minima). The weights would be the partition functions to
 sample all temperatures equally, but since those are unknown we choose them by hand.
+
+::: {.callout-note title="Recipe 9A.5.1"}
+**Objective.** Cross barriers and settle into minima within one chain by letting the temperature wander.
+
+**Model.** Himmelblau's function `f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2`, which has four equal minima at f = 0.
+
+**Method.** Simulated tempering: a single chain whose temperature random-walks a discrete ladder, with temperature moves accepted as `a = min(1, (c'/c)*exp(-f*(1/T' - 1/T)))`.
+
+**Test.** Start at (0, 0), `1e4` steps, mixing fraction 0.9, step size 1, a 16-rung ladder `T = 5, 10, ..., 80` with weights decreasing linearly from 5 to 1; seed 1.
+
+**Verification.** Because the temperature wanders up and down, one trajectory both crosses barriers when hot and settles into minima when cold, visiting all four basins.
+:::
 
 ### R implementation {.impl}
 
