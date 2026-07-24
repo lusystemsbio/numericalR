@@ -25,6 +25,18 @@ $\pi/2$, a damped oscillation settling at $B$), $r = \pi/2 \approx 1.57$ (the Ho
 point, an oscillation that decays extremely slowly), and $r = 1.7$ (above $\pi/2$,
 a sustained oscillation, a stable limit cycle).
 
+::: {.callout-note title="Recipe 4B.1.1"}
+**Objective.** Simulate delay-driven logistic growth and locate the onset of sustained oscillation.
+
+**Model.** The Hutchinson delay-logistic equation, logistic growth whose crowding term uses the population one delay in the past, `dN/dt = r*N(t)*(1 - N(t-tau)/B)`, with carrying capacity B.
+
+**Method.** The second-order Heun integrator for delay differential equations.
+
+**Test.** Constant history `N(t) = 1`; `tau = 1`, `B = 100`, `dt = 0.01`; growth rates r = 0.3, 1.5, pi/2 (about 1.57), and 1.7.
+
+**Verification.** Crossing the Hopf point `r*tau = pi/2`: r = 0.3 grows monotonically to B, r = 1.5 is a damped oscillation settling at B, r = pi/2 decays extremely slowly, and r = 1.7 becomes a sustained oscillation (a stable limit cycle).
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -115,6 +127,18 @@ $X_{th} = 200$, $n = 4$, $k = 0.1$, the delay decides the dynamics: a short dela
 response turns into a damped and then a sustained oscillation. Delayed negative
 feedback is a generic route to biological oscillations.
 
+::: {.callout-note title="Recipe 4B.2.1"}
+**Objective.** Simulate a self-repressing gene whose feedback acts after a delay, and watch oscillations emerge as the delay grows.
+
+**Model.** Delayed negative autoregulation: basal plus repressive Hill production driven by the protein level a delay earlier, minus linear degradation, `dX/dt = g0 + g1/(1 + (X(t-tau)/Xth)^n) - k*X(t)`.
+
+**Method.** The second-order Heun integrator for delay differential equations.
+
+**Test.** Constant history `X(t) = 1`; `g0 = 10, g1 = 60, Xth = 200, n = 4, k = 0.1`, `dt = 0.01`, to t = 200; delay swept `tau = 5, 10, 15, 20`.
+
+**Verification.** A short delay (tau = 5) settles at the steady state near 250; larger delays turn the response into a damped and then a sustained oscillation.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -171,6 +195,18 @@ carries a *vector* history. The undelayed model ($\tau = 0$) has neutrally stabl
 closed orbits (the center of [Part 3D](../03-phase-plane/03d-predator-prey.qmd)).
 The delay breaks that neutral balance: even a one-step delay ($\tau = 0.01$) makes
 the orbit spiral outward, and larger delays deviate faster.
+
+::: {.callout-note title="Recipe 4B.3.1"}
+**Objective.** Simulate a predator-prey model in which each species responds to the other after a lag.
+
+**Model.** The Lotka-Volterra system with delayed cross-terms, `dN/dt = N(t)*(a - b*P(t-tau))`, `dP/dt = P(t)*(c*N(t-tau) - d)`.
+
+**Method.** The generic multi-variable Heun integrator for delay differential equations, carrying a vector state and vector history.
+
+**Test.** `a = 1, b = 0.03, c = 0.02, d = 1`; initial (N, P) = (30, 10); `dt = 0.01`, to t = 50; delay `tau = 0` and `tau = 0.01`.
+
+**Verification.** Without delay (tau = 0) the orbit is a neutrally stable closed loop; even a one-step delay (tau = 0.01) makes it spiral outward.
+:::
 
 ### R implementation {.impl}
 

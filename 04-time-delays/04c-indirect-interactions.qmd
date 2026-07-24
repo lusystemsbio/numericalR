@@ -31,6 +31,18 @@ After nondimensionalization,
 with maximum production rates $g$ and $h$. With $g = h = 10$ and no delay, the
 loop relaxes to a stable steady state.
 
+::: {.callout-note title="Recipe 4C.1.1"}
+**Objective.** Simulate a two-gene negative-feedback loop without any delay, as a baseline.
+
+**Model.** A nondimensional two-node loop where X activates Y and Y represses X (Hill coefficient 3, unit degradation), `dx/dt = g/(1 + y^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y`.
+
+**Method.** The generic multi-variable Heun integrator (ordinary, no delay).
+
+**Test.** `g = 10`, `h = 10`; initial (x, y) = (1, 1); `dt = 0.01`, to t = 10.
+
+**Verification.** With no delay the loop simply relaxes to a stable steady state, with no oscillation.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -99,6 +111,18 @@ and act through $Y$),
 
 with constant history $x(t) = x_0$, $y(t) = y_0$ for $t \leq 0$. With $\tau = 2$
 the stable steady state gives way to a sustained oscillation.
+
+::: {.callout-note title="Recipe 4C.2.1"}
+**Objective.** Add a delay to the two-node loop's repression and see it destabilize.
+
+**Model.** The same two-node loop as 4C.1, but the repression of X by Y acts after a delay, `dx/dt = g/(1 + y(t-tau)^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y`.
+
+**Method.** The generic multi-variable Heun integrator for delay differential equations.
+
+**Test.** `g = 10`, `h = 10`, `tau = 2`; constant history (x, y) = (1, 1); `dt = 0.01`, to t = 30.
+
+**Verification.** The delay destabilizes the steady state that was stable without it, giving a sustained oscillation.
+:::
 
 ### R implementation {.impl}
 
@@ -193,6 +217,18 @@ dynamics closer to the $\tau = 2$ delayed case:
 
 A time delay and a chain of intermediate reactions are thus two ways to model the
 same lag.
+
+::: {.callout-note title="Recipe 4C.3.1"}
+**Objective.** Show that a chain of intermediate genes can stand in for a delay in producing oscillations.
+
+**Model.** Undelayed repression rings that replace the delay with explicit intermediate genes. Three-node ring (X activates Y activates Z, Z represses X): `dx/dt = g/(1 + z^3) - x`, `dy/dt = h*x^3/(1 + x^3) - y`, `dz/dt = l*y^3/(1 + y^3) - z`. Four-node ring: the same chain with a fourth gene W between Z and X, `dx/dt = g/(1 + w^3) - x`, ..., `dw/dt = m*z^3/(1 + z^3) - w`. Every edge is a Hill interaction (coefficient 3) with unit degradation.
+
+**Method.** The generic multi-variable Heun integrator (ordinary, no delay).
+
+**Test.** All maximal rates equal to 10 (`g = h = l = 10`, and `m = 10` for four nodes); initial state all ones; `dt = 0.01`, to t = 30.
+
+**Verification.** The three-node ring already oscillates without any delay; adding a fourth node lengthens the period, approaching the delayed two-node loop, so a delay and a chain of intermediate reactions capture the same lag.
+:::
 
 ### R implementation {.impl}
 
