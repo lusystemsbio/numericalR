@@ -38,6 +38,8 @@ library's own stochastic algorithm.
 
 **Test.** Zachary's karate club, drawn with a Kamada-Kawai layout.
 
+**Show.** The printed degree, clustering, diameter, and betweenness, and the network drawn with a Kamada-Kawai layout.
+
 **Verification.** The club has a few high-degree hubs, mean degree about 4.6, diameter 5, and clustering about 0.57, and the two highest-betweenness nodes are the instructor and president who bridge the factions.
 :::
 
@@ -172,6 +174,8 @@ biological networks show. Both generators are short to write.
 
 **Test.** `n = 1000`; Erdos-Renyi with `p = 0.006`, Barabasi-Albert with `m = 3`; seed 1.
 
+**Show.** The degree distributions: a histogram for Erdos-Renyi and a log-log scatter for Barabasi-Albert.
+
 **Verification.** Erdos-Renyi degrees cluster tightly around the mean, while Barabasi-Albert degrees follow a straight line on log-log axes (a scale-free power law), matching biological networks better.
 :::
 
@@ -279,6 +283,8 @@ best increases $Q$.
 
 **Test.** Zachary's karate club, drawn with the same Kamada-Kawai layout as 10C.1.
 
+**Show.** The network drawn with nodes colored by community, and the modularity Q.
+
 **Verification.** The spectral split separates the club into communities of 18 and 16 with modularity about 0.37, closely matching the factional split Zachary recorded.
 :::
 
@@ -369,6 +375,8 @@ repeat, then apply this to two circuits already studied as continuous systems in
 
 **Test.** The generic `boolean_attractors(update, n)` driver, which runs every one of the `2^n` start states to its first repeat.
 
+**Show.** The attractors enumerated for a given update rule (applied in 10C.5 and 10C.6).
+
 **Verification.** The routine returns every fixed-point and cyclic attractor, ready to apply to specific circuits.
 :::
 
@@ -435,6 +443,8 @@ update rule enumerates all its attractors from every one of the 4 possible start
 
 **Test.** The toggle-switch update rule on `n = 2` genes.
 
+**Show.** The toggle switch's attractors printed as arrow chains.
+
 **Verification.** It finds two fixed points, `01` and `10` (the mutually exclusive on-states of a bistable switch), and an oscillation `00 -> 11 -> 00`.
 :::
 
@@ -478,6 +488,8 @@ Boolean version has the same three-gene ring topology, reduced to on/off states.
 **Method.** Boolean attractor enumeration (from 10C.4) over all eight states.
 
 **Test.** The repressilator update rule on `n = 3` genes.
+
+**Show.** The repressilator's attractors printed as arrow chains.
 
 **Verification.** It finds no fixed points, only two cyclic attractors: `000 -> 111 -> 000` and a six-state cycle, the discrete analog of the continuous limit cycle.
 :::

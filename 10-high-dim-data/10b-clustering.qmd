@@ -30,6 +30,8 @@ squares (WSS).
 
 **Test.** `k = 3`, 10 restarts, up to 100 iterations; seed 123.
 
+**Show.** A scatter of the points colored by cluster, with the three centroids marked.
+
 **Verification.** k-means recovers the three blobs, placing a centroid at the middle of each, and the restarts guard against an unlucky initialization converging to a poor split.
 :::
 
@@ -178,6 +180,8 @@ routines (`hclust` in R, `scipy` in Python).
 
 **Test.** The three-blob data, cut into `k = 3` clusters.
 
+**Show.** The dendrogram, and the points colored by the three cut clusters.
+
 **Verification.** The dendrogram shows three clear branches, and cutting into three recovers the blobs, agreeing with k-means.
 :::
 
@@ -232,6 +236,8 @@ data.
 **Method.** k-means clustering of the z-scored genes, shown as a cluster-ordered expression heatmap.
 
 **Test.** `k = 5` clusters; heatmap color scale from -3 to 3; seed 1.
+
+**Show.** A cluster-ordered heatmap of the gene-expression data.
 
 **Verification.** The heatmap splits genes into co-expression modules that rise and fall together across the conditions, resolving the PCA progression of Part 10A into specific gene groups.
 :::
@@ -305,6 +311,8 @@ Python.
 **Method.** Gaussian mixture models fit by expectation-maximization, with the number of components chosen by the Bayesian information criterion.
 
 **Test.** The three-blob data, choosing among 1 to 6 components; seed 1.
+
+**Show.** A scatter of the points colored by mixture component, and the BIC versus number of components.
 
 **Verification.** The criterion selects three components matching the blobs, and the mixture recovers them with soft probabilities.
 :::

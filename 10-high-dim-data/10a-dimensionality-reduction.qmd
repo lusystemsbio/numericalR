@@ -92,6 +92,8 @@ samples.
 
 **Test.** The 100x2 "strip" data from 10A.1 (points scattered along a line); centering only, no scaling.
 
+**Show.** The component variances from both routes, and the PC1 direction drawn on the strip data.
+
 **Verification.** The two routes return identical variances, and on the strip data PC1 carries almost all the variance and points along the strip, recovering the regression direction of 10A.1.
 :::
 
@@ -231,6 +233,8 @@ two components then reveals their structure.
 
 **Test.** The gene-expression data (26 samples x 500 genes), colored by condition.
 
+**Show.** A scree plot and the PC1-PC2 scatter colored by condition, with the fitted principal curve.
+
 **Verification.** PC1 explains most of the variance, the samples fall in an ordered arc from condition A to I, and the principal curve summarizes that progression as a 1D coordinate per sample.
 :::
 
@@ -336,6 +340,8 @@ distorting global distances.
 **Method.** Three 2D nonlinear embeddings: classical (Torgerson) multidimensional scaling, t-SNE, and UMAP.
 
 **Test.** The gene-expression data; t-SNE perplexity 5, UMAP 5 neighbors; seed 1.
+
+**Show.** The MDS, t-SNE, and UMAP 2D embeddings, points colored by condition.
 
 **Verification.** All three separate the nine conditions; MDS lays them along the A-to-I progression (it preserves global distances), while t-SNE and UMAP emphasize tight local clusters whose between-cluster distances are not meaningful.
 :::
