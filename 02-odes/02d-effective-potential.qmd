@@ -36,6 +36,20 @@ line $kX$ exactly once, and $\frac{df}{dX} < 0$ there. We confirm this by
 computing $\frac{df}{dX}$ numerically with a central finite difference: at the
 steady state (around 250 nM) it is negative, so the state is stable.
 
+::: {.callout-note title="Recipe 2D.1.1"}
+**Objective.** Decide whether a gene circuit's steady state is stable or unstable.
+
+**Method.** Linear stability: a steady state where `f(X) = 0` is stable if the slope
+`df/dX` there is negative and unstable otherwise; estimate the slope numerically with a
+central finite difference.
+
+**Test.** The self-inhibiting gene `f(X) = g0 + g1*H_inh(X) - k*X`, whose single steady
+state is near 250 nM.
+
+**Verification.** `df/dX` at the steady state (about 250 nM) is negative, so the state
+is stable.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -277,6 +291,20 @@ ways, with an explicit loop and with a more concise, faster vectorized
 cumulative sum, then benchmark the two. Finally we show the potential for
 $k = 0.2$ and $k = 0.1$; both have a single well (monostable), in contrast to the
 bistable $k = 0.15$.
+
+::: {.callout-note title="Recipe 2D.3.1"}
+**Objective.** Compute and plot the effective potential of a one-variable gene circuit
+to see its stable and unstable states as valleys and peaks.
+
+**Method.** The effective potential `U(X) = -integral of f(x) dx` with `U(0) = 0`,
+accumulated by the trapezoidal rule `U(X+dx) = U(X) - (f(X) + f(X+dx))/2 * dx`.
+
+**Test.** The self-activating gene at k = 0.15, and again at k = 0.2 and k = 0.1.
+
+**Verification.** At k = 0.15 the potential has two basins (near 100 and 300 nM, the
+stable states) split by a barrier near 200 nM (the unstable state); at k = 0.2 and
+k = 0.1 it has a single well (monostable).
+:::
 
 ### R implementation {.impl}
 

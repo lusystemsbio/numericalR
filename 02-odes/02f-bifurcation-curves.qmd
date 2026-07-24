@@ -60,6 +60,19 @@ rather than a point cloud. Its one weakness is that it can miss a branch if the
 solution set is not connected. Here $f(X, k) = 0$ is a single connected S-shaped
 curve, so one contour captures all of it.
 
+::: {.callout-note title="Recipe 2F.2.1"}
+**Objective.** Trace the bifurcation curve as a connected, ordered set of steady states.
+
+**Method.** Treat `z = f(k, X)` as a surface over the (k, X) plane; the steady states
+are its zero-level contour, extracted by a standard contour algorithm on a grid.
+
+**Test.** The self-activating gene `f(X, k)` evaluated over a grid of (k, X).
+
+**Verification.** The zero contour is the same S-shaped curve as in Part 2E, but
+returned as connected line segments rather than a scattered point cloud; one contour
+captures the whole connected curve.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -273,6 +286,19 @@ which branch we land on. For our $f$ the derivatives it needs are
 $\frac{\partial f}{\partial X} = \frac{180}{X}\frac{(X/200)^4}{(1 + (X/200)^4)^2} - k$
 and $\frac{\partial f}{\partial k} = -X$.
 
+::: {.callout-note title="Recipe 2F.5.1"}
+**Objective.** Follow the bifurcation curve `X(k)` with a predictor-corrector method.
+
+**Method.** Numerical continuation: from a known point on `f(X, k) = 0`, predict along
+the tangent `dX/dk = -(df/dk) / (df/dX)`, then correct back onto the curve with a root
+solve at the new k.
+
+**Test.** The self-activating gene, continued across a range of k.
+
+**Verification.** It follows a branch accurately away from folds but stalls at a fold
+(turning point), where `dX/dk` diverges because k is multivalued there.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -403,6 +429,20 @@ and $\Delta X \to \pm\Delta s$, so the predictor moves almost vertically and rou
 the corner instead of overshooting. The $\pm$ sign is chosen to keep travelling in
 the same direction as the previous step, and Newton corrects each predicted point
 back onto the curve.
+
+::: {.callout-note title="Recipe 2F.6.1"}
+**Objective.** Trace the entire S-curve, through the folds, without stalling.
+
+**Method.** Arc-length continuation: parameterize the curve by arc length s instead of
+k, splitting each step into `dk` and `dX` with `ds^2 = dk^2 + dX^2` and `dX = h*dk`
+(where `h = dX/dk`), so the step stays finite where `dX/dk` diverges.
+
+**Test.** The self-activating gene across the full bistable range.
+
+**Verification.** The curve is traced smoothly through both folds, recovering the
+complete S-shape (both stable branches and the unstable middle) where plain
+k-continuation (2F.5) stalled.
+:::
 
 ### R implementation {.impl}
 
