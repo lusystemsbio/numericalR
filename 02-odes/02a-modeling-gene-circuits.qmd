@@ -90,7 +90,7 @@ X(t) = X_0 + \left(\frac{g}{k} - X_0\right)\left(1 - e^{-kt}\right) . \tag{6}
 Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
 $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2A.1.1"}
 **Objective.** Plot the time course of a constitutively expressed gene from several
 initial conditions and watch them settle to a common steady state.
 

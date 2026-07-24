@@ -80,7 +80,7 @@ for a chosen tolerance $\epsilon$. (This is in fact a special case of Newton's
 method for finding the root of $f(x) = x^2 - a$; [Part 2F](../02-odes/02f-bifurcation-curves.qmd)
 implements Newton's method for a general $f$.)
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 1C.3.1"}
 **Objective.** Compute the square root of a positive number by iteration, without a
 built-in square-root function.
 

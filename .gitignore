@@ -71,5 +71,6 @@ vignettes/*.pdf
 [0-9][0-9]-*/*-R.qmd
 [0-9][0-9]-*/*-py.qmd
 
-# auto-generated recipe index (rebuilt by scripts/make-recipe-index.py on pre-render)
-/recipe-index.qmd
+# auto-generated recipe index table (rebuilt by scripts/make-recipe-index.py on
+# pre-render; included into reference-tables.qmd)
+/recipe-index-generated.qmd

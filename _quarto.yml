@@ -94,7 +94,6 @@ book:
         - 10-high-dim-data/10b-clustering.qmd
         - 10-high-dim-data/10c-network-algorithms.qmd
         - 10-high-dim-data/10d-exercises.qmd
-    - recipe-index.qmd
     - reference-tables.qmd
     - references.qmd
 

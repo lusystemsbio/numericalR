@@ -32,7 +32,7 @@ $X(t)$ at every time step. The smaller the step size $\Delta t$, the more
 accurate the integration, but the more iterations (and the more compute time)
 are needed to simulate a fixed duration.
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2B.1.1"}
 **Objective.** Integrate the gene-expression ODE from an initial value and compare
 the numerical solution to the exact one at two step sizes.
 
@@ -381,7 +381,7 @@ $$
 so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2 + O(\Delta t^3) = X(t+\Delta t) - X(t) + O(\Delta t^3)$,
 which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2B.4.1"}
 **Objective.** Implement a second-order Heun integrator for a one-variable ODE.
 
 **Method.** Heun's method: take an Euler step to a predicted endpoint, evaluate the
@@ -441,7 +441,7 @@ X(t+\Delta t) &= X(t) + k_2
 \end{aligned} \tag{5}
 \end{equation}
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2B.5.1"}
 **Objective.** Implement the second-order Runge-Kutta (midpoint) integrator.
 
 **Method.** RK2: take a trial half-step to the midpoint of the interval and use the
@@ -500,7 +500,7 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}
 \end{aligned} \tag{6}
 \end{equation}
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2B.6.1"}
 **Objective.** Implement the fourth-order Runge-Kutta integrator.
 
 **Method.** RK4: combine four slope evaluations across the step (at the start, twice
@@ -673,7 +673,7 @@ $$X_{n+1} = \frac{X_n + hg}{1 + hk} .$$
 We use stiff parameters ($k = 10$) where forward Euler with $\Delta t = 0.2$ is
 unstable.
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 2B.8.1"}
 **Objective.** Integrate a stiff version of the model where the forward Euler method
 blows up, using an implicit step.
 

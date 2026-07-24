@@ -22,7 +22,7 @@ pre:not(.sourceCode), pre:not(.sourceCode) > code {
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll('.callout[title="Recipe"]').forEach(function (card) {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
     var header = card.querySelector(".callout-header");
     var body = card.querySelector(".callout-body");
     if (!header || !body) return;

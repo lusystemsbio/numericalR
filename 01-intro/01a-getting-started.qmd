@@ -79,6 +79,13 @@ right). A recipe is something to read and attempt before you look at the
 implementation. Even a failed attempt makes the reference code far more useful when
 you turn to it.
 
+Recipe boxes appear for the major methods and applications, not for every code block.
+Each was first drafted by an AI assistant (Claude Opus 4.8) and then checked and
+corrected by hand. Producing them this way doubles as a test of the assistant itself:
+a method it cannot compress into a correct objective, test, and verification is one it
+has not really understood. Every box is collected in the
+[recipe index](reference-tables.qmd).
+
 A recipe also converts into a **structured prompt**, which is how you get help on
 the parts you cannot yet write without giving up the understanding. Instead of a
 vague request, you fill a fixed template with the recipe's fields:
@@ -115,7 +122,7 @@ Here is the smallest script that still has something worth asking about: a
 comment, a variable, a function, and a loop with a condition inside it. Here is
 its recipe:
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 1A.3.1"}
 **Objective.** Label each number in a list as "even" or "odd".
 
 **Method.** Loop over the numbers, test each with the modulo (remainder) operator,
@@ -360,7 +367,7 @@ neighbors [@gardner1970game]:
 - A dead cell with exactly 3 live neighbors becomes alive.
 - Every other cell dies or stays dead.
 
-::: {.callout-note title="Recipe"}
+::: {.callout-note title="Recipe 1A.5.1"}
 **Objective.** Simulate Conway's Game of Life on a small grid and follow a glider
 moving across it.
 
