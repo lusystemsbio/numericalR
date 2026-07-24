@@ -74,3 +74,6 @@ vignettes/*.pdf
 # auto-generated recipe index table (rebuilt by scripts/make-recipe-index.py on
 # pre-render; included into reference-tables.qmd)
 /recipe-index-generated.qmd
+
+# Python bytecode cache
+__pycache__/
