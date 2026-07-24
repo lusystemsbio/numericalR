@@ -151,6 +151,11 @@ format:
         % alone did not take effect; force it on the highlighting Verbatim env)
         \usepackage{fvextra}
         \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\}}
+        % Let long inline monospace tokens (e.g. find_intersection_all_fast in the
+        % reference tables) break after an underscore so they wrap inside narrow table
+        % columns instead of overflowing. Underscores appear only in code, so prose is
+        % unaffected; the break is taken only when a token cannot fit on the line.
+        \renewcommand{\_}{\textunderscore\allowbreak}
         % --- fill pages better: compress heading whitespace ---
         \renewcommand*{\chapterheadstartvskip}{\vspace*{.5\baselineskip}}
         \renewcommand*{\chapterheadendvskip}{\vspace*{.8\baselineskip}}

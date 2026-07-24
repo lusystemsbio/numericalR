@@ -29,7 +29,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Programming foundations (Part 1)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Functions, control flow, vectorization | base R | `numpy`, base Python | [1A](01-intro/01a-getting-started.qmd) |
 | Timing and benchmarking | `microbenchmark` | `timeit` | [1B](01-intro/01b-efficient-programming.qmd) |
 | Speeding up code (compilation / JIT) | `compiler`, vectorization | `numba` (`@njit`) | [1B](01-intro/01b-efficient-programming.qmd) |
@@ -41,7 +41,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Ordinary differential equations (Part 2)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Explicit integrators (Euler, Heun/RK2, RK4) | `Euler`, `Heun`, `RK2`, `RK4` | `Euler`, `Heun`, `RK2`, `RK4` | [2B](02-odes/02b-numerical-integration.qmd) |
 | Backward (implicit) Euler | `Euler_backward_1g` | `euler_backward_1g` | [2B](02-odes/02b-numerical-integration.qmd) |
 | ODE integration via library | `deSolve::ode` | `scipy.integrate.odeint` / `solve_ivp` | [2B](02-odes/02b-numerical-integration.qmd) |
@@ -56,7 +56,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Phase-plane analysis (Part 3)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Generic multi-variable RK4 | `RK4_generic` | `RK4_generic` | [3A](03-phase-plane/03a-nullclines.qmd) |
 | Nullclines | `nullcline1`, `nullcline2`, `nullcline_numcont` | `nullcline1`, `nullcline2` | [3A](03-phase-plane/03a-nullclines.qmd) |
 | Nullcline intersections (2D steady states) | `find_intersection`, `find_intersection_all_fast` | `find_intersection`, `find_intersection_all_fast` | [3B](03-phase-plane/03b-steady-states-2d.qmd) |
@@ -70,7 +70,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Time-delay systems (Part 4)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | DDE integrators (Euler, Heun) | `DDE_Euler`, `DDE_Heun`, `DDE_Heun_generic` | `DDE_Euler`, `DDE_Heun`, `DDE_Heun_generic` | [4A](04-time-delays/04a-delayed-differential-equations.qmd), [4B](04-time-delays/04b-modeling-time-delays.qmd) |
 | Delayed logistic and Lotka-Volterra | `dN_logistic_delays`, `derivs_LV_delays` | `dN_logistic_delays`, `derivs_LV_delays` | [4B](04-time-delays/04b-modeling-time-delays.qmd) |
 | Indirect (multi-node) delays vs explicit delay | `derivs_neg_3node`, `derivs_neg_4node` | `derivs_neg_3node`, `derivs_neg_4node` | [4C](04-time-delays/04c-indirect-interactions.qmd) |
@@ -78,7 +78,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Molecular dynamics (Part 5)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Second-order integrators (Verlet, leapfrog, velocity Verlet) | `verlet`, `leapfrog`, `velocity_verlet` | `verlet`, `leapfrog`, `velocity_verlet` | [5A](05-molecular-dynamics/05a-second-order-integrators.qmd) |
 | Generic N-body velocity Verlet | `velocity_verlet_generic` | `velocity_verlet_generic` | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
 | Gravitational forces (two-, three-body) | `f_2body_2d`, `f_3body_2d` | `f_2body_2d`, `f_3body_2d` | [5B](05-molecular-dynamics/05b-orbital-motion.qmd) |
@@ -90,7 +90,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Stochastic differential equations (Part 6)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Gaussian random number generation | `rnorm`, `ran_gaussian` | `np.random.Generator`, `ran_gaussian` | [6A](06-stochastic/06a-random-number-generators.qmd) |
 | Brownian motion / Wiener process | `brownian`, `brownian_wiener` | `brownian`, `brownian_wiener` | [6B](06-stochastic/06b-brownian-motion.qmd) |
 | SDE integrators (Euler-Maruyama, Milstein) | `SDE_Euler`, `SDE_Milstein` | `SDE_Euler`, `SDE_Milstein` | [6C](06-stochastic/06c-sde-integrators.qmd) |
@@ -101,7 +101,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Partial differential equations (Part 7)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Finite-difference diffusion (1D) | `pde_fd_diffusion` | `pde_fd_diffusion` | [7A](07-pde/07a-modeling-diffusion.qmd) |
 | Reaction-diffusion (1D), Fisher wave | `pde_fd_reaction_diffusion`, `fisher` | `pde_fd_reaction_diffusion`, `fisher` | [7B](07-pde/07b-reaction-diffusion.qmd) |
 | Fokker-Planck by finite differences | `pde_fd_fokker_planck` | `pde_fd_fokker_planck` | [7B](07-pde/07b-reaction-diffusion.qmd) |
@@ -112,7 +112,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Monte Carlo simulation (Part 8)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Monte Carlo integration, $\pi$ estimation, Buffon's needle | `mc_integration`, `mc_pi`, `buffon` | `mc_integration`, `mc_pi`, `buffon` | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
 | Importance sampling | `mc_integration_importance_exp` | `mc_integration_importance_exp` | [8A](08-monte-carlo/08a-monte-carlo-methods.qmd) |
 | Metropolis algorithm | `metropolis_exp`, `metropolis_gene`, `metropolis_ising` | `metropolis_exp`, `metropolis_gene`, `metropolis_ising` | [8B](08-monte-carlo/08b-metropolis-algorithm.qmd) |
@@ -123,7 +123,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## Global optimization (Part 9)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | Simulated annealing / MCMC optimization | `sa`, `mh` | `sa`, `mh` | [9A](09-optimization/09a-mcmc-optimization.qmd) |
 | Parallel tempering | `pt_multi`, `st` | `pt_multi`, `st` | [9A](09-optimization/09a-mcmc-optimization.qmd) |
 | Test landscapes (Himmelblau, Rastrigin) | `f_Himmelblau`, `f_rastrigin` | `f_Himmelblau`, `f_rastrigin` | [9A](09-optimization/09a-mcmc-optimization.qmd), [9C](09-optimization/09c-genetic-algorithm.qmd) |
@@ -134,7 +134,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ## High-dimensional data analysis (Part 10)
 
 | Task | R | Python | Chapter |
-|------|-----|--------|:--:|
+|----------------------|----------------------------------|----------------------------------|:--------:|
 | PCA (covariance-eigen and SVD) | `pca` (`eigen`, `svd`); `prcomp` | `pca` (`numpy`); `sklearn.decomposition.PCA` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
 | Principal curve | `princurve::principal_curve` | `pcurvepy2` (`PrincipalCurve`) | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |
 | Multidimensional scaling (MDS) | `cmdscale` | `sklearn.manifold.MDS` | [10A](10-high-dim-data/10a-dimensionality-reduction.qmd) |

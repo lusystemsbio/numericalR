@@ -17,7 +17,7 @@ main table.table td, main table.table th { vertical-align: top; }
 ```
 
 | Domain | R | Python |
-|--------|-----|--------|
+|----------------------|---------------------------------------|---------------------------------------|
 | ODE solving | `deSolve` (`ode`, `dede`) | `scipy.integrate` (`odeint`, `solve_ivp`) |
 | Root finding and optimization | `rootSolve` (`uniroot.all`, `multiroot`), `stats` (`uniroot`, `optim`, `nlm`, `nls`, `lm`) | `scipy.optimize` (`fsolve`, `minimize`, `curve_fit`) |
 | Linear algebra, eigenvalues | base (`eigen`, `svd`, `solve`) | `numpy.linalg` (`eig`, `eigvals`, `svd`, `solve`) |
