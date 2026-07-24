@@ -21,6 +21,18 @@ centroid to the mean of its assigned points. The result depends on the random st
 we run several restarts and keep the one with the smallest total within-cluster sum of
 squares (WSS).
 
+::: {.callout-note title="Recipe 10B.1.1"}
+**Objective.** Cluster points into groups with k-means implemented from scratch.
+
+**Model.** Three Gaussian blobs in 2D (50 points each, at means 0, 1.5, and 3, standard deviation 0.5); the input is an n x 2 point matrix.
+
+**Method.** k-means clustering (Lloyd's algorithm): random centroids, then alternating nearest-centroid assignment and centroid-mean updates, keeping the lowest within-cluster sum of squares over several restarts.
+
+**Test.** `k = 3`, 10 restarts, up to 100 iterations; seed 123.
+
+**Verification.** k-means recovers the three blobs, placing a centroid at the middle of each, and the restarts guard against an unlucky initialization converging to a poor split.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -111,7 +123,7 @@ matter: a single unlucky initialization can converge to a poor split, so keeping
 lowest-WSS run guards against that. k-means assumes roughly spherical, equal-sized
 clusters and requires the number of clusters $k$ in advance.
 
-## 10B.2 Choosing the number of clusters
+### Choosing the number of clusters
 
 k-means needs $k$, but we rarely know it. The *elbow method* runs k-means for a range of
 $k$ and plots the total WSS against $k$. WSS always decreases as $k$ grows, but it drops
@@ -147,7 +159,7 @@ The curve bends sharply at $k = 3$ and flattens afterward, correctly identifying
 three blobs. The elbow is a heuristic, not a rule, but it is a quick and widely used
 guide.
 
-## 10B.3 Hierarchical clustering
+## 10B.2 Hierarchical clustering
 
 Hierarchical clustering builds a tree (dendrogram) instead of a flat partition, and does
 not need $k$ up front. *Agglomerative* clustering starts with every point in its own
@@ -156,6 +168,18 @@ cluster and repeatedly merges the two closest clusters. How "closest" is measure
 pairwise distance), and **Ward** (merge that least increases WSS [@ward1963hierarchical]).
 Cutting the tree at a chosen height yields a flat clustering. We use the built-in
 routines (`hclust` in R, `scipy` in Python).
+
+::: {.callout-note title="Recipe 10B.2.1"}
+**Objective.** Cluster points by building a dendrogram instead of a flat partition.
+
+**Model.** The input is the same three-blob data, via pairwise Euclidean distances.
+
+**Method.** Agglomerative hierarchical clustering with Ward linkage, cut into a flat partition.
+
+**Test.** The three-blob data, cut into `k = 3` clusters.
+
+**Verification.** The dendrogram shows three clear branches, and cutting into three recovers the blobs, agreeing with k-means.
+:::
 
 ### R implementation {.impl}
 
@@ -192,13 +216,25 @@ The dendrogram shows three clear branches; cutting it into three groups recovers
 blobs, agreeing with k-means. Different linkages can give different trees (single linkage
 tends to chain points together, Ward produces compact clusters), so the choice matters.
 
-## 10B.4 Clustering the gene-expression data
+## 10B.3 Clustering the gene-expression data
 
 Applied to the gene-expression data of [Part 10A](10a-dimensionality-reduction.qmd),
 clustering finds *modules* of genes that vary together across the conditions. We
 $z$-score each gene (so all genes share a scale), cluster the 500 genes with k-means, and
 draw a heatmap with the genes ordered by cluster, the canonical way to display expression
 data.
+
+::: {.callout-note title="Recipe 10B.3.1"}
+**Objective.** Cluster genes by expression and display them as a heatmap.
+
+**Model.** The input is the gene-expression data (500 genes x 26 samples), z-scored per gene.
+
+**Method.** k-means clustering of the z-scored genes, shown as a cluster-ordered expression heatmap.
+
+**Test.** `k = 5` clusters; heatmap color scale from -3 to 3; seed 1.
+
+**Verification.** The heatmap splits genes into co-expression modules that rise and fall together across the conditions, resolving the PCA progression of Part 10A into specific gene groups.
+:::
 
 ### R implementation {.impl}
 
@@ -249,7 +285,7 @@ the early conditions and low in the late ones, others the reverse, reflecting th
 gene-expression progression seen in the PCA of Part 10A, now resolved into the specific
 groups of genes that drive it.
 
-## 10B.5 Gaussian mixture models
+## 10B.4 Gaussian mixture models
 
 k-means assigns each point to exactly one cluster (a *hard* assignment) and assumes
 spherical clusters. A *Gaussian mixture model* (GMM) is a probabilistic alternative: it
@@ -260,6 +296,18 @@ Because each component has its own covariance, a GMM can capture elongated, tilt
 clusters that k-means cannot, and model selection (via the BIC) can choose the number of
 components automatically. We use `mclust` [@scrucca2016mclust] in R and scikit-learn in
 Python.
+
+::: {.callout-note title="Recipe 10B.4.1"}
+**Objective.** Cluster points with a Gaussian mixture and pick the number of components automatically.
+
+**Model.** A Gaussian mixture: the data modeled as a mixture of Gaussian components, each with its own mean, covariance, and weight, with soft assignments; the input is the three-blob data.
+
+**Method.** Gaussian mixture models fit by expectation-maximization, with the number of components chosen by the Bayesian information criterion.
+
+**Test.** The three-blob data, choosing among 1 to 6 components; seed 1.
+
+**Verification.** The criterion selects three components matching the blobs, and the mixture recovers them with soft probabilities.
+:::
 
 ### R implementation {.impl}
 

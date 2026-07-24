@@ -83,6 +83,18 @@ covariance matrix, and the *singular value decomposition* (SVD) of the centered 
 which is numerically preferable and much cheaper when there are more features than
 samples.
 
+::: {.callout-note title="Recipe 10A.2.1"}
+**Objective.** Compute principal components from scratch and confirm two routes agree.
+
+**Model.** The input is a data matrix X with samples in rows and features in columns.
+
+**Method.** Principal component analysis two equivalent ways: the eigen-decomposition of the covariance matrix, and the singular value decomposition of the centered data.
+
+**Test.** The 100x2 "strip" data from 10A.1 (points scattered along a line); centering only, no scaling.
+
+**Verification.** The two routes return identical variances, and on the strip data PC1 carries almost all the variance and points along the strip, recovering the regression direction of 10A.1.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -210,6 +222,18 @@ With the same PCA, we look at the sample side. The *scree plot* shows how much v
 each component explains, guiding how many to keep. Projecting the samples onto the first
 two components then reveals their structure.
 
+::: {.callout-note title="Recipe 10A.4.1"}
+**Objective.** Project samples onto their leading principal components and summarize the trend with a principal curve.
+
+**Model.** The input is the PCA scores of 26 samples by 500 genes, projected onto the first two components; each sample is labeled by its condition (A through I).
+
+**Method.** A PCA scree plot (variance explained per component) with a 2D PC1-PC2 projection, and a fitted Hastie-Stuetzle principal curve.
+
+**Test.** The gene-expression data (26 samples x 500 genes), colored by condition.
+
+**Verification.** PC1 explains most of the variance, the samples fall in an ordered arc from condition A to I, and the principal curve summarizes that progression as a 1D coordinate per sample.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -303,6 +327,18 @@ possible [@torgerson1952multidimensional]. *t-SNE* [@vandermaaten2008tsne] and *
 [@mcinnes2018umap] instead preserve local neighborhoods, and are the standard tools for
 visualizing high-dimensional biological data, at the cost of being stochastic and
 distorting global distances.
+
+::: {.callout-note title="Recipe 10A.5.1"}
+**Objective.** Embed high-dimensional samples in 2D three different ways and compare what each preserves.
+
+**Model.** The input is the same 26 samples by 500 genes, colored by condition.
+
+**Method.** Three 2D nonlinear embeddings: classical (Torgerson) multidimensional scaling, t-SNE, and UMAP.
+
+**Test.** The gene-expression data; t-SNE perplexity 5, UMAP 5 neighbors; seed 1.
+
+**Verification.** All three separate the nine conditions; MDS lays them along the A-to-I progression (it preserves global distances), while t-SNE and UMAP emphasize tight local clusters whose between-cluster distances are not meaningful.
+:::
 
 ### R implementation {.impl}
 

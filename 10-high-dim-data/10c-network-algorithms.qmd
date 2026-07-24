@@ -29,6 +29,18 @@ a force-directed layout, this is a deterministic stress-majorization of the shor
 distances, so the R and Python renderings closely agree instead of depending on each
 library's own stochastic algorithm.
 
+::: {.callout-note title="Recipe 10C.1.1"}
+**Objective.** Compute the structural properties of a network.
+
+**Model.** The input is an undirected adjacency matrix; the example is Zachary's karate club (34 vertices).
+
+**Method.** Network properties computed from scratch: degree distribution, clustering coefficient, shortest-path distance matrix, and diameter, plus betweenness centrality.
+
+**Test.** Zachary's karate club, drawn with a Kamada-Kawai layout.
+
+**Verification.** The club has a few high-degree hubs, mean degree about 4.6, diameter 5, and clustering about 0.57, and the two highest-betweenness nodes are the instructor and president who bridge the factions.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -151,6 +163,18 @@ proportional to their degree, so hubs accumulate ever more connections. This pro
 *scale-free* degree distribution with a heavy, power-law tail, closer to what many
 biological networks show. Both generators are short to write.
 
+::: {.callout-note title="Recipe 10C.2.1"}
+**Objective.** Generate random networks from two classic models and compare their degree distributions.
+
+**Model.** The Erdos-Renyi model `G(n, p)` connects each vertex pair independently with probability p; the Barabasi-Albert model grows by attaching each new vertex to m existing ones with probability proportional to their degree (preferential attachment).
+
+**Method.** The Erdos-Renyi and Barabasi-Albert random-network models, implemented from scratch.
+
+**Test.** `n = 1000`; Erdos-Renyi with `p = 0.006`, Barabasi-Albert with `m = 3`; seed 1.
+
+**Verification.** Erdos-Renyi degrees cluster tightly around the mean, while Barabasi-Albert degrees follow a straight line on log-log axes (a scale-free power law), matching biological networks better.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -246,6 +270,18 @@ network in two using the *modularity matrix* $B_{ij} = A_{ij} - k_i k_j / 2m$: t
 of the leading eigenvector of $B$ assign vertices to the two groups, the division that
 best increases $Q$.
 
+::: {.callout-note title="Recipe 10C.3.1"}
+**Objective.** Split a network into communities by maximizing modularity.
+
+**Model.** The input is the karate-club adjacency matrix; the modularity objective is `Q = (1/2m)*sum_ij (A_ij - k_i*k_j/2m)*delta(c_i, c_j)`.
+
+**Method.** Newman spectral community detection (bisection by the leading eigenvector of the modularity matrix), with the eigenvector sign fixed so the labeling is reproducible.
+
+**Test.** Zachary's karate club, drawn with the same Kamada-Kawai layout as 10C.1.
+
+**Verification.** The spectral split separates the club into communities of 18 and 16 with modularity about 0.37, closely matching the factional split Zachary recorded.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -324,6 +360,18 @@ oscillation). We enumerate the attractors by running every possible initial stat
 repeat, then apply this to two circuits already studied as continuous systems in
 [Part 3H](../03-phase-plane/03h-multi-component.qmd): a toggle switch and a repressilator.
 
+::: {.callout-note title="Recipe 10C.4.1"}
+**Objective.** Enumerate the attractors of a Boolean network.
+
+**Model.** A Boolean network: each gene is on or off and updates synchronously by `x_i(t+1) = f_i(x(t))`; iterating from any start falls into a fixed-point or cyclic attractor.
+
+**Method.** Boolean network dynamics with synchronous updating, enumerating attractors exhaustively from all initial states.
+
+**Test.** The generic `boolean_attractors(update, n)` driver, which runs every one of the `2^n` start states to its first repeat.
+
+**Verification.** The routine returns every fixed-point and cyclic attractor, ready to apply to specific circuits.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -378,6 +426,18 @@ $$ X(t+1) = \neg Y(t), \qquad Y(t+1) = \neg X(t) $$
 Its Boolean form reduces each gene to on or off; applying `boolean_attractors` to this
 update rule enumerates all its attractors from every one of the 4 possible starting states.
 
+::: {.callout-note title="Recipe 10C.5.1"}
+**Objective.** Find the attractors of a Boolean toggle switch.
+
+**Model.** A Boolean toggle switch of two mutually repressing genes, `X(t+1) = NOT Y(t)`, `Y(t+1) = NOT X(t)`.
+
+**Method.** Boolean attractor enumeration (from 10C.4) over all four states.
+
+**Test.** The toggle-switch update rule on `n = 2` genes.
+
+**Verification.** It finds two fixed points, `01` and `10` (the mutually exclusive on-states of a bistable switch), and an oscillation `00 -> 11 -> 00`.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -409,6 +469,18 @@ $$ X(t+1) = \neg Z(t), \qquad Y(t+1) = \neg X(t), \qquad Z(t+1) = \neg Y(t) $$
 
 Its continuous version oscillates on a limit cycle [@elowitz2000repressilator]; the
 Boolean version has the same three-gene ring topology, reduced to on/off states.
+
+::: {.callout-note title="Recipe 10C.6.1"}
+**Objective.** Find the attractors of a Boolean repressilator.
+
+**Model.** A Boolean repressilator, a ring of three repressions, `X(t+1) = NOT Z(t)`, `Y(t+1) = NOT X(t)`, `Z(t+1) = NOT Y(t)`.
+
+**Method.** Boolean attractor enumeration (from 10C.4) over all eight states.
+
+**Test.** The repressilator update rule on `n = 3` genes.
+
+**Verification.** It finds no fixed points, only two cyclic attractors: `000 -> 111 -> 000` and a six-state cycle, the discrete analog of the continuous limit cycle.
+:::
 
 ### R implementation {.impl}
 
