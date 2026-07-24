@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // pull the four fields out of the body paragraphs
     var f = {};
     body.querySelectorAll("p").forEach(function (p) {
-      var m = p.textContent.match(/^\s*(Objective|Method|Test|Verification)\.\s*([\s\S]*)$/);
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Verification)\.\s*([\s\S]*)$/);
       if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
     });
     if (!f.Objective) return;
@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var prompt =
       "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
       "Use " + lc(frag(f.Method)) + ". " +
       "Test it on " + frag(f.Test) + ", and include the verification I can run: " +
       frag(f.Verification) + ". " +

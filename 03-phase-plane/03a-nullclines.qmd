@@ -35,11 +35,13 @@ trajectory settles on one of **two** distinct stable steady states (different
 levels of $X$ and $Y$), the hallmark of the toggle switch's bistability.
 
 ::: {.callout-note title="Recipe 3A.1.1"}
-**Objective.** Simulate a two-gene toggle switch from many initial conditions and see which steady states they settle on.
+**Objective.** Simulate a genetic toggle switch from many initial conditions and see which steady states the trajectories reach.
 
-**Method.** A vector form of the RK4 integrator, advancing the state (X, Y) with the same four-stage scheme used for one variable.
+**Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
 
-**Test.** The toggle switch (X and Y repress each other), started from ten random initial conditions.
+**Method.** A vector form of RK4, with the state and each stage carried as 2-vectors.
+
+**Test.** `gX0=5, gX1=50, Yth=100, nY=4, kX=0.1`; `gY0=4, gY1=40, Xth=150, nX=4, kY=0.12`; ten random initial (X, Y) in [0, 600].
 
 **Verification.** Every trajectory settles on one of two distinct stable steady states (different X and Y levels), showing the switch is bistable.
 :::
