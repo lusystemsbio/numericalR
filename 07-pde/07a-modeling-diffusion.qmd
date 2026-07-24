@@ -48,6 +48,18 @@ step cannot be large relative to $\Delta X^2$. We also need boundary and initial
 conditions. Here we impose a *Dirichlet* condition, $P = 0$ at the two ends
 $X = \pm l/2$, by padding the shifted arrays with zeros.
 
+::: {.callout-note title="Recipe 7A.1.1"}
+**Objective.** Build the explicit finite-difference scheme for the 1D diffusion equation.
+
+**Model.** The 1D diffusion equation `dP/dt = D*d2P/dX2` for a distribution `P(X, t)`, with no reaction term.
+
+**Method.** The explicit forward-time centered-space finite-difference method, `P_i_next = P_i + D*(dt/dX^2)*(P_{i+1} + P_{i-1} - 2*P_i)`, with Dirichlet boundaries (P = 0 at both ends).
+
+**Test.** The generic solver `pde_fd_diffusion(ngrid, X_all, dX, dt, D, ...)`; the stability factor `D*dt/dX^2` must stay small.
+
+**Verification.** The scheme is the diffusion analog of Euler integration for ODEs, advancing P one time step from its neighbors.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -88,6 +100,18 @@ def pde_fd_diffusion(ngrid, X_all, dX, dt, D, t0, t_total, p0):
 We start all the probability at the origin, $P(X = 0, t = 0) = 1$, and watch it
 spread. On a box of size $l = 100$ with $\Delta X = 1$, $\Delta t = 0.01$, and
 $D = 1$, we plot the distribution after each of five successive runs.
+
+::: {.callout-note title="Recipe 7A.2.1"}
+**Objective.** Diffuse an initially concentrated distribution and compare its spread to theory.
+
+**Model.** The 1D diffusion equation `dP/dt = D*d2P/dX2`.
+
+**Method.** The explicit finite-difference diffusion integrator (from 7A.1), tracking the mean, variance, and total probability.
+
+**Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`; all probability initially at X = 0; compared with the theoretical variance `sigma^2 = 2*D*t`.
+
+**Verification.** The point distribution spreads into a widening Gaussian whose variance grows as `2*D*t` at early times, while the total probability slowly leaks as the Dirichlet ends absorb it.
+:::
 
 ### R implementation {.impl}
 

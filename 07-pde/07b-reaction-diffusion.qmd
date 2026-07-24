@@ -29,6 +29,18 @@ the selection strength, and $D$ the dispersal rate; it became a foundation of
 population genetics [@fisher1937wave]. The integrator is the diffusion solver of
 Part 7A with the reaction term added at each step (Dirichlet, $u = 0$ at the ends).
 
+::: {.callout-note title="Recipe 7B.1.1"}
+**Objective.** Simulate Fisher's equation and see traveling waves of advance.
+
+**Model.** Fisher's equation, logistic growth with diffusion, `du/dt = r*u*(1 - u/B) + D*d2u/dX2`.
+
+**Method.** The explicit finite-difference reaction-diffusion integrator (a reaction term added to the diffusion step each iteration), with Dirichlet boundaries.
+
+**Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`, r = 0.64, `B = 75`; a central patch, and separately a left-end patch, each `u = 50`.
+
+**Verification.** A local patch grows to carrying capacity and emits two constant-speed fronts, while a left-end patch produces a single rightward traveling wave.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -160,6 +172,18 @@ P_i^{n+1} = P_i^n &- \frac{\Delta t}{2 \Delta X}\left( f_{i+1} P_{i+1}^n - f_{i-
 &+ D\, \frac{\Delta t}{\Delta X^2}\left( P_{i+1}^n + P_{i-1}^n - 2 P_i^n \right) .
 \end{aligned} \tag{7}
 $$
+
+::: {.callout-note title="Recipe 7B.2.1"}
+**Objective.** Solve the Fokker-Planck equation for the distribution of an SDE, rather than averaging many trajectories.
+
+**Model.** The Fokker-Planck equation `dP/dt = -d(f*P)/dX + D*d2P/dX2`, tested on the Ornstein-Uhlenbeck well with drift `f = -k*X`, whose steady state is `P_ss(X) = sqrt(k/(2*pi*D))*exp(-k*X^2/(2*D))`.
+
+**Method.** An explicit finite-difference Fokker-Planck integrator: a centered-difference drift term plus the finite-difference diffusion term, with Dirichlet boundaries.
+
+**Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`; springs `k = 0.01` and `k = 0.03`; started from both a localized patch and a uniform distribution.
+
+**Verification.** The distribution relaxes to the analytic steady-state Gaussian from any initial condition, and a stiffer spring confines it to a narrower peak.
+:::
 
 ### R implementation {.impl}
 

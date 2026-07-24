@@ -35,6 +35,18 @@ $i = 1, 2, \dots, n_\text{grid}$, we set $X_0 = X_{n_\text{grid}}$ and
 $X_{n_\text{grid}+1} = X_1$. This is the boundary anticipated in Part 7A; it suits
 a pattern that should tile space without an artificial edge.
 
+::: {.callout-note title="Recipe 7C.1.1"}
+**Objective.** Build a reaction-diffusion integrator for any number of coupled components.
+
+**Model.** A generic n-component 1D reaction-diffusion system, `du_k/dt = f_k(u) + D_k*d2u_k/dX2`, with a reaction term per component and its own diffusion constant.
+
+**Method.** A vectorized explicit forward-time centered-space integrator for multiple components, with periodic (wrap-around) boundaries.
+
+**Test.** The generic solver `pde_fd_reaction_diffusion_multi(derivs, n, ngrid, dX, dt, D, ...)`, with D a length-n vector and the initial state an (n, ngrid) matrix.
+
+**Verification.** The solver advances all components together on a wrap-around grid; from random initial perturbations, R and Python give patterns of the same wavelength at different positions.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -114,6 +126,18 @@ The model has two parameters, $d$ and $\mu$. With a fast-diffusing substrate (sm
 $d$) and a large $\mu$, the uniform state loses stability and a pattern forms. We
 run the integrator in successive blocks of time and plot the $u$ and $v$ profiles
 after each, starting from a nearly uniform state $u = v \approx 1$.
+
+::: {.callout-note title="Recipe 7C.2.1"}
+**Objective.** Reproduce Turing pattern formation and its two failure modes in a substrate-depletion model.
+
+**Model.** The Gierer-Meinhardt substrate-depletion model, `f(u, v) = u^2*v - u`, `g(u, v) = mu*(1 - u^2*v)`, with the substrate v diffusing fast (`Dv = 1`) and u slow (`Du = d`).
+
+**Method.** The multi-component finite-difference reaction-diffusion integrator (from 7C.1), run in successive time blocks.
+
+**Test.** Domain length 20, `dX = 0.2`, `dt = 0.01`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10); a pattern-forming case (`d = 0.1`, `mu = 1.5`), a case with close diffusion constants (`d = 0.8`), and an oscillating case (`d = 0.3`, `mu = 0.9`, initial `u = 2`).
+
+**Verification.** The same model gives three outcomes set by the diffusion ratio and mu: a stationary periodic Turing pattern, a homogeneous steady state, and a spatially uniform temporal oscillation.
+:::
 
 ### R implementation {.impl}
 
@@ -315,6 +339,18 @@ Gierer-Meinhardt patterning [@gierer1972theory].
 
 With $d = 0.1$ and $\mu = 1.5$ the model again forms a Turing pattern, but here $u$
 and $v$ peak together in space rather than out of phase.
+
+::: {.callout-note title="Recipe 7C.3.1"}
+**Objective.** Form a Turing pattern from an activator-inhibitor model and contrast it with substrate depletion.
+
+**Model.** The Gierer-Meinhardt activator-inhibitor model, `f(u, v) = u^2/v - u`, `g(u, v) = mu*(u^2 - v)`, with `Du = d` slow and `Dv = 1` fast (local self-enhancement, long-range inhibition).
+
+**Method.** The multi-component finite-difference reaction-diffusion integrator (from 7C.1), run in successive time blocks.
+
+**Test.** Domain length 20, `dX = 0.2`, `dt = 0.01`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10).
+
+**Verification.** It forms a stationary periodic Turing pattern, but with u and v peaking together rather than out of phase as in the substrate-depletion case.
+:::
 
 ### R implementation {.impl}
 

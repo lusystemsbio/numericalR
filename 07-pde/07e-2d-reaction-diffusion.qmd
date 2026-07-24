@@ -49,6 +49,18 @@ One caveat specific to two dimensions: each point now has four neighbors instead
 two, so the explicit scheme is stable only when $D\,\Delta t / \Delta X^2 < 1/4$. We
 therefore use a smaller time step, $\Delta t = 0.005$, than the 1D runs of Part 7C.
 
+::: {.callout-note title="Recipe 7E.1.1"}
+**Objective.** Build a two-component reaction-diffusion integrator on a 2D grid.
+
+**Model.** A generic two-component 2D reaction-diffusion system, `du/dt = f(u, v) + Du*(d2u/dX2 + d2u/dY2)`, `dv/dt = g(u, v) + Dv*(d2v/dX2 + d2v/dY2)`.
+
+**Method.** An explicit forward-time centered-space 2D integrator with periodic boundaries, the five-point Laplacian computed by whole-grid array shifts.
+
+**Test.** The generic solver with a run-in-blocks driver; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10); 2D stability needs `D*dt/dX^2 < 1/4`, so `dt = 0.005`.
+
+**Verification.** The vectorized 2D integrator evaluates the reaction on the whole grid at once, running faster than a point-by-point 1D approach.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -143,6 +155,18 @@ with $v$ a fast-diffusing substrate that activates $u$ and is depleted by it. On
 line this gave a periodic array of peaks. On the plane, with $d = 0.1$ and
 $\mu = 1.5$, the same instability grows into a labyrinth of stripes.
 
+::: {.callout-note title="Recipe 7E.2.1"}
+**Objective.** Grow a 2D Turing pattern from a substrate-depletion model.
+
+**Model.** The 2D Gierer-Meinhardt substrate-depletion model, `f(u, v) = u^2*v - u`, `g(u, v) = mu*(1 - u^2*v)`, with `Du = d`, `Dv = 1`.
+
+**Method.** The 2D finite-difference reaction-diffusion integrator (from 7E.1), run in successive blocks.
+
+**Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10).
+
+**Verification.** The instability grows from near-uniform noise into a coarsening labyrinth of winding stripes.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
@@ -188,6 +212,18 @@ g(u, v) &= \mu (u^2 - v) ,
 $$
 
 gives a different pattern from the same initial conditions and the same parameters.
+
+::: {.callout-note title="Recipe 7E.3.1"}
+**Objective.** Grow a 2D Turing pattern from an activator-inhibitor model and compare its morphology to stripes.
+
+**Model.** The 2D Gierer-Meinhardt activator-inhibitor model, `f(u, v) = u^2/v - u`, `g(u, v) = mu*(u^2 - v)`, with `Du = d`, `Dv = 1`.
+
+**Method.** The 2D finite-difference reaction-diffusion integrator (from 7E.1), run in successive blocks.
+
+**Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10), identical to 7E.2.
+
+**Verification.** From the same start and parameters as the substrate-depletion case, the activator-inhibitor kinetics instead settle into a regular array of spots, so the reaction kinetics select stripes versus spots.
+:::
 
 ### R implementation {.impl}
 

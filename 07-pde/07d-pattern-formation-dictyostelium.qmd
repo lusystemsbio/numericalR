@@ -149,6 +149,18 @@ cell. We write the cell update as vectorized operations over all cells at once,
 which keeps the R and Python versions identical in structure and fast enough to run
 the full simulation inline.
 
+::: {.callout-note title="Recipe 7D.2.1"}
+**Objective.** Simulate spiral cAMP waves in a Dictyostelium colony of excitable cells.
+
+**Model.** The Kessler-Levine model: a cAMP field `dc/dt = a^2*(d2c/dX2 + d2c/dY2) - k*c + s`, coupled to discrete cells that cycle inactive -> excited (firing and secreting when local `c > c_T`) -> refractory -> inactive.
+
+**Method.** A 2D finite-difference integrator with no-flux boundaries for the cAMP field, coupled each step to a vectorized cell state-machine update.
+
+**Test.** A 101x101 grid, cell fraction 0.15, threshold `c_T = 1`, secretion `dc = 300` over `t_e = 2`, recovery `t_r = 20`, degradation `k = 0.5`, `dt = 0.01`, to t = 150.
+
+**Verification.** The coupled field and excitable cells self-organize into a rotating cAMP spiral wave, with excited cells riding the high-cAMP crest.
+:::
+
 ### R implementation {.impl}
 
 ```{r}
