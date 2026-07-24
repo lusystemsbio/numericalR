@@ -71,69 +71,63 @@ A good way to work through each method is:
    earlier steps keeps the extension honest. This is also where your work stops
    resembling everyone else's.
 
-A **recipe card** is a short box with four fields: **Objective** (what the code should
-accomplish), **Method** (the approach, described at the level of the chapter's
-concept rather than any coding trick), **Test** (a concrete case to run), and
-**Verification** (how to tell the result is right). Read the card, then pause and
-attempt the code before reading the implementation. Even a failed attempt makes
-the reference far more useful when you turn to it. A card looks like this:
+To make this concrete, each worked method in this book is framed as a **recipe**, a
+short box with four fields: **Objective** (what the code should accomplish),
+**Method** (the approach, at the level of the concept rather than any coding trick),
+**Test** (a concrete case to run), and **Verification** (how to tell the result is
+right). A recipe is something to read and attempt before you look at the
+implementation. Even a failed attempt makes the reference code far more useful when
+you turn to it.
 
-::: {.callout-note title="Recipe card"}
-**Objective.** Approximate the derivative of `f(x) = x^2` at x = 3.
-
-**Method.** A forward finite difference, `f'(x) = (f(x+h) - f(x)) / h`, for a small
-step h.
-
-**Test.** `f(x) = x^2`, x = 3, h = 1e-5.
-
-**Verification.** Compare against the exact derivative `f'(3) = 2*3 = 6`.
-:::
-
-The card is also the starting point for a prompt, which is how you get help on the
-parts you cannot yet write without giving up the understanding. You do not paste
-the card as it appears on the page; you rewrite it in plain text, typing any
-equation the way you would in an email. An assistant reads `dX/dt = g - kX` as
-readily as the typeset version, so there is no need for the mathematical notation,
-and writing it out yourself is part of the thinking. A prompt that keeps you in
-control follows the card field by field:
+A recipe also converts into a **structured prompt**, which is how you get help on
+the parts you cannot yet write without giving up the understanding. Instead of a
+vague request, you fill a fixed template with the recipe's fields:
 
 > In [R or Python], [Objective]. Use [Method]. Test it on [Test], and include the
-> verification I can run: [Verification]. Implement the method explicitly with
-> short comments rather than calling a routine that does it in one step, and
-> explain in a sentence why the verification confirms the result.
+> verification I can run: [Verification]. Implement the method explicitly with short
+> comments rather than calling a routine that does it in one step, and explain in a
+> sentence why the verification confirms the result.
 
-Filled in from the card above, that becomes the following, which you can type or
-paste straight into an assistant:
+Write it in plain text, typing any equation the way you would in an email; an
+assistant reads `dX/dt = g - kX` as readily as the typeset form. The last two
+requests are what make this a learning prompt rather than one that just vends code:
+writing the method out so you can see it, and saying why the check confirms
+correctness. In the HTML edition, each recipe box carries a **Copy prompt** button
+that fills this template from the box for you. Whatever the assistant returns, run
+the verification yourself before you trust it.
 
-```{.prompt}
-In R (or Python), approximate the derivative of f(x) = x^2 at x = 3. Use a forward finite difference, f'(x) = (f(x+h) - f(x)) / h, for a small step h. Test it on f(x) = x^2, x = 3, h = 1e-5, and include the verification I can run: compare against the exact derivative f'(3) = 2*3 = 6. Implement the method explicitly with short comments rather than calling a routine that does it in one step, and explain in one sentence why the verification confirms the result.
-```
+When you instead ask about code that already exists, ask well. Name the actual code
+and the actual confusion: paste the function, then ask what a specific operator,
+argument, or line does and why. A vague request such as "explain this file" returns
+a vague answer. Verify the explanation the same way you verify code: change an
+input, predict the result, run it, and compare. An explanation you have not checked
+is a plausible guess, and assistants produce those freely.
 
-The last two requests are what make this a learning prompt rather than one that
-just vends code: writing the method out so you can see it, and saying why the
-check confirms correctness. Whatever the assistant returns, run the verification
-yourself before you trust it. In the HTML edition, each recipe card carries a
-**Copy prompt** button that assembles this prompt from the card, ready to paste
-into an assistant.
-
-When you do ask the assistant, ask well. Name the actual code and the actual
-confusion: paste the function, then ask what a specific operator, argument, or
-line does and why. A vague request such as "explain this file" returns a vague
-answer. Verify the explanation the same way you verify code: change an input,
-predict the result, run it, and compare. An explanation you have not checked is
-a plausible guess, and assistants produce those freely.
-
-The rest of this chapter demonstrates the reading-and-checking part of this loop
-on three small examples of increasing depth: a script you can read at a glance,
-three R and Python quirks that reward a careful read, and one complete
-simulation. Every session shown was tested with Claude Opus 4.8; a different
-model or version will phrase things differently, but the paste-ask-verify
-technique is the same.
+The next section works this recipe-and-prompt loop through a small example. The two
+after it introduce the R and Python features you will meet most often, and a
+complete simulation to read closely. Every session shown was tested with Claude Opus
+4.8; a different model or version will phrase things differently, but the technique
+is the same.
 
 ## 1A.3 A minimal example
 
 Here is the smallest script that still has something worth asking about: a
-comment, a variable, a function, and a loop with a condition inside it.
+comment, a variable, a function, and a loop with a condition inside it. Here is
+its recipe:
+
+::: {.callout-note title="Recipe"}
+**Objective.** Label each number in a list as "even" or "odd".
+
+**Method.** Loop over the numbers, test each with the modulo (remainder) operator,
+and print its label.
+
+**Test.** The list 4, 7, 10, 13.
+
+**Verification.** 4 and 10 print as even; 7 and 13 print as odd.
+:::
+
+Try the recipe first: the **Copy prompt** button on the box turns it into a prompt
+you can hand to an assistant, then compare what comes back with the version below.
 
 ### R implementation {.impl}
 
@@ -229,11 +223,50 @@ is even.
 Verify it: call `classify(11)` and confirm you get `"odd"`, then try
 `classify(0)` and check the answer still makes sense.
 
-## 1A.4 A second example: three R and Python quirks
+The R and Python versions do the same thing with different spellings, and that
+contrast is worth asking about too. Paste both blocks and ask the assistant to list
+the differences line by line. A good answer points out that R builds the list with
+`c(...)` while Python uses `[...]`; R's remainder operator is `%%` and Python's is
+`%`; R returns the value of its last expression, the bare `if/else`, whereas Python
+needs an explicit `return` with the conditional expression `A if cond else B`; and R
+prints with `cat`, Python with `print`. Seeing one idea in two spellings is the
+fastest way to stop treating either language's punctuation as magic.
 
-Some R and Python behavior looks fine until it silently is not. These three
-come up constantly in scientific code and reward a deliberate AI-assisted
-read rather than a guess.
+A few other ways to use an assistant on a script you are reading:
+
+- **Predict, then run.** Before running, tell the assistant what you expect each
+  line to print and ask whether you are right. Being wrong out loud is where the
+  learning happens.
+- **Translate and diff.** Ask it to rewrite the R version in Python (or the
+  reverse), run both, and confirm the outputs match. A translation that agrees line
+  for line means you understood the original.
+- **Change one thing.** Ask what happens if you replace `== 0` with `== 1`, then
+  check the prediction by editing and re-running.
+
+Each of these keeps you doing the thinking and uses the assistant to check it, which
+is the habit the rest of the book is built around.
+
+## 1A.4 A little R and Python
+
+This book teaches R and Python by using them rather than through a full language
+course. For a proper grounding, these are good starting points.
+
+For R:
+
+- [An Introduction to R](https://cran.r-project.org/doc/manuals/r-release/R-intro.html), the official manual from CRAN.
+- [R & Bioconductor Manual](http://manuals.bioinformatics.ucr.edu/home/R_BioCondManual) by Thomas Girke, aimed at biological data.
+- [Efficient R Programming](https://csgillespie.github.io/efficientR/) by Colin Gillespie and Robin Lovelace.
+
+For Python:
+
+- [The Python Tutorial](https://docs.python.org/3/tutorial/), the official introduction from python.org.
+- [Scientific Python Lectures](https://lectures.scientific-python.org), covering NumPy, SciPy, and Matplotlib.
+- The reference documentation for [NumPy](https://numpy.org/doc/stable/) and [Matplotlib](https://matplotlib.org/stable/).
+
+Below are two features new readers most often stumble on, each shown in both
+languages: forwarding arguments with an ellipsis, and the difference between a
+matrix and a data frame. When a later chapter's code looks unfamiliar, that is the
+moment to paste it into an assistant and ask.
 
 **Ellipsis and `**kwargs`.** R's `...` and Python's `**kwargs` let a function
 forward whatever arguments it received on to another function whose full
@@ -274,61 +307,48 @@ names do not match what was forwarded, the call fails. Verify it: rename
 you get an error, since neither `d` nor `e` is among `func1`'s parameter
 names anymore.
 
-**The factor-vs-string default.** R's `data.frame()` used to convert every
-character column into a factor by default. R 4.0, released in 2020, flipped
-that default so strings stay strings. Code written for the older default, or
-a tutorial that assumes it, can behave differently on a modern R install with
-no error at all, just a different column type. This is R-specific: Python's
-`pandas.DataFrame` never auto-converts strings this way, so there is no
-equivalent quirk to show on the Python side.
+**Matrix vs. data frame.** A **matrix** holds elements of a single type and
+supports linear algebra directly; a **data frame** allows a different type per
+column and is what most statistics and plotting functions expect. Confusing the two
+is a common source of trouble, and both languages draw the same distinction. In R,
+`matrix()` builds the first and `data.frame()` the second.
 
 ### R implementation {.impl}
 
 ```{r}
-my_data <- data.frame(
-  atom = c("N", "CA", "CB", "C", "O"),
-  mass = c(14, 12, 12, 12, 16)
-)
-class(my_data$atom)   # character, on R 4.0 and later
+# a matrix holds one type and does linear algebra
+m <- matrix(c(1, 2, 3, 4), nrow = 2)
+m %*% m                                   # matrix multiplication
 
-my_data_old_default <- data.frame(
-  atom = c("N", "CA", "CB", "C", "O"),
-  mass = c(14, 12, 12, 12, 16),
-  stringsAsFactors = TRUE
-)
-class(my_data_old_default$atom)   # factor, matching R's pre-4.0 default
+# a data frame holds a column per variable, each with its own type
+df <- data.frame(atom = c("N", "CA", "C", "O"),   # character column
+                 mass = c(14, 12, 12, 16))          # numeric column
+str(df)                                   # each column keeps its own type
 ```
 
-Ask Claude Code "why would the same `data.frame()` call produce a character
-column on one R installation and a factor on another?" A good answer names
-the R 4.0 default change directly, not just "it depends on your settings."
-Verify it: run `R.version.string` and check which behavior your own
-installation gives by default.
+### Python implementation {.impl}
 
-**Data frame vs. matrix.** A matrix requires every element to be the same
-type and supports linear algebra directly. A data frame allows a different
-type per column and is what most statistics and plotting functions in R
-expect. This is also R-specific enough to leave as a single example: Python's
-analogous distinction (a NumPy array vs. a pandas DataFrame) is less prone to
-this particular mix-up, since the two rarely get passed to the same function
-interchangeably.
+Python draws the same line between a NumPy array (one type, for linear algebra) and
+a pandas data frame (a column per variable, mixed types).
 
-### R implementation {.impl}
+```{python}
+import numpy as np
+import pandas as pd
 
-```{r}
-my_data <- data.frame(
-  mass = c(14, 12, 12, 12, 16),
-  size = c(1.2, 1.4, 1.4, 1.4, 1.1)
-)
-model <- lm(size ~ mass, data = my_data)
-coef(model)
+# a NumPy array holds one type and does linear algebra
+m = np.array([[1, 2], [3, 4]])
+print(m @ m)                              # matrix multiplication
+
+# a pandas DataFrame holds a column per variable, each with its own type
+df = pd.DataFrame({"atom": ["N", "CA", "C", "O"],   # string column
+                   "mass": [14, 12, 12, 16]})         # numeric column
+print(df.dtypes)                          # each column keeps its own type
 ```
 
-Ask Claude Code "why does `lm()` take a data frame here instead of a matrix,
-and what would break if `my_data` had a character column mixed in with `mass`
-and `size`?" Verify it: add an `atom` character column to `my_data` and
-confirm `lm(size ~ mass, data = my_data)` still runs unaffected, since a
-column not named in the formula just comes along for the ride.
+Ask the assistant why a matrix cannot hold a text column alongside numbers, and when
+you would reach for each. Verify it: try to place a string into the numeric matrix
+(`matrix(c(1, "a", 3, 4), 2)` in R, `np.array([1, "a", 3, 4])` in Python) and watch
+every element turn into text, since a matrix or array must share one type.
 
 ## 1A.5 A worked example: Conway's Game of Life
 
@@ -339,6 +359,21 @@ neighbors [@gardner1970game]:
 - A live cell with 2 or 3 live neighbors survives.
 - A dead cell with exactly 3 live neighbors becomes alive.
 - Every other cell dies or stays dead.
+
+::: {.callout-note title="Recipe"}
+**Objective.** Simulate Conway's Game of Life on a small grid and animate a glider
+moving across it.
+
+**Method.** Each generation, count every cell's eight neighbors on a grid whose
+edges wrap around (a periodic boundary), then apply the three birth-and-survival
+rules to all cells at once.
+
+**Test.** A 10 by 10 grid seeded with a glider, run for 40 generations.
+
+**Verification.** The glider keeps its five-cell shape and drifts one step
+diagonally every four generations; when it reaches an edge it reappears on the
+opposite side rather than vanishing.
+:::
 
 ### R implementation {.impl}
 
