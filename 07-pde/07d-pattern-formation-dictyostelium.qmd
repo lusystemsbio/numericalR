@@ -158,6 +158,8 @@ the full simulation inline.
 
 **Test.** A 101x101 grid, cell fraction 0.15, threshold `c_T = 1`, secretion `dc = 300` over `t_e = 2`, recovery `t_r = 20`, degradation `k = 0.5`, `dt = 0.01`, to t = 150.
 
+**Show.** A snapshot of the 2D cAMP field with the rotating spiral wave and the cell states.
+
 **Verification.** The coupled field and excitable cells self-organize into a rotating cAMP spiral wave, with excited cells riding the high-cAMP crest.
 :::
 

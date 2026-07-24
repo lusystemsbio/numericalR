@@ -33,6 +33,8 @@ vectors.
 
 **Test.** `g0 = 10, g1 = 40, X0 = Y0 = 100, n = 4, k = 0.1` for both genes; noise `b = 20`; initial (X, Y) = (50, 200), to t = 1000, `dt = 0.01`; seed 3.
 
+**Show.** A time-series plot of X and Y and a phase-plane plot, showing hops between the two states.
+
 **Verification.** The switch is bistable (low-X/high-Y and high-X/low-Y states), and noise drives transitions where the trajectory hops between them, swapping which gene is highly expressed.
 :::
 
@@ -151,6 +153,8 @@ system enters the opposite ellipse.
 **Method.** Counting transitions by fitting an ellipse to each state's cloud (from the covariance eigen-decomposition), assigning a point to a state when it lies inside that ellipse, and detecting a transition from the change in assigned state.
 
 **Test.** The 6D.1 trajectory, with each state's ellipse axes enlarged by a factor of 1.5, splitting the plane along Y = X.
+
+**Show.** The phase plane with the two fitted state ellipses, and the count and step of each detected transition.
 
 **Verification.** The crude counter over-counts: a single boundary-jitter event registers as a cluster of transitions within a few steps, motivating a more robust statistic.
 :::
@@ -289,6 +293,8 @@ rates and the numbers of transitions counted.
 **Method.** The mean first-passage time: simulate until the trajectory crosses the separatrix, record the passage time, relax, and repeat, then take the rate `kappa = 1/(2*tau)` from the mean time tau.
 
 **Test.** The compiled Fortran routine called from both R (`.Fortran`) and Python (`ctypes`); seed 11, total time `1e5`, `dt = 0.01`, relaxation time 100.
+
+**Show.** The transition rates from R and from Python (identical for the same seed).
 
 **Verification.** Both languages call the identical compiled routine with the same seed and return identical rates, showing the numerics live in the shared library; a longer total time gives more accurate rates.
 :::

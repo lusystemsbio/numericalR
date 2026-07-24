@@ -41,6 +41,8 @@ are needed to simulate a fixed duration.
 
 **Test.** `g = 50`, `k = 0.1`, `X0 = 300`; t = 0 to 80; dt = 1 and dt = 0.1.
 
+**Show.** A plot of the Euler solution at dt = 1 and dt = 0.1 overlaid on the exact solution.
+
 **Verification.** At dt = 0.1 the numerical curve tracks the exact solution closely (max error well under 1 nM); at dt = 1 there is a visible gap near t = 10; both reach `g/k = 500`.
 :::
 
@@ -389,6 +391,8 @@ which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 
 **Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
 
+**Show.** A plot of the Heun solution overlaid on the exact solution.
+
 **Verification.** At the same step size it is closer to the exact solution than Euler; halving the step cuts its error by roughly a factor of 4.
 :::
 
@@ -448,6 +452,8 @@ X(t+\Delta t) &= X(t) + k_2
 
 **Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
 
+**Show.** A plot of the RK2 solution overlaid on the exact solution.
+
 **Verification.** Accuracy comparable to Heun and better than Euler at the same step size, checked against the exact solution.
 :::
 
@@ -506,6 +512,8 @@ X(t+\Delta t) &= X(t) + \frac{k_1 + 2k_2 + 2k_3 + k_4}{6}
 **Method.** RK4: combine four slope evaluations across the step (start, twice at the midpoint, end) with weights 1, 2, 2, 1.
 
 **Test.** `g = 50`, `k = 0.1`, `X0 = 300`.
+
+**Show.** A plot of the RK4 solution overlaid on the exact solution.
 
 **Verification.** Far more accurate than RK2 or Euler at the same step size; halving the step cuts its error by roughly a factor of 16.
 :::
@@ -679,6 +687,8 @@ unstable.
 **Method.** Backward (implicit) Euler, `X(t+dt) = X(t) + (g - k*X(t+dt))*dt`; since the right-hand side is linear this rearranges to `X_next = (X + dt*g) / (1 + dt*k)`.
 
 **Test.** Stiff parameters `g = 50`, `k = 10`, `X0 = 3`; t = 0 to 4; dt = 0.2.
+
+**Show.** A plot comparing forward Euler and backward Euler at dt = 0.2 against the exact solution.
 
 **Verification.** Forward Euler at dt = 0.2 oscillates and diverges, while backward Euler stays stable and tracks the exact solution toward `g/k = 5`.
 :::

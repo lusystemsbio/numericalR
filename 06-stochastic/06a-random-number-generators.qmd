@@ -116,6 +116,8 @@ $$ y = -\ln x . \tag{1} $$
 
 **Test.** `n = 10000` uniform draws on (0, 1), transformed and shown as a density histogram.
 
+**Show.** A density histogram of the samples against the exponential density.
+
 **Verification.** The flat uniform input becomes the characteristic decaying exponential density after the transform.
 :::
 
@@ -170,6 +172,8 @@ to see how such a sampler works.
 **Method.** The polar (Marsaglia) Box-Muller method: draw a point uniform in the square [-1, 1]^2, keep it if `R2 = x^2 + y^2` lies in (0, 1), and return `x*sqrt(-2*ln(R2)/R2)` and `y*sqrt(-2*ln(R2)/R2)` as two independent normals.
 
 **Test.** `n = 10000` accepted draws, shown as a density histogram.
+
+**Show.** A density histogram of the samples against the standard normal density.
 
 **Verification.** Both output streams follow the bell-shaped normal density.
 :::

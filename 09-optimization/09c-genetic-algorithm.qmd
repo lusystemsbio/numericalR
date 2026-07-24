@@ -37,6 +37,8 @@ the best `np` of the combined pool.
 
 **Test.** Two variables on `[-5.12, 5.12]^2`, population 50, crossover rate 0.7, 100 generations, mutation step 10% of the range; seed 1.
 
+**Show.** The best score versus generation, converging toward zero.
+
 **Verification.** The best score drops toward zero, converging on the global minimum at the origin despite the many local minima.
 :::
 
@@ -181,6 +183,8 @@ two cities) or an *inversion* (reverse the order of a segment).
 **Method.** A genetic algorithm on permutations, using permutation-preserving mutation (swap two cities, or reverse a segment) and order-preserving crossover.
 
 **Test.** A 10-city instance, population 10, crossover rate 0.8, 50 generations.
+
+**Show.** The best tour and its length versus generation.
 
 **Verification.** The genetic algorithm recovers the exact shortest tour found by dynamic programming on the small instance, and scales to larger instances where exact methods cannot.
 :::

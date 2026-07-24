@@ -89,6 +89,8 @@ implements Newton's method for a general $f$.)
 
 **Test.** `a = 2`; starting guesses 1, 100, 200; tolerance `epsilon = 1e-6`.
 
+**Show.** The successive iterates and the final estimate for each starting guess.
+
 **Verification.** Every guess converges to about 1.41421; the result squared is within the tolerance of 2, and a far starting guess just needs a few more iterations.
 :::
 

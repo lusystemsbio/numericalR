@@ -50,6 +50,8 @@ artifact we can spot at a glance.
 
 **Test.** `k = 0.1`; initial displacement `x0 = 1`, velocity `v0 = 2`.
 
+**Show.** A plot of the exact oscillator motion x(t) and its constant energy, as the reference to match.
+
 **Verification.** The exact motion is a pure sinusoid at constant energy, so any amplitude growth or energy drift in a simulation is a numerical artifact.
 :::
 
@@ -98,6 +100,8 @@ larger one ($h = 0.1$) from the same initial condition.
 **Method.** The explicit (forward) Euler integrator for Newton's equations, updating velocity then position, `v_next = v + dt*f`, `x_next = x + dt*v`.
 
 **Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Show.** Plots of x(t) and the energy e(t) at dt = 0.01 and dt = 0.1.
 
 **Verification.** Euler does not conserve energy: at dt = 0.1 the amplitude and energy grow steadily, and even at dt = 0.01 the energy drifts slowly upward.
 :::
@@ -249,6 +253,8 @@ $v_{1/2} = v_0 + \tfrac{1}{2} h f_0$.
 
 **Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
 
+**Show.** Plots of x(t) and the energy e(t) for leapfrog at both step sizes.
+
 **Verification.** Leapfrog energy does not drift even at the large step (it is symplectic and time-reversible); a small energy ripple at dt = 0.1 comes only from x and v being stored at staggered times.
 :::
 
@@ -348,6 +354,8 @@ $$
 **Method.** The velocity-Verlet integrator, splitting the velocity update into two half-steps around the position update, `v_half = v + 0.5*dt*f`, `x_next = x + dt*v_half`, `v_next = v_half + 0.5*dt*f_next`.
 
 **Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Show.** Plots of x(t) and the energy e(t) for velocity Verlet at both step sizes.
 
 **Verification.** Velocity Verlet conserves the energy at both step sizes and returns position and velocity at the same time points.
 :::
@@ -452,6 +460,8 @@ $$ x_1 = x_0 + h v_0 + \tfrac{1}{2} h^2 f_0 . $$
 **Method.** The Verlet integrator, advancing position from the two previous positions, `x_{n+2} = 2*x_{n+1} - x_n + dt^2*f_{n+1}`, with a startup step `x_1 = x0 + dt*v0 + 0.5*dt^2*f0`.
 
 **Test.** `k = 0.1`, initial `x0 = 1`, `v0 = 2`, to t = 100; step sizes `dt = 0.01` and `dt = 0.1`.
+
+**Show.** A plot of x(t) for Verlet at both step sizes.
 
 **Verification.** Verlet reproduces the oscillation at both step sizes while storing only positions, which is why it and velocity Verlet underlie most practical MD codes.
 :::

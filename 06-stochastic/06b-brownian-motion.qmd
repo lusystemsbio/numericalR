@@ -27,6 +27,8 @@ more complex dynamics; both give statistically identical walks.
 
 **Test.** `dx = 1`, `dt = 1`, 1000 steps, 1000 independent walks; seed 12.
 
+**Show.** A plot of several random-walk trajectories versus time.
+
 **Verification.** Each walk wanders differently, but as a group they spread symmetrically about the origin.
 :::
 
@@ -200,6 +202,8 @@ statistics.
 
 **Test.** `dx = 1`, `dt = 1`, 1000 steps, 1000 walks; seed 12; the spread compared at times 1, 101, ..., 901.
 
+**Show.** A box plot of the walker positions at sampled times, next to the discrete-step walk.
+
 **Verification.** The spread is statistically identical to the discrete-step walk, so the step distribution does not matter for the long-time behavior, only its mean and variance.
 :::
 
@@ -256,6 +260,8 @@ of $x$ and $y$ at every time.
 **Method.** Two-dimensional Brownian motion via independent per-axis Gaussian steps.
 
 **Test.** `dx = (1, 1)`, `dt = 1`, 10000 steps; seed 12.
+
+**Show.** A plot of the 2D walk path in the plane.
 
 **Verification.** The path is a tangled 2D walk that drifts from the origin, with typical distance growing like sqrt(t).
 :::
@@ -337,6 +343,8 @@ essential: a common mistake is to set the standard deviation to $\Delta t$.
 **Method.** A Wiener-process simulation via Gaussian increments scaled by `sqrt(2*D*dt)`.
 
 **Test.** `D = 0.5`, a deliberately large step `dt = 10`, to t = 1000, 1000 walks; seed 12.
+
+**Show.** A box plot of the walker positions over time, showing variance growing as `2*D*t`.
 
 **Verification.** Even at the large step the variance follows `2*D*t`, because the `sqrt(2*D*dt)` scaling keeps it on track.
 :::

@@ -69,6 +69,8 @@ curve, so one contour captures all of it.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, evaluated over a grid of (k, X).
 
+**Show.** A plot of the zero contour of f(k, X) in the (k, X) plane (the bifurcation curve).
+
 **Verification.** The zero contour is the same S-shaped curve as in Part 2E, returned as connected line segments rather than a point cloud; one contour captures the whole connected curve.
 :::
 
@@ -294,6 +296,8 @@ and $\frac{\partial f}{\partial k} = -X$.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, continued across a range of k.
 
+**Show.** A plot of the continued branch X(k), showing where it stalls at the fold.
+
 **Verification.** It follows a branch accurately away from folds but stalls at a fold, where `dX/dk` diverges because k is multivalued there.
 :::
 
@@ -436,6 +440,8 @@ back onto the curve.
 **Method.** Arc-length continuation: parameterize by arc length s instead of k, splitting each step into `dk` and `dX` with `ds^2 = dk^2 + dX^2` and `dX = h*dk` (h = dX/dk), so the step stays finite where `dX/dk` diverges.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, across the full bistable range.
+
+**Show.** A plot of the full S-shaped curve traced through both folds.
 
 **Verification.** The curve is traced smoothly through both folds, recovering the full S-shape (both stable branches and the unstable middle) where plain k-continuation stalled.
 :::

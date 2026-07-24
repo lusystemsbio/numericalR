@@ -57,6 +57,8 @@ $X = \pm l/2$, by padding the shifted arrays with zeros.
 
 **Test.** The generic solver `pde_fd_diffusion(ngrid, X_all, dX, dt, D, ...)`; the stability factor `D*dt/dX^2` must stay small.
 
+**Show.** The distribution P advanced several finite-difference steps (exercised in 7A.2).
+
 **Verification.** The scheme is the diffusion analog of Euler integration for ODEs, advancing P one time step from its neighbors.
 :::
 
@@ -109,6 +111,8 @@ $D = 1$, we plot the distribution after each of five successive runs.
 **Method.** The explicit finite-difference diffusion integrator (from 7A.1), tracking the mean, variance, and total probability.
 
 **Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`; all probability initially at X = 0; compared with the theoretical variance `sigma^2 = 2*D*t`.
+
+**Show.** A plot of P(X) spreading over time, and its variance versus t against `2*D*t`.
 
 **Verification.** The point distribution spreads into a widening Gaussian whose variance grows as `2*D*t` at early times, while the total probability slowly leaks as the Dirichlet ends absorb it.
 :::

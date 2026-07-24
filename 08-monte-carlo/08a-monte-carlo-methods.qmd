@@ -33,6 +33,8 @@ $$ \pi = 4 P . \tag{2} $$
 
 **Test.** Uniform points in [-1, 1]^2; a single estimate at `n = 1e4` and a convergence run to `n = 1e5`; seed 1.
 
+**Show.** The running estimate of pi versus sample count, and a scatter of the sampled points in and out of the circle.
+
 **Verification.** The estimate is noticeably off at n = 1e4 but settles near pi by n = 1e5, showing the slow 1/sqrt(n) Monte Carlo convergence.
 :::
 
@@ -162,6 +164,8 @@ $$ x_3 (d - x_3) \le 0 . \tag{6} $$
 
 **Test.** Line spacing `d = 1`, needle lengths `l = 0.2, 0.4, ..., 1.4`; `n = 1e4` then `n = 1e5` drops; seed 1.
 
+**Show.** The estimate of pi for each needle length, versus sample count.
+
 **Verification.** At n = 1e4 the estimate wanders around pi (and breaks for l > d), and n = 1e5 tightens it.
 :::
 
@@ -263,6 +267,8 @@ where the prefactor $(x_2 - x_1)/n$ plays the role of $\Delta x$.
 **Method.** Monte Carlo integration by uniform sampling, `I = (x2 - x1)/n * sum f(x_i)`, alongside the deterministic midpoint rule.
 
 **Test.** Interval [0, 3]; midpoint rule at `n = 1000`, Monte Carlo at `n = 1e4`; seed 1.
+
+**Show.** The midpoint-rule and Monte Carlo estimates against `sqrt(pi)/2`.
 
 **Verification.** Both land near `sqrt(pi)/2 = 0.886`; the midpoint rule is more accurate for this smooth 1D integrand, but Monte Carlo's error is dimension-independent.
 :::
@@ -376,6 +382,8 @@ uniform sampling would afford.
 **Method.** Monte Carlo importance sampling with an exponential density `p(x) = exp(-x)` (drawn by inverse transform), compared against uniform Monte Carlo.
 
 **Test.** Range [0, 100], `n = 1e4`, 100 replicates each of importance and uniform sampling; seed 1.
+
+**Show.** Box plots of the importance-sampling versus uniform estimates over many replicates.
 
 **Verification.** Over the wide range, uniform sampling scatters badly by wasting points where f is negligible, while importance sampling concentrates points where f is large and converges with far less variance.
 :::

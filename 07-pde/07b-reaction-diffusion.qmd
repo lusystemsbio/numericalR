@@ -38,6 +38,8 @@ Part 7A with the reaction term added at each step (Dirichlet, $u = 0$ at the end
 
 **Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`, r = 0.64, `B = 75`; a central patch, and separately a left-end patch, each `u = 50`.
 
+**Show.** Plots of u(X) at successive times, showing traveling fronts from a central and a left-end patch.
+
 **Verification.** A local patch grows to carrying capacity and emits two constant-speed fronts, while a left-end patch produces a single rightward traveling wave.
 :::
 
@@ -181,6 +183,8 @@ $$
 **Method.** An explicit finite-difference Fokker-Planck integrator: a centered-difference drift term plus the finite-difference diffusion term, with Dirichlet boundaries.
 
 **Test.** Domain length 100, `dX = 1`, `dt = 0.01`, `D = 1`; springs `k = 0.01` and `k = 0.03`; started from both a localized patch and a uniform distribution.
+
+**Show.** Plots of P(X) relaxing to the steady-state Gaussian, for each spring stiffness k.
 
 **Verification.** The distribution relaxes to the analytic steady-state Gaussian from any initial condition, and a stiffer spring confines it to a narrower peak.
 :::

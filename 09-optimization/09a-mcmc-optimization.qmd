@@ -91,6 +91,8 @@ parallel-tempering method below.
 
 **Test.** Start at (0, 0), `1e4` steps, step size 0.5, temperatures `T = 1, 10, 30, 50`; seed 1 per temperature.
 
+**Show.** The sampled points at each temperature on the Himmelblau landscape.
+
 **Verification.** No single temperature both explores widely and settles: T = 1 traps in one basin, while T = 50 roams but never pins a minimum.
 :::
 
@@ -187,6 +189,8 @@ converges faster. We fold both into one function.
 **Method.** Simulated annealing, lowering the temperature during a single run on a geometric (or linear) cooling schedule with Metropolis acceptance.
 
 **Test.** Start at (0, 0), `1e4` steps, step size 0.5, maximum temperature 50, geometric schedule (scaling 0.999); four runs with seeds 1 to 4.
+
+**Show.** The path of each annealing run on the landscape, and the best value over steps.
 
 **Verification.** Each run cools from a broad search into a single minimum, but which minimum depends on the random path, so different seeds land in different basins.
 :::
@@ -311,6 +315,8 @@ alternating even/odd rounds for ergodicity).
 **Method.** Parallel tempering (replica exchange): run a Metropolis chain at each of several temperatures and swap adjacent-temperature replicas with acceptance `a = min(1, exp((f_i - f_j)*(1/T_i - 1/T_j)))`.
 
 **Test.** 6 replicas at `T = 2.3, 5, 10, 20, 40, 80` with step sizes 0.3 to 2.5, all started at the origin, 100 swap rounds of 100 steps; seed 1.
+
+**Show.** The sampled points of the coldest and hottest replicas on the landscape.
 
 **Verification.** The coldest replica stays inside minima yet still hops between them via configurations passed down from hotter replicas, while the hottest roams the whole landscape.
 :::
@@ -440,6 +446,8 @@ sample all temperatures equally, but since those are unknown we choose them by h
 **Method.** Simulated tempering: a single chain whose temperature random-walks a discrete ladder, with temperature moves accepted as `a = min(1, (c'/c)*exp(-f*(1/T' - 1/T)))`.
 
 **Test.** Start at (0, 0), `1e4` steps, mixing fraction 0.9, step size 1, a 16-rung ladder `T = 5, 10, ..., 80` with weights decreasing linearly from 5 to 1; seed 1.
+
+**Show.** The single chain's path over the landscape and its temperature over steps.
 
 **Verification.** Because the temperature wanders up and down, one trajectory both crosses barriers when hot and settles into minima when cold, visiting all four basins.
 :::

@@ -4,8 +4,8 @@ author: "Mingyang Lu"
 ---
 
 Every recipe box in the book, in order, linked to its section. A recipe box states an
-objective, the model, a method, a test case, and how to verify the result, and can be
-turned into a prompt with its **Copy prompt** button (see
+objective, the model, a method, a test case, what to show, and how to verify the
+result, and can be turned into a prompt with its **Copy prompt** button (see
 [Part 1A](01-intro/01a-getting-started.qmd)). This table is generated automatically
 from the boxes.
 

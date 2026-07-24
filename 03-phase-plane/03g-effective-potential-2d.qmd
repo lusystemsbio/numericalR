@@ -120,6 +120,8 @@ the potential values.
 
 **Test.** The toggle-switch nullclines with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
+**Show.** Plots of the accumulated potential along each nullcline, versus X and versus Y.
+
 **Verification.** Each curve dips to a minimum at the stable states and rises to a maximum at the saddle; the two paths do not agree on the potential values, since the flow is not a true gradient.
 :::
 

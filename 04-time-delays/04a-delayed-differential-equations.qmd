@@ -54,6 +54,8 @@ a population; this linear model is only illustrative.
 
 **Test.** Constant history `N(t) = 1` for `t <= 0`; `tau = 1`, `dt = 0.01`, integrated to t = 40; growth rates r = -0.3, -1.4, and -1.7.
 
+**Show.** A plot of N(t) for r = -0.3, -1.4, and -1.7, showing monotonic, damped, and growing behavior.
+
 **Verification.** As r drops past the critical value `-pi/2` (about -1.57), the decay of the N = 0 state changes from monotonic (r = -0.3) to a damped oscillation (r = -1.4) to an oscillation that grows without bound (r = -1.7).
 :::
 
@@ -160,6 +162,8 @@ overshooting.
 **Method.** Heun's method for delay differential equations: an Euler predictor followed by a trapezoidal corrector, taken over whole time steps so the stored delayed values suffice.
 
 **Test.** Constant history `N(t) = 1`; `tau = 1`, `dt = 0.01`, to t = 40; the unstable case r = -1.7, compared against the Euler result.
+
+**Show.** A plot of the Euler and Heun trajectories for r = -1.7 overlaid.
 
 **Verification.** The Euler and Heun trajectories agree early but drift apart later, with the first-order Euler curve overshooting the second-order one.
 :::

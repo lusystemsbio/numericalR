@@ -1,9 +1,10 @@
 <!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
-     ready-to-paste, context-free prompt from the card's four plain-text fields
-     (Objective / Method / Test / Verification) wrapped in the standard template,
-     and copies it to the clipboard. Registered under format: html include-after-body,
-     so PDF/EPUB are unaffected. Cards are written in plain text (no typeset math,
-     no cross-references), so the copied prompt is clean and self-contained. -->
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
 <style>
 .recipe-copy-btn {
   margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
@@ -30,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // pull the four fields out of the body paragraphs
     var f = {};
     body.querySelectorAll("p").forEach(function (p) {
-      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Verification)\.\s*([\s\S]*)$/);
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
       if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
     });
     if (!f.Objective) return;
@@ -45,11 +46,12 @@ document.addEventListener("DOMContentLoaded", function () {
       "In R (or Python), " + lc(frag(f.Objective)) + ". " +
       (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
       "Use " + lc(frag(f.Method)) + ". " +
-      "Test it on " + frag(f.Test) + ", and include the verification I can run: " +
-      frag(f.Verification) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
       "Implement the method explicitly with short comments rather than calling a " +
-      "routine that does it in one step, and explain in one sentence why the " +
-      "verification confirms the result.";
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
 
     var btn = document.createElement("button");
     btn.type = "button";

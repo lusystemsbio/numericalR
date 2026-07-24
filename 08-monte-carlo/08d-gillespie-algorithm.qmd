@@ -53,6 +53,8 @@ any reaction network.
 
 **Test.** A generic driver taking user-supplied propensity and stoichiometry functions, with stop conditions `tmax` and a maximum iteration count.
 
+**Show.** A time-and-state trajectory for a reaction network (exercised in 8D.2).
+
 **Verification.** The routine generates exact sample trajectories of a reaction network from its master equation.
 :::
 
@@ -133,6 +135,8 @@ $(g,\, kx)$ and the stoichiometry ($+1$ for production, $-1$ for degradation).
 **Method.** The Gillespie stochastic simulation algorithm, with time-weighted mean and standard deviation.
 
 **Test.** `k = 0.1`, production `g = 100, 10, 1` (steady states 1000, 100, 10), `tmax = 100`; started at the steady state and separately from zero; seed 101.
+
+**Show.** Trajectories of the molecule count for each g, and the standard deviation versus mean against `sqrt(x_bar)`.
 
 **Verification.** The standard deviation follows `sqrt(x_bar)` (Poisson), so relative noise falls as `1/sqrt(x_bar)`, and from zero the trajectories climb along `x_bar*(1 - exp(-k*t))`.
 :::
@@ -332,6 +336,8 @@ $$ 0 \xrightarrow{g/n} n\,x , \qquad x \xrightarrow{k} 0 . $$
 
 **Test.** `g = 16`, `k = 0.1` (steady state 160), burst sizes `n = 1, 2, 4, 8`, started at steady state, `tmax = 2000`; seed 91.
 
+**Show.** Trajectories for each burst size n, and the mean and standard deviation versus n.
+
 **Verification.** The mean stays at 160 for every n, but the standard deviation grows with burst size, so larger rarer bursts inject more noise than single-molecule events.
 :::
 
@@ -452,6 +458,8 @@ focus on the $M$ dynamics.
 **Method.** The Gillespie stochastic simulation algorithm for a gene circuit with promoter binding.
 
 **Test.** `k = 0.1` throughout; self-inhibition (`g0 = 55, g1 = 5, kon = 0.002, koff = 90`), no feedback (`g0 = g1 = 30`), and low copy number (`g0 = 5.5, g1 = 0.5, kon = 0.2, koff = 90`); seed 101.
+
+**Show.** Trajectories of the molecule count for each regime, with the mean and standard deviation.
 
 **Verification.** The self-inhibiting gene has a lower standard deviation than the no-feedback case, and at low copy number the few-molecule binding makes the dynamics strongly bursty.
 :::

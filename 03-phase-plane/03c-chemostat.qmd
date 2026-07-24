@@ -60,6 +60,8 @@ both trajectories.
 
 **Test.** `a1 = 2`, `a2 = 5` (giving a washout state (0, 5) and a coexistence state (8, 1)); from N(0) = 0 and from a tiny seed N(0) = 0.01.
 
+**Show.** A phase-plane plot of the two trajectories, one reaching washout (0, 5) and one coexistence (8, 1).
+
 **Verification.** Starting at N = 0 relaxes to the washout state (0, 5); a tiny seed instead ends at the coexistence state (8, 1), first drifting toward washout then peeling away.
 :::
 

@@ -116,6 +116,8 @@ the red separatrix, confirming that it is the boundary between the two basins.
 
 **Test.** The toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`), seeding ten points near the saddle (about (190, 127)).
 
+**Show.** A phase-plane plot of the separatrix together with sample forward trajectories.
+
 **Verification.** The reversed trajectories trace a curve that no forward trajectory from random starts ever crosses, confirming it is the boundary between the two basins.
 :::
 

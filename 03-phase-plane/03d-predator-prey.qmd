@@ -52,6 +52,8 @@ system and is qualitatively different from the attractor dynamics of Parts 3A-3C
 
 **Test.** `a = 1, b = 0.03, c = 0.02, d = 1`; starting counts including (N, P) = (30, 10), (40, 20), (30, 25), (20, 40); integrated 50 time units at dt = 0.01.
 
+**Show.** A time-series plot of N and P, and a phase-plane plot of the nested closed orbits.
+
 **Verification.** The two populations oscillate out of phase in time, and in the phase plane the trajectories form a family of nested closed loops.
 :::
 
@@ -406,6 +408,8 @@ of the data.
 
 **Test.** The lynx-hare yearly data, from a hand-picked starting guess for a, b, c, d.
 
+**Show.** The fitted parameters and the fitted trajectory over the lynx-hare data, in time and in the phase plane.
+
 **Verification.** The fitted trajectory follows both the time courses and the phase-plane loop of the data.
 :::
 
@@ -523,6 +527,8 @@ excellent starting guess for the error minimization (Practice Q5).
 **Method.** Replace the time derivatives with centered finite differences at each data point, turning the rate equations into a linear system, and solve it by ordinary least squares (no intercept).
 
 **Test.** The lynx-hare yearly data.
+
+**Show.** The regression-fitted parameters and the fitted trajectory over the data.
 
 **Verification.** It returns parameters directly and deterministically; on the sparse yearly data the fit is rougher than error minimization but far cheaper.
 :::

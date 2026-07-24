@@ -46,6 +46,8 @@ the alignment (several alignments can share the optimal score).
 
 **Test.** Sequences `A = GAATTCAGTTA`, `B = GGATCGA`; two schemes, match-only (`s_match = 1`, others 0) and (`s_match = 3, s_mismatch = -3, gap = -2`).
 
+**Show.** The optimal alignment and its score for each scoring scheme.
+
 **Verification.** Rewarding only matches maximizes matches regardless of gaps, while adding mismatch and gap penalties balances matches against gap cost, giving a different optimal alignment.
 :::
 
@@ -192,6 +194,8 @@ only the most similar stretch is aligned.
 
 **Test.** Sequences `A = GAATTCAGTTA`, `B = GGATCGA`, scoring `s_match = 3, s_mismatch = -3, gap = -2`.
 
+**Show.** The optimal local alignment, next to the global alignment for comparison.
+
 **Verification.** The global alignment spans both sequences end to end, while the local alignment reports only the best-matching internal segment.
 :::
 
@@ -304,6 +308,8 @@ step lets us reconstruct the optimal tour. The implementation is remarkably shor
 **Method.** Dynamic programming for the traveling salesman problem (the Held-Karp algorithm).
 
 **Test.** 10 cities at fixed coordinates, the tour starting and ending at city 1.
+
+**Show.** The shortest tour drawn through the ten cities, with its length.
 
 **Verification.** It returns the exact shortest tour through all ten cities; the cost is `O(n^2 * 2^n)`, so it stays practical only for small n.
 :::

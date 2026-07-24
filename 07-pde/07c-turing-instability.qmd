@@ -44,6 +44,8 @@ a pattern that should tile space without an artificial edge.
 
 **Test.** The generic solver `pde_fd_reaction_diffusion_multi(derivs, n, ngrid, dX, dt, D, ...)`, with D a length-n vector and the initial state an (n, ngrid) matrix.
 
+**Show.** All components advanced together on the wrap-around grid (exercised in 7C.2).
+
 **Verification.** The solver advances all components together on a wrap-around grid; from random initial perturbations, R and Python give patterns of the same wavelength at different positions.
 :::
 
@@ -135,6 +137,8 @@ after each, starting from a nearly uniform state $u = v \approx 1$.
 **Method.** The multi-component finite-difference reaction-diffusion integrator (from 7C.1), run in successive time blocks.
 
 **Test.** Domain length 20, `dX = 0.2`, `dt = 0.01`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10); a pattern-forming case (`d = 0.1`, `mu = 1.5`), a case with close diffusion constants (`d = 0.8`), and an oscillating case (`d = 0.3`, `mu = 0.9`, initial `u = 2`).
+
+**Show.** Plots of u(X) at successive times for each case: a stationary pattern, a flat state, and a uniform oscillation.
 
 **Verification.** The same model gives three outcomes set by the diffusion ratio and mu: a stationary periodic Turing pattern, a homogeneous steady state, and a spatially uniform temporal oscillation.
 :::
@@ -348,6 +352,8 @@ and $v$ peak together in space rather than out of phase.
 **Method.** The multi-component finite-difference reaction-diffusion integrator (from 7C.1), run in successive time blocks.
 
 **Test.** Domain length 20, `dX = 0.2`, `dt = 0.01`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10).
+
+**Show.** A plot of u(X) and v(X) forming a stationary periodic pattern, peaking together.
 
 **Verification.** It forms a stationary periodic Turing pattern, but with u and v peaking together rather than out of phase as in the substrate-depletion case.
 :::

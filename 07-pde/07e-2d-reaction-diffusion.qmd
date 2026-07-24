@@ -58,6 +58,8 @@ therefore use a smaller time step, $\Delta t = 0.005$, than the 1D runs of Part 
 
 **Test.** The generic solver with a run-in-blocks driver; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10); 2D stability needs `D*dt/dX^2 < 1/4`, so `dt = 0.005`.
 
+**Show.** u and v advanced on the 2D grid (exercised in 7E.2).
+
 **Verification.** The vectorized 2D integrator evaluates the reaction on the whole grid at once, running faster than a point-by-point 1D approach.
 :::
 
@@ -164,6 +166,8 @@ $\mu = 1.5$, the same instability grows into a labyrinth of stripes.
 
 **Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10).
 
+**Show.** A 2D image of the u field forming a labyrinth of stripes.
+
 **Verification.** The instability grows from near-uniform noise into a coarsening labyrinth of winding stripes.
 :::
 
@@ -221,6 +225,8 @@ gives a different pattern from the same initial conditions and the same paramete
 **Method.** The 2D finite-difference reaction-diffusion integrator (from 7E.1), run in successive blocks.
 
 **Test.** A 101x101 grid, `dX = 0.2`, `dt = 0.005`, `d = 0.1`, `mu = 1.5`; nearly uniform initial `u = v = 1` with +-0.1 noise (seed 10), identical to 7E.2.
+
+**Show.** A 2D image of the u field forming an array of spots.
 
 **Verification.** From the same start and parameters as the substrate-depletion case, the activator-inhibitor kinetics instead settle into a regular array of spots, so the reaction kinetics select stripes versus spots.
 :::

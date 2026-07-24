@@ -46,6 +46,8 @@ reproduces the same result: `deSolve` in R (here a fixed-step Euler) and SciPy's
 
 **Test.** r = 0.1, N0 = 1; t = 0 to 100; step dt = 0.1.
 
+**Show.** A log-scaled plot of N(t) for Euler, RK4, and the exact solution on one set of axes.
+
 **Verification.** On a log-scaled y axis the exact solution is a straight line; at large t, RK4 tracks it far more closely than Euler; the final value matches `N(100) = exp(10)`, about 22026.
 :::
 
@@ -216,6 +218,8 @@ you a target to check your simulations against.
 **Method.** Direct evaluation of the exact solution over time.
 
 **Test.** r = 0.1, B = 100, N0 = 1; t = 0 to 100.
+
+**Show.** A plot of the logistic curve N(t) rising to the carrying capacity B.
 
 **Verification.** The curve rises sigmoidally from N0 and levels off at the carrying capacity `B = 100`.
 :::

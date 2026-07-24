@@ -53,6 +53,8 @@ $\Delta t$. We test the method first on pure Brownian motion, $f(X) = 0$.
 
 **Test.** `f = 0`, `D = 10`, `X0 = 0`, to t = 200, `dt = 0.01`, 10 trajectories; seed 1.
 
+**Show.** A plot of the ten Brownian trajectories versus time.
+
 **Verification.** The trajectories reproduce the free Brownian motion of the previous chapter.
 :::
 
@@ -141,6 +143,8 @@ levels and check the variance against this prediction.
 
 **Test.** `k = 1`, noise levels `D = 100, 25, 1`, `X0 = 0`, to t = 1000, `dt = 0.01`; seed 1.
 
+**Show.** Trajectory plots for each D, and a plot of measured variance versus D against the line `<x^2> = D`.
+
 **Verification.** Larger D gives noisier trajectories, and the measured variances fall on the line `<x^2> = D` (since k = 1), confirming `<x^2> = D/k`.
 :::
 
@@ -219,6 +223,8 @@ term only matters, and improves convergence, when the noise depends on the state
 
 **Test.** Wiener increments `dW ~ N(0, dt)`; the integrator is applied to the gene-circuit model of 6C.4.
 
+**Show.** The integrator applied to a test SDE, returning a trajectory (exercised in 6C.4).
+
 **Verification.** The correction term improves convergence only when the noise depends on the state; for constant noise it reduces to Euler-Maruyama.
 :::
 
@@ -279,6 +285,8 @@ noise depends on $X$, we integrate with the Milstein method.
 **Method.** The Milstein method (the noise `b*sqrt(X)` depends on the state).
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4, k = 0.15`; noise amplitudes `b = 5, 2, 0.5`; `X0 = 300`, to t = 1000, `dt = 0.01`; seed 1.
+
+**Show.** Trajectory plots for each noise amplitude b, showing transitions between the two states.
 
 **Verification.** The circuit is bistable (stable states near X = 100 and X = 300), and noise drives transitions between them whose frequency rises with b.
 :::

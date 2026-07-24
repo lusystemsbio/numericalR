@@ -76,6 +76,8 @@ time series of $x(t)$ and $y(t)$ and as a trajectory in the $x$-$y$ plane.
 
 **Test.** `G = 1`, `dt = 0.1`; two runs, initial position (4, 0) with velocity (0, 1) to t = 100, and (2, 2) with velocity (-1, 1) to t = 1000.
 
+**Show.** Orbit plots in the plane for both initial conditions (the ellipse and the rosette).
+
 **Verification.** The first initial condition gives a closed, nearly elliptical orbit; the second traces a precessing rosette that fills an annulus and never quite closes.
 :::
 
@@ -191,6 +193,8 @@ velocities so the R and Python runs trace exactly the same trajectory.
 
 **Test.** `G = 1`, `dt = 0.01`, to t = 100; initial positions (2, 0, -2, 0), velocities (0, 0.4, 0, -0.2); a second run centers the velocities to zero total momentum.
 
+**Show.** Orbit plots before and after shifting to the center-of-mass frame.
+
 **Verification.** With nonzero total momentum the pair orbits while drifting across the plane; subtracting the mean velocity yields a stationary pattern about the common center of mass.
 :::
 
@@ -301,6 +305,8 @@ one particle careening away from the other two.
 **Method.** The generic vector velocity-Verlet integrator on the six coordinates, started in the center-of-mass frame.
 
 **Test.** `G = 1`, `dt = 0.01`, to t = 100; initial positions (-2, 0, 2, 0, 0, 3), velocities centered from (0.1, 0, -0.1, 0, 0, -0.05).
+
+**Show.** An orbit plot of the three bodies, up to the escape.
 
 **Verification.** The three bodies stay bound and weave for a while, then one gains enough energy to escape while the remaining pair recoils, the hallmark of three-body chaos.
 :::

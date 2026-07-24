@@ -72,16 +72,17 @@ A good way to work through each method is:
    resembling everyone else's.
 
 To make this concrete, each worked method in this book is framed as a **recipe**, a
-short box with five fields: **Objective** (what the code should accomplish),
+short box with six fields: **Objective** (what the code should accomplish),
 **Model** (the governing equations and kinetics, stated fully enough to reproduce the
 system), **Method** (the numerical approach), **Test** (a concrete case to run, with
-every parameter, input, and initial condition), and **Verification** (how to tell the
-result is right). The Model and Test fields are what make a recipe self-contained: the
-equations plus the parameters are enough to rebuild the system without seeing the
-code. A recipe is something to read and attempt before you look at the implementation.
-Even a failed attempt makes the reference code far more useful when you turn to it.
-(The Model field is dropped for the occasional example that has no governing
-equations.)
+every parameter, input, and initial condition), **Show** (the output to produce, such
+as a plot or printed values), and **Verification** (how to tell the result is right,
+which is a check on the output, not the output itself). The Model and Test fields are
+what make a recipe self-contained: the equations plus the parameters are enough to
+rebuild the system without seeing the code. A recipe is something to read and attempt
+before you look at the implementation. Even a failed attempt makes the reference code
+far more useful when you turn to it. (The Model field is dropped for the occasional
+example that has no governing equations.)
 
 Recipe boxes appear for the major methods and applications, not for every code block.
 Each was first drafted by an AI assistant (Claude Opus 4.8) and then checked and
@@ -95,17 +96,20 @@ the parts you cannot yet write without giving up the understanding. Instead of a
 vague request, you fill a fixed template with the recipe's fields:
 
 > In [R or Python], [Objective]. The model is [Model]. Use [Method]. Test it on
-> [Test], and include the verification I can run: [Verification]. Implement the method
-> explicitly with short comments rather than calling a routine that does it in one
-> step, and explain in a sentence why the verification confirms the result.
+> [Test]. Produce [Show], and as a separate check, confirm that [Verification].
+> Implement the method explicitly with short comments rather than calling a routine
+> that does it in one step, and explain in a sentence why that check confirms the
+> result.
 
 Write it in plain text, typing any equation the way you would in an email; an
-assistant reads `dX/dt = g - kX` as readily as the typeset form. The last two
-requests are what make this a learning prompt rather than one that just vends code:
-writing the method out so you can see it, and saying why the check confirms
-correctness. In the HTML edition, each recipe box carries a **Copy prompt** button
-that fills this template from the box for you. Whatever the assistant returns, run
-the verification yourself before you trust it.
+assistant reads `dX/dt = g - kX` as readily as the typeset form. Asking for the output
+and the check separately matters: the thing to produce (the Show field) is usually not
+the same as the quantity you verify against, so naming both keeps the assistant from
+returning only the check. The last two requests are what make this a learning prompt
+rather than one that just vends code: writing the method out so you can see it, and
+saying why the check confirms correctness. In the HTML edition, each recipe box carries
+a **Copy prompt** button that fills this template from the box for you. Whatever the
+assistant returns, run the verification yourself before you trust it.
 
 When you instead ask about code that already exists, ask well. Name the actual code
 and the actual confusion: paste the function, then ask what a specific operator,
@@ -133,6 +137,8 @@ its recipe:
 and print its label.
 
 **Test.** The list 4, 7, 10, 13.
+
+**Show.** The printed even/odd label for each number in the list.
 
 **Verification.** 4 and 10 print as even; 7 and 13 print as odd.
 :::
@@ -379,6 +385,8 @@ neighbors [@gardner1970game]:
 **Method.** Count each cell's live neighbors with wraparound, then apply the three rules to all cells at once.
 
 **Test.** A 10x10 grid seeded with a glider at cells (1,2), (2,3), (3,1), (3,2), (3,3); run for several generations.
+
+**Show.** The grid at several successive generations, with the glider visible.
 
 **Verification.** The glider keeps its five-cell shape and drifts one step diagonally every four generations; on reaching an edge it reappears on the opposite side.
 :::

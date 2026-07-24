@@ -40,6 +40,8 @@ loop relaxes to a stable steady state.
 
 **Test.** `g = 10`, `h = 10`; initial (x, y) = (1, 1); `dt = 0.01`, to t = 10.
 
+**Show.** A time-series plot of x and y relaxing to a steady state.
+
 **Verification.** With no delay the loop simply relaxes to a stable steady state, with no oscillation.
 :::
 
@@ -120,6 +122,8 @@ the stable steady state gives way to a sustained oscillation.
 **Method.** The generic multi-variable Heun integrator for delay differential equations.
 
 **Test.** `g = 10`, `h = 10`, `tau = 2`; constant history (x, y) = (1, 1); `dt = 0.01`, to t = 30.
+
+**Show.** A time-series plot of x and y oscillating once the delay is added.
 
 **Verification.** The delay destabilizes the steady state that was stable without it, giving a sustained oscillation.
 :::
@@ -226,6 +230,8 @@ same lag.
 **Method.** The generic multi-variable Heun integrator (ordinary, no delay).
 
 **Test.** All maximal rates equal to 10 (`g = h = l = 10`, and `m = 10` for four nodes); initial state all ones; `dt = 0.01`, to t = 30.
+
+**Show.** Time-series plots of the three- and four-node rings, showing the oscillation and its lengthening period.
 
 **Verification.** The three-node ring already oscillates without any delay; adding a fourth node lengthens the period, approaching the delayed two-node loop, so a delay and a chain of intermediate reactions capture the same lag.
 :::

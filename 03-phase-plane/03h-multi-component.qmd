@@ -27,6 +27,8 @@ two-dimensional.
 
 **Test.** Apply it to the two-, three-, and many-gene systems of this chapter.
 
+**Show.** The integrated trajectories for the two-, three-, and many-gene systems.
+
 **Verification.** The same integrator handles each system correctly with no modification.
 :::
 
@@ -97,6 +99,8 @@ produces damped oscillations.
 **Method.** Integrate the nondimensionalized system with the generic RK4.
 
 **Test.** `g = 10`, `h = 10`.
+
+**Show.** A phase-plane plot of trajectories spiraling into the single steady state.
 
 **Verification.** Trajectories converge to a single stable steady state, spiraling in.
 :::
@@ -265,6 +269,8 @@ states, the bistability we analyzed before.
 
 **Test.** `g = 5`, `h = 5`, from several initial conditions.
 
+**Show.** A phase-plane plot of trajectories reaching one of the two stable steady states.
+
 **Verification.** There are two stable steady states (x-high/y-low and x-low/y-high); which one a trajectory reaches depends on its initial condition.
 :::
 
@@ -328,6 +334,8 @@ then projected. With $g = h = l = 5$ the trajectories converge to a closed loop,
 **Method.** Integrate the three-variable ring with the generic RK4.
 
 **Test.** `g = h = l = 5`.
+
+**Show.** A time-series plot of the three genes oscillating in turn.
 
 **Verification.** The three genes settle into a sustained limit-cycle oscillation, each peaking in turn in a fixed order.
 :::
@@ -424,6 +432,8 @@ coexistence, and at strong interaction it never settles, fluctuating persistentl
 **Method.** Build the interaction matrix, then integrate with the generic RK4.
 
 **Test.** `S = 50` species, dispersal `D = 1e-6`, off-diagonal `a_ij` drawn from Uniform(0, 2a) with mean interaction strength a = 0.08 (weak), 0.16, and 0.64 (strong).
+
+**Show.** A time-series plot of the S species relaxing to steady state, some coexisting and some near zero.
 
 **Verification.** The same RK4 routine scales to S variables, and the community relaxes to a steady state in which some species coexist while others fall to near-extinction.
 :::

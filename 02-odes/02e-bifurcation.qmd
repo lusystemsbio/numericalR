@@ -105,6 +105,8 @@ score.)
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`; k swept across a range (bistable near k = 0.15).
 
+**Show.** A plot of steady-state X versus k, points colored by stability (the bifurcation curve).
+
 **Verification.** The result is an S-shaped curve: over a middle k range there are three steady states (two stable, one unstable), collapsing to one outside it.
 :::
 
@@ -286,6 +288,8 @@ Both implementations reuse the model derivative `derivs_k` defined in 2E.2.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4` on [0, 600], at k = 0.12, 0.15, and 0.2.
 
+**Show.** The roots found on the whole interval versus by the windowed scan, at each k.
+
 **Verification.** On the whole interval, bisection returns the single root at monostable k (0.12, 0.2) but only one of the three at bistable k = 0.15; the windowed scan recovers all three.
 :::
 
@@ -432,6 +436,8 @@ takes a different path.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4` on [0, 600] at k = 0.15.
 
+**Show.** The roots found on the whole interval versus by the windowed scan at k = 0.15.
+
 **Verification.** On the whole interval at k = 0.15 it returns only one of the three roots (possibly a different one than bisection); the windowed scan finds all three, often in fewer iterations.
 :::
 
@@ -562,6 +568,8 @@ we fix a seed here so the figure is reproducible.
 **Method.** From a starting state, integrate `dX/dt = f(X, k)` to a stable steady state, nudge k, and continue from the previous state; reverse the k-sweep at a large jump, and integrate `dX/dt = -f(X, k)` to capture the unstable branch as an attractor.
 
 **Test.** `g0 = 10, g1 = 45, Xth = 200, n = 4`, sweeping k across the bistable range.
+
+**Show.** A plot of steady-state X versus k, including the unstable branch.
 
 **Verification.** The traced points reproduce the S-curve of 2E.2, now including the unstable middle branch.
 :::

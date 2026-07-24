@@ -175,6 +175,8 @@ sign-flip version is far faster.
 
 **Test.** The toggle-switch nullclines with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
+**Show.** The three steady-state coordinates, marked where the nullclines cross.
+
 **Verification.** It returns three steady states (two stable, one unstable); the fast version agrees with the exhaustive all-pairs search while testing far fewer pairs.
 :::
 
@@ -342,6 +344,8 @@ middle one is a saddle point.
 **Method.** Linearize about the steady state and take the eigenvalues of the 2x2 Jacobian (computed numerically); the state is stable when both eigenvalues have negative real part.
 
 **Test.** The three steady states of the toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`).
+
+**Show.** The Jacobian eigenvalues and the stability label for each steady state.
 
 **Verification.** The two outer states are stable and the middle one is an unstable saddle, matching the bistable simulations.
 :::

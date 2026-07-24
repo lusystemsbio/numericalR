@@ -43,6 +43,8 @@ levels of $X$ and $Y$), the hallmark of the toggle switch's bistability.
 
 **Test.** `gX0=5, gX1=50, Yth=100, nY=4, kX=0.1`; `gY0=4, gY1=40, Xth=150, nX=4, kY=0.12`; ten random initial (X, Y) in [0, 600].
 
+**Show.** A phase-plane plot of the ten trajectories converging to the two stable steady states.
+
 **Verification.** Every trajectory settles on one of two distinct stable steady states (different X and Y levels), showing the switch is bistable.
 :::
 
@@ -287,6 +289,8 @@ next two sections give general numerical alternatives.
 
 **Test.** The toggle switch with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
+**Show.** A phase-plane plot of the X- and Y-nullclines with their three crossings.
+
 **Verification.** The two nullclines cross three times, matching the two stable steady states and one unstable state seen by simulation.
 :::
 
@@ -351,6 +355,8 @@ though a fine grid over two dimensions can be costly.
 
 **Test.** The toggle switch (`gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`) on a grid over the (X, Y) plane.
 
+**Show.** A phase-plane plot of the nullclines drawn as zero contours, with their crossings.
+
 **Verification.** The zero contours reproduce the same nullclines as separation of variables, and their crossings match the steady states.
 :::
 
@@ -405,6 +411,8 @@ method is identical to 2F, the Python implementation is omitted (see
 **Method.** Arc-length numerical continuation (predictor-corrector): treat Y as the control parameter, follow `X(Y)` along `fX(X,Y) = 0`, stepping by arc length and correcting back with Newton's method using the Jacobian.
 
 **Test.** The toggle switch's X-nullcline `fX(X,Y) = 0`, with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
+
+**Show.** A phase-plane plot of the X-nullcline traced by continuation.
 
 **Verification.** The traced curve matches the nullcline found by the other two methods.
 :::

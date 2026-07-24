@@ -171,6 +171,8 @@ the Ising model, a move that lowers the energy is always accepted.
 
 **Test.** 25 particles on a 5x5 grid at spacing 1.25 (box side `a = 6.25`), move size `dxmax = 0.25`, temperature `T = 0.05`, 5000 equilibration then 10000 sampling steps; seed 10.
 
+**Show.** A plot of the box energy over the equilibration and sampling phases.
+
 **Verification.** During equilibration the energy falls as particles condense from the open grid into a denser cluster, then fluctuates around a low plateau.
 :::
 

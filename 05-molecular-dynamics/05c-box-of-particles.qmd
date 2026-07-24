@@ -251,6 +251,8 @@ after each position update we fold every coordinate back into the box.
 
 **Test.** Box side `a = 6.25` with 25 particles (the run in 5C.5); the folding rule is `bc_periodic(x, a) = x - floor(x/a)*a`.
 
+**Show.** A short check that a particle stepping past a wall reappears on the opposite side.
+
 **Verification.** A particle that leaves one side of the box reappears on the opposite side, while velocities are never wrapped.
 :::
 
@@ -313,6 +315,8 @@ disordered, liquid-like state. We plot the configuration at the end of each stag
 **Method.** The velocity-Verlet integrator with periodic boundaries (from 5C.4).
 
 **Test.** 25 particles on a 5x5 grid at spacing 1.25; deterministic initial velocities spread over (-0.05, 0.05) by a golden-ratio sequence; a warm-up run to t = 10 then a production run to t = 100, both at `dt = 0.01`.
+
+**Show.** Snapshots of the particle positions in the box, from the initial grid to the final disordered state.
 
 **Verification.** Particles start on the regular grid and end in an irregular liquid-like arrangement; because the many-body dynamics are chaotic, the exact final configuration differs between R and Python while structural averages match.
 :::
@@ -490,6 +494,8 @@ by its shell area and the mean density.
 **Method.** The radial distribution function g(r), computed by histogramming minimum-image pair distances and normalizing each bin by its shell area `2*pi*r*dr` and the mean density.
 
 **Test.** The t = 100 trajectory from 5C.5 (25 particles, box side `a = 6.25`); bin width `dr = 0.05`, radii up to `a/2 = 3.125`.
+
+**Show.** A plot of `g(r)` versus r, with its first and second peaks.
 
 **Verification.** g(r) has the classic liquid shape: near zero below about r = 0.8, a sharp first peak near r = 1 (the Lennard-Jones equilibrium separation), a weaker second peak near r = 2, settling toward 1 at large r.
 :::

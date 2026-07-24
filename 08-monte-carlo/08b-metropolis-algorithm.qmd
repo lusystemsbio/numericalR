@@ -37,6 +37,8 @@ uniform random number and use it to pick the next state from the current row of 
 
 **Test.** The transition matrix above, starting active, `1e4` steps; seed 1.
 
+**Show.** A plot of the promoter state over the first steps, and the running active/inactive fractions.
+
 **Verification.** The trajectory bursts (short active spells, long silent stretches), and the running fractions converge to about 25% active and 75% inactive.
 :::
 
@@ -218,6 +220,8 @@ $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) . \tag{5} $$
 
 **Test.** Target `p_ss = (0.25, 0.75)`, starting active, `1e4` steps; seed 1.
 
+**Show.** The sampled state fractions and the recovered transition matrix.
+
 **Verification.** The sampler has a different transition matrix from the original chain yet reproduces the same stationary distribution, showing that many chains can share one stationary distribution.
 :::
 
@@ -321,6 +325,8 @@ sampled histogram with the true density.
 **Method.** The Metropolis-Hastings algorithm with a uniform random-walk proposal `x' = x + Uniform(-dx_max, dx_max)` and acceptance `a = min(1, exp(-x'^2 + x^2))`.
 
 **Test.** Start at x = 0, `1e4` steps, proposal widths `dx_max = 0.1, 0.5, 2, 10`; seed 1.
+
+**Show.** Histograms of the samples at each proposal width against the true Gaussian.
 
 **Verification.** The sampled histogram matches the true Gaussian best at an intermediate dx_max (about 50% acceptance); too-small steps barely explore and too-large steps mostly reject.
 :::
@@ -428,6 +434,8 @@ $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) = \min\left(1, e^{-(E_{x'} - E_x) 
 **Method.** The Metropolis-Hastings algorithm with single-spin-flip proposals and acceptance `a = min(1, exp(-(E' - E)/T))`.
 
 **Test.** `n = 10` spins, `J = 1`, temperature `T = 1`, 1000 steps, random initial spins; seed 1.
+
+**Show.** A plot of the Ising energy over the Monte Carlo steps.
 
 **Verification.** At T = 1 the sampler moves between the minimum-energy aligned configuration (`E = -9`) and higher-energy ones, with about 20% acceptance.
 :::
