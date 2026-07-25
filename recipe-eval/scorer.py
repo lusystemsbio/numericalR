@@ -1,57 +1,81 @@
 #!/usr/bin/env python3
-"""Score each generation against the box's objective oracle criteria.
+"""Score each generation against the box's oracle criteria.
 
-An independent judge (Claude CLI) reads the generated code, its captured stdout,
-and its figure (Read allowed on the PNG only), and returns a strict JSON verdict
-using the numeric criteria supplied per box. The judge does extraction + threshold
-checks against oracle values I provide; it does not invent standards. Verdicts are
-calibrated against manual inspection on the pilot before trusting on the full set.
-RFS(box) = fraction of the box's samples with pass==true.
+Criterion per box = a hand-written OVERRIDE if present (for soft/statistical/
+visual boxes where the verification prose diverges from the book's actual
+output, or where a tighter numeric check is wanted), otherwise a DEFAULT built
+from the box's own Method + Verification + Show fields (the verification is the
+acceptance test). An independent judge (Claude CLI, Read allowed only on the
+figure) returns a strict JSON verdict. RFS(box) = passes / K.
+
+Judge model defaults to Haiku (cheap; the task is extract-and-threshold);
+validate against Opus on the pilot before trusting on the full set:
+  JUDGE_MODEL=claude-opus-4-8 python3 scorer.py <box>   # re-score one box
 """
 import glob, json, os, re, subprocess, sys, concurrent.futures as cf
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import prompts
 
-BASE = os.environ.get("RECIPE_EVAL_BASE", "/private/tmp/claude-501/-Users-lvmy-neu-teaching-numericalR-numericalR/e8e9d206-e3a8-4079-be52-06334c0a89a5/scratchpad/eval")
+BASE = os.environ.get("RECIPE_EVAL_BASE", os.path.dirname(os.path.abspath(__file__)))
 GEN = os.path.join(BASE, "gen")
-JUDGE_MODEL = "claude-opus-4-8"
+JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "claude-haiku-4-5-20251001")
+FIELDS = prompts.all_boxes()   # current box fields (match the prompts used)
 
-# Objective, oracle-backed pass criteria per box.
-RUBRIC = {
-"2C.1.1": "PASS iff: (a) code implements Euler AND RK4 explicitly (hand-written steppers, not only solve_ivp); (b) the reported N(100) from an explicit method is within 1% of 22026.47 (=exp(10)); (c) RK4 is more accurate than Euler at t=100; (d) a log-scaled N(t) plot is produced.",
-"2E.3.1": "PASS iff: (a) bisection is hand-implemented (not brentq/fsolve); (b) a windowed/all-roots scan is applied; (c) at k=0.15 it finds 3 roots approx {71.5, 170.8, 331.6} (+-5%), and at k=0.12 and k=0.20 it finds exactly 1 root (approx 443.4 and 50.9 resp.).",
-"5A.4.1": "PASS iff: (a) velocity-Verlet is hand-implemented with the two half-step velocity updates; (b) energy e=0.5*k*x^2+0.5*v^2 is tracked and stays bounded with NO secular growth at BOTH dt=0.01 and dt=0.1 (relative drift under ~10% over t=100; contrast: Euler would blow up); (c) x(t) and e(t) plots produced.",
-"6A.4.1": "PASS iff: (a) the polar/Marsaglia Box-Muller is hand-implemented (reject points with R2 not in (0,1); return x*sqrt(-2*ln(R2)/R2) and y*sqrt(...)), NOT np.random.normal; (b) ~10000 samples with sample mean approx 0 (|mean|<0.05) and sd approx 1 (|sd-1|<0.05); (c) a density histogram vs the N(0,1) curve is produced.",
-"3A.1.1": "PASS iff: (a) a vector RK4 is hand-implemented for the 2D toggle system; (b) trajectories from ~10 initial conditions converge to exactly TWO distinct stable steady states approx (53,362) and (542,35) (+-15%); (c) a phase-plane plot is produced.",
-"8D.2.1": "PASS iff: (a) the Gillespie SSA is hand-implemented (exponential waiting time from total propensity, reaction chosen by propensity); (b) the standard deviation GROWS with the mean while relative noise std/mean DECREASES as x_bar rises (Poisson-like), consistent with the book's own finite-run (tmax=100) result where std sits BELOW sqrt(x_bar) at high copy number -- the book itself gets std/sqrt(x_bar) roughly 0.55 at x_bar=1000, 0.73 at 100, 0.66 at 10; so accept std/sqrt(x_bar) anywhere in [0.4, 1.2]. Reject ONLY if std does not increase with mean, or relative noise does not shrink with x_bar, or std exceeds sqrt(x_bar) badly; (c) trajectories plotted.",
-"9B.3.1": "PASS iff: (a) the Held-Karp bitmask DYNAMIC-PROGRAMMING TSP is hand-implemented (a brute-force check alongside it is fine, but a greedy/nearest-neighbor heuristic alone is not); (b) it uses the given 10 city coordinates (x starting 0,-28.87,... y starting 0,0,43.39,...) and returns a closed tour of all 10 cities whose total length is approx 193.73 (within 1%); (c) a plot of the tour is produced.",
-"10C.5.1": "PASS iff: (a) it enumerates attractors by iterating the update X'=NOT Y, Y'=NOT X from all 4 states to a repeat; (b) the reported attractors are exactly: fixed point 10, fixed point 01, and the 2-cycle 00<->11 (00->11->00). No other attractors.",
-"7E.3.1": "PASS iff (read the PNG figure): (a) a 2D finite-difference reaction-diffusion integrator is hand-implemented with the Gierer-Meinhardt activator-inhibitor kinetics f=u^2/v-u, g=mu*(u^2-v); (b) the final u field is a regular array of SPOTS (isolated round peaks), NOT stripes, NOT uniform, NOT NaN/blown-up.",
-"10B.1.1": "PASS iff: (a) k-means (Lloyd) is hand-implemented with multiple restarts kept by lowest WSS (NOT sklearn.cluster.KMeans); (b) it recovers 3 clusters matching the three blobs (three centroids near (0,0),(1.5,1.5),(3,3) within ~0.6, or equivalently a clean 3-way split); (c) a scatter colored by cluster with centroids is produced.",
+# Hand-written, book-grounded criteria for boxes whose verification prose is
+# looser/different from the book's real output, or that are purely visual.
+OVERRIDES = {
+"2C.1.1": "PASS iff: (a) Euler AND RK4 are hand-implemented (not only solve_ivp); (b) the reported N(100) from an explicit method is within 1% of 22026.47 (=exp(10)); (c) RK4 beats Euler at t=100; (d) a log-scaled N(t) plot is produced.",
+"2E.3.1": "PASS iff: (a) bisection is hand-implemented (not brentq/fsolve); (b) a windowed/all-roots scan is applied; (c) at k=0.15 it finds 3 roots ~{71.5,170.8,331.6} (+-5%), and at k=0.12 and 0.20 exactly 1 root (~443.4 and ~50.9).",
+"5A.4.1": "PASS iff: (a) velocity-Verlet hand-implemented with two half-step velocity updates; (b) energy e=0.5*k*x^2+0.5*v^2 stays bounded with NO secular growth at BOTH dt=0.01 and 0.1 (relative drift <~10% over t=100); (c) x(t) and e(t) plots produced.",
+"6A.4.1": "PASS iff: (a) polar/Marsaglia Box-Muller hand-implemented (reject R2 not in (0,1); return x*sqrt(-2*ln(R2)/R2) etc.), NOT np.random.normal; (b) ~10000 samples with mean ~0 (|mean|<0.05) and sd ~1 (|sd-1|<0.05); (c) density histogram vs N(0,1).",
+"3A.1.1": "PASS iff: (a) vector RK4 hand-implemented for the 2D toggle; (b) trajectories from ~10 ICs converge to exactly TWO distinct stable states ~(53,362) and (542,35) (+-15%); (c) phase-plane plot.",
+"8D.2.1": "PASS iff: (a) Gillespie SSA hand-implemented (exp waiting time from total propensity, reaction by propensity); (b) std GROWS with mean while relative noise std/mean DECREASES as x_bar rises, consistent with the book's own finite-run result where std sits BELOW sqrt(x_bar) at high copy number (book gets std/sqrt(x_bar) ~0.55 at x_bar=1000, ~0.73 at 100, ~0.66 at 10; accept std/sqrt(x_bar) in [0.4,1.2]). Reject only if std does not grow with mean, or relative noise does not shrink, or std far exceeds sqrt(x_bar); (c) trajectories plotted.",
+"9B.3.1": "PASS iff: (a) Held-Karp bitmask DP hand-implemented (a brute-force check alongside is fine; a greedy heuristic alone is not); (b) uses the given 10 coordinates (x starting 0,-28.87,...) and returns a closed 10-city tour of length ~193.73 (within 1%); (c) a tour plot.",
+"10C.5.1": "PASS iff: (a) attractors enumerated by iterating X'=NOT Y, Y'=NOT X from all 4 states; (b) reported attractors are exactly fixed points 10 and 01 and the 2-cycle 00<->11. No others.",
+"7E.3.1": "PASS iff (read the PNG): (a) a 2D FD reaction-diffusion integrator with Gierer-Meinhardt activator-inhibitor kinetics f=u^2/v-u, g=mu*(u^2-v); (b) the final u field is a regular array of isolated round SPOTS, NOT stripes/labyrinth, NOT uniform, NOT NaN.",
+"10B.1.1": "PASS iff: (a) k-means (Lloyd) hand-implemented with restarts kept by lowest WSS (NOT sklearn KMeans); (b) recovers 3 clusters matching the blobs (centroids near (0,0),(1.5,1.5),(3,3) within ~0.6, or a clean 3-way split); (c) scatter colored by cluster with centroids.",
+# --- additional book-grounded overrides for Part 7 pattern morphology ---
+"7E.2.1": "PASS iff (read the PNG): (a) a 2D FD reaction-diffusion integrator with Gierer-Meinhardt substrate-depletion kinetics f=u^2*v-u, g=mu*(1-u^2*v); (b) the final u field is a labyrinth of winding STRIPES (connected ridges), NOT isolated spots, NOT uniform, NOT NaN.",
+"7C.2.1": "PASS iff (read the PNG): (a) a multi-component 1D FD reaction-diffusion integrator with the substrate-depletion kinetics; (b) the pattern-forming case (d=0.1) shows a STATIONARY spatially-periodic pattern (regular peaks in u across x); reject if the u profile stays flat/uniform or is NaN. (Reproducing all three regimes is a bonus, not required.)",
+"7C.3.1": "PASS iff (read the PNG): (a) a multi-component 1D FD reaction-diffusion integrator with activator-inhibitor kinetics f=u^2/v-u, g=mu*(u^2-v); (b) the final state shows a stationary spatially-periodic pattern (regular peaks) with u and v peaks roughly IN PHASE; reject if flat/uniform or NaN.",
+"7D.2.1": "PASS iff (read the PNG): (a) a 2D FD integrator for a cAMP field coupled to discrete excitable cells (inactive->excited->refractory); (b) the field shows an organized traveling/spiral wave structure (curved wavefronts), NOT random noise, NOT uniform, NOT NaN.",
 }
 
-JUDGE = """You are a strict, objective grader. Decide only from the evidence and the exact criteria; do not invent extra requirements. Do NOT run code.
+JUDGE = """You are a strict, objective grader. Decide only from the evidence and the exact criteria; invent no extra requirements. Do NOT run code.
 
-CRITERIA for this task:
+CRITERIA:
 {crit}
 
-The candidate's PYTHON CODE:
+CANDIDATE PYTHON CODE:
 ```
 {code}
 ```
 
-Its STDOUT when executed (empty if it failed):
+ITS STDOUT (empty if it failed):
 {stdout}
 
-Ran without error: {ran}. Figure file produced: {figexists} at {figpath} (you may Read that PNG if the criteria need the plot).
+Ran without error: {ran}. Figure produced: {figexists} at {figpath} (Read that PNG only if the criteria mention the plot/figure).
 
 Reply with ONLY a JSON object, no prose:
-{{"ran": bool, "checks": {{"a": bool, "b": bool, "c": bool, "d": bool}}, "pass": bool, "failure_class": "none|no-run|wrong-method|wrong-params|wrong-output|numeric-off|underspecified-test", "note": "<=20 words"}}
-Include only the check keys the criteria define. "pass" is true only if every defined check passes."""
+{{"ran": bool, "pass": bool, "failure_class": "none|no-run|wrong-method|wrong-params|wrong-output|numeric-off|underspecified-test", "note": "<=20 words"}}
+"pass" is true only if EVERY lettered check in the criteria holds."""
+
+def criterion(box):
+    if box in OVERRIDES:
+        return OVERRIDES[box]
+    f = FIELDS.get(box, {})
+    parts = ["PASS iff the candidate: (a) uses the stated method -- " + f.get("Method","(any correct method)"),
+             "(b) produces a result matching this expected outcome (numeric claims within ~5%, "
+             "counts/sets exactly): " + f.get("Verification","(correct result)")]
+    if f.get("Show"):
+        parts.append("(c) produces the requested output: " + f.get("Show"))
+    return " ; ".join(parts) + ". Treat the expected outcome as the acceptance test; ignore cross-references to other sections."
 
 def judge(name, run):
     box = name.rsplit("_s",1)[0]
     code = open(os.path.join(GEN, name + ".py")).read()[:16000]
     fig = os.path.join(GEN, name + ".png")
-    prompt = JUDGE.format(crit=RUBRIC[box], code=code, stdout=(run["stdout"] or "(none)")[:3500],
+    prompt = JUDGE.format(crit=criterion(box), code=code, stdout=(run["stdout"] or "(none)")[:3500],
                           ran=run["ran"], figexists=run["fig"], figpath=fig)
     try:
         r = subprocess.run(["claude","-p",prompt,"--model",JUDGE_MODEL,
@@ -64,28 +88,26 @@ def judge(name, run):
 
 def main():
     runs = json.load(open(os.path.join(BASE, "run_results.json")))
-    only = sys.argv[1] if len(sys.argv) > 1 else None   # optional: re-score one box
+    only = sys.argv[1] if len(sys.argv) > 1 else None
     prev = {}
-    if only and os.path.exists(os.path.join(BASE,"verdicts.json")):
-        prev = json.load(open(os.path.join(BASE,"verdicts.json")))
-    names = [n for n in runs if n.rsplit("_s",1)[0] in RUBRIC and (only is None or n.rsplit("_s",1)[0]==only)]
+    vpath = os.path.join(BASE, "verdicts.json")
+    if only and os.path.exists(vpath): prev = json.load(open(vpath))
+    names = [n for n in runs if (only is None or n.rsplit("_s",1)[0]==only)]
     verdicts = dict(prev)
-    with cf.ThreadPoolExecutor(max_workers=4) as ex:
+    with cf.ThreadPoolExecutor(max_workers=6) as ex:
         for name, v in ex.map(lambda n: judge(n, runs[n]), names):
             verdicts[name] = v
-            print(f"  {name}: pass={v.get('pass')} class={v.get('failure_class')} {v.get('note','')}")
-    json.dump(verdicts, open(os.path.join(BASE, "verdicts.json"), "w"), indent=1)
-    # RFS per box
-    boxes = sorted(set(n.rsplit("_s",1)[0] for n in verdicts))
-    print("\n=== Recipe Fidelity Score (pass rate over K) ===")
+            print(f"  {name}: pass={v.get('pass')} {v.get('failure_class','')} {v.get('note','')}", flush=True)
+    json.dump(verdicts, open(vpath, "w"), indent=1)
+    boxes = sorted(set(n.rsplit("_s",1)[0] for n in verdicts),
+                   key=lambda b:(int(re.match(r'(\d+)',b)[1]), b))
     rfs = {}
     for b in boxes:
-        samples = [verdicts[n] for n in verdicts if n.rsplit("_s",1)[0]==b]
-        p = sum(1 for s in samples if s.get("pass")); rfs[b] = (p, len(samples))
-        print(f"  {b}: {p}/{len(samples)}")
+        s = [verdicts[n] for n in verdicts if n.rsplit("_s",1)[0]==b]
+        rfs[b] = (sum(1 for x in s if x.get("pass")), len(s))
     json.dump(rfs, open(os.path.join(BASE, "rfs.json"), "w"), indent=1)
     tot = sum(p for p,_ in rfs.values()); den = sum(n for _,n in rfs.values())
-    print(f"\nPilot mean RFS: {tot}/{den} = {100*tot/max(den,1):.0f}%")
+    print(f"\nmean RFS: {tot}/{den} = {100*tot/max(den,1):.0f}%")
 
 if __name__ == "__main__":
     main()
