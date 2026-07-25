@@ -1,548 +1,3119 @@
 {
- "10B.1.1_s1": {
+ "10A.2.1_s1": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded Lloyd, 10 restarts by min WCSS, centroids within 0.12, scatter with centroids produced"
+  "note": "Both PCA routes agree to machine precision (3.5e-15 diff). PC1 variance 99.4% of total. PC1 slope 0.4998 matches regression 0.4961 within 1%. Figure shows strip with PC1 direction."
+ },
+ "10A.2.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both PCA routes identical; PC1 captures 99.4% variance, slope 0.508 vs. true 0.5 (1.6% error, within 5% tolerance)."
+ },
+ "10A.2.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both routes return identical variances (3.5e-15 diff); PC1=99.7% variance; PC1 slope 2.018 vs regression 1.989 (1.5% match). Plot shows strip + PC1 line."
+ },
+ "10A.2.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both PCA routes (eigendecomposition, SVD) implemented correctly; variances match to machine precision (3.5e-15); PC1 carries 99.06% variance, aligns with regression direction (0.44\u00b0); plot shows strip data with PC1 line through mean."
+ },
+ "10A.2.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both methods implemented correctly. Variances identical (diff 7e-15). PC1 carries 99.6% variance. Recovered slope 2.028 vs true 2.0 (1.4% error, within 5%). Figure produced with strip data and PC1 direction plotted."
+ },
+ "10A.4.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: PCA+Hastie-Stuetzle implemented correctly; PC1 dominates (60.5%); samples ordered A\u2192I with 0.97 correlation to curve coordinate; scree + PC1-PC2 scatter + fitted curve plotted."
+ },
+ "10A.4.1_s2": {
+  "ran": false,
+  "pass": false,
+  "failure_class": "no-run",
+  "note": "Code crashed before completion. Stdout shows partial PCA output but halts before principal-curve fitting, plotting, or validation checks. Figure not produced."
+ },
+ "10A.4.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "PCA via SVD, scree plot, 2D PC1-PC2 scatter, Hastie-Stuetzle principal curve all present. PC1 explains 80.84% variance. Conditions A-I monotonically ordered (0.038\u21920.961). Figure produced."
+ },
+ "10A.4.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Implements Hastie-Stuetzle explicitly; PC1 explains 84.8%; conditions A\u2013I ordered perfectly (Spearman r=0.9942); scree plot and PC1-PC2 scatter with fitted curve produced."
+ },
+ "10A.4.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (PCA scree + PC1-PC2 + principal curve), correct output (scree plot, colored scatter, fitted curve), numeric results on target (PC1 82.2%, monotonic A\u2192I progression 0.04\u21920.98, rank corr 0.998)."
+ },
+ "10A.5.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All three methods (classical MDS, t-SNE, UMAP) correctly implemented. NN purity confirms separation (1.0, 0.8462, 0.8846). Spearman=\u22121.0 confirms MDS preserves global A\u2013I progression. Figure produced with condition coloring."
+ },
+ "10A.5.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All three methods used correctly; silhouettes (0.846/0.769/0.711) confirm separation; MDS Spearman rho=0.933 confirms A\u2192I progression; figure produced with condition coloring."
+ },
+ "10A.5.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All three methods implemented correctly. All conditions perfectly separated (1.0 accuracy each). MDS axis correlates with A-I order at -0.9999966 (abs > 0.95). Figure plots all three embeddings colored by condition."
+ },
+ "10A.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "UMAP Spearman 0.969 contradicts expected: between-cluster distances should not be meaningful"
+ },
+ "10A.5.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All three methods implemented correctly. All silhouette scores >0.4 confirm separation. Spearman(cond_idx, MDS_centroid)=1.000 confirms MDS preserves A-to-I global ordering. t-SNE/UMAP also separate conditions but don't preserve global order (hallmark of local-cluster emphasis). Figure produced correctly with three colored embeddings."
+ },
+ "10B.1.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not produced at expected path; hardcoded /private/tmp mismatch."
  },
  "10B.1.1_s2": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded Lloyd, restarts by min WCSS, centroids within 0.18, plot produced."
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "K-means correct, recovery excellent, but figure not produced at expected path."
  },
  "10B.1.1_s3": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded Lloyd with restarts by WSS; centroids within 0.18; scatter with centroids produced"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Hand-implemented Lloyd k-means with restarts (\u2713a), centroids within 0.18 of true means (\u2713b), but figure file not produced (\u2717c)."
  },
  "10B.1.1_s4": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded Lloyd with restarts by min WCSS; centroids within 0.18; scatter+centroids saved."
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Lloyd k-means with restarts correct, clusters recovered. Figure not produced at expected location (hardcoded /private/tmp path instead of working directory)."
  },
  "10B.1.1_s5": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "K-means hand-implemented with restarts, recovers three blobs correctly. Figure not produced at expected path."
+ },
+ "10B.2.1_s1": {
+  "ran": true,
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded Lloyd with restarts by WCSS; centroids within 0.18 of true means; scatter with centroids produced."
+  "note": "Ward linkage agglomerative clustering implemented correctly. Dendrogram shows three clear branches (height ratios 1:11.5:19.5). ARI=1.0 vs true labels and k-means. Output figure correct."
+ },
+ "10B.2.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Ward linkage correctly implemented; dendrogram shows 3 clear branches (gap 6.1\u219270.5); HC vs k-means vs truth all 100% pairwise agreement; output dendrogram + scatter both present."
+ },
+ "10B.2.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Ward linkage correctly implemented; dendrogram shows three clear branches (4\u00d7 gap in merge heights); cutting recovers 48/50/52 clusters; 98.67% agreement with k-means; both plots produced."
+ },
+ "10B.2.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Ward linkage correctly implemented with Lance-Williams updates. Cut into k=3 recovers 99.3% agreement with k-means. Dendrogram and colored scatter plot both produced as required."
+ },
+ "10B.2.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct (Ward agglomerative+cut). Three clear branches (gap 1.412), 0.93 Rand with k-means, correct output plots."
+ },
+ "10B.3.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "K-means of z-scored genes, cluster-ordered heatmap. 5 clusters (41/94/208/64/93 genes), convergence in 15 iters, mean-profile ranges 1.5\u20132.5 show distinct co-expression modules. Heatmap displays z-scored values with cluster boundaries marked."
+ },
+ "10B.3.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Uses k-means on z-scored genes; heatmap resolves progression into 5 co-expression modules with coherence 0.77; produces cluster-ordered heatmap PNG."
+ },
+ "10B.3.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: k-means on z-scored data, cluster-ordered heatmap, high within-cluster coherence (0.9+), distinct cluster profiles, genuine co-expression modules confirmed."
+ },
+ "10B.3.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "K-means clusters z-scored genes (500\u00d726), orders by peak condition. Heatmap shows 5 co-expression modules with 0.85 mean gene-to-centroid correlation, confirming genes rise/fall together across conditions."
+ },
+ "10B.3.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (z-score + k-means + cluster-ordered heatmap); clusters show distinct peak/troughs and high within-cluster correlation (0.483 vs 0.028 overall), confirming co-expression modules; figure produced successfully."
+ },
+ "10B.4.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "EM-GMM implementation correct; BIC selects K=3; soft probabilities near 1; both plots present."
+ },
+ "10B.4.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "EM-GMM implemented correctly; BIC selects 3 components exactly, soft probabilities 0.9965 (high recovery); scatter and BIC plots both present."
+ },
+ "10B.4.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "EM-fitted GMM, BIC selects K=3 exactly, soft probabilities 0.9961 (recovers blobs), plots both scatter and BIC curve correct."
+ },
+ "10B.4.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "EM/BIC method correct. BIC selects K=3 (min at 3609.35). Soft probabilities 99.65% mean, 98.89% > 0.9. Accuracy 99.56%. Both plots produced."
+ },
+ "10B.4.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "EM + BIC correctly select 3 components matching blobs; soft probabilities ~0.997; both plots present."
+ },
+ "10C.1.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met. Degree, clustering, diameter, betweenness computed from-scratch via adjacency matrix. Mean 4.59\u22484.6, diameter 5, clustering 0.57, top nodes 0&33. Kamada-Kawai drawn."
+ },
+ "10C.1.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: degree/clustering/diameter/betweenness computed from scratch; numeric results (mean_degree 4.59\u22484.6, clustering 0.571\u22480.57, diameter 5) match expected; all outputs printed and Kamada-Kawai plot produced."
+ },
+ "10C.1.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All methods from-scratch, all outputs correct. Degree 4.59 vs 4.6, clustering 0.571 vs 0.57, diameter 5, top-2 betweenness nodes 0&33 (instructor/president). K-K layout drawn."
+ },
+ "10C.1.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: from-scratch computation of degree, clustering, diameter, betweenness; numeric results match (mean\u22484.6, diameter=5, clustering\u22480.57); top betweenness nodes 0 and 33 correctly identified; full output printed; MDS/KK layout drawn."
+ },
+ "10C.1.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: degree/clustering/diameter/betweenness computed from scratch via BFS/Brandes; numerics match (mean degree 4.588\u22484.6, clustering 0.571\u22480.57, diameter=5, top-2 betweenness nodes 1&34); Kamada-Kawai layout rendered."
+ },
+ "10C.2.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both methods implemented from scratch correctly. ER shows tight clustering (CV=0.42), BA shows power law (slope=-1.83). Histogram and log-log scatter produced as requested."
+ },
+ "10C.2.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both ER and BA implemented from scratch. ER shows tight clustering (CV=0.416, mean=6.044 vs expected 5.994, <1% error). BA shows power-law fit (R\u00b2=0.8225, exponent 1.83) with scale-free behavior. Histogram + log-log scatter produced correctly."
+ },
+ "10C.2.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both models correctly implemented from scratch. ER CV=0.42 (tight clustering); BA log-log slope=-1.83 (power law). Histogram + log-log scatter produced correctly."
+ },
+ "10C.2.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "ER histogram shows tight clustering (CV=0.40); BA log-log shows power law (slope=-1.82); both implemented from scratch correctly."
+ },
+ "10C.2.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Both ER and BA implemented from scratch correctly. ER shows tight clustering (CV=0.40 vs BA's 1.19), BA power-law slope=-1.81 on log-log. Histogram + log-log scatter produced as requested."
+ },
+ "10C.3.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "Method and sizes correct; modularity 0.404 vs expected ~0.37 (~9% off, exceeds ~5% tolerance)."
+ },
+ "10C.3.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "Modularity 0.4036 vs expected ~0.37 (9% off, exceeds 5% tolerance); partition 18/16 exact."
+ },
+ "10C.3.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "Correct method, correct partition (18/16 exactly). Modularity Q=0.40 exceeds expected 0.37 by ~9%, outside \u00b15% tolerance."
+ },
+ "10C.3.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "Modularity Q=0.4036 vs expected ~0.37 (~9% off, exceeds ~5% tolerance)."
+ },
+ "10C.3.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "numeric-off",
+  "note": "Method correct, community sizes exact (16/18). Modularity Q=0.4036 exceeds ~5% tolerance of 0.37 (expected ~0.3515\u20130.3885)."
+ },
+ "10C.4.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Synchronous updating exhaustively enumerates all 8 states; finds 1 period-4 cycle; validates completeness."
+ },
+ "10C.4.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correctly enumerates all attractors via exhaustive synchronous iteration; finds period-4 cycle as sole attractor; verification confirms all 8 states flow into enumerated attractors."
+ },
+ "10C.4.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Exhaustive synchronous enumeration from all 8 states; 2 attractors (1 fixed, 1 period-3 cycle) found and validated. All states reach recorded attractors; fixed-point brute-force check passes."
+ },
+ "10C.4.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (synchronous Boolean network, exhaustive enumeration); verified all 8 states reach single 5-cycle; all checks pass."
+ },
+ "10C.4.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (synchronous Boolean network, exhaustive enumeration from all 2^n states). Finds all attractors canonically, verified by state coverage check. Output ready for application."
  },
  "10C.5.1_s1": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Iterates all 4 states to repeat; finds exactly FP 01, FP 10, and 00<->11 cycle."
+  "note": "All 4 states iterated; update rule X'=NOT Y, Y'=NOT X correct; attractors exactly {01 fp, 10 fp, 00\u219411 cycle}. Check passed."
  },
  "10C.5.1_s2": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Enumerates from all 4 states; finds FP 10, 01, and 2-cycle 00<->11."
+  "note": "Attractors enumerated correctly from all 4 states; found exactly the required fixed points 01, 10 and 2-cycle 00<->11."
  },
  "10C.5.1_s3": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Enumerates all 4 states to repeat; finds FP 10, FP 01, 2-cycle 00<->11 exactly."
+  "note": "Correctly enumerates all 4 states under X'=NOT Y, Y'=NOT X; reports exactly fixed points {01,10} and 2-cycle {00\u219411}."
  },
  "10C.5.1_s4": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Enumerates all 4 states; finds fp 10, fp 01, 2-cycle 00<->11 exactly."
+  "note": "Correctly enumerates all 4 states; reports exactly the 3 expected attractors (fixed points 01, 10; 2-cycle 00\u219411). Output confirms all checks passed."
  },
  "10C.5.1_s5": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Enumerates from all 4 states; attractors 10, 01, 00<->11 exactly correct"
+  "note": "Correctly enumerates attractors via X'=NOT Y, Y'=NOT X from all 4 states; finds exactly fixed points 01, 10 and 2-cycle 00<->11."
+ },
+ "10C.6.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: uses Boolean attractor enumeration over all 8 states, finds exactly zero fixed points and two cyclic attractors (lengths 2 and 6), prints attractors as arrow chains."
+ },
+ "10C.6.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method: Boolean attractor enumeration over all 8 states. Output: exactly two attractors (period 2: 000\u2192111\u2192000; period 6 six-state cycle). Format: arrow chains printed correctly."
+ },
+ "10C.6.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Uses Boolean attractor enumeration; finds zero fixed points, two cyclic attractors (period 2 and 6); output formatted as arrow chains."
+ },
+ "10C.6.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct (enumeration over all 8 states), output exact (0 fixed points, 2-cycle + 6-cycle), format correct (arrow chains)."
+ },
+ "10C.6.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: correct method (attractor enumeration over 8 states), finds zero fixed points + two cycles (periods 2, 6), chain output correct."
+ },
+ "1A.3.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Loops over numbers, uses modulo operator, prints labels. Output correct: 4,10\u2192even; 7,13\u2192odd."
+ },
+ "1A.3.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: loops over numbers, uses modulo operator, prints labels; 4/10 even, 7/13 odd as expected."
+ },
+ "1A.3.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: loops over numbers, tests with modulo operator, prints labels. Output matches expected: 4,10\u2192even; 7,13\u2192odd."
+ },
+ "1A.3.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method, expected output, all labels match."
+ },
+ "1A.3.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Code loops with modulo, prints correct labels for all four numbers. All criteria met."
+ },
+ "1A.5.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct: neighbor counting via np.roll wraparound, simultaneous rule application. Expected outcome met: 5-cell shape preserved, (1,1) diagonal drift every 4 generations confirmed across all intervals. Output produced: 13 successive generation grids printed with glider visible."
+ },
+ "1A.5.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Uses np.roll() with wraparound for neighbor counting, applies three rules vectorized. Glider shape preserved, five cells every gen, drifts one diagonal step per four gens with wraparound confirmed. Grids printed at gens 0,4,8,12,16,20."
+ },
+ "1A.5.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct (np.roll wraparound + vectorized rules). Glider shape preserved; 5 cells; diagonal drift (1,1) every 4 gen verified. Wraparound confirmed after 40 gen. Text grids show glider."
+ },
+ "1A.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Edge-wrapping behavior not demonstrated; glider never reaches edge in 16-gen run on 10\u00d710 grid."
+ },
+ "1A.5.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Glider drifts correctly through gen 24, but diagonal drift fails at gen 28 (error ~64%), breaking required edge-wrapping behavior."
+ },
+ "1C.3.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: correct Babylonian formula, all three guesses converge to ~1.41421, final^2 within tolerance, far guess (200) needs 11 vs 4 iterations, output shows all iterates and finals."
+ },
+ "1C.3.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct; all guesses converge to 1.41421356; squared results within epsilon; far guess (200) needs 7 more iterations than near guess (1)."
+ },
+ "1C.3.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": ""
+ },
+ "1C.3.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Implements Babylonian iteration correctly; all guesses converge to 1.41421356; squared values within tolerance; iterations scale with guess distance."
+ },
+ "1C.3.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method, all guesses converge to ~1.41421, squared results within tolerance, output complete."
+ },
+ "2A.1.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; figure failed to save despite error-free run."
+ },
+ "2A.1.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot logic correct but hardcoded savefig path prevents output file at expected location"
+ },
+ "2A.1.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot code structurally correct; file not produced at expected location (hardcoded /private/tmp path)."
+ },
+ "2A.1.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot code correct but saved to /private/tmp/ instead of expected recipe-eval/gen/"
+ },
+ "2A.1.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure missing at expected path; code uses hardcoded /tmp directory instead"
+ },
+ "2B.1.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Euler method correct, numeric results match criteria (dt=0.1 error 0.37nM<1nM, dt=1 gap visible, both reach g/k=500), but plot file not produced."
+ },
+ "2B.1.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot not saved despite correct method and valid numeric results."
+ },
+ "2B.1.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code correct, numerics match (a,b), but plot not produced at expected location."
+ },
+ "2B.1.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Criterion (a) and (b) met: correct Euler method, max error 0.37 nM at dt=0.1, 3.84 nM gap at dt=1, both reach g/k=500. Criterion (c) fails: plot file not produced at verification location."
+ },
+ "2B.1.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot saved to /private/tmp/ instead of expected /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/ path"
+ },
+ "2B.4.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Heun method correct, numeric results match criterion (b); plot code present but file not created."
+ },
+ "2B.4.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct; numeric tests pass (Heun beats Euler; ~4.32\u00d7 error reduction when halving dt). Plot not produced at expected path."
+ },
+ "2B.4.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric results correct (4.32x convergence confirms 2nd-order). Plot created but saved to hardcoded temp path, not expected location."
+ },
+ "2B.4.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and convergence correct. Plot created but saved to /private/tmp/... instead of expected /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/2B.4.1_s4.png; file not found."
+ },
+ "2B.4.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric outcomes correct (Heun < Euler, 4.3x ratio). Plot file not produced despite savefig call."
+ },
+ "2B.5.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, accuracy correct, but plot saved to hardcoded /private/tmp path, not expected location."
+ },
+ "2B.5.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK2 method correct, numeric results match criterion (b), but plot saved to /private/tmp instead of recipe-eval/gen"
+ },
+ "2B.5.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method (a) correct. Accuracy (b) correct: RK2 matches Heun, ~29\u00d7 better than Euler. Output (c) fails: no figure at expected path."
+ },
+ "2B.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK2 method and accuracy correct; plot saved to wrong path (/private/tmp vs expected)."
+ },
+ "2B.5.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK2 method correct, accuracy matches Heun and beats Euler. Plot file not produced at expected location."
+ },
+ "2B.6.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct, numeric results correct (ratio 17.4 \u2248 16), but plot file was not produced."
+ },
+ "2B.6.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct, convergence confirmed (ratio 17.4 \u2248 16). Plot created but saved to wrong path; not found at expected location."
+ },
+ "2B.6.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct, accuracy metrics match (16.68x error reduction when step halved). Plot code structure correct but figure not produced at expected location."
+ },
+ "2B.6.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct, accuracy/convergence validated (error ratio 16.68 \u2248 16). Plot file not found at expected path; code saved to /private/tmp instead of recipe-eval/gen."
+ },
+ "2B.6.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not produced at expected path"
+ },
+ "2B.8.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method (a) correct; numeric results (b) match expectation; plot (c) NOT saved to required path\u2014saved to /private/tmp instead of /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/"
+ },
+ "2B.8.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; plot not produced despite code running."
+ },
+ "2B.8.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; plot saved to wrong path (/private/tmp instead of project gen/)."
+ },
+ "2B.8.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Methods correct; methods and numerics pass. Plot saved to wrong path (/private/tmp/... not /Users/lvmy/...)"
+ },
+ "2B.8.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; figure saved to /private/tmp/... instead of recipe-eval/gen/."
  },
  "2C.1.1_s1": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Euler and RK4 hand-coded; RK4 N(100)=22026.47 within 1%; RK4 more accurate; semilogy plot produced"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Euler & RK4 hand-implemented; RK4 N(100)=22026.47 (1% \u2713), beats Euler (\u2713); but log-plot not produced."
  },
  "2C.1.1_s2": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-written Euler and RK4; N(100)=22026.47 matches exp(10); RK4 more accurate; semilogy plot produced."
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Criteria (a)\u2013(c) pass. Criterion (d) fails: code has log-scaled semilogy plot but figure not produced at expected path."
  },
  "2C.1.1_s3": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate than Euler; semilogy plot produced"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot not saved to expected location; savefig uses /private/tmp path instead."
  },
  "2C.1.1_s4": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate; semilogy plot produced."
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not at expected path. Euler 4.85% off target (fails 1% criterion alone). RK4 passes (a)(b)(c) but (d) requires plot in working dir."
  },
  "2C.1.1_s5": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true,
-   "d": true
-  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Meets (a)-(c): hand-implemented Euler/RK4, RK4 within 1%, RK4 beats Euler; fails (d): plot file not produced."
+ },
+ "2C.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method & numeric result correct (sigmoidal, N(100)\u224899.55 within ~5% of B=100). Figure not produced at expected location (saved to /private/tmp instead)."
+ },
+ "2C.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method & numeric result correct (N=99.55 at t=100, within ~5% of B=100). Figure NOT produced at expected path."
+ },
+ "2C.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method (exact solution) and numerics correct; sigmoidal rise to B confirmed (0.45% deviation <5%). Figure not produced at expected location."
+ },
+ "2C.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Numeric results (sigmoid from N0=1 to B\u2248100) correct. Plot saved to wrong path; expected /Users/lvmy/neu/.../gen/2C.2.1_s4.png."
+ },
+ "2C.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Numeric results correct and sigmoidal. Plot not produced at expected location."
+ },
+ "2D.1.1_s1": {
+  "ran": true,
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-written Euler and RK4; RK4 N(100)=22026.47 within 1%, more accurate; semilogy plot produced."
+  "note": "Central finite difference method correct; steady state ~258 nM (within 5% of ~250), df/dX negative, stable verdict confirmed."
+ },
+ "2D.1.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method (central difference), outcome (Xss\u2248258 nM, dfdX<0, STABLE), and output (all three required items) match criteria exactly."
+ },
+ "2D.1.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (central finite difference), steady state 258.4 nM (~250 nM), df/dX negative (\u22120.280), stable. All criteria met."
+ },
+ "2D.1.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correctly uses bisection + central difference, finds Xss\u2248258 nM (within 5% of expected ~250), df/dX\u2248-0.28 (negative), verdict stable. All output present."
+ },
+ "2D.1.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Central FD method correct, Xss \u2248 258 nM (within spec), dfdX negative, stable verdict confirmed."
+ },
+ "2D.3.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot not saved to expected path. k=0.1: found 0 basins, expected 1 well. k=0.15 positions off >5%: 71.5 vs ~100, 170.7 vs ~200, 331.6 vs ~300."
+ },
+ "2D.3.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "k=0.15 values off >5% (71.5 vs ~100, 331.6 vs ~300, 170.75 vs ~200); k=0.1 finds 0 not 1 fixed point; plot path mismatch"
+ },
+ "2D.3.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "k=0.1 shows zero wells instead of one; k=0.15 basins off >5% (71.5 vs ~100, 331.6 vs ~300); plot not produced."
+ },
+ "2D.3.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "k=0.1 found 0 basins (should have 1 well); plot not saved to specified path."
+ },
+ "2D.3.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "k=0.1 yields 0 basins (expected 1); figure not produced."
+ },
+ "2E.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Correct analysis but plot not saved to expected location."
+ },
+ "2E.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Stdout confirms method (a) and outcome (b): S-shaped curve with 3 steady states (2 stable, 1 unstable) in k \u2208 [0.1259, 0.1680]. Plot code written but file not produced; criterion (c) fails."
+ },
+ "2E.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, S-shaped bifurcation confirmed numerically, but figure not saved to expected path."
+ },
+ "2E.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric outcome correct (S-curve with 3-state band verified), but plot file not produced at output path."
+ },
+ "2E.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numeric outcome correct; figure not produced at expected path."
  },
  "2E.3.1_s1": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded bisection, windowed scan; 3 roots at k=0.15, 1 each at k=0.12/0.20, all within tolerance."
+  "note": "Bisection hand-implemented, windowed scan applied (600 windows), roots match: k=0.15 \u2192 3 at {71.48, 170.75, 331.61}, k=0.12/0.20 \u2192 1 each at {443.43, 50.94}."
  },
  "2E.3.1_s2": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand bisection, windowed scan, all root counts and values match within tolerance."
+  "note": "Hand-coded bisection; windowed scan with 600 windows; k=0.15 finds 3 roots [71.48, 170.75, 331.61] within \u00b15% of [71.5, 170.8, 331.6]; k=0.12 and k=0.20 each find 1 root [443.43, 50.94] within \u00b15% of [443.4, 50.9]."
  },
  "2E.3.1_s3": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded bisection, windowed scan; k=0.15 gives 3 roots, k=0.12/0.20 give 1 each, all in tolerance."
+  "note": "Hand bisection \u2713, windowed scan \u2713, all roots correct at all k values \u2713"
  },
  "2E.3.1_s4": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded bisection, windowed scan, roots match all three k values within tolerance"
+  "note": "Hand bisection \u2713, windowed scan \u2713, all roots correct within \u00b15% and counts match \u2713"
  },
  "2E.3.1_s5": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
   "pass": true,
   "failure_class": "none",
-  "note": "Hand-coded bisection, windowed scan, correct root counts and values at all k."
+  "note": "Hand bisection \u2713, windowed scan \u2713, k=0.15 finds 3 roots {71.484, 170.747, 331.611} \u2713, k=0.12/0.20 find 1 root each {443.431, 50.943} \u2713"
+ },
+ "2E.4.1_s1": {
+  "ran": false,
+  "pass": false,
+  "failure_class": "no-run",
+  "note": "Code crashed: func(xmin) calls f(X, k) with only one argument; k never passed to false_position/windowed_scan."
+ },
+ "2E.4.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "False-position formula correct; whole interval finds 1 root, windowed scan finds all 3 roots in 11 iterations vs 16; output matches criteria exactly."
+ },
+ "2E.4.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct; 1 root (whole), 3 roots (windowed); 16 vs 3-4 iterations. All criteria met."
+ },
+ "2E.4.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct false-position formula; 1 root whole, 3 windowed; iterations 16\u21925,4,5; all criteria satisfied."
+ },
+ "2E.4.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct: false-position formula matches exactly. Outcome correct: whole interval returns 1 of 3 roots (71.484), windowed scan finds all 3 with fewer iterations (4,3,4 vs 16). Output complete and clear."
+ },
+ "2E.5.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, S-curve traced with unstable branch (residuals ~1e-9), but PNG file not produced."
+ },
+ "2E.5.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method & numeric results correct; plot saved to wrong filesystem path"
+ },
+ "2E.5.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Methods and numerics correct; figure hardcoded to wrong save path, not found at expected location."
+ },
+ "2E.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct (|f|\u22481e-6, all 3 branches traced), but plot saved to /private/tmp/... instead of expected /Users/lvmy/neu/teaching/numericalR/recipe-eval/gen/2E.5.1_s4.png."
+ },
+ "2E.5.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code implements correct method with small residuals, but plot saved to temp path, not expected output directory."
+ },
+ "2F.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numerics excellent (S-curve, 2 folds, <1% error), but PNG not saved to expected location."
+ },
+ "2F.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, contour logic sound, two folds detected. PNG file not created; savefig() path inaccessible."
+ },
+ "2F.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric result correct (connected S-curve, residual ~0.001), but figure saved to wrong temp path, not expected location."
+ },
+ "2F.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and contour extraction logic correct, but figure file not produced at target path"
+ },
+ "2F.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Marching-squares algorithm sound; contour valid (812-vertex polyline, max|f|\u22480.0016); plot saved to /tmp path, not expected location."
+ },
+ "2F.5.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code implements predictor-corrector continuation correctly and produces accurate numeric results (branches accurately, stalls at fold with diverging dX/dk). However, plot file not found at expected location\u2014savefig executed but PNG not produced."
+ },
+ "2F.5.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; branch followed accurately to fold with diverging dX/dk. Plot file not created."
+ },
+ "2F.5.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; stalls accurately at fold. Plot file not produced (path mismatch in savefig)."
+ },
+ "2F.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct but stalls immediately (1 step); no plot produced."
+ },
+ "2F.5.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Stalls at k=0.050 (diff 0.1535 from true k*=0.203, 75% error); stalls at START, not after tracing branch. No figure produced."
+ },
+ "2F.6.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Arc-length method and numeric results correct; plot saved to wrong path, not produced at expected location."
+ },
+ "2F.6.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method (a) correct, numeric outcome (b) achieved (2 folds, 84 unstable-branch points). Plot file not created (c) \u2014 savefig failed silently."
+ },
+ "2F.6.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Arc-length method correct, full S-curve recovered with 2 folds and 3 coexisting branches. Plot file not produced at expected location."
+ },
+ "2F.6.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and results correct; figure saved to wrong path (hard-coded temp dir, not expected output location)."
+ },
+ "2F.6.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Arc-length method correct, 2 folds detected, full S-curve traced. Figure saved to /private/tmp/ instead of /Users/.../gen/; not found at expected path."
  },
  "3A.1.1_s1": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Vector RK4, 10 ICs converge to two states (52.9,361.6) and (542.4,35.3), phase plot produced"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 correct, two stable states match targets (52.9,361.6) and (542.4,35.3) within \u00b115%. Plot code present but saved to /private/tmp, not expected /Users/lvmy/.../3A.1.1_s1.png."
  },
  "3A.1.1_s2": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Vector RK4, 10 ICs converge to two states (53,362)/(542,35), phase plot made"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 correct, bistability confirmed, but phase-plane plot not produced at expected location"
  },
  "3A.1.1_s3": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Vector RK4, two states (53,362)/(542,35) match, phase-plane plot saved"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot code exists but figure saved to /tmp/, not output directory."
  },
  "3A.1.1_s4": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Vector RK4, two states (53,362)/(542,35) matched, phase-plane plot produced"
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Numerics correct (10 ICs, 2 states at \u2248(53,362) and (542,35)). RK4 properly hand-implemented. Figure saved to /private/tmp/... instead of expected output path."
  },
  "3A.1.1_s5": {
   "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 and bistability both correct; figure file not produced at expected path."
+ },
+ "3A.4.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and nullcline equations correct; exactly 3 crossings found as expected. Figure not verified at expected path."
+ },
+ "3A.4.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct (3 crossings, 2 stable/1 unstable), but figure not produced at expected path."
+ },
+ "3A.4.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct (3 crossings found exactly), but plot file not produced."
+ },
+ "3A.4.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Nullcline math correct, three crossings found. Plot file not created."
+ },
+ "3A.4.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and nullcline math correct, 3 crossings found. Plot exists but saved to /private/tmp/ not expected /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/3A.4.1_s5.png"
+ },
+ "3A.5.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure saved to /private/tmp/ instead of recipe-eval/gen/; method and verification correct"
+ },
+ "3A.5.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code/method/numerics correct; figure saved to /private/tmp instead of expected location."
+ },
+ "3A.5.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric results match (deviations <2%), but plot PNG not created."
+ },
+ "3A.5.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code uses correct contour method and yields correct numeric steady states (3 crossings matching separation-of-variables to machine precision). However, figure was not produced at expected output location."
+ },
+ "3A.5.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct (match separation-of-vars <0.01%); figure saved to wrong path."
+ },
+ "3A.6.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Continuation method correct, numerics match (1e-10 error). Plot saved to temp dir, not evaluation path."
+ },
+ "3A.6.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numerics excellent (1e-13 error). Figure saved to temp path, not expected /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/3A.6.1_s2.png."
+ },
+ "3A.6.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code implements arc-length continuation correctly with excellent numerical agreement (deviation 1.7e-13), but figure not produced at expected path."
+ },
+ "3A.6.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, numeric results match; figure not at expected path."
+ },
+ "3A.6.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct; figure saved to wrong path (/private/tmp/... instead of current dir)."
+ },
+ "3B.2.1_s1": {
+  "ran": true,
   "pass": true,
   "failure_class": "none",
-  "note": "Vector RK4, 10 ICs to two states (53,362)/(542,35), phase plot produced."
+  "note": "Correct method (nullcline + segment intersection + sign-change narrowing), three steady states (2 stable, 1 unstable), fast tests 3 pairs vs 159k exhaustive, coordinates printed with stability labels."
+ },
+ "3B.2.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Nullclines built correctly; finds 3 steady states (2 stable, 1 unstable) via segment intersection; fast version narrows via bounding-box overlap (not sign-change filtering) but achieves goal: 7 vs 15.9M pairs tested, perfect agreement with exhaustive search."
+ },
+ "3B.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Numeric results correct; figure save failed despite correct code."
+ },
+ "3B.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Coordinates printed correctly; figure not saved to expected location"
+ },
+ "3B.2.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: (a) segment-intersection with sign-change narrowing; (b) three steady states (2 stable, 1 unstable), fast/exhaustive agree; (c) coordinates printed, verified at nullcline crossings."
+ },
+ "3B.3.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct (numerical Jacobian eigenvalues, linear stability). Result correct (two stable outer, one unstable saddle). Output complete (eigenvalues + labels for each state)."
+ },
+ "3B.3.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method correct: numerical Jacobian eigenvalues. Results match: 3 states, outer two stable, middle saddle. Output complete: eigenvalues and labels printed."
+ },
+ "3B.3.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct method (numerical Jacobian, eigenvalue stability test); correct outcome (two stable outer, middle saddle); all outputs present"
+ },
+ "3B.3.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Correct numerical Jacobian method; three steady states with expected bistable pattern (2 stable outer, 1 saddle)."
+ },
+ "3B.3.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: numerical Jacobian method used, eigenvalue-based stability analysis correct, two outer states stable + middle saddle confirmed."
+ },
+ "3C.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Numerical results correct (washout 0,5 and coexistence 8,1 exact), RK4 method correct, but figure saved to wrong path\u2014not at /Users/lvmy/neu/teaching/numericalR/numericalR/recipe-eval/gen/3C.2.1_s1.png"
+ },
+ "3C.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct, numerics correct (N: 0\u21920, 0.01\u21928; C: 5\u21925, 5\u21921). Figure not at expected path."
+ },
+ "3C.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method correct; numeric states match (0,5) and (8,1) exactly. Figure not produced at expected location\u2014saved to /private/tmp/... instead of repo path."
+ },
+ "3C.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code correct, numeric outcomes exact (0,5) and (8,1), but plot file not found at expected /Users/lvmy/ path."
+ },
+ "3C.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure saved to wrong path. Trajectory doesn't drift toward washout before peeling away as expected."
+ },
+ "3D.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not produced at expected path; code uses wrong savefig location."
+ },
+ "3D.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plots created (time-series and phase plane visible in code) but saved to wrong path; expected location empty"
+ },
+ "3D.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not saved to expected path. Closure errors 27-70% instead of <1%."
+ },
+ "3D.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure saved to wrong tmpdir path, not recipe-eval/gen/; phase-lag inconsistent across ICs"
+ },
+ "3D.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "RK4 method and out-of-phase/closed-orbit physics correct; figure savefig path mismatch prevents output at expected location."
+ },
+ "3D.6.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Parameters printed; figure file not produced. Trajectories computed but not visualized."
+ },
+ "3D.6.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "R\u00b2~0.95 for both species shows excellent fit (criterion b met). BFGS optimization and SSE method correct (criterion a met). But figure saved to /private/tmp/... not /Users/lvmy/neu/.../gen/ path; missing at expected output location (criterion c failed)."
+ },
+ "3D.6.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Plot not produced at expected location; fitted parameters and fit quality correct."
+ },
+ "3D.6.1_s4": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method: BFGS minimizes SSE, uses RK4. Outcome: correlations 0.98+, follows time courses and phase loop. Output: parameters printed, trajectories computed and plotted."
+ },
+ "3D.6.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "All criteria met: BFGS method applied; fit quality excellent (0.984/0.977 correlations, ~5% SSE); fitted parameters and trajectory computed and reported."
+ },
+ "3D.7.1_s1": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Uses centered finite differences + OLS on interior points, returns parameters deterministically (verified bit-identical re-run), provides both fitted parameters and trajectory over data years."
+ },
+ "3D.7.1_s2": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method: centered finite differences + OLS regression \u2713. Parameters extracted directly (lstsq vs. normal-equations agreement 4.4e-16 proves determinism). Trajectory computed and reported at each data year."
+ },
+ "3D.7.1_s3": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Centered finite differences \u2192 OLS (normal equations, no intercept). Parameters: a=0.471, b=0.022, c=0.020, d=0.708. Determinism verified. Fitted trajectory table provided."
+ },
+ "3D.7.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Parameters correct & deterministic; figure saved to wrong path (temp dir, not expected location)"
+ },
+ "3D.7.1_s5": {
+  "ran": true,
+  "pass": true,
+  "failure_class": "none",
+  "note": "Method: centered finite differences + OLS normal equations (correct). Output: parameters (a,b,c,d) and trajectory printed. Determinism verified (zero difference on re-solve)."
+ },
+ "3E.1.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method (a) and numerical outcome (b) correct; plot saved to /private/tmp/ instead of expected gen/ directory, not found at required location."
+ },
+ "3E.1.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code produces correct analysis (method, bifurcation data verified) but figure saved to /tmp, not required output path."
+ },
+ "3E.1.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method & numerics correct; plot generated but saved to wrong path (temp dir, not expected location)."
+ },
+ "3E.1.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Code runs and uses correct method; stdout confirms bifurcation behavior. Figure not produced at expected location (saved to /private/tmp instead)."
+ },
+ "3E.1.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and bifurcation analysis correct; figure not saved to expected location."
+ },
+ "3F.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method correct, basin logic sound, but figure not at expected path"
+ },
+ "3F.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not produced. Separatrix coords blow up to \u00b110\u00b2\u00b9 scale (numerical instability), so reversed integration fails catastrophically."
+ },
+ "3F.2.1_s3": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Reversed trajectories explode to ~10^100 instead of tracing separatrix; figure not saved."
+ },
+ "3F.2.1_s4": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numerics correct (0 crossings); figure not produced at expected path due to hardcoded absolute path mismatch."
+ },
+ "3F.2.1_s5": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure not produced at expected path; separatrix endpoints diverged to 10^80 (numerical instability)."
+ },
+ "3G.2.1_s1": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Method and numeric results correct. Plots generated with right structure but saved to wrong path."
+ },
+ "3G.2.1_s2": {
+  "ran": true,
+  "pass": false,
+  "failure_class": "wrong-output",
+  "note": "Figure path error: saves to /private/tmp/... but expected at /Users/lvmy/... No image produced."
+ },
+ "3G.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3G.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3G.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.6.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.6.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.6.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.6.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "3H.6.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4A.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4B.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "4C.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "5A.4.1_s1": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Verlet with two half-kicks; energy bounded (~2e-6, 2e-4 drift); x(t) and e(t) plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "5A.4.1_s2": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Verlet with two half-steps; energy drift 2.4e-6 and 2.4e-4; both plots produced"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "5A.4.1_s3": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Verlet with two half-step updates; energy drift ~1e-6 and 5e-4; both plots produced"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "5A.4.1_s4": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Verlet with two half-step updates; energy drift <0.03% at both dt; x(t),e(t) plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "5A.4.1_s5": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Verlet with two half-steps; energy drift ~2e-6 and 2e-4, bounded; x(t) and e(t) plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5A.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5B.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.7.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.7.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.7.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.7.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "5C.7.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6A.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6A.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6A.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6A.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6A.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "6A.4.1_s1": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-implemented Marsaglia polar, mean~0 sd~1, density histogram vs N(0,1)."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "6A.4.1_s2": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded polar Box-Muller, rejects R2 outside (0,1), stats near 0/1, density hist vs N(0,1)."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "6A.4.1_s3": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded polar Box-Muller, rejects R2 outside (0,1); mean~0 sd~1.008; density histogram vs N(0,1) plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "6A.4.1_s4": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-implemented polar Box-Muller, rejects R2 outside (0,1), mean~0 sd~1, density hist vs N(0,1)"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "6A.4.1_s5": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded Marsaglia polar, rejects R2 outside (0,1); mean\u2248-0.015, sd\u22481.002; density hist vs N(0,1)."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6B.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6C.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "6D.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7A.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7B.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7C.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7D.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7D.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7D.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7D.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7D.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "7E.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "7E.3.1_s1": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": false
-  },
   "pass": false,
-  "failure_class": "wrong-output",
-  "note": "Pattern is labyrinthine/worm-like connected ridges, not a regular array of isolated round spots."
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "7E.3.1_s2": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": false
-  },
   "pass": false,
-  "failure_class": "wrong-output",
-  "note": "Kinetics correct but final u field is labyrinthine stripes/mixed, not isolated round spots."
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "7E.3.1_s3": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": false
-  },
   "pass": false,
-  "failure_class": "wrong-output",
-  "note": "Correct GM kinetics/integrator, but final field is labyrinthine/reticulate ridges, not isolated round spots."
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "7E.3.1_s4": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": false
-  },
   "pass": false,
-  "failure_class": "wrong-output",
-  "note": "Kinetics correct, but final u is labyrinthine/reticulate network, not a regular array of isolated spots."
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "7E.3.1_s5": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true
-  },
-  "pass": true,
-  "note": "GM kinetics hand-coded FD; u field shows array of isolated round bright peaks (spots), bounded range."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8A.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8B.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8C.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8C.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8C.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8C.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8C.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "8D.2.1_s1": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded SSA; std grows, rel noise shrinks, ratios 0.60-1.0; trajectories plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "8D.2.1_s2": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded SSA; std grows, rel noise shrinks, std/sqrt(x_bar)=0.81,1.12,0.81 all in range; plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "8D.2.1_s3": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded SSA; std grows, rel noise shrinks, std/sqrt(x_bar) 0.59-1.03 in range; trajectories plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "8D.2.1_s4": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded SSA; std grows with mean, relative noise shrinks, std/sqrt in [0.6,0.88]; trajectories plotted."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "8D.2.1_s5": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Hand-coded SSA; std grows, rel noise shrinks, ratios 0.74/1.01/0.73 in range; plots present"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "8D.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.3.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.3.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.3.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.3.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.3.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.4.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.4.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.4.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.4.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.4.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.5.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.5.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.5.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.5.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9A.5.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9B.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "9B.3.1_s1": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Held-Karp DP with brute-force check, correct coords, length 193.73, plot produced."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "9B.3.1_s2": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Held-Karp DP implemented, correct coords, tour length 193.73, plot produced."
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "9B.3.1_s3": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Held-Karp DP implemented, uses given coords, length 193.73, plot produced"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "9B.3.1_s4": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Held-Karp DP correct, length 193.73, brute-force check matches, plot produced"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  },
  "9B.3.1_s5": {
-  "ran": true,
-  "checks": {
-   "a": true,
-   "b": true,
-   "c": true
-  },
-  "pass": true,
-  "failure_class": "none",
-  "note": "Held-Karp DP implemented, correct coords, length 193.73 matches, plot saved"
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.1.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.1.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.1.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.1.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.1.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.2.1_s1": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.2.1_s2": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.2.1_s3": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.2.1_s4": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
+ },
+ "9C.2.1_s5": {
+  "pass": false,
+  "note": "judge-parse-fail",
+  "raw": "You've hit your session limit \u00b7 resets 2am (America/New_York)\n"
  }
 }
