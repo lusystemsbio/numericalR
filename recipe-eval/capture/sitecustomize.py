@@ -8,7 +8,13 @@ Never raises into the host script: all hooks are best-effort.
 """
 import os, json, atexit
 
-_CAP = []   # list of {"kind":..., "data":...}
+_CAP = []        # list of {"kind":..., "sec":..., "data":...}
+_SECTION = [None]
+
+def mark(sec):
+    """Tag all subsequent captured series with this section code (used when
+    running a whole chapter's reference to isolate each box's plots)."""
+    _SECTION[0] = sec
 
 def _arr(x):
     try:
@@ -37,25 +43,26 @@ def _install():
             return orig(self, *a, **k)
         setattr(Axes, name, patched)
 
+    def add(d): _CAP.append(dict(d, sec=_SECTION[0]))
     def xy(a, k):
         # plot/step/loglog/semilog: (y) or (x,y) [+ fmt], possibly repeated
         nums = [x for x in a if not isinstance(x, str)]
         if len(nums) >= 2 and _arr(nums[0]) and _arr(nums[1]):
-            _CAP.append({"kind":"xy", "x":_arr(nums[0]), "y":_arr(nums[1])})
+            add({"kind":"xy", "x":_arr(nums[0]), "y":_arr(nums[1])})
         elif len(nums) == 1 and _arr(nums[0]) is not None:
-            _CAP.append({"kind":"y", "y":_arr(nums[0])})
+            add({"kind":"y", "y":_arr(nums[0])})
     def scat(a, k):
         if len(a) >= 2:
-            _CAP.append({"kind":"scatter", "x":_arr(a[0]), "y":_arr(a[1])})
+            add({"kind":"scatter", "x":_arr(a[0]), "y":_arr(a[1])})
     def hist(a, k):
-        if a: _CAP.append({"kind":"hist", "data":_arr(a[0])})
+        if a: add({"kind":"hist", "data":_arr(a[0])})
     def img(a, k):
-        if a: _CAP.append({"kind":"image", "z":_arr(a[0])})
+        if a: add({"kind":"image", "z":_arr(a[0])})
     def cont(a, k):
         z = a[-1] if a else None
-        _CAP.append({"kind":"contour", "z":_arr(z)})
+        add({"kind":"contour", "z":_arr(z)})
     def bar(a, k):
-        if len(a) >= 2: _CAP.append({"kind":"bar", "x":_arr(a[0]), "y":_arr(a[1])})
+        if len(a) >= 2: add({"kind":"bar", "x":_arr(a[0]), "y":_arr(a[1])})
 
     for nm in ("plot","step","loglog","semilogx","semilogy"): wrap(nm, xy)
     wrap("scatter", scat); wrap("hist", hist)

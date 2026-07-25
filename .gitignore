@@ -77,3 +77,5 @@ vignettes/*.pdf
 
 # Python bytecode cache
 __pycache__/
+recipe-eval/gen_cap/
+recipe-eval/book_gt.json
