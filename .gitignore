@@ -79,3 +79,6 @@ vignettes/*.pdf
 __pycache__/
 recipe-eval/gen_cap/
 recipe-eval/book_gt.json
+recipe-eval/gen/*.png
+recipe-eval/gen/*.raw.md
+recipe-eval/*.out
