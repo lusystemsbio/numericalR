@@ -172,6 +172,13 @@ def local_maxima(y):
     return int(((y[1:-1] > y[:-2]) & (y[1:-1] > y[2:])).sum()) if y.size > 2 else 0
 def osc(caps, k=3):                             # some curve oscillates (>=k local maxima)
     return any(local_maxima(y) >= k for _, y in xy_series(caps) if len(y) > 20)
+def periodic_peaks(caps, k=4):                  # 1D Turing profile: regular spatial peaks
+    for _, y in xy_series(caps):
+        if len(y) > 20 and local_maxima(y) >= k and np.ptp(y) > 0.3*(abs(np.mean(y))+1e-9):
+            return True
+    return False
+def c_7C2(c,o): return periodic_peaks(c)
+def c_7C3(c,o): return periodic_peaks(c)
 def sustained_osc(caps, k=3):                   # oscillates AND is still oscillating at the end
     for _, y in xy_series(caps):
         if len(y) > 30 and local_maxima(y) >= k:
@@ -346,7 +353,12 @@ REGISTRY = {"1A.3":c_1A3,"1A.5":c_1A5,"1C.3":c_1C3,
             "9C.1":c_9C1,"9C.2":c_9C2,
             "10A.2":c_10A2,"10A.4":c_10A4,"10A.5":c_10A5,"10B.2":c_10B2,"10B.3":c_10B3,
             "10B.4":c_10B4,"10C.1":c_10C1,"10C.2":c_10C2,"10C.3":c_10C3,"10C.4":c_10C4,"10C.6":c_10C6}
-MORPHOLOGY = {"7E.3", "7E.2", "7C.2", "7C.3", "7D.2"}   # -> vision, not deterministic
+REGISTRY["7C.2"]=c_7C2; REGISTRY["7C.3"]=c_7C3
+MORPHOLOGY = {"7E.3", "7E.2", "7D.2"}   # true 2D morphology -> vision
+# Vision verdicts (classified by eye from the captured 2D fields):
+VISION = {"7E.2":[1,1,1,1,1],   # stripes/labyrinth (correct)
+          "7E.3":[0,0,0,0,0],   # should be spots; all labyrinth (genuine failure)
+          "7D.2":[1,1,1,0,0]}   # spiral wave: s1-3 yes, s4-5 just a gradient
 
 def main():
     verdicts = {}
