@@ -158,6 +158,8 @@ def pts(caps):
     for x, y in xy_series(caps):
         if len(x) == len(y): P += list(zip(x.tolist(), y.tolist()))
     return P
+def produced(c, o):            # setup boxes: at least ran and emitted a plot or output
+    return bool(c) or len((o or '').strip()) > 30
 def reaches(caps, targets, tol):               # endpoints reach every target state
     e = endpoints(caps)
     return all(any(abs(px-tx) < tol and abs(py-ty) < tol for px, py in e) for tx, ty in targets)
@@ -224,7 +226,7 @@ def c_4A2(c,o): return osc(c,2)
 def c_4B1(c,o): return sustained_osc(c,3)                              # sustained limit cycle at r=1.7
 def c_4B2(c,o): return sustained_osc(c,3)
 def c_4B3(c,o): return len(xy_series(c))>=1                  # delayed LV orbits
-def c_4C1(c,o): return n_attractors(c,0.3)==1 or (not osc(c,3))   # relaxes, no oscillation
+def c_4C1(c,o): return not sustained_osc(c,3)          # relaxes, no sustained oscillation
 def c_4C2(c,o): return sustained_osc(c,3)                              # delay -> sustained oscillation
 def c_4C3(c,o): return sustained_osc(c,3)                              # rings oscillate
 
@@ -240,7 +242,7 @@ def c_5A5(c,o): return osc(c,3)                              # Verlet reproduces
 def c_5B1(c,o): return near_pt(c,4,0,1) or len(pts(c))>50    # orbit in plane
 def c_5B2(c,o): return len(xy_series(c))>=1
 def c_5B3(c,o): return len(xy_series(c))>=1
-def c_5C4(c,o): return True                                 # setup (lenient; audited by Opus)
+def c_5C4(c,o): return produced(c,o)                                 # setup (lenient; audited by Opus)
 def c_5C5(c,o): return any(s.get("kind")=="scatter" for s in c)   # particle positions
 def c_5C7(c,o): return curve_max_at(c,1.0,0.35)             # g(r) first peak near r=1
 
@@ -257,7 +259,7 @@ def c_6B4(c,o): return len(pts(c))>50                       # 2D path
 def c_6B5(c,o): return len(xy_series(c))>=1
 def c_6C1(c,o): return len(xy_series(c))>=3                 # E-M brownian trajectories
 def c_6C2(c,o): return len(xy_series(c))>=1                 # OU
-def c_6C3(c,o): return True                                 # setup
+def c_6C3(c,o): return produced(c,o)                                 # setup
 def c_6C4(c,o):                                             # bistable: visits ~100 and ~300
     for x,y in xy_series(c):
         if len(y)>50 and (y<160).mean()>0.05 and (y>240).mean()>0.05: return True
@@ -270,12 +272,12 @@ def c_6D2(c,o): return len(floats(o))>=1
 def c_6D3(c,o): return len(floats(o))>=1
 
 # ---------- Part 7 (non-morphology) ----------
-def c_7A1(c,o): return True
+def c_7A1(c,o): return produced(c,o)
 def c_7A2(c,o): return len(xy_series(c))>=1                 # spreading distribution
 def c_7B1(c,o): return len(xy_series(c))>=2                 # traveling fronts
 def c_7B2(c,o): return len(xy_series(c))>=1                 # relaxes to Gaussian
-def c_7C1(c,o): return True
-def c_7E1(c,o): return True
+def c_7C1(c,o): return produced(c,o)
+def c_7E1(c,o): return produced(c,o)
 
 # ---------- Part 8 ----------
 def c_8A1(c,o): return hv(o,3.14159,rel=0.05)
@@ -290,7 +292,7 @@ def c_8C3(c,o):                                            # energy falls then p
     for x,y in xy_series(c):
         if len(y)>20 and y[:len(y)//5].mean() > y[-len(y)//5:].mean()+abs(y[-len(y)//5:].mean())*0.1: return True
     return False
-def c_8D1(c,o): return True
+def c_8D1(c,o): return produced(c,o)
 def c_8D3(c,o): return hv(o,160,rel=0.1)                    # mean stays 160
 def c_8D4(c,o): return len(floats(o))>=2                   # SD comparison printed
 
@@ -305,16 +307,16 @@ def c_9C1(c,o): return hv(o,0,absol=1.0)                   # Rastrigin best -> ~
 def c_9C2(c,o): return len(floats(o))>=1                   # tour length printed
 
 # ---------- Part 10 ----------
-def c_10A2(c,o): return True                               # PCA (audited)
+def c_10A2(c,o): return produced(c,o)                               # PCA (audited)
 def c_10A4(c,o): return len(pts(c))>10
 def c_10A5(c,o): return len(pts(c))>10
-def c_10B2(c,o): return True                               # HCA -> 3 clusters
+def c_10B2(c,o): return produced(c,o)                               # HCA -> 3 clusters
 def c_10B3(c,o): return any(s.get("kind")=="image" for s in c)   # gene heatmap
 def c_10B4(c,o): return hv(o,3,absol=0.5)                  # GMM picks 3 components
 def c_10C1(c,o): return hv(o,4.6,rel=0.15) or hv(o,5,absol=0.5) or hv(o,0.57,rel=0.2)
 def c_10C2(c,o): return len(xy_series(c))>=1 or any(s.get("kind")=="hist" for s in c)
 def c_10C3(c,o): return hv(o,0.37,rel=0.2) or hv(o,18,absol=1) or hv(o,16,absol=1)
-def c_10C4(c,o): return True
+def c_10C4(c,o): return produced(c,o)
 def c_10C6(c,o):
     x=(o or "").replace(" ","")
     return "000" in x and "111" in x
