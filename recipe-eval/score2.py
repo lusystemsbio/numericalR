@@ -170,6 +170,14 @@ def local_maxima(y):
     return int(((y[1:-1] > y[:-2]) & (y[1:-1] > y[2:])).sum()) if y.size > 2 else 0
 def osc(caps, k=3):                             # some curve oscillates (>=k local maxima)
     return any(local_maxima(y) >= k for _, y in xy_series(caps) if len(y) > 20)
+def sustained_osc(caps, k=3):                   # oscillates AND is still oscillating at the end
+    for _, y in xy_series(caps):
+        if len(y) > 30 and local_maxima(y) >= k:
+            y = np.asarray(y, float); n = len(y)
+            overall = np.ptp(y)
+            if overall > 1e-6 and np.ptp(y[-n//4:]) > 0.3*overall:   # last quarter still swings
+                return True
+    return False
 def n_attractors(caps, tol):
     reps = []
     for p in endpoints(caps):
@@ -205,7 +213,7 @@ def c_3G2(c,o): return any(local_minima(y)>=1 for _,y in xy_series(c) if len(y)>
 def c_3H1(c,o): return len(xy_series(c)) >= 1
 def c_3H2(c,o): return n_attractors(c,0.4)==1                                              # single stable state
 def c_3H4(c,o): return n_attractors(c,0.4)>=2                                              # bistable
-def c_3H5(c,o): return osc(c,3)                                                            # sustained oscillation
+def c_3H5(c,o): return sustained_osc(c,3)                                                            # sustained oscillation
 def c_3H6(c,o):
     e=[y for _,y in xy_series(c)]; f=[float(y[-1]) for y in e if len(y)]
     return any(v>0.3 for v in f) and any(abs(v)<0.05 for v in f)                          # some coexist, some ~0
@@ -213,12 +221,12 @@ def c_3H6(c,o):
 # ---------- Part 4 ----------
 def c_4A1(c,o): return osc(c,2)                              # r=-1.7 growing oscillation
 def c_4A2(c,o): return osc(c,2)
-def c_4B1(c,o): return osc(c,3)                              # sustained limit cycle at r=1.7
-def c_4B2(c,o): return osc(c,3)
+def c_4B1(c,o): return sustained_osc(c,3)                              # sustained limit cycle at r=1.7
+def c_4B2(c,o): return sustained_osc(c,3)
 def c_4B3(c,o): return len(xy_series(c))>=1                  # delayed LV orbits
 def c_4C1(c,o): return n_attractors(c,0.3)==1 or (not osc(c,3))   # relaxes, no oscillation
-def c_4C2(c,o): return osc(c,3)                              # delay -> sustained oscillation
-def c_4C3(c,o): return osc(c,3)                              # rings oscillate
+def c_4C2(c,o): return sustained_osc(c,3)                              # delay -> sustained oscillation
+def c_4C3(c,o): return sustained_osc(c,3)                              # rings oscillate
 
 # ---------- Part 5 ----------
 def c_5A1(c,o): return osc(c,3)                              # sinusoid

@@ -19,6 +19,13 @@ import prompts
 BASE = os.environ.get("RECIPE_EVAL_BASE", os.path.dirname(os.path.abspath(__file__)))
 GEN = os.path.join(BASE, "gen")
 JUDGE_MODEL = os.environ.get("JUDGE_MODEL", "claude-haiku-4-5-20251001")
+JUDGE_WORKERS = int(os.environ.get("JUDGE_WORKERS", "3"))   # gentler concurrency
+
+def valid_verdict(v):
+    """A usable prior verdict (not a usage-limit / call failure)."""
+    return (isinstance(v, dict) and "pass" in v
+            and "session limit" not in str(v.get("raw", ""))
+            and v.get("note") not in ("judge-err", "judge-parse-fail"))
 FIELDS = prompts.all_boxes()   # current box fields (match the prompts used)
 
 # Hand-written, book-grounded criteria for boxes whose verification prose is
@@ -89,12 +96,17 @@ def judge(name, run):
 def main():
     runs = json.load(open(os.path.join(BASE, "run_results.json")))
     only = sys.argv[1] if len(sys.argv) > 1 else None
-    prev = {}
     vpath = os.path.join(BASE, "verdicts.json")
-    if only and os.path.exists(vpath): prev = json.load(open(vpath))
-    names = [n for n in runs if (only is None or n.rsplit("_s",1)[0]==only)]
+    prev = json.load(open(vpath)) if os.path.exists(vpath) else {}
     verdicts = dict(prev)
-    with cf.ThreadPoolExecutor(max_workers=6) as ex:
+    # judge a box's samples if requested; else only samples lacking a valid verdict (resume)
+    if only:
+        names = [n for n in runs if n.rsplit("_s",1)[0] == only]
+    else:
+        names = [n for n in runs if n not in prev or not valid_verdict(prev[n])]
+    print(f"judging {len(names)} generations with {JUDGE_MODEL} (x{JUDGE_WORKERS}); "
+          f"{len(prev)-len([n for n in prev if not valid_verdict(prev[n])])} already valid", flush=True)
+    with cf.ThreadPoolExecutor(max_workers=JUDGE_WORKERS) as ex:
         for name, v in ex.map(lambda n: judge(n, runs[n]), names):
             verdicts[name] = v
             print(f"  {name}: pass={v.get('pass')} {v.get('failure_class','')} {v.get('note','')}", flush=True)
