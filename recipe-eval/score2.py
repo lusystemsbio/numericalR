@@ -126,8 +126,38 @@ def c_10B1(caps, out):
                 return True
     return False
 
+# ---------- more primitives ----------
+def nf(caps, target, rel=0.03, n=1):           # >=n curves ending near target
+    return sum(1 for f in finals(caps) if abs(f-target) <= abs(target)*rel) >= n
+def ally(caps):                                # every plotted y value
+    v = []
+    for _, y in xy_series(caps): v += list(y)
+    return v
+def yspan_covers(caps, lo, hi):                # plotted y reaches both a low and a high band
+    v = ally(caps)
+    return bool(v) and min(v) < lo and max(v) > hi
+def local_minima(y):
+    y = np.asarray(y, float); return int(((y[1:-1] < y[:-2]) & (y[1:-1] < y[2:])).sum())
+
+# ---------- Part 2 checks ----------
+def c_2A1(caps, out):  return nf(caps, 500, 0.03, 3)                 # ICs converge to g/k=500
+def c_2B1(caps, out):  return nf(caps, 500, 0.03, 1)                 # Euler reaches 500
+def c_2B4(caps, out):  return nf(caps, 500, 0.02, 1)                 # Heun vs exact -> 500
+def c_2B5(caps, out):  return nf(caps, 500, 0.02, 1)                 # RK2 -> 500
+def c_2B6(caps, out):  return nf(caps, 500, 0.02, 1)                 # RK4 -> 500
+def c_2B8(caps, out):  return nf(caps, 5, 0.1, 1)                    # backward Euler stable -> g/k=5
+def c_2C2(caps, out):  return nf(caps, 100, 0.05, 1)                 # logistic -> B=100
+def c_2D1(caps, out):  return has_near(floats(out), 250, rel=0.08)  # steady state ~250 (stable)
+def c_2D3(caps, out):                                               # potential has two wells (k=0.15)
+    return any(local_minima(y) >= 2 for _, y in xy_series(caps) if len(y) > 20)
+def c_2E4(caps, out):  return all(has_near(floats(out), r, rel=0.05) for r in (71.5,170.8,331.6))
+def c_scurve(caps, out): return yspan_covers(caps, 120, 320)        # bifurcation S-curve spans both branches
 REGISTRY = {"2C.1":c_2C1, "2E.3":c_2E3, "5A.4":c_5A4, "6A.4":c_6A4, "3A.1":c_3A1,
-            "9B.3":c_9B3, "10C.5":c_10C5, "8D.2":c_8D2, "7E.3":c_7E3, "10B.1":c_10B1}
+            "9B.3":c_9B3, "10C.5":c_10C5, "8D.2":c_8D2, "7E.3":c_7E3, "10B.1":c_10B1,
+            "2A.1":c_2A1, "2B.1":c_2B1, "2B.4":c_2B4, "2B.5":c_2B5, "2B.6":c_2B6,
+            "2B.8":c_2B8, "2C.2":c_2C2, "2D.1":c_2D1, "2D.3":c_2D3, "2E.4":c_2E4,
+            "2E.2":c_scurve, "2E.5":c_scurve, "2F.2":c_scurve, "2F.6":c_scurve}
+MORPHOLOGY = {"7E.3", "7E.2", "7C.2", "7C.3", "7D.2"}   # -> vision, not deterministic
 
 def main():
     verdicts = {}
@@ -146,11 +176,14 @@ def main():
     for b in boxes:
         s=[n for n in verdicts if n.rsplit('_s',1)[0]==b]
         det=sum(verdicts[n] for n in s)
-        op=sum(1 for n in s if O.get(n,{}).get("pass"))
-        m=sum(1 for n in s if O and (verdicts[n]==bool(O.get(n,{}).get("pass"))))
-        agree+=m; tot+=len(s)
-        print(f"{b:9} {det}/{len(s):<5}  {op}/5   {m}/{len(s)}")
-    if tot: print(f"\nDeterministic vs Opus agreement: {agree}/{tot} = {100*agree/tot:.0f}%")
+        has_ref = any(n in O for n in s)
+        op = f"{sum(1 for n in s if O.get(n,{}).get('pass'))}/5" if has_ref else "  -"
+        if has_ref:
+            m=sum(1 for n in s if verdicts[n]==bool(O.get(n,{}).get("pass")))
+            agree+=m; tot+=len(s); mstr=f"{m}/{len(s)}"
+        else: mstr="  -"
+        print(f"{b:9} det {det}/{len(s):<3} opus {op:>4} match {mstr}")
+    if tot: print(f"\nDeterministic vs Opus agreement (pilot boxes only): {agree}/{tot} = {100*agree/tot:.0f}%")
 
 if __name__ == "__main__":
     main()
