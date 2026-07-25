@@ -303,7 +303,7 @@ bistable $k = 0.15$.
 
 **Show.** A plot of the effective potential U(X) at k = 0.15, 0.2, and 0.1.
 
-**Verification.** At k = 0.15 the potential has two basins (near 100 and 300 nM, the stable states) split by a barrier near 200 nM (the unstable state); at k = 0.2 and k = 0.1 it has a single well.
+**Verification.** At k = 0.15 the potential has two basins (near 72 and 332 nM, the stable states) split by a barrier near 171 nM (the unstable state); at k = 0.2 and k = 0.1 it has a single well.
 :::
 
 ### R implementation {.impl}

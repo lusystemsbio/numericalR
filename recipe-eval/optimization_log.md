@@ -25,3 +25,19 @@ Format: box | RFS before -> after | field changed | rationale (before -> after).
 - **Before:** "10 cities at fixed coordinates, the tour starting and ending at city 1."
 - **After:** "10 cities with x = (0, -28.87, ...) and y = (0, 0, 43.39, ...), Euclidean distances; the tour starting and ending at city 1."
 - **Rationale:** The Test said "fixed coordinates" but listed none, so a context-free AI invented its own cities and could not reproduce the book's specific tour (optimal length 193.73). Adding the actual coordinates made it reproducible.
+
+## 6D.3.1 (06-stochastic/06d-stochastic-transitions.qmd) — RECIPE BOX REMOVED
+- **RFS:** 2/5 -> (removed)
+- **Rationale:** The box asked a cold AI to write + compile a Fortran MFPT routine and bind it from R and Python, then run a long (t=1e5) simulation. Two generations came back empty and one failed to compile. This is inherent difficulty (compiled code + long simulation), not a promptable gap, so per author's decision the recipe box is removed (the 6D.3 section keeps its content). It is not a good candidate for a self-contained recipe.
+
+## 2D.3.1 (02-odes/02d-effective-potential.qmd) — PROSE FIX (not a generation failure)
+- **Field:** Verification
+- **Before:** "two basins (near 100 and 300 nM) split by a barrier near 200 nM"
+- **After:**  "two basins (near 72 and 332 nM) split by a barrier near 171 nM"
+- **Rationale:** The generations were correct; the box's numbers were wrong. This self-activating gene at k=0.15 has stable states ~71.5/331.6 and an unstable state ~170.8 (the same roots as 2E.3), not 100/300/200. Surfaced because the LLM judge failed correct generations against the inaccurate prose.
+
+## 8D.2.1 (08-monte-carlo/08d-gillespie-algorithm.qmd) — PROSE FIX
+- **Field:** Verification
+- **Before:** "The standard deviation follows sqrt(x_bar) (Poisson)"
+- **After:**  "grows with the mean ... below sqrt(x_bar) at this finite run length (a single trajectory undersamples) ... relative noise ~1/sqrt(x_bar)"
+- **Rationale:** The book's OWN figure shows the measured SD sitting well below sqrt(x_bar) at high copy number (finite tmax undersampling); "follows sqrt(x_bar)" overstated it.

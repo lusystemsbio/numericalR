@@ -285,20 +285,6 @@ which both languages then call: R through `.Fortran`, Python through `ctypes`. T
 routine `sde_simulation(iseed, t_total, kappa, nrun)` returns the two transition
 rates and the numbers of transitions counted.
 
-::: {.callout-note title="Recipe 6D.3.1"}
-**Objective.** Measure the transition rate of the noisy toggle switch from its mean first-passage time.
-
-**Model.** The same two-variable toggle-switch SDE (`g0 = 10, g1 = 40`, threshold 100, `k = 0.1`, `n = 4` per gene, noise `b = 20`), implemented in compiled Fortran.
-
-**Method.** The mean first-passage time: simulate until the trajectory crosses the separatrix, record the passage time, relax, and repeat, then take the rate `kappa = 1/(2*tau)` from the mean time tau.
-
-**Test.** The compiled Fortran routine called from both R (`.Fortran`) and Python (`ctypes`); seed 11, total time `1e5`, `dt = 0.01`, relaxation time 100.
-
-**Show.** The transition rates from R and from Python (identical for the same seed).
-
-**Verification.** Both languages call the identical compiled routine with the same seed and return identical rates, showing the numerics live in the shared library; a longer total time gives more accurate rates.
-:::
-
 ### R implementation {.impl}
 
 ```{r}
