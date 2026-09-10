@@ -39,10 +39,13 @@ The live HTML version is published at
   `.qmd` chapters, their figures under `images/`, and any compiled-code sources
   under `src/`.
 - `index.qmd` — book preface; `references.qmd` — consolidated bibliography.
+- `_quarto.yml` — book configuration (HTML); `_quarto-print.yml` — the PDF and
+  EPUB formats, applied by the `print` profile.
 - `references.bib` — shared bibliography for the whole book.
 - `requirements.txt` / `scripts/install-packages.R` — the full Python/R package
   lists needed to render the book (see Prerequisites below).
-- `scripts/` — build helpers run automatically during rendering.
+- `scripts/` — build helpers (some run automatically during rendering) and
+  authoring utilities.
 - `appendix-*.qmd` — method reference, R/Python library map, and the recipe index.
 - `archive/` — the original R Markdown and Jupyter source material, kept for
   reference; not part of the rendered book.
@@ -69,7 +72,7 @@ The live HTML version is published at
 - **ImageMagick** (`convert`/`magick` on your `PATH`) — required for the
   figure-crop hook (macOS: `brew install imagemagick`; Debian/Ubuntu:
   `apt-get install imagemagick`).
-- **TinyTeX** for PDF output: `quarto install tinytex` (one time).
+- **TinyTeX** — only needed for the PDF edition: `quarto install tinytex` (one time).
 
 If a chapter fails to render with a missing-package error, re-run the two
 install commands above before troubleshooting further — package lists here
@@ -92,12 +95,24 @@ sh scripts/build-fortran.sh
 ### Render
 
 ```bash
-quarto render              # build HTML, PDF, and EPUB into _book/
-quarto render --to html    # a single format
+quarto render              # build the HTML book into _book/
 quarto preview             # live-reloading local preview
 ```
 
 The rendered site is written to `_book/` (git-ignored).
+
+PDF and EPUB are **not** built by default, since they are slow and rarely needed
+while writing. Those two formats are configured in `_quarto-print.yml` and are
+enabled by Quarto's `print` profile:
+
+```bash
+scripts/build-print.sh          # both
+scripts/build-print.sh pdf      # just one
+quarto render --profile print --to epub    # or call Quarto directly
+```
+
+Both are whole-book merged documents, so always render the whole project rather
+than a single chapter. The PDF additionally needs TinyTeX (see Prerequisites).
 
 ## Single-language practice copies
 

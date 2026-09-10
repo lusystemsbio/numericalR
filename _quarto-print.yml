@@ -1,0 +1,42 @@
+# Print-edition profile: PDF and EPUB.
+#
+# These formats are deliberately NOT in `_quarto.yml`, so a plain
+# `quarto render` builds HTML only and stays fast. Build them with:
+#
+#     scripts/build-print.sh          # both
+#     quarto render --profile print --to pdf
+#     quarto render --profile print --to epub
+#
+# Quarto merges this file over `_quarto.yml` when the `print` profile is
+# active, so everything else (chapters, bibliography, filters, knitr
+# options) is inherited unchanged.
+
+format:
+  pdf:
+    documentclass: scrreprt
+    geometry:
+      - margin=1in          # tighter than KOMA's wide default -> more text per page
+    fig-width: 7            # generate at full size (natural 7:5 aspect, fonts proportional)
+    fig-height: 5           # display is scaled down by \setkeys below (aspect preserved)
+    toc-depth: 2
+    include-in-header:
+      text: |
+        \usepackage{xcolor}
+        \newcommand{\impllabel}[1]{\par\smallskip\noindent\colorbox{blue!7}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\strut\textbf{#1}}}\par\smallskip}
+        % wrap long code lines so they never overflow the page (code-overflow: wrap
+        % alone did not take effect; force it on the highlighting Verbatim env)
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,fontsize=\small,commandchars=\\\{\}}
+        % Let long inline monospace tokens (e.g. find_intersection_all_fast in the
+        % reference tables) break after an underscore so they wrap inside narrow table
+        % columns instead of overflowing. Underscores appear only in code, so prose is
+        % unaffected; the break is taken only when a token cannot fit on the line.
+        \renewcommand{\_}{\textunderscore\allowbreak}
+        % --- fill pages better: compress heading whitespace ---
+        \renewcommand*{\chapterheadstartvskip}{\vspace*{.5\baselineskip}}
+        \renewcommand*{\chapterheadendvskip}{\vspace*{.8\baselineskip}}
+        \RedeclareSectionCommand[beforeskip=-.5\baselineskip, afterskip=.35\baselineskip]{section}
+        \RedeclareSectionCommand[beforeskip=-.4\baselineskip, afterskip=.25\baselineskip]{subsection}
+  epub:
+    toc-depth: 2
+    css: styles.css
