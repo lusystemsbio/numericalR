@@ -13,7 +13,8 @@ execute:
   freeze: auto
 
 book:
-  title: "Numerical ReciPy"
+  title: "Numerical ReciPy"   # R/Py coloured in the DOM by brand-title.html
+                              # (a span here leaks into every page's <title> tag)
   subtitle: "Computational Systems Biology and Biophysics in R and Python"
   output-file: "NumericalReciPy"   # base name for the PDF/EPUB downloads
   favicon: assets/favicon.svg     # simplified mark; legible down to 16px
@@ -136,5 +137,6 @@ format:
       - toc-active.html    # robust right-TOC scrollspy (see file)
       - lang-toggle.html   # HTML-only R/Python implementation switch (see file)
       - recipe-copy.html   # HTML-only "Copy prompt" button on each Recipe card (see file)
+      - brand-title.html   # colour the R/Py in the displayed title (see file)
     toc-depth: 2      # right TOC lists only the numbered sections (2B.1, 2B.2, ...)
     toc-expand: true  # keep the TOC list expanded (don't collapse/hide it)

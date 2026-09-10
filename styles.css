@@ -104,3 +104,9 @@ table.vscode-mockup pre {
   border: none;
   padding: 0;
 }
+
+/* Brand colours for the R and Py in the title "Numerical ReciPy".
+   R blue, and a dark gold for Py: Python's #FFD43B scores only 1.43 contrast
+   on white, below the 3.0 needed for large bold text, while #B8860B scores 3.25. */
+.brand-r  { color: #276DC3; }
+.brand-py { color: #B8860B; }

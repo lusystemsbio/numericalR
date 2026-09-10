@@ -2,7 +2,7 @@
 title: "Preface"
 ---
 
-This book, *Numerical ReciPy: Computational Systems Biology and Biophysics in R and Python*, illustrates the numerical methods and algorithms used to model biological systems, solve differential equations, run simulations, and analyze data. Each method is presented independently of language, then implemented in both **R** and **Python**, so the same concept can be studied in either language.
+This book, *Numerical [R]{.brand-r}eci[Py]{.brand-py}: Computational Systems Biology and Biophysics in R and Python*, illustrates the numerical methods and algorithms used to model biological systems, solve differential equations, run simulations, and analyze data. Each method is presented independently of language, then implemented in both **R** and **Python**, so the same concept can be studied in either language.
 
 It is written for graduate and advanced undergraduate students in bioengineering, biomedical engineering, biophysics, and data science, and for researchers who want to build and run their own models rather than treat a solver as a black box. The mathematics assumes calculus and a first course in ordinary differential equations. The programming assumes some prior experience, though not necessarily in R or Python.
 
