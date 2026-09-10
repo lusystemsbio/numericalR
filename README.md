@@ -32,7 +32,7 @@ reading the implementation. A recipe doubles as a structured prompt for an AI
 assistant, and the HTML edition puts a **Copy prompt** button on every box.
 
 The live HTML version is published at
-<https://lusystemsbio.github.io/numericalR>.
+<https://lusystemsbio.github.io/numericalReciPy/>.
 
 ## Repository layout
 
