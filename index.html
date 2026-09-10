@@ -533,10 +533,9 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul class="collapse">
-  <li><a href="#how-these-materials-came-about" id="toc-how-these-materials-came-about" class="nav-link active" data-scroll-target="#how-these-materials-came-about">How these materials came about</a></li>
-  <li><a href="#what-has-changed" id="toc-what-has-changed" class="nav-link" data-scroll-target="#what-has-changed">What has changed</a></li>
-  <li><a href="#why-learn-to-program-at-all" id="toc-why-learn-to-program-at-all" class="nav-link" data-scroll-target="#why-learn-to-program-at-all">Why learn to program at all</a></li>
-  <li><a href="#two-cautions" id="toc-two-cautions" class="nav-link" data-scroll-target="#two-cautions">Two cautions</a></li>
+  <li><a href="#history-of-numericalrecipy" id="toc-history-of-numericalrecipy" class="nav-link active" data-scroll-target="#history-of-numericalrecipy">History of numericalReciPy</a></li>
+  <li><a href="#the-evolution-of-programming-practice" id="toc-the-evolution-of-programming-practice" class="nav-link" data-scroll-target="#the-evolution-of-programming-practice">The evolution of programming practice</a></li>
+  <li><a href="#programming-learning-in-the-era-of-ai" id="toc-programming-learning-in-the-era-of-ai" class="nav-link" data-scroll-target="#programming-learning-in-the-era-of-ai">Programming learning in the era of AI</a></li>
   <li><a href="#recipes-and-prompts" id="toc-recipes-and-prompts" class="nav-link" data-scroll-target="#recipes-and-prompts">Recipes and prompts</a></li>
   <li><a href="#how-to-use-this-book" id="toc-how-to-use-this-book" class="nav-link" data-scroll-target="#how-to-use-this-book">How to use this book</a></li>
   <li><a href="#what-the-book-covers" id="toc-what-the-book-covers" class="nav-link" data-scroll-target="#what-the-book-covers">What the book covers</a></li>
@@ -583,19 +582,19 @@ ul.task-list li input[type="checkbox"] {
 
 <p>This book, <em>Numerical <span class="brand-r">R</span>eci<span class="brand-py">Py</span>: Computational Systems Biology and Biophysics in R and Python</em>, illustrates the numerical methods and algorithms used to model biological systems, solve differential equations, run simulations, and analyze data. Each method is presented independently of language, then implemented in both <strong>R</strong> and <strong>Python</strong>, so the same concept can be studied in either language.</p>
 <p>It is written for graduate and advanced undergraduate students in bioengineering, biomedical engineering, biophysics, and data science, and for researchers who want to build and run their own models rather than treat a solver as a black box. The mathematics assumes calculus and a first course in ordinary differential equations. The programming assumes some prior experience, though not necessarily in R or Python.</p>
-<section id="how-these-materials-came-about" class="level2">
-<h2 class="anchored" data-anchor-id="how-these-materials-came-about">How these materials came about</h2>
-<p>While I was at The Jackson Laboratory, I wrote a set of problems on gene circuit modeling for an undergraduate student doing research in my group. The student liked working through them, and so did the instructors at their university, who asked for permission to use the problems in their own class. Questions of that kind have been the material my students have learned systems biology modeling from ever since.</p>
+<section id="history-of-numericalrecipy" class="level2">
+<h2 class="anchored" data-anchor-id="history-of-numericalrecipy">History of numericalReciPy</h2>
+<p>While I was at The Jackson Laboratory, I wrote a set of problems on gene circuit modeling for students doing research in my group. These problem sets are open-ended and can be answered in many ways. They have been well received by students at very different levels, from high schoolers to undergraduates to graduate students.</p>
 <p>After I began teaching Dynamical Systems in Biological Engineering (BIOE 5115) and Computational Methods in Systems Bioengineering (BIOE 5880) at Northeastern University, I kept developing that material for the classroom, including homework questions and the code that goes with them. Those notes became the first version of the <code>numericalR</code> repository and its HTML pages, and they gradually turned into this book.</p>
 <p>The Python implementations were added later for my classes, written as a separate parallel set of files. Keeping two versions side by side proved harder than expected. The explanations had grown up around the R code, so the Python material was largely code with little of the surrounding discussion. A few topics existed in one language and not the other, and small discrepancies in method and in default parameters had crept in over time. All of this motivated me to merge the two versions into one, with a single shared explanation of each method, followed by an R implementation and a Python implementation that have been checked against each other. Quarto is what made that practical. A single document can execute both R and Python code, so the explanation and the two implementations sit on one page, and every result and figure in the book is produced by the code printed beside it.</p>
 </section>
-<section id="what-has-changed" class="level2">
-<h2 class="anchored" data-anchor-id="what-has-changed">What has changed</h2>
+<section id="the-evolution-of-programming-practice" class="level2">
+<h2 class="anchored" data-anchor-id="the-evolution-of-programming-practice">The evolution of programming practice</h2>
 <p>The R code in that first version was written before the AI era. The assistants available then produced code that was essentially unusable and almost always required a lot of debugging. However, that is no longer true. In a few years the tools have moved from code completion, to chat windows, to agentic systems that read a whole project, edit files, and run what they write. Given a well-posed prompt, the code an assistant returns today is good enough to be worth checking, and trustworthy in certain scenarios. Throughout this book, I have explored prompt engineering for numerical methods.</p>
 <p>The change in programming practice also showed up in my classroom. In the earlier years of the course, students spent much of their effort on basic programming and debugging, and many were held back by it. That barrier has largely fallen, and students now reach working code far more easily. However, when it comes to open-ended questions on assignments, I noticed that answers became more uniform than before, which actually defeats the original purpose of the questions: to encourage students to find their own solutions.</p>
 </section>
-<section id="why-learn-to-program-at-all" class="level2">
-<h2 class="anchored" data-anchor-id="why-learn-to-program-at-all">Why learn to program at all</h2>
+<section id="programming-learning-in-the-era-of-ai" class="level2">
+<h2 class="anchored" data-anchor-id="programming-learning-in-the-era-of-ai">Programming learning in the era of AI</h2>
 <p>That leaves the obvious question. If an assistant can write the code, why should a student still learn to program?</p>
 <p>The skills now worth building are:</p>
 <ol type="1">
@@ -606,10 +605,10 @@ ul.task-list li input[type="checkbox"] {
 <li>how to learn a subject with an assistant’s help, rather than around it.</li>
 </ol>
 <p>The third point carries particular weight in numerical work. A wrong method rarely crashes. It returns a number and draws a curve, and nothing announces the error. Judging whether the answer is right takes understanding the method well enough to know what it should produce, which is the one thing an assistant cannot supply on your behalf.</p>
-</section>
-<section id="two-cautions" class="level2">
-<h2 class="anchored" data-anchor-id="two-cautions">Two cautions</h2>
-<p>Do not let an assistant stand in for the learning. A homework problem provides an opportunity to think, and handing it over whole gets you the answer while costing you the chance to learn.</p>
+<p>There are also things you should not let an assistant do for you:</p>
+<ol type="1">
+<li>Do not let an assistant stand in for the learning. A homework problem provides an opportunity to think, and handing it over whole gets you the answer while costing you the chance to learn.</li>
+</ol>
 <p>Do not be satisfied with having the work done for you either. If everything you do can be done by a machine, you have made yourself easy to replace. Rather, you should think about what you can achieve now, with these tools, that you could not have attempted before.</p>
 </section>
 <section id="recipes-and-prompts" class="level2">
