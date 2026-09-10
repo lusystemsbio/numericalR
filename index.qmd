@@ -38,7 +38,7 @@ There are also things you should not let an assistant do for you:
 
 1. Do not let an assistant stand in for the learning. A homework problem provides an opportunity to think, and handing it over whole gets you the answer while costing you the chance to learn.
 
-Do not be satisfied with having the work done for you either. If everything you do can be done by a machine, you have made yourself easy to replace. Rather, you should think about what you can achieve now, with these tools, that you could not have attempted before.
+2. Do not be satisfied with having the work done for you either. If everything you do can be done by a machine, you have made yourself easy to replace. Rather, you should think about what you can achieve now, with these tools, that you could not have attempted before.
 
 ## Recipes and prompts
 
