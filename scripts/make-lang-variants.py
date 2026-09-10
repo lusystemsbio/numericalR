@@ -17,7 +17,9 @@ Py-only (<name>-py.qmd): R implementation heading + ```{r} chunks removed,
 Prose is kept verbatim (concept text and the shared post-Python discussion), and the
 retained language's ### implementation heading is kept, matching the design settled
 with the author. Display-only listings (```r / ```python / ```bash, no braces) are
-kept in both variants. Exercises pages are skipped. Idempotent and fast.
+kept in both variants. Eligibility is decided purely by content: any page carrying both
+a `### R implementation` and a `### Python implementation` heading gets variants, including
+exercises pages (1D, 2G); pages with only one language, or none, get none. Idempotent and fast.
 """
 import os
 import re
@@ -104,12 +106,12 @@ def main():
     n = 0
     for src in sorted(glob.glob(os.path.join(proj, "[0-9][0-9]-*", "*.qmd"))):
         base = os.path.basename(src)
-        if base.endswith("-exercises.qmd") or base.endswith("-R.qmd") or base.endswith("-py.qmd"):
-            continue  # skip exercises pages and any previously generated variants
+        if base.endswith("-R.qmd") or base.endswith("-py.qmd"):
+            continue  # never regenerate from a previously generated variant
         text = open(src, encoding="utf-8").read()
         if not (re.search(r"^###\s+R\s+implementation", text, re.M) and
                 re.search(r"^###\s+Python\s+implementation", text, re.M)):
-            continue  # not a dual-language chapter -> no variants
+            continue  # no paired R/Python implementations -> no variants
         stem = os.path.splitext(src)[0]  # write in place, beside the original
         open(stem + "-R.qmd", "w", encoding="utf-8").write(strip(text, "r"))
         open(stem + "-py.qmd", "w", encoding="utf-8").write(strip(text, "python"))
