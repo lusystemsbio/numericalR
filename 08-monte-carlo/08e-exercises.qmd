@@ -14,7 +14,8 @@ The following function evaluates $p(x, y)$ (with $x$ and $y$ passed as a length-
 
 ### R implementation {.impl}
 
-```r
+```{r}
+#| message: false
 library(ggplot2)
 p_mixture <- function(x) {
   f1 <- x[1] + 10 * x[2] - 1; f2 <- x[1] - 0.1 * x[2] + 2
@@ -31,7 +32,7 @@ ggplot(data, aes(x, y, z = z)) +
 
 ### Python implementation {.impl}
 
-```python
+```{python}
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -43,7 +44,11 @@ def p_mixture(x):
 x_all = np.arange(-5, 5 + 0.05, 0.05); y_all = np.arange(-2, 2 + 0.01, 0.01)
 X, Y = np.meshgrid(x_all, y_all)      # p_mixture is vectorized, so the whole grid
 Z = p_mixture([X, Y])                 # goes through it as a length-2 list
-plt.contour(X, Y, Z, levels=10.0 ** np.arange(-2, 0, 0.3), colors="black")
+levels = 10.0 ** np.arange(-2, 0, 0.3)
+plt.contour(X, Y, Z, levels=levels, colors="black")
+# zoom to where the contours actually are, as ggplot does automatically
+inside = Z >= levels[0]
+plt.xlim(X[inside].min(), X[inside].max()); plt.ylim(Y[inside].min(), Y[inside].max())
 plt.xlabel("x"); plt.ylabel("y")
 plt.show()
 ```
