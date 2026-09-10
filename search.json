@@ -74,7 +74,7 @@
     "href": "index.html#the-source-and-reporting-errors",
     "title": "Numerical ReciPy",
     "section": "The source, and reporting errors",
-    "text": "The source, and reporting errors\nThe book is written in Quarto, and the complete source is at github.com/lusystemsbio/numericalR, with the rendered version published at lusystemsbio.github.io/numericalR. Part 1A lists what to install; the code here is tested against R 4.6.1 and Python 3.14. If you find an error, in the text or in the code, please open an issue on GitHub. The code in this book is released under the MIT license, so any function here can be copied into your own work freely. The text, figures, and exercises remain under copyright; if you would like to use them in a course, please get in touch.",
+    "text": "The source, and reporting errors\nThe book is written in Quarto, and the complete source is at github.com/lusystemsbio/numericalReciPy, with the rendered version published at lusystemsbio.github.io/numericalReciPy. Part 1A lists what to install; the code here is tested against R 4.6.1 and Python 3.14. If you find an error, in the text or in the code, please open an issue on GitHub. The code in this book is released under the MIT license, so any function here can be copied into your own work freely. The text, figures, and exercises remain under copyright; if you would like to use them in a course, please get in touch.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Preface</span>"
     ]
