@@ -18,7 +18,7 @@ book:
   subtitle: "Computational Systems Biology and Biophysics in R and Python"
   author:
     - name: "Mingyang Lu"
-      affiliation: "Lu Lab for Computational Systems Biology, Northeastern University"
+      affiliation: "Bioengineering Department, Northeastern University"
       url: "https://lusystemsbio.northeastern.edu"
   output-file: "NumericalReciPy"   # base name for the PDF/EPUB downloads
   favicon: assets/favicon.svg     # simplified mark; legible down to 16px
