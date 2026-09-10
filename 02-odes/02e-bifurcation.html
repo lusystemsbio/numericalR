@@ -1,0 +1,2092 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>2E. Bifurcation: finding roots/steady states – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../02-odes/02f-bifurcation-curves.html" rel="next">
+<link href="../02-odes/02d-effective-potential.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02-odes/02a-modeling-gene-circuits.html">Part 2: Ordinary differential equations</a></li><li class="breadcrumb-item"><a href="../02-odes/02e-bifurcation.html"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#e.1-separation-of-variables" id="toc-e.1-separation-of-variables" class="nav-link active" data-scroll-target="#e.1-separation-of-variables">2E.1 Separation of variables</a></li>
+  <li><a href="#e.2-direct-method-find-all-roots" id="toc-e.2-direct-method-find-all-roots" class="nav-link" data-scroll-target="#e.2-direct-method-find-all-roots">2E.2 Direct method: find all roots</a></li>
+  <li><a href="#e.3-bisection-method" id="toc-e.3-bisection-method" class="nav-link" data-scroll-target="#e.3-bisection-method">2E.3 Bisection method</a></li>
+  <li><a href="#e.4-false-position-method" id="toc-e.4-false-position-method" class="nav-link" data-scroll-target="#e.4-false-position-method">2E.4 False position method</a></li>
+  <li><a href="#e.5-bifurcation-curve-by-ode-simulation" id="toc-e.5-bifurcation-curve-by-ode-simulation" class="nav-link" data-scroll-target="#e.5-bifurcation-curve-by-ode-simulation">2E.5 Bifurcation curve by ODE simulation</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02-odes/02a-modeling-gene-circuits.html">Part 2: Ordinary differential equations</a></li><li class="breadcrumb-item"><a href="../02-odes/02e-bifurcation.html"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>We continue with the single self-activating gene from <a href="../02-odes/02a-modeling-gene-circuits.html">Part 2A</a> (Equations (7) and (8)). As we saw in <a href="../02-odes/02d-effective-potential.html">Part 2D</a>, varying the degradation rate <span class="math inline">\(k\)</span> changes the number of steady states: the circuit is monostable for some <span class="math inline">\(k\)</span> and bistable (two stable states plus one unstable state) for others. To see the whole picture at once, we treat <span class="math inline">\(k\)</span> as a <em>control parameter</em> and plot the steady-state level <span class="math inline">\(X_s\)</span> against <span class="math inline">\(k\)</span>. This curve is a one-dimensional <strong>bifurcation diagram</strong>. We use the rate equation</p>
+<p><span class="math display">\[\begin{equation}
+\frac{dX}{dt} = f(X,k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX , \tag{1}
+\end{equation}\]</span></p>
+<p>with state variable <span class="math inline">\(X\)</span> and control parameter <span class="math inline">\(k\)</span>. Every point on the diagram is a steady state, so it satisfies <span class="math inline">\(f(X, k) = 0\)</span>. This chapter finds those steady states directly: at each value of <span class="math inline">\(k\)</span> we locate the roots of <span class="math inline">\(f(X, k) = 0\)</span>, or reach them by simulation, and assemble the diagram from the resulting points. <a href="../02-odes/02f-bifurcation-curves.html">Part 2F</a> takes the complementary view, tracing the diagram as a continuous curve. Some methods here are robust; others are homemade and work well only for this saddle-node example, as noted where they appear.</p>
+<section id="e.1-separation-of-variables" class="level2">
+<h2 class="anchored" data-anchor-id="e.1-separation-of-variables">2E.1 Separation of variables</h2>
+<p>For this particular <span class="math inline">\(f\)</span>, the steady-state condition <span class="math inline">\(f(X, k) = 0\)</span> can be solved for <span class="math inline">\(k\)</span> explicitly as a function of <span class="math inline">\(X\)</span>:</p>
+<p><span class="math display">\[ k = \frac{10}{X} + 45\frac{X^3}{X^4 + 200^4} . \]</span></p>
+<p>Sweeping <span class="math inline">\(X\)</span> over a range (avoiding <span class="math inline">\(X = 0\)</span>) and evaluating <span class="math inline">\(k\)</span> traces the curve directly, with no root-finding needed.</p>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>func_k <span class="ot">&lt;-</span> <span class="cf">function</span>(X) <span class="dv">10</span> <span class="sc">/</span> X <span class="sc">+</span> <span class="dv">45</span> <span class="sc">*</span> X<span class="sc">^</span><span class="dv">3</span> <span class="sc">/</span> (X<span class="sc">^</span><span class="dv">4</span> <span class="sc">+</span> <span class="dv">200</span><span class="sc">^</span><span class="dv">4</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>X_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">50</span>, <span class="dv">600</span>, <span class="at">by =</span> <span class="dv">5</span>)   <span class="co"># X grid; avoid X = 0</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">func_k</span>(X_all)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(k_all, X_all, <span class="at">xlab =</span> <span class="st">"k"</span>, <span class="at">ylab =</span> <span class="st">"X"</span>, <span class="at">type =</span> <span class="st">"p"</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> func_k(X):</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">10</span> <span class="op">/</span> X <span class="op">+</span> <span class="dv">45</span> <span class="op">*</span> X<span class="op">**</span><span class="dv">3</span> <span class="op">/</span> (X<span class="op">**</span><span class="dv">4</span> <span class="op">+</span> <span class="dv">200</span><span class="op">**</span><span class="dv">4</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> np.arange(<span class="dv">50</span>, <span class="dv">605</span>, <span class="dv">5</span>)   <span class="co"># X grid; avoid X = 0</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> func_k(X_all)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>plt.scatter(k_all, X_all, facecolors<span class="op">=</span><span class="st">"none"</span>, edgecolors<span class="op">=</span><span class="st">"red"</span>, s<span class="op">=</span><span class="dv">20</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"k"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"X"</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The resulting curve is S-shaped and shows how the circuit’s behavior changes with <span class="math inline">\(k\)</span>. It has two turning points, near <span class="math inline">\(k = 0.125\)</span> and <span class="math inline">\(k = 0.170\)</span>, where a stable steady state and the unstable steady state meet and annihilate; these are the <strong>bifurcation points</strong>. For <span class="math inline">\(k\)</span> below the first point the system is monostable at a relatively high <span class="math inline">\(X\)</span>; between the two points it is bistable, with a high and a low stable state (and an unstable one in between); above the second point it is monostable again at a low <span class="math inline">\(X\)</span>. Because the branches meet and vanish at the turning points, this is a <em>saddle-node</em> bifurcation <span class="citation" data-cites="strogatz2015nonlinear">(<a href="../references.html#ref-strogatz2015nonlinear" role="doc-biblioref">Strogatz 2015</a>)</span>.</p>
+<p>This method is exact and cheap, but it depends on being able to solve <span class="math inline">\(f(X, k) = 0\)</span> for <span class="math inline">\(k\)</span> analytically. The remaining methods do not, so they also apply to circuits where no such shortcut exists.</p>
+</section>
+</section>
+<section id="e.2-direct-method-find-all-roots" class="level2">
+<h2 class="anchored" data-anchor-id="e.2-direct-method-find-all-roots">2E.2 Direct method: find all roots</h2>
+<p>The most direct general approach samples <span class="math inline">\(k\)</span> uniformly and, at each <span class="math inline">\(k\)</span>, finds every root <span class="math inline">\(X_s\)</span> of <span class="math inline">\(f(X, k) = 0\)</span>. We classify each root from the sign of <span class="math inline">\(\frac{df}{dX}\)</span> (<a href="../02-odes/02d-effective-potential.html">Part 2D</a>), stable when it is negative and unstable otherwise, estimated here with a small finite step <span class="math inline">\(dx\)</span>. This is the most robust method in the chapter and works well for our example, though for a general nonlinear <span class="math inline">\(f\)</span> there is no guarantee of finding every root, and it is slower than the methods that follow.</p>
+<p>The roots come out as a scatter of <span class="math inline">\((k, X_s)\)</span> points that are not ordered along the curve, so joining them in the order found would give a tangled line. We reorder them with a nearest-neighbor walk: start at the leftmost point, then repeatedly step to the closest unused point until all points are used. (In the inverse-distance matrix used below, the nearest point is the one with the largest score.)</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2E.2.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2E.2.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Trace the bifurcation curve: at each value of the parameter k, find every steady state and mark it stable or unstable.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> Sample k on a grid; at each k find all roots of <code>f(X, k) = 0</code> with a library root-finder, classify each by the sign of <code>df/dX</code>, and order the scattered points with a nearest-neighbor walk.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code>; k swept across a range (bistable near k = 0.15).</p>
+<p><strong>Show.</strong> A plot of steady-state X versus k, points colored by stability (the bifurcation curve).</p>
+<p><strong>Verification.</strong> The result is an S-shaped curve: over a middle k range there are three steady states (two stable, one unstable), collapsing to one outside it.</p>
+</div>
+</div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<p><code>rootSolve::uniroot.all</code> finds all roots of a function on an interval in one call <span class="citation" data-cites="soetaert2009rootsolve">(<a href="../references.html#ref-soetaert2009rootsolve" role="doc-biblioref">Soetaert 2009</a>)</span>.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each sampled k, find all roots of f(X, k) = 0 and label each by stability</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rootSolve)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Model derivative from Equation (1); reused by the methods below</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>derivs_k <span class="ot">&lt;-</span> <span class="cf">function</span>(X, k) <span class="dv">10</span> <span class="sc">+</span> <span class="dv">45</span> <span class="sc">*</span> X<span class="sc">^</span><span class="dv">4</span> <span class="sc">/</span> (X<span class="sc">^</span><span class="dv">4</span> <span class="sc">+</span> <span class="dv">200</span><span class="sc">^</span><span class="dv">4</span>) <span class="sc">-</span> k <span class="sc">*</span> X</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>dx <span class="ot">&lt;-</span> <span class="fl">0.1</span>                          <span class="co"># small step to estimate df/dX for stability</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> <span class="fu">length</span>(k_all) <span class="sc">*</span> <span class="dv">3</span>, <span class="at">ncol =</span> <span class="dv">3</span>)  <span class="co"># columns: k, Xs, stability</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> k_all) {</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  roots <span class="ot">&lt;-</span> <span class="fu">uniroot.all</span>(derivs_k, <span class="at">k =</span> k, <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>))</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (x <span class="cf">in</span> roots) {</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> ind <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    stability <span class="ot">&lt;-</span> <span class="cf">if</span> (<span class="fu">sign</span>(<span class="fu">derivs_k</span>(<span class="at">X =</span> x <span class="sc">+</span> dx, <span class="at">k =</span> k)) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>  <span class="co"># 1 stable, 2 unstable</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    results[ind, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, x, stability)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results[<span class="dv">1</span><span class="sc">:</span>ind, ]</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> results[, <span class="dv">3</span>],</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Stable"</span>, <span class="st">"Unstable"</span>),</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># joining the points in the order found: not yet ordered along the curve</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reorder the scattered roots into a connected curve (nearest-neighbor walk)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">dist</span>(results[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]))   <span class="co"># pairwise distances between points</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> d                             <span class="co"># inverse distance; nearest point scores highest</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>num_total <span class="ot">&lt;-</span> <span class="fu">nrow</span>(results)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>sequence <span class="ot">&lt;-</span> <span class="fu">integer</span>(num_total)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>if_unused <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, num_total)         <span class="co"># 1 unused, 0 used</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>point_current <span class="ot">&lt;-</span> <span class="fu">which.min</span>(results[, <span class="dv">1</span>])   <span class="co"># start at the smallest-k point</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>sequence[<span class="dv">1</span>] <span class="ot">&lt;-</span> point_current</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>if_unused[point_current] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>num_total) {</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  point_current <span class="ot">&lt;-</span> <span class="fu">which.max</span>(m[, point_current] <span class="sc">*</span> if_unused)  <span class="co"># closest unused point</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  sequence[i] <span class="ot">&lt;-</span> point_current</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  if_unused[point_current] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[sequence, <span class="dv">1</span>], results[sequence, <span class="dv">2</span>], <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<p><code>scipy.optimize.fsolve</code> returns one root per initial guess, so we pass a vector of guesses and then discard spurious roots (where <span class="math inline">\(|f|\)</span> is not near zero) and any outside the range. Several guesses can converge to the same root, so we also drop duplicates; <code>uniroot.all</code> in R does this in one step.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># For each sampled k, find all roots of f(X, k) = 0 and label each by stability</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">"ignore"</span>)   <span class="co"># suppress fsolve/numpy runtime warnings</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.optimize <span class="im">import</span> fsolve</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> derivs_k(X, k):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">10</span> <span class="op">+</span> <span class="dv">45</span> <span class="op">*</span> X<span class="op">**</span><span class="dv">4</span> <span class="op">/</span> (X<span class="op">**</span><span class="dv">4</span> <span class="op">+</span> <span class="dv">200</span><span class="op">**</span><span class="dv">4</span>) <span class="op">-</span> k <span class="op">*</span> X</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>dx <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> np.arange(<span class="fl">0.1</span>, <span class="fl">0.201</span>, <span class="fl">0.001</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> np.zeros((<span class="bu">len</span>(k_all) <span class="op">*</span> <span class="dv">10</span>, <span class="dv">3</span>))    <span class="co"># columns: k, Xs, stability</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>ind <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> k_all:</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>    roots <span class="op">=</span> fsolve(derivs_k, x0<span class="op">=</span>np.arange(<span class="dv">50</span>, <span class="dv">500</span>, <span class="dv">50</span>), args<span class="op">=</span>(k,))</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> x <span class="kw">in</span> roots:</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">abs</span>(derivs_k(x, k)) <span class="op">&gt;</span> <span class="fl">0.01</span>:      <span class="co"># fsolve can return non-roots; keep true roots only</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="dv">0</span> <span class="op">&lt;=</span> x <span class="op">&lt;=</span> <span class="dv">800</span>:</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>            stability <span class="op">=</span> <span class="dv">1</span> <span class="cf">if</span> np.sign(derivs_k(x <span class="op">+</span> dx, k)) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>            results[ind] <span class="op">=</span> [k, x, stability]</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>            ind <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[:ind]</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="co"># several initial guesses may land on the same root; keep unique (k, Xs)</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>_, uniq <span class="op">=</span> np.unique(np.<span class="bu">round</span>(results[:, :<span class="dv">2</span>], <span class="dv">2</span>), axis<span class="op">=</span><span class="dv">0</span>, return_index<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[np.sort(uniq)]</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>stable <span class="op">=</span> results[results[:, <span class="dv">2</span>] <span class="op">==</span> <span class="dv">1</span>]</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>unstable <span class="op">=</span> results[results[:, <span class="dv">2</span>] <span class="op">==</span> <span class="dv">2</span>]</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>plt.scatter(stable[:, <span class="dv">0</span>], stable[:, <span class="dv">1</span>], s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Stable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x118366990&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(unstable[:, <span class="dv">0</span>], unstable[:, <span class="dv">1</span>], s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"red"</span>, label<span class="op">=</span><span class="st">"Unstable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x118366d50&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">"upper right"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.legend.Legend object at 0x1180eea50&gt;</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># joining the points in the order found: not yet ordered along the curve</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>plt.plot(results[:, <span class="dv">0</span>], results[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[&lt;matplotlib.lines.Line2D object at 0x1183d4c20&gt;]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-7-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reorder the scattered roots into a connected curve (nearest-neighbor walk)</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.spatial.distance <span class="im">import</span> cdist</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> cdist(results[:, :<span class="dv">2</span>], results[:, :<span class="dv">2</span>])   <span class="co"># pairwise distances</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>m <span class="op">=</span> <span class="dv">1</span> <span class="op">/</span> d                                    <span class="co"># inverse distance; nearest point scores highest</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>np.fill_diagonal(m, <span class="dv">0</span>)                        <span class="co"># avoid divide-by-zero on the diagonal</span></span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>num_total <span class="op">=</span> <span class="bu">len</span>(results)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>sequence <span class="op">=</span> np.zeros(num_total, dtype<span class="op">=</span><span class="bu">int</span>)</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>if_unused <span class="op">=</span> np.ones(num_total, dtype<span class="op">=</span><span class="bu">bool</span>)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>point_current <span class="op">=</span> <span class="bu">int</span>(np.argmin(results[:, <span class="dv">0</span>]))   <span class="co"># start at the smallest-k point</span></span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>sequence[<span class="dv">0</span>] <span class="op">=</span> point_current</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>if_unused[point_current] <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, num_total):</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>    point_current <span class="op">=</span> <span class="bu">int</span>(np.argmax(m[:, point_current] <span class="op">*</span> if_unused))</span>
+<span id="cb24-17"><a href="#cb24-17" aria-hidden="true" tabindex="-1"></a>    sequence[i] <span class="op">=</span> point_current</span>
+<span id="cb24-18"><a href="#cb24-18" aria-hidden="true" tabindex="-1"></a>    if_unused[point_current] <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb24-19"><a href="#cb24-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-20"><a href="#cb24-20" aria-hidden="true" tabindex="-1"></a>plt.plot(results[sequence, <span class="dv">0</span>], results[sequence, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>, linewidth<span class="op">=</span><span class="dv">1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[&lt;matplotlib.lines.Line2D object at 0x1184f5550&gt;]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-8-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The scatter shows both stable branches (high and low <span class="math inline">\(X\)</span>) and the unstable middle branch, colored by stability. After reordering, the points connect into the same smooth S-curve found by separation of variables, now obtained without an explicit formula for <span class="math inline">\(k(X)\)</span>.</p>
+</section>
+</section>
+<section id="e.3-bisection-method" class="level2">
+<h2 class="anchored" data-anchor-id="e.3-bisection-method">2E.3 Bisection method</h2>
+<p>The library root-finder can be replaced by a homemade one. The <strong>bisection method</strong> <span class="citation" data-cites="press2007numerical">(<a href="../references.html#ref-press2007numerical" role="doc-biblioref">Press et al. 2007</a>)</span> brackets a root: if <span class="math inline">\(f\)</span> has opposite signs at the two ends of an interval, a root must lie between them, and repeatedly halving the interval (keeping the half across which the sign still changes) converges to it. Bisection is simple and robust, but it has two limitations. It needs a sign change, so it misses roots where <span class="math inline">\(f\)</span> only touches zero, and it returns nothing when the two endpoints share a sign even if roots exist between them. It also finds only one root per interval. Both effects show up when we test it on the whole range <span class="math inline">\([0, 600]\)</span>: at <span class="math inline">\(k = 0.12\)</span> and <span class="math inline">\(k = 0.2\)</span> (monostable) it returns the single root, while at <span class="math inline">\(k = 0.15\)</span> (bistable) it returns just one of the three.</p>
+<p>To find every root, we bracket: scan the range in many small windows and apply bisection to each window that contains a sign change (the <code>all_roots_bracketing</code> driver, with <code>resolution</code> setting the window width). Applied across <span class="math inline">\(k\)</span>, this reproduces the same scattered <span class="math inline">\((k, X_s)\)</span> points as in 2E.2. Reordering them into the curve is the identical nearest-neighbor walk from 2E.2 and is omitted here. Both implementations reuse the model derivative <code>derivs_k</code> defined in 2E.2.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2E.3.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2E.3.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Find steady states with a homemade bracketing root-finder, and recover all roots by scanning windows.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> Bisection: on an interval where f changes sign, repeatedly halve it, keeping the half that still brackets the root; apply it to each small window with a sign change to find all roots.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code> on [0, 600], at k = 0.12, 0.15, and 0.2.</p>
+<p><strong>Show.</strong> The roots found on the whole interval versus by the windowed scan, at each k.</p>
+<p><strong>Verification.</strong> On the whole interval, bisection returns the single root at monostable k (0.12, 0.2) but only one of the three at bistable k = 0.15; the windowed scan recovers all three.</p>
+</div>
+</div>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bisection: find one root of f where it changes sign across the interval</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>bisection <span class="ot">&lt;-</span> <span class="cf">function</span>(f, interval, <span class="at">epsilon =</span> <span class="fl">1e-6</span>, ...) {</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  x_min <span class="ot">&lt;-</span> interval[<span class="dv">1</span>]; f1 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_min, ...)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  x_max <span class="ot">&lt;-</span> interval[<span class="dv">2</span>]; f2 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_max, ...)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">abs</span>(f1) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_min)</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">abs</span>(f2) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_max)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (f1 <span class="sc">*</span> f2 <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="cn">NA</span>)                     <span class="co"># same sign: no bracketed root</span></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (f1 <span class="sc">*</span> f2 <span class="sc">&lt;</span> <span class="dv">0</span>) {</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>    x_mid <span class="ot">&lt;-</span> (x_min <span class="sc">+</span> x_max) <span class="sc">/</span> <span class="dv">2</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>    f3 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_mid, ...)</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">abs</span>(f3) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_mid)</span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (f1 <span class="sc">*</span> f3 <span class="sc">&gt;</span> <span class="dv">0</span>) { f1 <span class="ot">&lt;-</span> f3; x_min <span class="ot">&lt;-</span> x_mid }  <span class="co"># sign change is in the upper half</span></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>             { f2 <span class="ot">&lt;-</span> f3; x_max <span class="ot">&lt;-</span> x_mid }  <span class="co"># sign change is in the lower half</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb30-16"><a href="#cb30-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-17"><a href="#cb30-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">c</span>(<span class="fl">0.12</span>, <span class="fl">0.15</span>, <span class="fl">0.2</span>)) {</span>
+<span id="cb30-18"><a href="#cb30-18" aria-hidden="true" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">bisection</span>(<span class="cf">function</span>(X) <span class="fu">derivs_k</span>(X, k), <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb30-19"><a href="#cb30-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"k = %.2f: root = %.2f</span><span class="sc">\n</span><span class="st">"</span>, k, root))</span>
+<span id="cb30-20"><a href="#cb30-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>k = 0.12: root = 443.43
+k = 0.15: root = 331.61
+k = 0.20: root = 50.94</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># all roots by bracketing: scan the range in small windows and bisect each</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>all_roots_bracketing <span class="ot">&lt;-</span> <span class="cf">function</span>(f, method, interval, <span class="at">resolution =</span> <span class="fl">1e-2</span>, ...) {</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  x_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(interval[<span class="dv">1</span>], interval[<span class="dv">2</span>], <span class="at">by =</span> resolution <span class="sc">*</span> (interval[<span class="dv">2</span>] <span class="sc">-</span> interval[<span class="dv">1</span>]))</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  roots <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="dv">0</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">length</span>(x_all) <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    root <span class="ot">&lt;-</span> <span class="fu">method</span>(f, <span class="fu">c</span>(x_all[i], x_all[i <span class="sc">+</span> <span class="dv">1</span>]), ...)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(root)) roots <span class="ot">&lt;-</span> <span class="fu">c</span>(roots, root)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(roots) <span class="sc">==</span> <span class="dv">0</span>) <span class="cn">NA</span> <span class="cf">else</span> <span class="fu">unique</span>(roots)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the curve: at each k, find every root by bracketed bisection</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">nrow =</span> <span class="fu">length</span>(k_all) <span class="sc">*</span> <span class="dv">3</span>)   <span class="co"># columns: k, Xs</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> k_all) {</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  roots <span class="ot">&lt;-</span> <span class="fu">all_roots_bracketing</span>(<span class="cf">function</span>(X) <span class="fu">derivs_k</span>(X, k), bisection,</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>), <span class="at">resolution =</span> <span class="fl">1e-2</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>  num_X <span class="ot">&lt;-</span> <span class="fu">length</span>(roots)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>  results[ind<span class="sc">:</span>(ind <span class="sc">+</span> num_X <span class="sc">-</span> <span class="dv">1</span>), <span class="dv">1</span>] <span class="ot">&lt;-</span> k</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>  results[ind<span class="sc">:</span>(ind <span class="sc">+</span> num_X <span class="sc">-</span> <span class="dv">1</span>), <span class="dv">2</span>] <span class="ot">&lt;-</span> roots</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> ind <span class="sc">+</span> num_X</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results[<span class="dv">1</span><span class="sc">:</span>(ind <span class="sc">-</span> <span class="dv">1</span>), ]</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bisection: find one root of f where it changes sign across the interval</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> bisection(f, interval, epsilon<span class="op">=</span><span class="fl">1e-6</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    x_min, x_max <span class="op">=</span> interval</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    f1 <span class="op">=</span> f(x_min, <span class="op">**</span>kwargs)<span class="op">;</span> f2 <span class="op">=</span> f(x_max, <span class="op">**</span>kwargs)</span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">abs</span>(f1) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_min</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">abs</span>(f2) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_max</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> f1 <span class="op">*</span> f2 <span class="op">&gt;</span> <span class="dv">0</span>: <span class="cf">return</span> <span class="va">None</span>                    <span class="co"># same sign: no bracketed root</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> f1 <span class="op">*</span> f2 <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>        x_mid <span class="op">=</span> (x_min <span class="op">+</span> x_max) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>        f3 <span class="op">=</span> f(x_mid, <span class="op">**</span>kwargs)</span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">abs</span>(f3) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_mid</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> f1 <span class="op">*</span> f3 <span class="op">&gt;</span> <span class="dv">0</span>: f1, x_min <span class="op">=</span> f3, x_mid       <span class="co"># sign change is in the upper half</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:           f2, x_max <span class="op">=</span> f3, x_mid       <span class="co"># sign change is in the lower half</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> (<span class="fl">0.12</span>, <span class="fl">0.15</span>, <span class="fl">0.2</span>):</span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> bisection(<span class="kw">lambda</span> X: derivs_k(X, k), (<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"k = </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: root = </span><span class="sc">{</span>root<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>k = 0.12: root = 443.43
+k = 0.15: root = 331.61
+k = 0.2: root = 50.94</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># all roots by bracketing: scan the range in small windows and bisect each</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> all_roots_bracketing(f, method, interval, resolution<span class="op">=</span><span class="fl">1e-2</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    x_all <span class="op">=</span> np.linspace(interval[<span class="dv">0</span>], interval[<span class="dv">1</span>], <span class="bu">int</span>(<span class="dv">1</span> <span class="op">/</span> resolution) <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>    roots <span class="op">=</span> []</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(x_all) <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>        root <span class="op">=</span> method(f, (x_all[i], x_all[i <span class="op">+</span> <span class="dv">1</span>]), <span class="op">**</span>kwargs)</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> root <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>            roots.append(root)</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.unique(roots).tolist() <span class="cf">if</span> roots <span class="cf">else</span> []</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the curve: at each k, find every root by bracketed bisection</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> np.arange(<span class="fl">0.1</span>, <span class="fl">0.201</span>, <span class="fl">0.001</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> np.zeros((<span class="bu">len</span>(k_all) <span class="op">*</span> <span class="dv">3</span>, <span class="dv">2</span>))    <span class="co"># columns: k, Xs</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>ind <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> k_all:</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    roots <span class="op">=</span> all_roots_bracketing(<span class="kw">lambda</span> X: derivs_k(X, k), bisection,</span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>                                 (<span class="dv">0</span>, <span class="dv">600</span>), resolution<span class="op">=</span><span class="fl">1e-2</span>)</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(roots)</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>    results[ind:ind <span class="op">+</span> n, <span class="dv">0</span>] <span class="op">=</span> k</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>    results[ind:ind <span class="op">+</span> n, <span class="dv">1</span>] <span class="op">=</span> roots</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>    ind <span class="op">+=</span> n</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[:ind]</span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>plt.scatter(results[:, <span class="dv">0</span>], results[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>, s<span class="op">=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x118614410&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The three-value test confirms the single-root limitation: at <span class="math inline">\(k = 0.15\)</span> bisection on <span class="math inline">\([0, 600]\)</span> returns only one of the three steady states. The bracketed driver recovers all of them, giving the same scatter (and, after the 2E.2 reordering, the same S-curve).</p>
+</section>
+</section>
+<section id="e.4-false-position-method" class="level2">
+<h2 class="anchored" data-anchor-id="e.4-false-position-method">2E.4 False position method</h2>
+<p>The false-position method <span class="citation" data-cites="press2007numerical">(<a href="../references.html#ref-press2007numerical" role="doc-biblioref">Press et al. 2007</a>)</span> is bisection with a better guess. Instead of the midpoint, it takes the point where the straight line through the two endpoints <span class="math inline">\((x_{min}, f_1)\)</span> and <span class="math inline">\((x_{max}, f_2)\)</span> crosses zero:</p>
+<p><span class="math display">\[\begin{equation}
+x_{new} = \frac{x_{min} f_2 - x_{max} f_1}{f_2 - f_1} . \tag{2}
+\end{equation}\]</span></p>
+<p>Everything else is unchanged: the same sign-change bookkeeping and the same <code>all_roots_bracketing</code> driver from 2E.3, so it inherits the same limitations (one root per interval, and it needs a sign change). It can converge faster than bisection. As with bisection, testing on <span class="math inline">\([0, 600]\)</span> at <span class="math inline">\(k = 0.15\)</span> returns only one of the three roots, though possibly a different one, since the interpolation takes a different path.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2E.4.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2E.4.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Find roots with the false-position bracketing method.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> False position: like bisection, but replace the midpoint with the point where the line through the interval endpoints crosses zero, <code>x_new = (xmin*f2 - xmax*f1) / (f2 - f1)</code>; drive it over windows to find all roots.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code> on [0, 600] at k = 0.15.</p>
+<p><strong>Show.</strong> The roots found on the whole interval versus by the windowed scan at k = 0.15.</p>
+<p><strong>Verification.</strong> On the whole interval at k = 0.15 it returns only one of the three roots (possibly a different one than bisection); the windowed scan finds all three, often in fewer iterations.</p>
+</div>
+</div>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false position: like bisection, but refine with the secant's x-intercept (Eq. 2)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>false_position <span class="ot">&lt;-</span> <span class="cf">function</span>(f, interval, <span class="at">epsilon =</span> <span class="fl">1e-6</span>, ...) {</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  x_min <span class="ot">&lt;-</span> interval[<span class="dv">1</span>]; f1 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_min, ...)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  x_max <span class="ot">&lt;-</span> interval[<span class="dv">2</span>]; f2 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_max, ...)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">abs</span>(f1) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_min)</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">abs</span>(f2) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_max)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (f1 <span class="sc">*</span> f2 <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="cn">NA</span>)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (f1 <span class="sc">*</span> f2 <span class="sc">&lt;</span> <span class="dv">0</span>) {</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    x_new <span class="ot">&lt;-</span> (f2 <span class="sc">*</span> x_min <span class="sc">-</span> f1 <span class="sc">*</span> x_max) <span class="sc">/</span> (f2 <span class="sc">-</span> f1)</span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>    f3 <span class="ot">&lt;-</span> <span class="fu">f</span>(x_new, ...)</span>
+<span id="cb43-11"><a href="#cb43-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">abs</span>(f3) <span class="sc">&lt;</span> epsilon) <span class="fu">return</span>(x_new)</span>
+<span id="cb43-12"><a href="#cb43-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (f1 <span class="sc">*</span> f3 <span class="sc">&gt;</span> <span class="dv">0</span>) { f1 <span class="ot">&lt;-</span> f3; x_min <span class="ot">&lt;-</span> x_new }</span>
+<span id="cb43-13"><a href="#cb43-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>             { f2 <span class="ot">&lt;-</span> f3; x_max <span class="ot">&lt;-</span> x_new }</span>
+<span id="cb43-14"><a href="#cb43-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">c</span>(<span class="fl">0.12</span>, <span class="fl">0.15</span>, <span class="fl">0.2</span>)) {</span>
+<span id="cb43-18"><a href="#cb43-18" aria-hidden="true" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">false_position</span>(<span class="cf">function</span>(X) <span class="fu">derivs_k</span>(X, k), <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb43-19"><a href="#cb43-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"k = %.2f: root = %.2f</span><span class="sc">\n</span><span class="st">"</span>, k, root))</span>
+<span id="cb43-20"><a href="#cb43-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>k = 0.12: root = 443.43
+k = 0.15: root = 71.48
+k = 0.20: root = 50.94</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the curve, refining each bracket with false position (same driver as 2E.3)</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">nrow =</span> <span class="fu">length</span>(k_all) <span class="sc">*</span> <span class="dv">3</span>)   <span class="co"># columns: k, Xs</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> k_all) {</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  roots <span class="ot">&lt;-</span> <span class="fu">all_roots_bracketing</span>(<span class="cf">function</span>(X) <span class="fu">derivs_k</span>(X, k), false_position,</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>                                <span class="at">interval =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>), <span class="at">resolution =</span> <span class="fl">1e-2</span>)</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  num_X <span class="ot">&lt;-</span> <span class="fu">length</span>(roots)</span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  results[ind<span class="sc">:</span>(ind <span class="sc">+</span> num_X <span class="sc">-</span> <span class="dv">1</span>), <span class="dv">1</span>] <span class="ot">&lt;-</span> k</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  results[ind<span class="sc">:</span>(ind <span class="sc">+</span> num_X <span class="sc">-</span> <span class="dv">1</span>), <span class="dv">2</span>] <span class="ot">&lt;-</span> roots</span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>  ind <span class="ot">&lt;-</span> ind <span class="sc">+</span> num_X</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results[<span class="dv">1</span><span class="sc">:</span>(ind <span class="sc">-</span> <span class="dv">1</span>), ]</span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># false position: like bisection, but refine with the secant's x-intercept (Eq. 2)</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> false_position(f, interval, epsilon<span class="op">=</span><span class="fl">1e-6</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    x_min, x_max <span class="op">=</span> interval</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    f1, f2 <span class="op">=</span> f(x_min, <span class="op">**</span>kwargs), f(x_max, <span class="op">**</span>kwargs)</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">abs</span>(f1) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_min</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">abs</span>(f2) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_max</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> f1 <span class="op">*</span> f2 <span class="op">&gt;</span> <span class="dv">0</span>: <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> f1 <span class="op">*</span> f2 <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>        x_new <span class="op">=</span> (f2 <span class="op">*</span> x_min <span class="op">-</span> f1 <span class="op">*</span> x_max) <span class="op">/</span> (f2 <span class="op">-</span> f1)</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>        f3 <span class="op">=</span> f(x_new, <span class="op">**</span>kwargs)</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">abs</span>(f3) <span class="op">&lt;</span> epsilon: <span class="cf">return</span> x_new</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> f1 <span class="op">*</span> f3 <span class="op">&gt;</span> <span class="dv">0</span>: f1, x_min <span class="op">=</span> f3, x_new</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:           f2, x_max <span class="op">=</span> f3, x_new</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> (<span class="fl">0.12</span>, <span class="fl">0.15</span>, <span class="fl">0.2</span>):</span>
+<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> false_position(<span class="kw">lambda</span> X: derivs_k(X, k), (<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb46-18"><a href="#cb46-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"k = </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">: root = </span><span class="sc">{</span>root<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>k = 0.12: root = 443.43
+k = 0.15: root = 71.48
+k = 0.2: root = 50.94</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the curve, refining each bracket with false position (same driver as 2E.3)</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> np.arange(<span class="fl">0.1</span>, <span class="fl">0.201</span>, <span class="fl">0.001</span>)</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> np.zeros((<span class="bu">len</span>(k_all) <span class="op">*</span> <span class="dv">3</span>, <span class="dv">2</span>))    <span class="co"># columns: k, Xs</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>ind <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> k_all:</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>    roots <span class="op">=</span> all_roots_bracketing(<span class="kw">lambda</span> X: derivs_k(X, k), false_position,</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>                                 (<span class="dv">0</span>, <span class="dv">600</span>), resolution<span class="op">=</span><span class="fl">1e-2</span>)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(roots)</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>    results[ind:ind <span class="op">+</span> n, <span class="dv">0</span>] <span class="op">=</span> k</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>    results[ind:ind <span class="op">+</span> n, <span class="dv">1</span>] <span class="op">=</span> roots</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>    ind <span class="op">+=</span> n</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[:ind]</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>plt.scatter(results[:, <span class="dv">0</span>], results[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>, s<span class="op">=</span><span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x118673250&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The bracketed scatter is the same as bisection’s. For this smooth, well-behaved problem false position offers no visible advantage; its speedup matters more when each function evaluation is expensive.</p>
+</section>
+</section>
+<section id="e.5-bifurcation-curve-by-ode-simulation" class="level2">
+<h2 class="anchored" data-anchor-id="e.5-bifurcation-curve-by-ode-simulation">2E.5 Bifurcation curve by ODE simulation</h2>
+<p>Every method so far solves <span class="math inline">\(f(X, k) = 0\)</span> algebraically. A different idea is to <em>follow</em> the steady states with the ODE itself. Starting at <span class="math inline">\(k = 0.1\)</span> from an arbitrary <span class="math inline">\(X_0\)</span>, we integrate <span class="math inline">\(\frac{dX}{dt} = f(X, k)\)</span> until it settles on a stable steady state, record it, nudge <span class="math inline">\(k\)</span> by a small <span class="math inline">\(\Delta k\)</span>, and repeat from the previous state. Tracing a branch this way is cheap and needs no root-finding.</p>
+<p>Two tricks let it cover the whole S-curve:</p>
+<ul>
+<li><strong>Reversing at a catastrophe.</strong> When <span class="math inline">\(k\)</span> passes a bifurcation point the current stable branch disappears, and the next integration lands far away (<span class="math inline">\(|X_i - X_{i-1}|\)</span> exceeds a threshold <code>gap</code>). Detecting that jump, we reverse the sweep direction of <span class="math inline">\(k\)</span> (flip <span class="math inline">\(d \to -d\)</span>) and carry on.</li>
+<li><strong>Capturing the unstable branch.</strong> Integrating <span class="math inline">\(\frac{dX}{dt} = -f(X, k)\)</span> (i.e.&nbsp;<span class="math inline">\(d = -1\)</span>) flips the stability, so the unstable steady state becomes an attractor. Sweeping <span class="math inline">\(k\)</span> backward under <span class="math inline">\(-f\)</span> therefore traces the unstable middle branch.</li>
+</ul>
+<p><span class="math display">\[\begin{equation}
+\frac{dX}{dt} = d\,f(X, k), \qquad d = \pm 1 . \tag{3}
+\end{equation}\]</span></p>
+<p>Together the sweep climbs the high stable branch, reverses at the upper bifurcation and returns along the unstable branch, reverses again at the lower bifurcation, and finishes up the low stable branch. The initial <span class="math inline">\(X_0\)</span> is random; we fix a seed here so the figure is reproducible.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2E.5.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2E.5.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Trace the full S-shaped bifurcation curve, including the unstable branch, by following steady states with ODE integration rather than root-finding.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> From a starting state, integrate <code>dX/dt = f(X, k)</code> to a stable steady state, nudge k, and continue from the previous state; reverse the k-sweep at a large jump, and integrate <code>dX/dt = -f(X, k)</code> to capture the unstable branch as an attractor.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code>, sweeping k across the bistable range.</p>
+<p><strong>Show.</strong> A plot of steady-state X versus k, including the unstable branch.</p>
+<p><strong>Verification.</strong> The traced points reproduce the S-curve of 2E.2, now including the unstable middle branch.</p>
+</div>
+</div>
+<section id="r-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-4">R implementation</h3>
+<p><code>rootSolve::runsteady</code> integrates an ODE until it reaches a steady state.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rootSolve)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)   <span class="co"># reproducible random initial condition</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co"># dX/dt = d * f(X, k):  d = +1 settles on a stable state, d = -1 on an unstable one</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>derivs_k_sim <span class="ot">&lt;-</span> <span class="cf">function</span>(t, X, params) {</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">as.list</span>(params), <span class="fu">list</span>(d <span class="sc">*</span> (<span class="dv">10</span> <span class="sc">+</span> <span class="dv">45</span> <span class="sc">*</span> X<span class="sc">^</span><span class="dv">4</span> <span class="sc">/</span> (X<span class="sc">^</span><span class="dv">4</span> <span class="sc">+</span> <span class="dv">200</span><span class="sc">^</span><span class="dv">4</span>) <span class="sc">-</span> k <span class="sc">*</span> X)))</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>gap   <span class="ot">&lt;-</span> <span class="dv">100</span>     <span class="co"># a jump larger than this flags a bifurcation (catastrophe)</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>t_max <span class="ot">&lt;-</span> <span class="dv">1000</span>    <span class="co"># max integration time to reach a steady state</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>dk    <span class="ot">&lt;-</span> <span class="fl">0.001</span>   <span class="co"># k step</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>dX    <span class="ot">&lt;-</span> <span class="dv">1</span>       <span class="co"># small X step: perturbation and df/dX estimate</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>X0 <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1</span>, <span class="dv">100</span>, <span class="dv">600</span>)                       <span class="co"># arbitrary initial condition</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>ind <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">nrow =</span> <span class="dv">1000</span>, <span class="at">ncol =</span> <span class="dv">3</span>)   <span class="co"># columns: k, Xs, stability</span></span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (k <span class="sc">&lt;</span> <span class="fl">0.2</span>) {</span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>  Xi <span class="ot">&lt;-</span> <span class="fu">runsteady</span>(<span class="at">y =</span> X0, <span class="at">time =</span> <span class="fu">c</span>(<span class="dv">0</span>, t_max), <span class="at">func =</span> derivs_k_sim,</span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>                  <span class="at">parms =</span> <span class="fu">c</span>(<span class="at">k =</span> k, <span class="at">d =</span> d))<span class="sc">$</span>y</span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (ind <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;&amp;</span> <span class="fu">abs</span>(Xi <span class="sc">-</span> X0) <span class="sc">&gt;</span> gap) {         <span class="co"># catastrophe: reverse the sweep</span></span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="sc">-</span>d</span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>    k <span class="ot">&lt;-</span> k <span class="sc">+</span> d <span class="sc">*</span> dk</span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>    X0 <span class="ot">&lt;-</span> X0 <span class="sc">+</span> dX <span class="sc">*</span> <span class="fu">sign</span>(Xi <span class="sc">-</span> X0)</span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a>    f_plus <span class="ot">&lt;-</span> <span class="fu">derivs_k_sim</span>(<span class="dv">0</span>, Xi <span class="sc">+</span> dX, <span class="fu">c</span>(<span class="at">k =</span> k, <span class="at">d =</span> <span class="dv">1</span>))[[<span class="dv">1</span>]]   <span class="co"># stability from df/dX sign</span></span>
+<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a>    results[ind, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, Xi, <span class="cf">if</span> (<span class="fu">sign</span>(f_plus) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a>    k <span class="ot">&lt;-</span> k <span class="sc">+</span> d <span class="sc">*</span> dk</span>
+<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a>    X0 <span class="ot">&lt;-</span> Xi</span>
+<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a>    ind <span class="ot">&lt;-</span> ind <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results[<span class="dv">1</span><span class="sc">:</span>(ind <span class="sc">-</span> <span class="dv">1</span>), ]</span>
+<span id="cb54-36"><a href="#cb54-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-37"><a href="#cb54-37" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> results[, <span class="dv">3</span>],</span>
+<span id="cb54-38"><a href="#cb54-38" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb54-39"><a href="#cb54-39" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb54-40"><a href="#cb54-40" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Stable"</span>, <span class="st">"Unstable"</span>),</span>
+<span id="cb54-41"><a href="#cb54-41" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-19-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-4">Python implementation</h3>
+<p>SciPy has no direct <code>runsteady</code>, so we integrate with <code>solve_ivp</code> to a large <code>t_max</code> and take the final value as the steady state.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.integrate <span class="im">import</span> solve_ivp</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">1</span>)   <span class="co"># reproducible random initial condition</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="co"># dX/dt = d * f(X, k):  d = +1 settles on a stable state, d = -1 on an unstable one</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> derivs_k_sim(t, X, k, d):</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d <span class="op">*</span> (<span class="dv">10</span> <span class="op">+</span> <span class="dv">45</span> <span class="op">*</span> X<span class="op">**</span><span class="dv">4</span> <span class="op">/</span> (X<span class="op">**</span><span class="dv">4</span> <span class="op">+</span> <span class="dv">200</span><span class="op">**</span><span class="dv">4</span>) <span class="op">-</span> k <span class="op">*</span> X)</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>gap, t_max, dk, dX <span class="op">=</span> <span class="fl">100.0</span>, <span class="fl">1000.0</span>, <span class="fl">0.001</span>, <span class="dv">1</span></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>X0 <span class="op">=</span> np.random.uniform(<span class="dv">100</span>, <span class="dv">600</span>)             <span class="co"># arbitrary initial condition</span></span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>d <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>ind <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> np.full((<span class="dv">1000</span>, <span class="dv">3</span>), np.nan)         <span class="co"># columns: k, Xs, stability</span></span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> k <span class="op">&lt;</span> <span class="fl">0.2</span>:</span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>    sol <span class="op">=</span> solve_ivp(<span class="kw">lambda</span> t, X: derivs_k_sim(t, X, k, d), (<span class="dv">0</span>, t_max), [X0], method<span class="op">=</span><span class="st">"RK45"</span>)</span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>    Xi <span class="op">=</span> sol.y[<span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ind <span class="op">&gt;</span> <span class="dv">0</span> <span class="kw">and</span> <span class="bu">abs</span>(Xi <span class="op">-</span> X0) <span class="op">&gt;</span> gap:       <span class="co"># catastrophe: reverse the sweep</span></span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> <span class="op">-</span>d</span>
+<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>        k <span class="op">=</span> k <span class="op">+</span> d <span class="op">*</span> dk</span>
+<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>        X0 <span class="op">=</span> X0 <span class="op">+</span> dX <span class="op">*</span> np.sign(Xi <span class="op">-</span> X0)</span>
+<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>        f_plus <span class="op">=</span> derivs_k_sim(<span class="dv">0</span>, Xi <span class="op">+</span> dX, k, <span class="dv">1</span>)   <span class="co"># stability from df/dX sign</span></span>
+<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>        results[ind] <span class="op">=</span> [k, Xi, <span class="dv">1</span> <span class="cf">if</span> np.sign(f_plus) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span>]</span>
+<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>        k <span class="op">=</span> k <span class="op">+</span> d <span class="op">*</span> dk</span>
+<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a>        X0 <span class="op">=</span> Xi</span>
+<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a>        ind <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> results[:ind]</span>
+<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>stable <span class="op">=</span> results[results[:, <span class="dv">2</span>] <span class="op">==</span> <span class="dv">1</span>]</span>
+<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a>unstable <span class="op">=</span> results[results[:, <span class="dv">2</span>] <span class="op">==</span> <span class="dv">2</span>]</span>
+<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a>plt.scatter(stable[:, <span class="dv">0</span>], stable[:, <span class="dv">1</span>], s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Stable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x11874fc50&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>plt.scatter(unstable[:, <span class="dv">0</span>], unstable[:, <span class="dv">1</span>], s<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">"red"</span>, label<span class="op">=</span><span class="st">"Unstable"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.collections.PathCollection object at 0x11874fd90&gt;</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, '$k$ (Minute$^{-1}$)')
+Text(0, 0.5, '$X_s$ (nM)')</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">"upper right"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;matplotlib.legend.Legend object at 0x11871ba10&gt;</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02e-bifurcation_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This recovers every steady state, stable and unstable, from the dynamics alone. It is also the most fragile method here. It works for this saddle-node example, but the result depends on the numerical parameters: too small a <code>gap</code> misreads ordinary branch motion as a catastrophe, while too large a one misses a real jump, and <code>t_max</code> must be long enough to actually reach a steady state. The approach also assumes each branch has a single attractor to fall onto, which need not hold for other kinds of bifurcation. Try adjusting <code>gap</code>, <code>t_max</code>, and <code>dX</code> and watch how the diagram changes.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-press2007numerical" class="csl-entry" role="listitem">
+Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. 2007. <em>Numerical Recipes: The Art of Scientific Computing</em>. 3rd ed. Cambridge University Press.
+</div>
+<div id="ref-soetaert2009rootsolve" class="csl-entry" role="listitem">
+Soetaert, Karline. 2009. <em><span class="nocase">rootSolve</span>: Nonlinear Root Finding, Equilibrium and Steady-State Analysis of Ordinary Differential Equations</em>. <a href="https://CRAN.R-project.org/package=rootSolve">https://CRAN.R-project.org/package=rootSolve</a>.
+</div>
+<div id="ref-strogatz2015nonlinear" class="csl-entry" role="listitem">
+Strogatz, Steven H. 2015. <em>Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chemistry, and Engineering</em>. 2nd ed. Westview Press.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../02-odes/02d-effective-potential.html" class="pagination-link" aria-label="2D. Stability and effective potential">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">2D. Stability and effective potential</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../02-odes/02f-bifurcation-curves.html" class="pagination-link" aria-label="2F. Bifurcation: finding curves">
+        <span class="nav-page-text"><span class="chapter-title">2F. Bifurcation: finding curves</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

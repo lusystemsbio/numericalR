@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>1B. Efficient programming – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../01-intro/01c-numerical-methods.html" rel="next">
+<link href="../01-intro/01a-getting-started.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../01-intro/01a-getting-started.html">Part 1: Introduction to numerical methods</a></li><li class="breadcrumb-item"><a href="../01-intro/01b-efficient-programming.html"><span class="chapter-title">1B. Efficient programming</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#b.1-avoid-growing-vectors" id="toc-b.1-avoid-growing-vectors" class="nav-link active" data-scroll-target="#b.1-avoid-growing-vectors">1B.1 Avoid growing vectors</a></li>
+  <li><a href="#b.2-vectorize-your-code" id="toc-b.2-vectorize-your-code" class="nav-link" data-scroll-target="#b.2-vectorize-your-code">1B.2 Vectorize your code</a></li>
+  <li><a href="#b.3-byte-compiling-and-jit-compilation" id="toc-b.3-byte-compiling-and-jit-compilation" class="nav-link" data-scroll-target="#b.3-byte-compiling-and-jit-compilation">1B.3 Byte-compiling and JIT compilation</a></li>
+  <li><a href="#b.4-calling-compiled-fortran-code" id="toc-b.4-calling-compiled-fortran-code" class="nav-link" data-scroll-target="#b.4-calling-compiled-fortran-code">1B.4 Calling compiled Fortran code</a></li>
+  <li><a href="#b.5-parallelization" id="toc-b.5-parallelization" class="nav-link" data-scroll-target="#b.5-parallelization">1B.5 Parallelization</a></li>
+  <li><a href="#b.6-using-ai-to-speed-up-your-code" id="toc-b.6-using-ai-to-speed-up-your-code" class="nav-link" data-scroll-target="#b.6-using-ai-to-speed-up-your-code">1B.6 Using AI to speed up your code</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../01-intro/01a-getting-started.html">Part 1: Introduction to numerical methods</a></li><li class="breadcrumb-item"><a href="../01-intro/01b-efficient-programming.html"><span class="chapter-title">1B. Efficient programming</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">1B. Efficient programming</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Our goal is not just to learn how to write R or Python code, but learn how to write code that runs efficiently. Efficient programming is especially important for numerical methods, as they often involve a simulation that reruns thousands of times, or a loop over every particle in a system, which would become extremely slow if not optimized. Both R and Python are interpreted languages, so their execution performance can’t compete with a compiled language like C or Fortran on raw speed. Yet, each language has its own tricks to improve code efficiency and close the gap with compiled languages.</p>
+<section id="b.1-avoid-growing-vectors" class="level2">
+<h2 class="anchored" data-anchor-id="b.1-avoid-growing-vectors">1B.1 Avoid growing vectors</h2>
+<p>The following is slow for large <code>n</code>, because the script copies the entire vector every time it grows by one element.</p>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n)) {</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">c</span>(v, i<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>v</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]   1   4   9  16  25  36  49  64  81 100</code></pre>
+</div>
+</div>
+<p>A better approach allocates the final length up front and fills it in place.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n)) {</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  v[i] <span class="ot">&lt;-</span> i<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>v</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]   1   4   9  16  25  36  49  64  81 100</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> []</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    v.append(i<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(v)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> np.zeros(n)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    v[i <span class="op">-</span> <span class="dv">1</span>] <span class="op">=</span> i<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(v)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[  1.   4.   9.  16.  25.  36.  49.  64.  81. 100.]</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="b.2-vectorize-your-code" class="level2">
+<h2 class="anchored" data-anchor-id="b.2-vectorize-your-code">1B.2 Vectorize your code</h2>
+<p>An even better approach replaces the loop with a single vector operation.</p>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(n)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> v <span class="sc">*</span> v</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>v</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1]   1   4   9  16  25  36  49  64  81 100</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>n <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> np.arange(<span class="dv">1</span>, n <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> v<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(v)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[  1   4   9  16  25  36  49  64  81 100]</code></pre>
+</div>
+</div>
+<p>Loops are especially costly when they run thousands of times inside a larger calculation. Consider computing the mean and standard deviation of a series of numbers,</p>
+<p><span class="math display">\[\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}} ,\]</span></p>
+<p>which is algebraically equal to, and cheaper to compute as,</p>
+<p><span class="math display">\[\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}\mathbf{x_j}^2}{n} - \left(\frac{\sum_{j=1}^{n}\mathbf{x_j}}{n}\right)^2} .\]</span></p>
+</section>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># a running-sum loop, the way this would be written in C or Fortran</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>num <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>my_sum <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>my_sum2 <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(num)) {</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  my_sum <span class="ot">&lt;-</span> my_sum <span class="sc">+</span> i</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  my_sum2 <span class="ot">&lt;-</span> my_sum2 <span class="sc">+</span> i<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>my_mean <span class="ot">&lt;-</span> my_sum <span class="sc">/</span> num</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>my_sd <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(my_sum2 <span class="sc">/</span> num <span class="sc">-</span> my_mean<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(my_mean, my_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 50.50000 28.86607</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># vectorized: mean() and mean(v^2) replace both running sums</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>num <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">seq_len</span>(num)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>my_mean <span class="ot">&lt;-</span> <span class="fu">mean</span>(v)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>my_sd <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">mean</span>(v<span class="sc">^</span><span class="dv">2</span>) <span class="sc">-</span> my_mean<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">c</span>(my_mean, my_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 50.50000 28.86607</code></pre>
+</div>
+</div>
+<p><code>apply</code> performs the same calculation for every column of a matrix at once.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(<span class="dv">16</span>), <span class="at">nrow =</span> <span class="dv">4</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>means <span class="ot">&lt;-</span> <span class="fu">apply</span>(mat, <span class="dv">2</span>, mean)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>sd <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(<span class="fu">apply</span>(mat<span class="sc">^</span><span class="dv">2</span>, <span class="dv">2</span>, mean) <span class="sc">-</span> means<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>sd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.5108443 1.2620059 0.8082062 0.8523293</code></pre>
+</div>
+</div>
+<p>R’s own <code>sd()</code> divides by <span class="math inline">\(n-1\)</span> rather than <span class="math inline">\(n\)</span>, the usual statistical convention for an unbiased estimate from a sample:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">apply</span>(mat, <span class="dv">2</span>, sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.7445727 1.4572389 0.9332361 0.9841851</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># a running-sum loop, the way this would be written in C or Fortran</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>my_sum <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>my_sum2 <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, num <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    my_sum <span class="op">+=</span> i</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    my_sum2 <span class="op">+=</span> i<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>my_mean <span class="op">=</span> my_sum <span class="op">/</span> num</span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>my_sd <span class="op">=</span> math.sqrt(my_sum2 <span class="op">/</span> num <span class="op">-</span> my_mean<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(my_mean, my_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>50.5 28.86607004772212</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># vectorized: np.mean(v) and np.mean(v**2) replace both running sums</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> np.arange(<span class="dv">1</span>, num <span class="op">+</span> <span class="dv">1</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>my_mean <span class="op">=</span> np.mean(v)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>my_sd <span class="op">=</span> np.sqrt(np.mean(v<span class="op">**</span><span class="dv">2</span>) <span class="op">-</span> my_mean<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(my_mean, my_sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>50.5 28.86607004772212</code></pre>
+</div>
+</div>
+<p><code>apply</code> on a <code>pandas</code> DataFrame performs the same calculation for every column of a matrix at once.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>mat <span class="op">=</span> np.random.normal(size<span class="op">=</span>(<span class="dv">4</span>, <span class="dv">4</span>))</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(mat)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>means <span class="op">=</span> df.<span class="bu">apply</span>(np.mean, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>sd <span class="op">=</span> np.sqrt(df.<span class="bu">apply</span>(<span class="kw">lambda</span> col: np.mean(col<span class="op">**</span><span class="dv">2</span>), axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> means<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(sd)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0    1.148257
+1    0.799718
+2    0.236271
+3    0.854203
+dtype: float64</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="b.3-byte-compiling-and-jit-compilation" class="level2">
+<h2 class="anchored" data-anchor-id="b.3-byte-compiling-and-jit-compilation">1B.3 Byte-compiling and JIT compilation</h2>
+<p>An interpreted language works out what a function does every time that function is called, and the repeated bookkeeping is a large part of why an R or Python loop is slower than the same loop in C. Compiling the function once into a lower-level form removes the repeated work. R and Python differ in whether you have to ask for it.</p>
+<p>In R, byte compiler has been on by default since R 3.4 (2017): a function is compiled to byte code the first time it is called, and package code is byte-compiled when the package is installed. The <code>compiler</code> package still provides <code>cmpfun</code> for compiling a function by hand, and it still works, but on a current R no performance change would be noticed.</p>
+<p>CPython makes no such promise. A Python loop is interpreted on every pass, however many times it runs, so compilation has to be requested explicitly. The usual tool is <a href="https://numba.pydata.org">Numba</a>, whose <code>@njit</code> decorator compiles a function to machine code the first time it is called with a given argument type. Later calls skip the interpreter entirely and run at a speed comparable to compiled C.</p>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> numba <span class="im">import</span> njit</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_sd_loop(x):</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(x)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="fl">0.0</span><span class="op">;</span> s2 <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n):</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        s <span class="op">+=</span> x[i]</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        s2 <span class="op">+=</span> x[i]<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> s <span class="op">/</span> n</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> math.sqrt(s2 <span class="op">/</span> n <span class="op">-</span> m<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="at">@njit</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_sd_loop_jit(x):</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(x)</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    s <span class="op">=</span> <span class="fl">0.0</span><span class="op">;</span> s2 <span class="op">=</span> <span class="fl">0.0</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n):</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>        s <span class="op">+=</span> x[i]</span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        s2 <span class="op">+=</span> x[i]<span class="op">**</span><span class="dv">2</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> s <span class="op">/</span> n</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> math.sqrt(s2 <span class="op">/</span> n <span class="op">-</span> m<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> np.random.normal(size<span class="op">=</span><span class="dv">1000</span>)</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>_ <span class="op">=</span> my_sd_loop_jit(v)   <span class="co"># first call triggers compilation; excluded from the timing below</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1000</span>):</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>    _ <span class="op">=</span> my_sd_loop(v)   <span class="co"># assigned to `_` so reticulate doesn't echo all 1000 return values</span></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>t1 <span class="op">=</span> time.time()</span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1000</span>):</span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>    _ <span class="op">=</span> my_sd_loop_jit(v)</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>t2 <span class="op">=</span> time.time()</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"interpreted:"</span>, t1 <span class="op">-</span> t0, <span class="st">" compiled:"</span>, t2 <span class="op">-</span> t1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>interpreted: 0.16153597831726074  compiled: 0.0024590492248535156</code></pre>
+</div>
+</div>
+<p>The first call is left out of the timing because it pays for the compilation itself. After that, the JIT-compiled loop runs many times faster than the interpreted one. That gap is what R now closes on its own, and what Python still asks you to close by hand.</p>
+</section>
+</section>
+<section id="b.4-calling-compiled-fortran-code" class="level2">
+<h2 class="anchored" data-anchor-id="b.4-calling-compiled-fortran-code">1B.4 Calling compiled Fortran code</h2>
+<p>Both languages can call a function written in a compiled language directly. Here is a Fortran subroutine computing the same standard deviation, in <code>01-intro/src/sub_cal_sd.f90</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode fortran code-with-copy"><code class="sourceCode fortranfixed"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">subroutine</span> cal_sd(n,x,sd)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">implicit</span> <span class="kw">none</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">integer</span>,<span class="dt">intent(in)</span> <span class="dt">::</span> n</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">double precision</span>, <span class="dt">intent(in)</span> <span class="dt">::</span> x(n)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">double precision</span>, <span class="dt">intent(out)</span> <span class="dt">::</span> sd</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">integer</span> <span class="dt">::</span> i</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">double precision</span> <span class="dt">::</span> mean, mean2</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>  mean <span class="kw">=</span> <span class="fl">0.d0</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>  mean2 <span class="kw">=</span> <span class="fl">0.d0</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">do</span> i <span class="kw">=</span> <span class="dv">1</span>, n</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    mean <span class="kw">=</span> mean <span class="kw">+</span> x(i)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>    mean2 <span class="kw">=</span> mean2 <span class="kw">+</span> x(i)<span class="kw">**</span><span class="dv">2</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">end do</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>  mean <span class="kw">=</span> mean<span class="kw">/</span>n</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>  mean2 <span class="kw">=</span> mean2<span class="kw">/</span>n</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>  sd <span class="kw">=</span> <span class="bu">sqrt</span>(mean2 <span class="kw">-</span> mean<span class="kw">**</span><span class="dv">2</span>)</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a><span class="kw">end subroutine</span> cal_sd</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Only integer, double precision, and logical arguments are allowed across the Fortran-R or Fortran-Python interface. Compile it to a shared library with <code>gfortran</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gfortran</span> <span class="at">-fpic</span> <span class="at">-shared</span> 01-intro/src/sub_cal_sd.f90 <span class="at">-o</span> 01-intro/src/sub_cal_sd.so</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dyn.load</span>(<span class="st">"01-intro/src/sub_cal_sd.so"</span>)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>my_sd_R <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">"argument x must be numeric"</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  my_sd <span class="ot">&lt;-</span> <span class="fl">0.0</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">.Fortran</span>(<span class="st">"cal_sd"</span>, <span class="fu">as.integer</span>(<span class="fu">length</span>(x)), <span class="fu">as.double</span>(x), my_sd)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results[[<span class="dv">3</span>]])   <span class="co"># the third argument, sd, is the one returned by the subroutine</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a><span class="fu">my_sd_R</span>(<span class="fu">seq_len</span>(<span class="dv">100</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 28.86607</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-4">Python implementation</h3>
+<p>The same compiled shared library can be called from Python through <code>ctypes</code>. As in <a href="../02-odes/02b-numerical-integration.html">Part 2B</a>, gfortran appends a trailing underscore to the subroutine name, and arguments are passed by reference:</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ctypes</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>_lib <span class="op">=</span> ctypes.CDLL(<span class="st">"01-intro/src/sub_cal_sd.so"</span>)</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_sd_fortran(x):</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> np.asarray(x, dtype<span class="op">=</span>np.float64)</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> ctypes.c_int(<span class="bu">len</span>(x))</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    sd <span class="op">=</span> ctypes.c_double(<span class="fl">0.0</span>)   <span class="co"># written into by the Fortran call, then read back</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>    _lib.cal_sd_(ctypes.byref(n), x.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>                 ctypes.byref(sd))</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> sd.value</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>my_sd_fortran(np.arange(<span class="dv">1</span>, <span class="dv">101</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>28.86607004772212</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="b.5-parallelization" class="level2">
+<h2 class="anchored" data-anchor-id="b.5-parallelization">1B.5 Parallelization</h2>
+<p>If a calculation is repeated many times independently, splitting the repetitions across CPU cores can help, provided each repetition does enough work to outweigh the cost of coordinating across processes.</p>
+<section id="r-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-4">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parallel)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>numCores <span class="ot">&lt;-</span> <span class="fu">detectCores</span>()</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>numCores</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 14</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>tests <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1</span>, <span class="dv">150</span>)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>my_test <span class="ot">&lt;-</span> <span class="cf">function</span>(test_id) {</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1000000</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">my_sd_R</span>(v)</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>results_serial <span class="ot">&lt;-</span> <span class="fu">lapply</span>(tests, my_test)</span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>t1 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>results_parallel <span class="ot">&lt;-</span> <span class="fu">mclapply</span>(tests, my_test, <span class="at">mc.cores =</span> numCores)</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>t2 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"serial:"</span>, <span class="fu">as.numeric</span>(t1 <span class="sc">-</span> t0), <span class="st">"s  parallel:"</span>, <span class="fu">as.numeric</span>(t2 <span class="sc">-</span> t1), <span class="st">"s</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>serial: 3.110106 s  parallel: 0.419194 s</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-5" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-5">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> multiprocessing <span class="im">as</span> mp</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="co"># "fork" copies this process, so my_test is already defined in each worker;</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="co"># the macOS default "spawn" re-imports the calling script, which this is not</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>ctx <span class="op">=</span> mp.get_context(<span class="st">"fork"</span>)</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>numCores <span class="op">=</span> ctx.cpu_count()</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(numCores)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>14</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_test(test_id):</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    rng <span class="op">=</span> np.random.default_rng(test_id)</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> rng.normal(size<span class="op">=</span><span class="dv">1_000_000</span>)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> my_sd_fortran(v)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>tests <span class="op">=</span> <span class="bu">list</span>(<span class="bu">range</span>(<span class="dv">150</span>))</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>t0 <span class="op">=</span> time.time()</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>results_serial <span class="op">=</span> [my_test(t) <span class="cf">for</span> t <span class="kw">in</span> tests]</span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>t1 <span class="op">=</span> time.time()</span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> ctx.Pool(numCores) <span class="im">as</span> pool:</span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    results_parallel <span class="op">=</span> pool.<span class="bu">map</span>(my_test, tests)</span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>t2 <span class="op">=</span> time.time()</span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"serial:"</span>, t1 <span class="op">-</span> t0, <span class="st">"s  parallel:"</span>, t2 <span class="op">-</span> t1, <span class="st">"s"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>serial: 0.8489861488342285 s  parallel: 0.14398789405822754 s</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="b.6-using-ai-to-speed-up-your-code" class="level2">
+<h2 class="anchored" data-anchor-id="b.6-using-ai-to-speed-up-your-code">1B.6 Using AI to speed up your code</h2>
+<p>The techniques above are exactly the kind of thing worth asking an AI assistant about, both to get a first pass and to sanity-check your own optimization. Paste the growing-vector loop from 1B.1 into Claude Code and ask something concrete: “this loop rebuilds <code>v</code> on every iteration; how would you rewrite it to avoid that, and why is the rewrite faster?” A useful answer does not just hand you the vectorized version. It names the actual mechanism, that <code>c(v, i^2)</code> allocates an entirely new, longer vector and copies the old contents into it every single iteration, so the loop’s cost grows with the square of <code>n</code> rather than linearly.</p>
+<p>Verify it the same way you would verify any other AI-assisted explanation: time both versions yourself.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">20000</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>t0 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="fu">c</span>(); <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n)) v <span class="ot">&lt;-</span> <span class="fu">c</span>(v, i<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>t1 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>v2 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n); <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(n)) v2[i] <span class="ot">&lt;-</span> i<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>t2 <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"growing:"</span>, <span class="fu">as.numeric</span>(t1 <span class="sc">-</span> t0), <span class="st">"s  preallocated:"</span>, <span class="fu">as.numeric</span>(t2 <span class="sc">-</span> t1), <span class="st">"s</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>growing: 0.323869 s  preallocated: 0.002258062 s</code></pre>
+</div>
+</div>
+<p>The gap you measure here would allow you to confirm whether the fix actually worked or not. This same paste-explain-verify loop applies to any inefficiency you run into later in this book.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../01-intro/01a-getting-started.html" class="pagination-link" aria-label="1A. Getting started with R and Python">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">1A. Getting started with R and Python</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../01-intro/01c-numerical-methods.html" class="pagination-link" aria-label="1C. Numerical methods">
+        <span class="nav-page-text"><span class="chapter-title">1C. Numerical methods</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

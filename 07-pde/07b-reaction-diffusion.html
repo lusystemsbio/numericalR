@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>7B. Reaction-diffusion systems – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../07-pde/07c-turing-instability.html" rel="next">
+<link href="../07-pde/07a-modeling-diffusion.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../07-pde/07a-modeling-diffusion.html">Part 7: Partial differential equations</a></li><li class="breadcrumb-item"><a href="../07-pde/07b-reaction-diffusion.html"><span class="chapter-title">7B. Reaction-diffusion systems</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#b.1-fishers-equation" id="toc-b.1-fishers-equation" class="nav-link active" data-scroll-target="#b.1-fishers-equation">7B.1 Fisher’s equation</a></li>
+  <li><a href="#b.2-the-fokker-planck-equation" id="toc-b.2-the-fokker-planck-equation" class="nav-link" data-scroll-target="#b.2-the-fokker-planck-equation">7B.2 The Fokker-Planck equation</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../07-pde/07a-modeling-diffusion.html">Part 7: Partial differential equations</a></li><li class="breadcrumb-item"><a href="../07-pde/07b-reaction-diffusion.html"><span class="chapter-title">7B. Reaction-diffusion systems</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">7B. Reaction-diffusion systems</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Adding a <em>reaction</em> term <span class="math inline">\(f(u, t)\)</span> to the <a href="../07-pde/07a-modeling-diffusion.html">diffusion equation</a> gives a reaction-diffusion equation for a field <span class="math inline">\(u(X, t)\)</span>,</p>
+<p><span class="math display">\[ \frac{\partial u(X, t)}{\partial t} = f(u, t) + D \frac{\partial^2 u(X, t)}{\partial X^2} . \tag{1} \]</span></p>
+<p>The reaction term is just the ordinary rate equation of earlier chapters,</p>
+<p><span class="math display">\[ \frac{du}{dt} = f(u, t) , \tag{2} \]</span></p>
+<p>and when it vanishes we recover pure diffusion. The two ingredients together, local kinetics plus spatial spreading, produce traveling waves and, later, spatial patterns.</p>
+<section id="b.1-fishers-equation" class="level2">
+<h2 class="anchored" data-anchor-id="b.1-fishers-equation">7B.1 Fisher’s equation</h2>
+<p>Taking logistic growth as the reaction gives Fisher’s equation,</p>
+<p><span class="math display">\[ \frac{\partial u}{\partial t} = r u \left( 1 - \frac{u}{B} \right) + D \frac{\partial^2 u}{\partial X^2} , \tag{3} \]</span></p>
+<p>where <span class="math inline">\(u\)</span> is a population size and <span class="math inline">\(B\)</span> its carrying capacity. Fisher introduced it to describe the spread of an advantageous gene, with <span class="math inline">\(u\)</span> the mutant frequency, <span class="math inline">\(r\)</span> the selection strength, and <span class="math inline">\(D\)</span> the dispersal rate; it became a foundation of population genetics <span class="citation" data-cites="fisher1937wave">(<a href="../references.html#ref-fisher1937wave" role="doc-biblioref">Fisher 1937</a>)</span>. The integrator is the diffusion solver of Part 7A with the reaction term added at each step (Dirichlet, <span class="math inline">\(u = 0\)</span> at the ends).</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 7B.1.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 7B.1.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Simulate Fisher’s equation and see traveling waves of advance.</p>
+<p><strong>Model.</strong> Fisher’s equation, logistic growth with diffusion, <code>du/dt = r*u*(1 - u/B) + D*d2u/dX2</code>.</p>
+<p><strong>Method.</strong> The explicit finite-difference reaction-diffusion integrator (a reaction term added to the diffusion step each iteration), with Dirichlet boundaries.</p>
+<p><strong>Test.</strong> Domain length 100, <code>dX = 1</code>, <code>dt = 0.01</code>, <code>D = 1</code>, r = 0.64, <code>B = 75</code>; a central patch, and separately a left-end patch, each <code>u = 50</code>.</p>
+<p><strong>Show.</strong> Plots of u(X) at successive times, showing traveling fronts from a central and a left-end patch.</p>
+<p><strong>Verification.</strong> A local patch grows to carrying capacity and emits two constant-speed fronts, while a left-end patch produces a single rightward traveling wave.</p>
+</div>
+</div>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># finite-difference step for a reaction-diffusion equation, Dirichlet boundaries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pde_fd_reaction_diffusion <span class="ot">&lt;-</span> <span class="cf">function</span>(derivs, ngrid, dX, dt, D, t0, t.total, p0, ...) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  t_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(t0, t.total, <span class="at">by =</span> dt); nt_all <span class="ot">&lt;-</span> <span class="fu">length</span>(t_all)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  factor <span class="ot">&lt;-</span> D <span class="sc">/</span> dX<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> dt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> p0</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nt_all <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    p_plus  <span class="ot">&lt;-</span> <span class="fu">c</span>(p[<span class="sc">-</span><span class="dv">1</span>], <span class="dv">0</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    p_minus <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, p[<span class="dv">1</span><span class="sc">:</span>(ngrid<span class="dv">-1</span>)])</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    f <span class="ot">&lt;-</span> <span class="fu">sapply</span>(p, <span class="cf">function</span>(u) <span class="fu">derivs</span>(t_all[i], u, ...))    <span class="co"># reaction at each grid</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> p <span class="sc">+</span> f <span class="sc">*</span> dt <span class="sc">+</span> factor <span class="sc">*</span> (p_plus <span class="sc">+</span> p_minus <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> p)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(p)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>fisher <span class="ot">&lt;-</span> <span class="cf">function</span>(t, u, r, B) r <span class="sc">*</span> u <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> u <span class="sc">/</span> B)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> <span class="dv">100</span>; dX <span class="ot">&lt;-</span> <span class="dv">1</span>; dt <span class="ot">&lt;-</span> <span class="fl">0.01</span>; D <span class="ot">&lt;-</span> <span class="dv">1</span>; r <span class="ot">&lt;-</span> <span class="fl">0.64</span>; B <span class="ot">&lt;-</span> <span class="dv">75</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>ngrid <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(l <span class="sc">/</span> dX) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>X_all <span class="ot">&lt;-</span> (<span class="dv">0</span><span class="sc">:</span>(ngrid <span class="sc">-</span> <span class="dv">1</span>)) <span class="sc">*</span> dX</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>u0 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(ngrid)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>u0[<span class="fu">abs</span>(X_all <span class="sc">-</span> <span class="dv">50</span>) <span class="sc">&lt;=</span> <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="dv">50</span>                 <span class="co"># a patch at the center</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X_all, u0, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"u"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>u_now <span class="ot">&lt;-</span> u0</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) {</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>  u_now <span class="ot">&lt;-</span> <span class="fu">pde_fd_reaction_diffusion</span>(fisher, ngrid, dX, dt, D, <span class="at">t0 =</span> <span class="dv">0</span>, <span class="at">t.total =</span> <span class="dv">5</span>, <span class="at">p0 =</span> u_now, <span class="at">r =</span> r, <span class="at">B =</span> B)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(X_all, u_now, <span class="at">col =</span> i <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">title =</span> <span class="st">"Iterations"</span>, <span class="at">legend =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>A central patch grows to the carrying capacity and sends out two fronts that travel outward at a constant speed until they reach the boundaries.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(ngrid)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>u0[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>] <span class="ot">&lt;-</span> <span class="dv">50</span>                                  <span class="co"># a patch at the left end</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X_all, u0, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"u"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>u_now <span class="ot">&lt;-</span> u0</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) {</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  u_now <span class="ot">&lt;-</span> <span class="fu">pde_fd_reaction_diffusion</span>(fisher, ngrid, dX, dt, D, <span class="at">t0 =</span> <span class="dv">0</span>, <span class="at">t.total =</span> <span class="dv">5</span>, <span class="at">p0 =</span> u_now, <span class="at">r =</span> r, <span class="at">B =</span> B)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(X_all, u_now, <span class="at">col =</span> i <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">title =</span> <span class="st">"Iterations"</span>, <span class="at">legend =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.7</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># finite-difference step for a reaction-diffusion equation, Dirichlet boundaries</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pde_fd_reaction_diffusion(derivs, ngrid, dX, dt, D, t0, t_total, p0, <span class="op">**</span>kwargs):</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    t_all <span class="op">=</span> np.arange(t0, t_total <span class="op">+</span> dt, dt)<span class="op">;</span> nt_all <span class="op">=</span> <span class="bu">len</span>(t_all)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    factor <span class="op">=</span> D <span class="op">/</span> dX<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> dt</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> p0.copy()</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(nt_all <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        p_plus  <span class="op">=</span> np.concatenate((p[<span class="dv">1</span>:], [<span class="dv">0</span>]))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>        p_minus <span class="op">=</span> np.concatenate(([<span class="dv">0</span>], p[:<span class="op">-</span><span class="dv">1</span>]))</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> np.array([derivs(t_all[i], u, <span class="op">**</span>kwargs) <span class="cf">for</span> u <span class="kw">in</span> p])   <span class="co"># reaction at each grid</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> p <span class="op">+</span> f <span class="op">*</span> dt <span class="op">+</span> factor <span class="op">*</span> (p_plus <span class="op">+</span> p_minus <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> p)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> p</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> fisher(t, u, r, B): <span class="cf">return</span> r <span class="op">*</span> u <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> u <span class="op">/</span> B)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>l <span class="op">=</span> <span class="dv">100</span><span class="op">;</span> dX <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> dt <span class="op">=</span> <span class="fl">0.01</span><span class="op">;</span> D <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> r <span class="op">=</span> <span class="fl">0.64</span><span class="op">;</span> B <span class="op">=</span> <span class="dv">75</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>ngrid <span class="op">=</span> <span class="bu">int</span>(l <span class="op">/</span> dX) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> np.arange(<span class="dv">0</span>, ngrid) <span class="op">*</span> dX</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> np.zeros(ngrid)</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>u0[np.<span class="bu">abs</span>(X_all <span class="op">-</span> <span class="dv">50</span>) <span class="op">&lt;=</span> <span class="dv">2</span>] <span class="op">=</span> <span class="dv">50</span>               <span class="co"># a patch at the center</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, u0, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"0"</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>u_now <span class="op">=</span> u0.copy()</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>    u_now <span class="op">=</span> pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0<span class="op">=</span><span class="dv">0</span>, t_total<span class="op">=</span><span class="dv">5</span>, p0<span class="op">=</span>u_now, r<span class="op">=</span>r, B<span class="op">=</span>B)</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>    plt.plot(X_all, u_now, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"X"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"u"</span>)<span class="op">;</span> plt.xlim(<span class="dv">0</span>, <span class="dv">100</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, 'X')
+Text(0, 0.5, 'u')
+(0.0, 100.0)
+(0.0, 100.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">"Iterations"</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> np.zeros(ngrid)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>u0[:<span class="dv">5</span>] <span class="op">=</span> <span class="dv">50</span>                                    <span class="co"># a patch at the left end</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, u0, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"0"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>u_now <span class="op">=</span> u0.copy()</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>):</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    u_now <span class="op">=</span> pde_fd_reaction_diffusion(fisher, ngrid, dX, dt, D, t0<span class="op">=</span><span class="dv">0</span>, t_total<span class="op">=</span><span class="dv">5</span>, p0<span class="op">=</span>u_now, r<span class="op">=</span>r, B<span class="op">=</span>B)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    plt.plot(X_all, u_now, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"X"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"u"</span>)<span class="op">;</span> plt.xlim(<span class="dv">0</span>, <span class="dv">100</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">100</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, 'X')
+Text(0, 0.5, 'u')
+(0.0, 100.0)
+(0.0, 100.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">"Iterations"</span>, loc<span class="op">=</span><span class="st">"upper right"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Starting instead from a patch at the left end, a single front travels rightward, carrying the population across the domain, exactly the wave of advance Fisher used to picture an advantageous gene sweeping through a range.</p>
+</section>
+</section>
+<section id="b.2-the-fokker-planck-equation" class="level2">
+<h2 class="anchored" data-anchor-id="b.2-the-fokker-planck-equation">7B.2 The Fokker-Planck equation</h2>
+<p>An SDE with drift and (possibly state-dependent) diffusion,</p>
+<p><span class="math display">\[ \frac{dX}{dt} = f(X, t) + \sqrt{2 D(X, t)}\, \eta(t) , \tag{4} \]</span></p>
+<p>has a probability distribution <span class="math inline">\(P(X, t)\)</span> that obeys the Fokker-Planck equation <span class="citation" data-cites="gardiner2009stochastic">(<a href="../references.html#ref-gardiner2009stochastic" role="doc-biblioref">Gardiner 2009</a>)</span>,</p>
+<p><span class="math display">\[ \frac{\partial P}{\partial t} = -\frac{\partial (f P)}{\partial X} + \frac{\partial^2 (D P)}{\partial X^2} . \tag{5} \]</span></p>
+<p>This is a reaction-diffusion-like PDE for <span class="math inline">\(P\)</span>, reducing to the plain diffusion equation when <span class="math inline">\(f = 0\)</span>. The new drift term is a <em>first</em> space derivative, which we approximate with a centered difference (again from a Taylor expansion, as in Part 7A),</p>
+<p><span class="math display">\[ \frac{\partial F}{\partial X} \approx \frac{F_{i+1}^n - F_{i-1}^n}{2 \Delta X} . \tag{6} \]</span></p>
+<p>For constant <span class="math inline">\(D\)</span>, the explicit update combines this drift term with the familiar diffusion term,</p>
+<p><span class="math display">\[
+\begin{aligned}
+P_i^{n+1} = P_i^n &amp;- \frac{\Delta t}{2 \Delta X}\left( f_{i+1} P_{i+1}^n - f_{i-1} P_{i-1}^n \right) \\
+&amp;+ D\, \frac{\Delta t}{\Delta X^2}\left( P_{i+1}^n + P_{i-1}^n - 2 P_i^n \right) .
+\end{aligned} \tag{7}
+\]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 7B.2.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 7B.2.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Solve the Fokker-Planck equation for the distribution of an SDE, rather than averaging many trajectories.</p>
+<p><strong>Model.</strong> The Fokker-Planck equation <code>dP/dt = -d(f*P)/dX + D*d2P/dX2</code>, tested on the Ornstein-Uhlenbeck well with drift <code>f = -k*X</code>, whose steady state is <code>P_ss(X) = sqrt(k/(2*pi*D))*exp(-k*X^2/(2*D))</code>.</p>
+<p><strong>Method.</strong> An explicit finite-difference Fokker-Planck integrator: a centered-difference drift term plus the finite-difference diffusion term, with Dirichlet boundaries.</p>
+<p><strong>Test.</strong> Domain length 100, <code>dX = 1</code>, <code>dt = 0.01</code>, <code>D = 1</code>; springs <code>k = 0.01</code> and <code>k = 0.03</code>; started from both a localized patch and a uniform distribution.</p>
+<p><strong>Show.</strong> Plots of P(X) relaxing to the steady-state Gaussian, for each spring stiffness k.</p>
+<p><strong>Verification.</strong> The distribution relaxes to the analytic steady-state Gaussian from any initial condition, and a stiffer spring confines it to a narrower peak.</p>
+</div>
+</div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># finite-difference step for a Fokker-Planck equation (constant D), Dirichlet boundaries</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pde_fd_fokker_planck <span class="ot">&lt;-</span> <span class="cf">function</span>(derivs, ngrid, X_all, dX, dt, D, t0, t.total, p0, ...) {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  t_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(t0, t.total, <span class="at">by =</span> dt); nt_all <span class="ot">&lt;-</span> <span class="fu">length</span>(t_all)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  factor   <span class="ot">&lt;-</span> D <span class="sc">/</span> dX<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> dt      <span class="co"># diffusion-term scale</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  factor_2 <span class="ot">&lt;-</span> dt <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> dX)      <span class="co"># drift-term scale</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> p0</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(nt_all <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    p_plus  <span class="ot">&lt;-</span> <span class="fu">c</span>(p[<span class="sc">-</span><span class="dv">1</span>], <span class="dv">0</span>); p_minus <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, p[<span class="dv">1</span><span class="sc">:</span>(ngrid<span class="dv">-1</span>)])</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    fp <span class="ot">&lt;-</span> <span class="fu">sapply</span>(X_all, <span class="cf">function</span>(X) <span class="fu">derivs</span>(t_all[i], X, ...)) <span class="sc">*</span> p   <span class="co"># drift depends on position X</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    fp_plus  <span class="ot">&lt;-</span> <span class="fu">c</span>(fp[<span class="sc">-</span><span class="dv">1</span>], <span class="dv">0</span>); fp_minus <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, fp[<span class="dv">1</span><span class="sc">:</span>(ngrid<span class="dv">-1</span>)])</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> p <span class="sc">-</span> factor_2 <span class="sc">*</span> (fp_plus <span class="sc">-</span> fp_minus) <span class="sc">+</span> factor <span class="sc">*</span> (p_plus <span class="sc">+</span> p_minus <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> p)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(p)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>We test it on the Ornstein-Uhlenbeck process (a particle in a harmonic well, drift <span class="math inline">\(f = -kX\)</span>, constant noise), whose Fokker-Planck equation is</p>
+<p><span class="math display">\[ \frac{\partial P}{\partial t} = -\frac{\partial (-kX P)}{\partial X} + D \frac{\partial^2 P}{\partial X^2} , \tag{8} \]</span></p>
+<p>with the analytic steady state (a Gaussian set by the balance of drift and diffusion)</p>
+<p><span class="math display">\[ P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}\, e^{-\frac{k X^2}{2D}} . \tag{9} \]</span></p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>spring <span class="ot">&lt;-</span> <span class="cf">function</span>(t, X, k) <span class="sc">-</span>k <span class="sc">*</span> X</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>l <span class="ot">&lt;-</span> <span class="dv">100</span>; dX <span class="ot">&lt;-</span> <span class="dv">1</span>; dt <span class="ot">&lt;-</span> <span class="fl">0.01</span>; D <span class="ot">&lt;-</span> <span class="dv">1</span>; k <span class="ot">&lt;-</span> <span class="fl">0.01</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>ngrid <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(l <span class="sc">/</span> dX) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>X_all <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">:</span>ngrid <span class="sc">-</span> (ngrid <span class="sc">+</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> dX</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>P_ss <span class="ot">&lt;-</span> <span class="cf">function</span>(X) <span class="fu">sqrt</span>(k <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> D)) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>k <span class="sc">*</span> X<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> D))</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>u0 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(ngrid); u0[<span class="fu">abs</span>(X_all) <span class="sc">&lt;=</span> <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>; u0 <span class="ot">&lt;-</span> u0 <span class="sc">/</span> <span class="fu">sum</span>(u0)   <span class="co"># patch at the center</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X_all, u0, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"u"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">50</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.1</span>))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>u_now <span class="ot">&lt;-</span> u0</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) {</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  u_now <span class="ot">&lt;-</span> <span class="fu">pde_fd_fokker_planck</span>(spring, ngrid, X_all, dX, dt, D, <span class="at">t0 =</span> <span class="dv">0</span>, <span class="at">t.total =</span> <span class="dv">40</span>, <span class="at">p0 =</span> u_now, <span class="at">k =</span> k)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(X_all, u_now, <span class="at">col =</span> i <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(X_all, <span class="fu">P_ss</span>(X_all), <span class="at">col =</span> <span class="dv">1</span>)            <span class="co"># analytic steady state</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">title =</span> <span class="st">"Iterations"</span>, <span class="at">legend =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The distribution starts localized at the center and relaxes to the steady-state Gaussian (open dots), matching the theory. A stiffer spring confines it to a narrower peak.</p>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.03</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>P_ss <span class="ot">&lt;-</span> <span class="cf">function</span>(X) <span class="fu">sqrt</span>(k <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> D)) <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>k <span class="sc">*</span> X<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> D))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>u0 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(ngrid); u0[<span class="fu">abs</span>(X_all) <span class="sc">&lt;=</span> <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>; u0 <span class="ot">&lt;-</span> u0 <span class="sc">/</span> <span class="fu">sum</span>(u0)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X_all, u0, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"u"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">50</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.1</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>u_now <span class="ot">&lt;-</span> u0</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) {</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  u_now <span class="ot">&lt;-</span> <span class="fu">pde_fd_fokker_planck</span>(spring, ngrid, X_all, dX, dt, D, <span class="at">t0 =</span> <span class="dv">0</span>, <span class="at">t.total =</span> <span class="dv">40</span>, <span class="at">p0 =</span> u_now, <span class="at">k =</span> k)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(X_all, u_now, <span class="at">col =</span> i <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(X_all, <span class="fu">P_ss</span>(X_all), <span class="at">col =</span> <span class="dv">1</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">title =</span> <span class="st">"Iterations"</span>, <span class="at">legend =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, ngrid); u0 <span class="ot">&lt;-</span> u0 <span class="sc">/</span> <span class="fu">sum</span>(u0)        <span class="co"># start from a uniform distribution</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(X_all, u0, <span class="at">type =</span> <span class="st">"l"</span>, <span class="at">col =</span> <span class="dv">1</span>, <span class="at">xlab =</span> <span class="st">"X"</span>, <span class="at">ylab =</span> <span class="st">"u"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">50</span>, <span class="dv">50</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.1</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>u_now <span class="ot">&lt;-</span> u0</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>) {</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  u_now <span class="ot">&lt;-</span> <span class="fu">pde_fd_fokker_planck</span>(spring, ngrid, X_all, dX, dt, D, <span class="at">t0 =</span> <span class="dv">0</span>, <span class="at">t.total =</span> <span class="dv">40</span>, <span class="at">p0 =</span> u_now, <span class="at">k =</span> k)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(X_all, u_now, <span class="at">col =</span> i <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(X_all, <span class="fu">P_ss</span>(X_all), <span class="at">col =</span> <span class="dv">1</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">title =</span> <span class="st">"Iterations"</span>, <span class="at">legend =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># finite-difference step for a Fokker-Planck equation (constant D), Dirichlet boundaries</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> pde_fd_fokker_planck(derivs, ngrid, X_all, dX, dt, D, t0, t_total, p0, <span class="op">**</span>kwargs):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    t_all <span class="op">=</span> np.arange(t0, t_total <span class="op">+</span> dt, dt)<span class="op">;</span> nt_all <span class="op">=</span> <span class="bu">len</span>(t_all)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    factor   <span class="op">=</span> D <span class="op">/</span> dX<span class="op">**</span><span class="dv">2</span> <span class="op">*</span> dt     <span class="co"># diffusion-term scale</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    factor_2 <span class="op">=</span> dt <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> dX)      <span class="co"># drift-term scale</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    p <span class="op">=</span> p0.copy()</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(nt_all <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        p_plus  <span class="op">=</span> np.concatenate((p[<span class="dv">1</span>:], [<span class="dv">0</span>]))<span class="op">;</span> p_minus <span class="op">=</span> np.concatenate(([<span class="dv">0</span>], p[:<span class="op">-</span><span class="dv">1</span>]))</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        fp <span class="op">=</span> np.array([derivs(t_all[i], X, <span class="op">**</span>kwargs) <span class="cf">for</span> X <span class="kw">in</span> X_all]) <span class="op">*</span> p   <span class="co"># drift depends on position X</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        fp_plus  <span class="op">=</span> np.concatenate((fp[<span class="dv">1</span>:], [<span class="dv">0</span>]))<span class="op">;</span> fp_minus <span class="op">=</span> np.concatenate(([<span class="dv">0</span>], fp[:<span class="op">-</span><span class="dv">1</span>]))</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        p <span class="op">=</span> p <span class="op">-</span> factor_2 <span class="op">*</span> (fp_plus <span class="op">-</span> fp_minus) <span class="op">+</span> factor <span class="op">*</span> (p_plus <span class="op">+</span> p_minus <span class="op">-</span> <span class="dv">2</span> <span class="op">*</span> p)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> p</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> spring(t, X, k): <span class="cf">return</span> <span class="op">-</span>k <span class="op">*</span> X</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>l <span class="op">=</span> <span class="dv">100</span><span class="op">;</span> dX <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> dt <span class="op">=</span> <span class="fl">0.01</span><span class="op">;</span> D <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> k <span class="op">=</span> <span class="fl">0.01</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>ngrid <span class="op">=</span> <span class="bu">int</span>(l <span class="op">/</span> dX) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> (np.arange(<span class="dv">1</span>, ngrid <span class="op">+</span> <span class="dv">1</span>) <span class="op">-</span> (ngrid <span class="op">+</span> <span class="dv">1</span>) <span class="op">/</span> <span class="dv">2</span>) <span class="op">*</span> dX</span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> P_ss(X, k): <span class="cf">return</span> np.sqrt(k <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> np.pi <span class="op">*</span> D)) <span class="op">*</span> np.exp(<span class="op">-</span>k <span class="op">*</span> X<span class="op">**</span><span class="dv">2</span> <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> D))</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> np.zeros(ngrid)<span class="op">;</span> u0[np.<span class="bu">abs</span>(X_all) <span class="op">&lt;=</span> <span class="dv">2</span>] <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> u0 <span class="op">/=</span> np.<span class="bu">sum</span>(u0)   <span class="co"># patch at the center</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, u0, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"0"</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>u_now <span class="op">=</span> u0.copy()</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>    u_now <span class="op">=</span> pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0<span class="op">=</span><span class="dv">0</span>, t_total<span class="op">=</span><span class="dv">40</span>, p0<span class="op">=</span>u_now, k<span class="op">=</span>k)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>    plt.plot(X_all, u_now, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, P_ss(X_all, k), <span class="st">"o"</span>, mec<span class="op">=</span><span class="st">"k"</span>, mfc<span class="op">=</span><span class="st">"w"</span>, ms<span class="op">=</span><span class="dv">5</span>, label<span class="op">=</span><span class="st">"steady state"</span>)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"X"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"u"</span>)<span class="op">;</span> plt.xlim(<span class="op">-</span><span class="dv">50</span>, <span class="dv">50</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="fl">0.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, 'X')
+Text(0, 0.5, 'u')
+(-50.0, 50.0)
+(0.0, 0.1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">"Iterations"</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.03</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> np.zeros(ngrid)<span class="op">;</span> u0[np.<span class="bu">abs</span>(X_all) <span class="op">&lt;=</span> <span class="dv">2</span>] <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> u0 <span class="op">/=</span> np.<span class="bu">sum</span>(u0)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, u0, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"0"</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>u_now <span class="op">=</span> u0.copy()</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    u_now <span class="op">=</span> pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0<span class="op">=</span><span class="dv">0</span>, t_total<span class="op">=</span><span class="dv">40</span>, p0<span class="op">=</span>u_now, k<span class="op">=</span>k)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    plt.plot(X_all, u_now, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, P_ss(X_all, k), <span class="st">"o"</span>, mec<span class="op">=</span><span class="st">"k"</span>, mfc<span class="op">=</span><span class="st">"w"</span>, ms<span class="op">=</span><span class="dv">5</span>, label<span class="op">=</span><span class="st">"steady state"</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"X"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"u"</span>)<span class="op">;</span> plt.xlim(<span class="op">-</span><span class="dv">50</span>, <span class="dv">50</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="fl">0.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, 'X')
+Text(0, 0.5, 'u')
+(-50.0, 50.0)
+(0.0, 0.1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">"Iterations"</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-10-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>u0 <span class="op">=</span> np.ones(ngrid)<span class="op">;</span> u0 <span class="op">/=</span> np.<span class="bu">sum</span>(u0)          <span class="co"># start from a uniform distribution</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, u0, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"0"</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>u_now <span class="op">=</span> u0.copy()</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    u_now <span class="op">=</span> pde_fd_fokker_planck(spring, ngrid, X_all, dX, dt, D, t0<span class="op">=</span><span class="dv">0</span>, t_total<span class="op">=</span><span class="dv">40</span>, p0<span class="op">=</span>u_now, k<span class="op">=</span>k)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    plt.plot(X_all, u_now, label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span>i <span class="op">+</span> <span class="dv">1</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>plt.plot(X_all, P_ss(X_all, k), <span class="st">"o"</span>, mec<span class="op">=</span><span class="st">"k"</span>, mfc<span class="op">=</span><span class="st">"w"</span>, ms<span class="op">=</span><span class="dv">5</span>, label<span class="op">=</span><span class="st">"steady state"</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"X"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"u"</span>)<span class="op">;</span> plt.xlim(<span class="op">-</span><span class="dv">50</span>, <span class="dv">50</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="fl">0.1</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Text(0.5, 0, 'X')
+Text(0, 0.5, 'u')
+(-50.0, 50.0)
+(0.0, 0.1)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">"Iterations"</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="07b-reaction-diffusion_files/figure-html/unnamed-chunk-11-5.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>With the stiffer spring (<span class="math inline">\(k = 0.03\)</span>) the peak is narrower, and starting from a uniform distribution the system relaxes to the very same steady-state Gaussian, confirming that the Fokker-Planck dynamics forget their initial condition. Solving the PDE for <span class="math inline">\(P\)</span> is thus a deterministic alternative to averaging many stochastic trajectories from the <a href="../06-stochastic/06c-sde-integrators.html">SDE integrators of Part 6C</a>.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-fisher1937wave" class="csl-entry" role="listitem">
+Fisher, Ronald A. 1937. <span>“The Wave of Advance of Advantageous Genes.”</span> <em>Annals of Eugenics</em> 7 (4): 355–69. <a href="https://doi.org/10.1111/j.1469-1809.1937.tb02153.x">https://doi.org/10.1111/j.1469-1809.1937.tb02153.x</a>.
+</div>
+<div id="ref-gardiner2009stochastic" class="csl-entry" role="listitem">
+Gardiner, Crispin W. 2009. <em>Stochastic Methods: A Handbook for the Natural and Social Sciences</em>. 4th ed. Springer-Verlag.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../07-pde/07a-modeling-diffusion.html" class="pagination-link" aria-label="7A. Modeling diffusion">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">7A. Modeling diffusion</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../07-pde/07c-turing-instability.html" class="pagination-link" aria-label="7C. Turing instability">
+        <span class="nav-page-text"><span class="chapter-title">7C. Turing instability</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

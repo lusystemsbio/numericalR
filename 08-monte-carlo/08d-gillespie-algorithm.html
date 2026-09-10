@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>8D. Gillespie algorithm – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../08-monte-carlo/08e-exercises.html" rel="next">
+<link href="../08-monte-carlo/08c-particles-in-a-box.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../08-monte-carlo/08a-monte-carlo-methods.html">Part 8: Monte Carlo simulations</a></li><li class="breadcrumb-item"><a href="../08-monte-carlo/08d-gillespie-algorithm.html"><span class="chapter-title">8D. Gillespie algorithm</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#d.1-the-algorithm" id="toc-d.1-the-algorithm" class="nav-link active" data-scroll-target="#d.1-the-algorithm">8D.1 The algorithm</a></li>
+  <li><a href="#d.2-a-constitutively-transcribed-gene" id="toc-d.2-a-constitutively-transcribed-gene" class="nav-link" data-scroll-target="#d.2-a-constitutively-transcribed-gene">8D.2 A constitutively transcribed gene</a></li>
+  <li><a href="#d.3-bursting-transcription" id="toc-d.3-bursting-transcription" class="nav-link" data-scroll-target="#d.3-bursting-transcription">8D.3 Bursting transcription</a></li>
+  <li><a href="#d.4-a-self-inhibiting-gene" id="toc-d.4-a-self-inhibiting-gene" class="nav-link" data-scroll-target="#d.4-a-self-inhibiting-gene">8D.4 A self-inhibiting gene</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../08-monte-carlo/08a-monte-carlo-methods.html">Part 8: Monte Carlo simulations</a></li><li class="breadcrumb-item"><a href="../08-monte-carlo/08d-gillespie-algorithm.html"><span class="chapter-title">8D. Gillespie algorithm</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">8D. Gillespie algorithm</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>The stochastic differential equations of <a href="../06-stochastic/06a-random-number-generators.html">Part 6</a> add continuous noise to a deterministic rate equation. For a chemical reaction network with small molecule numbers, a different and more fundamental description is often needed: the molecules are discrete and react one event at a time. The <em>Gillespie algorithm</em> <span class="citation" data-cites="gillespie1976general gillespie1977exact">(<a href="../references.html#ref-gillespie1976general" role="doc-biblioref">Gillespie 1976</a>, <a href="../references.html#ref-gillespie1977exact" role="doc-biblioref">1977</a>)</span>, also called the stochastic simulation algorithm (SSA), generates exact sample trajectories of such a network from its chemical master equation.</p>
+<p>We describe the system by a state vector <span class="math inline">\(\mathbf{S}\)</span> holding the number of molecules of each species. Each reaction <span class="math inline">\(j\)</span> converts reactants into products,</p>
+<p><span class="math display">\[ \sum_i \alpha_{ij} S_i \rightarrow \sum_i \beta_{ij} S_i , \]</span></p>
+<p>and changes the state by its <em>stoichiometry vector</em> <span class="math inline">\(\boldsymbol{\gamma}_j\)</span>, the <span class="math inline">\(j\)</span>-th column of the stoichiometry matrix with entries <span class="math inline">\(\Gamma_{ij} = \beta_{ij} - \alpha_{ij}\)</span>. Each reaction has a <em>propensity</em> <span class="math inline">\(R_j\)</span>, the probability per unit time that it fires, given by the law of mass action times a combinatorial degeneracy factor <span class="citation" data-cites="gillespie1992rigorous">(<a href="../references.html#ref-gillespie1992rigorous" role="doc-biblioref">Gillespie 1992</a>)</span>,</p>
+<p><span class="math display">\[ R_j = k_j \prod_{i} \binom{S_i}{\alpha_{ij}} \approx k_j \prod_i S_i^{\alpha_{ij}} , \]</span></p>
+<p>where the binomial factor counts the distinct ways of choosing the reactant molecules (for example, <span class="math inline">\(S(S-1)/2\)</span> ways to pick two of <span class="math inline">\(S\)</span> identical molecules).</p>
+<section id="d.1-the-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="d.1-the-algorithm">8D.1 The algorithm</h2>
+<p>Given the propensities, each Gillespie step advances the system by one reaction event:</p>
+<ol type="1">
+<li>compute all propensities <span class="math inline">\(R_j(\mathbf{S})\)</span>;</li>
+<li>draw the waiting time <span class="math inline">\(\tau\)</span> to the next event from an exponential distribution with rate <span class="math inline">\(R_\text{tot} = \sum_j R_j\)</span>;</li>
+<li>pick which reaction fires, choosing reaction <span class="math inline">\(j\)</span> with probability <span class="math inline">\(R_j / R_\text{tot}\)</span>;</li>
+<li>advance time <span class="math inline">\(t \rightarrow t + \tau\)</span> and update the state <span class="math inline">\(\mathbf{S} \rightarrow \mathbf{S} + \boldsymbol{\gamma}_j\)</span>.</li>
+</ol>
+<p>Repeating until a stopping time gives one exact realization. The generic driver below takes user-supplied <code>propensity</code> and <code>stoichiometry</code> functions, so the same code runs any reaction network.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 8D.1.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 8D.1.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Build a Gillespie stochastic simulation for a general chemical reaction network.</p>
+<p><strong>Model.</strong> A generic reaction network: a state vector of molecule counts, each reaction j with a propensity <code>R_j</code> and a stoichiometry vector <code>gamma_j</code> that updates the state.</p>
+<p><strong>Method.</strong> The Gillespie stochastic simulation algorithm (the direct method): compute all propensities, draw a waiting time from an exponential with rate equal to their sum, pick reaction j with probability <code>R_j/R_tot</code>, then advance time and update the state.</p>
+<p><strong>Test.</strong> A generic driver taking user-supplied propensity and stoichiometry functions, with stop conditions <code>tmax</code> and a maximum iteration count.</p>
+<p><strong>Show.</strong> A time-and-state trajectory for a reaction network (exercised in 8D.2).</p>
+<p><strong>Verification.</strong> The routine generates exact sample trajectories of a reaction network from its master equation.</p>
+</div>
+</div>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># one Gillespie step: advance by a single reaction event</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>gillespie_step <span class="ot">&lt;-</span> <span class="cf">function</span>(t, Xs, propensity, stoichiometry, ...) {</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  p_all <span class="ot">&lt;-</span> <span class="fu">propensity</span>(Xs, ...); p_sum <span class="ot">&lt;-</span> <span class="fu">sum</span>(p_all)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">abs</span>(p_sum) <span class="sc">&lt;</span> <span class="fl">1e-9</span>) <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">t =</span> t, <span class="at">Xs =</span> Xs, <span class="at">if_stop =</span> <span class="cn">TRUE</span>))  <span class="co"># no reaction possible</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  dt <span class="ot">&lt;-</span> <span class="fu">rexp</span>(<span class="dv">1</span>, <span class="at">rate =</span> p_sum)                       <span class="co"># waiting time to next event</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  event <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">length</span>(p_all), <span class="dv">1</span>, <span class="at">prob =</span> p_all)   <span class="co"># which reaction fires</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">t =</span> t <span class="sc">+</span> dt, <span class="at">Xs =</span> Xs <span class="sc">+</span> <span class="fu">stoichiometry</span>(event, ...), <span class="at">if_stop =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># full stochastic simulation up to tmax or iter_max events</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>ssa <span class="ot">&lt;-</span> <span class="cf">function</span>(propensity, stoichiometry, X0, tmax, iter_max, ...) {</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  Xs <span class="ot">&lt;-</span> X0; n <span class="ot">&lt;-</span> <span class="fu">length</span>(Xs)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  t_all <span class="ot">&lt;-</span> <span class="fu">numeric</span>(iter_max); X_all <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, iter_max, n)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  t_all[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="dv">0</span>; X_all[<span class="dv">1</span>, ] <span class="ot">&lt;-</span> Xs</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  t <span class="ot">&lt;-</span> <span class="dv">0</span>; iter <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (t <span class="sc">&lt;</span> tmax <span class="sc">&amp;&amp;</span> iter <span class="sc">&lt;</span> iter_max) {</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>    out <span class="ot">&lt;-</span> <span class="fu">gillespie_step</span>(t, Xs, propensity, stoichiometry, ...)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (out<span class="sc">$</span>if_stop) <span class="cf">break</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>    iter <span class="ot">&lt;-</span> iter <span class="sc">+</span> <span class="dv">1</span>; t <span class="ot">&lt;-</span> out<span class="sc">$</span>t; Xs <span class="ot">&lt;-</span> out<span class="sc">$</span>Xs</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    t_all[iter] <span class="ot">&lt;-</span> t; X_all[iter, ] <span class="ot">&lt;-</span> Xs</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(t_all[<span class="dv">1</span><span class="sc">:</span>iter], X_all[<span class="dv">1</span><span class="sc">:</span>iter, , <span class="at">drop =</span> <span class="cn">FALSE</span>])</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># one Gillespie step: advance by a single reaction event</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gillespie_step(t, Xs, propensity, stoichiometry, <span class="op">**</span>kw):</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    p_all <span class="op">=</span> propensity(Xs, <span class="op">**</span>kw)<span class="op">;</span> p_sum <span class="op">=</span> np.<span class="bu">sum</span>(p_all)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">abs</span>(p_sum) <span class="op">&lt;</span> <span class="fl">1e-9</span>:</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {<span class="st">"t"</span>: t, <span class="st">"Xs"</span>: Xs, <span class="st">"if_stop"</span>: <span class="va">True</span>}          <span class="co"># no reaction possible</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> np.random.exponential(<span class="dv">1</span> <span class="op">/</span> p_sum)                    <span class="co"># waiting time to next event</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    event <span class="op">=</span> np.random.choice(<span class="bu">len</span>(p_all), p<span class="op">=</span>p_all <span class="op">/</span> p_sum)    <span class="co"># which reaction fires</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">"t"</span>: t <span class="op">+</span> dt, <span class="st">"Xs"</span>: Xs <span class="op">+</span> stoichiometry(event, <span class="op">**</span>kw), <span class="st">"if_stop"</span>: <span class="va">False</span>}</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># full stochastic simulation up to tmax or iter_max events</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ssa(propensity, stoichiometry, X0, tmax, iter_max, <span class="op">**</span>kw):</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    Xs <span class="op">=</span> np.array(X0)<span class="op">;</span> n <span class="op">=</span> <span class="bu">len</span>(Xs)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    t_all <span class="op">=</span> np.zeros(iter_max)<span class="op">;</span> X_all <span class="op">=</span> np.zeros((iter_max, n))</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    t_all[<span class="dv">0</span>] <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> X_all[<span class="dv">0</span>] <span class="op">=</span> Xs</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    t <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> it <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> t <span class="op">&lt;</span> tmax <span class="kw">and</span> it <span class="op">&lt;</span> iter_max <span class="op">-</span> <span class="dv">1</span>:</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        out <span class="op">=</span> gillespie_step(t, Xs, propensity, stoichiometry, <span class="op">**</span>kw)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> out[<span class="st">"if_stop"</span>]:</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        it <span class="op">+=</span> <span class="dv">1</span><span class="op">;</span> t <span class="op">=</span> out[<span class="st">"t"</span>]<span class="op">;</span> Xs <span class="op">=</span> out[<span class="st">"Xs"</span>]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>        t_all[it] <span class="op">=</span> t<span class="op">;</span> X_all[it] <span class="op">=</span> Xs</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack((t_all[:it <span class="op">+</span> <span class="dv">1</span>], X_all[:it <span class="op">+</span> <span class="dv">1</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="d.2-a-constitutively-transcribed-gene" class="level2">
+<h2 class="anchored" data-anchor-id="d.2-a-constitutively-transcribed-gene">8D.2 A constitutively transcribed gene</h2>
+<p>The simplest example is a gene produced at a constant rate <span class="math inline">\(g\)</span> and degraded at rate <span class="math inline">\(k\)</span>, a birth-death process,</p>
+<p><span class="math display">\[ 0 \xrightarrow{g} x \xrightarrow{k} 0 , \]</span></p>
+<p>whose deterministic rate equation <span class="math inline">\(dx/dt = g - kx\)</span> has steady state <span class="math inline">\(\bar{x} = g/k\)</span>. We specify the network with two functions: the propensities <span class="math inline">\((g,\, kx)\)</span> and the stoichiometry (<span class="math inline">\(+1\)</span> for production, <span class="math inline">\(-1\)</span> for degradation).</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 8D.2.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 8D.2.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Simulate a constitutively transcribed gene with Gillespie and measure its intrinsic noise.</p>
+<p><strong>Model.</strong> A birth-death process <code>0 -&gt; x</code> at rate g and <code>x -&gt; 0</code> at rate <code>k*x</code>, with deterministic steady state <code>x_bar = g/k</code>.</p>
+<p><strong>Method.</strong> The Gillespie stochastic simulation algorithm, with time-weighted mean and standard deviation.</p>
+<p><strong>Test.</strong> <code>k = 0.1</code>, production <code>g = 100, 10, 1</code> (steady states 1000, 100, 10), <code>tmax = 100</code>; started at the steady state and separately from zero; seed 101.</p>
+<p><strong>Show.</strong> Trajectories of the molecule count for each g, and the standard deviation versus mean against <code>sqrt(x_bar)</code>.</p>
+<p><strong>Verification.</strong> The standard deviation grows with the mean and relative noise falls as roughly <code>1/sqrt(x_bar)</code> (the Poisson scaling), though at this finite run length the measured SD sits below <code>sqrt(x_bar)</code> because a single trajectory undersamples the fluctuations; from zero the trajectories climb along <code>x_bar*(1 - exp(-k*t))</code>.</p>
+</div>
+</div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>p_func1 <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs, g, k) <span class="fu">c</span>(g, k <span class="sc">*</span> Xs[<span class="dv">1</span>])           <span class="co"># propensities: birth, death</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>s_func1 <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind, g, k) <span class="fu">cbind</span>(<span class="fu">c</span>(<span class="dv">1</span>), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>))[, r_ind]   <span class="co"># +1 or -1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stochastic dynamics started at the deterministic steady state, three copy numbers</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>)) {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  xbar <span class="ot">&lt;-</span> g <span class="sc">/</span> k</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">ssa</span>(p_func1, s_func1, <span class="fu">c</span>(xbar), <span class="at">tmax =</span> <span class="dv">100</span>, <span class="at">iter_max =</span> <span class="dv">20000</span>, <span class="at">g =</span> g, <span class="at">k =</span> k)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(res[, <span class="dv">1</span>], res[, <span class="dv">2</span>], <span class="at">type =</span> <span class="st">"s"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Time"</span>, <span class="at">ylab =</span> <span class="st">"x"</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">bquote</span>(<span class="fu">bar</span>(x) <span class="sc">==</span> .(xbar)), <span class="at">ylim =</span> <span class="fu">c</span>(xbar <span class="sc">*</span> <span class="fl">0.8</span>, xbar <span class="sc">*</span> <span class="fl">1.2</span>))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> xbar, <span class="at">col =</span> <span class="dv">3</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> p_func1(Xs, g, k):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([g, k <span class="op">*</span> Xs[<span class="dv">0</span>]])                    <span class="co"># propensities: birth, death</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> s_func1(r_ind, g, k):</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([[<span class="dv">1</span>], [<span class="op">-</span><span class="dv">1</span>]])[r_ind]                <span class="co"># +1 or -1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># stochastic dynamics started at the deterministic steady state, three copy numbers</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.2</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, g <span class="kw">in</span> <span class="bu">zip</span>(axs, (<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>)):</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">101</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    xbar <span class="op">=</span> g <span class="op">/</span> k</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> ssa(p_func1, s_func1, [xbar], tmax<span class="op">=</span><span class="dv">100</span>, iter_max<span class="op">=</span><span class="dv">20000</span>, g<span class="op">=</span>g, k<span class="op">=</span>k)</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    ax.step(res[:, <span class="dv">0</span>], res[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    ax.axhline(xbar, color<span class="op">=</span><span class="st">"green"</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Time"</span>, ylabel<span class="op">=</span><span class="st">"x"</span>, title<span class="op">=</span><span class="ss">f"x̄ = </span><span class="sc">{</span>xbar<span class="sc">:.0f}</span><span class="ss">"</span>, ylim<span class="op">=</span>(xbar <span class="op">*</span> <span class="fl">0.8</span>, xbar <span class="op">*</span> <span class="fl">1.2</span>))</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The fluctuations around the steady state grow in absolute size but shrink in relative size as the copy number increases: a striking feature of intrinsic noise. To quantify it we compute the time-weighted mean and standard deviation, weighting each state by how long the system dwells there (the waiting times <span class="math inline">\(\Delta t_i\)</span> are not constant, so plain averaging would be wrong):</p>
+<p><span class="math display">\[
+\langle x \rangle = \frac{\sum_i x_i\, \Delta t_i}{\sum_i \Delta t_i} , \qquad
+\text{SD}(x) = \sqrt{\langle x^2 \rangle - \langle x \rangle^2} .
+\]</span></p>
+</section>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># time-weighted mean, SD, and relative error of each species</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cal_stat <span class="ot">&lt;-</span> <span class="cf">function</span>(mat) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  mat <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(mat); nt <span class="ot">&lt;-</span> <span class="fu">nrow</span>(mat); nx <span class="ot">&lt;-</span> <span class="fu">ncol</span>(mat)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  dt <span class="ot">&lt;-</span> mat[<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>] <span class="sc">-</span> mat[<span class="sc">-</span>nt, <span class="dv">1</span>]; t_tot <span class="ot">&lt;-</span> <span class="fu">sum</span>(dt)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  mean  <span class="ot">&lt;-</span> <span class="fu">t</span>(mat[<span class="sc">-</span>nt, <span class="dv">2</span><span class="sc">:</span>nx, <span class="at">drop =</span> <span class="cn">FALSE</span>])    <span class="sc">%*%</span> dt <span class="sc">/</span> t_tot</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  mean2 <span class="ot">&lt;-</span> <span class="fu">t</span>(mat[<span class="sc">-</span>nt, <span class="dv">2</span><span class="sc">:</span>nx, <span class="at">drop =</span> <span class="cn">FALSE</span>]<span class="sc">^</span><span class="dv">2</span>)  <span class="sc">%*%</span> dt <span class="sc">/</span> t_tot</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  sd <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(mean2 <span class="sc">-</span> mean<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">mean =</span> mean, <span class="at">sd =</span> sd, <span class="at">error =</span> sd <span class="sc">/</span> mean)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span>; ss_all <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1000</span>, <span class="dv">100</span>, <span class="dv">10</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>stats <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>), <span class="cf">function</span>(g) {</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cal_stat</span>(<span class="fu">ssa</span>(p_func1, s_func1, <span class="fu">c</span>(g <span class="sc">/</span> k), <span class="dv">100</span>, <span class="dv">20000</span>, <span class="at">g =</span> g, <span class="at">k =</span> k))</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>sd_all    <span class="ot">&lt;-</span> <span class="fu">sapply</span>(stats, <span class="cf">function</span>(s) s<span class="sc">$</span>sd)</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>error_all <span class="ot">&lt;-</span> <span class="fu">sapply</span>(stats, <span class="cf">function</span>(s) s<span class="sc">$</span>error)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ss_all, sd_all, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Steady-state x"</span>, <span class="at">ylab =</span> <span class="st">"SD"</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">35</span>))</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">curve</span>(<span class="fu">sqrt</span>(x), <span class="at">add =</span> <span class="cn">TRUE</span>, <span class="at">col =</span> <span class="dv">3</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="fu">c</span>(<span class="st">"Simulation"</span>, <span class="st">"sqrt(x)"</span>), <span class="at">col =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="at">lty =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ss_all, error_all, <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Steady-state x"</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">"SD / Mean"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1000</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.4</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># time-weighted mean, SD, and relative error of each species</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> cal_stat(mat):</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    mat <span class="op">=</span> mat[<span class="op">~</span>np.isnan(mat).<span class="bu">any</span>(axis<span class="op">=</span><span class="dv">1</span>)]<span class="op">;</span> nt <span class="op">=</span> mat.shape[<span class="dv">0</span>]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    dt <span class="op">=</span> mat[<span class="dv">1</span>:, <span class="dv">0</span>] <span class="op">-</span> mat[:<span class="op">-</span><span class="dv">1</span>, <span class="dv">0</span>]<span class="op">;</span> t_tot <span class="op">=</span> np.<span class="bu">sum</span>(dt)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    mean  <span class="op">=</span> mat[:<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>:].T  <span class="op">@</span> dt <span class="op">/</span> t_tot</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    mean2 <span class="op">=</span> (mat[:<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>:]<span class="op">**</span><span class="dv">2</span>).T <span class="op">@</span> dt <span class="op">/</span> t_tot</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    sd <span class="op">=</span> np.sqrt(mean2 <span class="op">-</span> mean<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">"mean"</span>: mean, <span class="st">"sd"</span>: sd, <span class="st">"error"</span>: sd <span class="op">/</span> mean}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span><span class="op">;</span> ss_all <span class="op">=</span> np.array([<span class="dv">1000</span>, <span class="dv">100</span>, <span class="dv">10</span>])</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>stats <span class="op">=</span> []</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> g <span class="kw">in</span> (<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">101</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    stats.append(cal_stat(ssa(p_func1, s_func1, [g <span class="op">/</span> k], <span class="dv">100</span>, <span class="dv">20000</span>, g<span class="op">=</span>g, k<span class="op">=</span>k)))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>sd_all    <span class="op">=</span> np.array([s[<span class="st">"sd"</span>][<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> stats])</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>error_all <span class="op">=</span> np.array([s[<span class="st">"error"</span>][<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> stats])</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">4</span>))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>xx <span class="op">=</span> np.arange(<span class="dv">1</span>, <span class="dv">1001</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].plot(ss_all, sd_all, <span class="st">"o-"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].plot(xx, np.sqrt(xx), color<span class="op">=</span><span class="st">"green"</span>, label<span class="op">=</span><span class="st">"sqrt(x)"</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Steady-state x"</span>, ylabel<span class="op">=</span><span class="st">"SD"</span>, xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1000</span>), ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">35</span>))<span class="op">;</span> axs[<span class="dv">0</span>].legend()</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].plot(ss_all, error_all, <span class="st">"o-"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Steady-state x"</span>, ylabel<span class="op">=</span><span class="st">"SD / Mean"</span>, xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">1000</span>), ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">0.4</span>))</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The standard deviation follows <span class="math inline">\(\text{SD}(x) = \sqrt{\bar{x}}\)</span>, the Poisson result for a birth-death process, so the <em>relative</em> noise <span class="math inline">\(\text{SD}/\text{mean} = 1/\sqrt{\bar{x}}\)</span> falls as the copy number rises. This is why low-abundance species are intrinsically noisier. Starting instead from <span class="math inline">\(x = 0\)</span>, the trajectories climb toward the steady state along the deterministic curve <span class="math inline">\(\bar{x}(1 - e^{-kt})\)</span>, with fluctuations that again shrink in relative terms at higher copy number.</p>
+</section>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># growth from zero toward the steady state</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>)) {</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">ssa</span>(p_func1, s_func1, <span class="fu">c</span>(<span class="dv">0</span>), <span class="at">tmax =</span> <span class="dv">100</span>, <span class="at">iter_max =</span> <span class="dv">20000</span>, <span class="at">g =</span> g, <span class="at">k =</span> k)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(res[, <span class="dv">1</span>], res[, <span class="dv">2</span>], <span class="at">type =</span> <span class="st">"s"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Time"</span>, <span class="at">ylab =</span> <span class="st">"x"</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">bquote</span>(<span class="fu">bar</span>(x) <span class="sc">==</span> .(g <span class="sc">/</span> k)), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">1.2</span> <span class="sc">*</span> g <span class="sc">/</span> k))</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lines</span>(res[, <span class="dv">1</span>], g <span class="sc">/</span> k <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">exp</span>(<span class="sc">-</span>k <span class="sc">*</span> res[, <span class="dv">1</span>])), <span class="at">col =</span> <span class="dv">3</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-11-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># growth from zero toward the steady state</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.2</span>))</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, g <span class="kw">in</span> <span class="bu">zip</span>(axs, (<span class="dv">100</span>, <span class="dv">10</span>, <span class="dv">1</span>)):</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">101</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> ssa(p_func1, s_func1, [<span class="dv">0</span>], tmax<span class="op">=</span><span class="dv">100</span>, iter_max<span class="op">=</span><span class="dv">20000</span>, g<span class="op">=</span>g, k<span class="op">=</span>k)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    ax.step(res[:, <span class="dv">0</span>], res[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    ax.plot(res[:, <span class="dv">0</span>], g <span class="op">/</span> k <span class="op">*</span> (<span class="dv">1</span> <span class="op">-</span> np.exp(<span class="op">-</span>k <span class="op">*</span> res[:, <span class="dv">0</span>])), color<span class="op">=</span><span class="st">"green"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Time"</span>, ylabel<span class="op">=</span><span class="st">"x"</span>, title<span class="op">=</span><span class="ss">f"x̄ = </span><span class="sc">{</span>g <span class="op">/</span> k<span class="sc">:.0f}</span><span class="ss">"</span>, ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="fl">1.2</span> <span class="op">*</span> g <span class="op">/</span> k))</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="d.3-bursting-transcription" class="level2">
+<h2 class="anchored" data-anchor-id="d.3-bursting-transcription">8D.3 Bursting transcription</h2>
+<p>Genes often produce proteins in <em>bursts</em>: a promoter fires occasionally but releases several molecules each time. We model this by making each production event add <span class="math inline">\(n\)</span> molecules at rate <span class="math inline">\(g/n\)</span>, so the mean production rate <span class="math inline">\(g\)</span> (and the deterministic steady state <span class="math inline">\(\bar{x} = g/k\)</span>) stay fixed as <span class="math inline">\(n\)</span> varies,</p>
+<p><span class="math display">\[ 0 \xrightarrow{g/n} n\,x , \qquad x \xrightarrow{k} 0 . \]</span></p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 8D.3.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 8D.3.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Show that transcriptional bursting adds noise beyond the Poisson floor.</p>
+<p><strong>Model.</strong> A bursting birth-death process <code>0 -&gt; n*x</code> at rate <code>g/n</code> and <code>x -&gt; 0</code> at rate <code>k*x</code>, so each event adds n molecules while the mean production rate g stays fixed.</p>
+<p><strong>Method.</strong> The Gillespie stochastic simulation algorithm, varying the burst size at fixed mean rate.</p>
+<p><strong>Test.</strong> <code>g = 16</code>, <code>k = 0.1</code> (steady state 160), burst sizes <code>n = 1, 2, 4, 8</code>, started at steady state, <code>tmax = 2000</code>; seed 91.</p>
+<p><strong>Show.</strong> Trajectories for each burst size n, and the mean and standard deviation versus n.</p>
+<p><strong>Verification.</strong> The mean stays at 160 for every n, but the standard deviation grows with burst size, so larger rarer bursts inject more noise than single-molecule events.</p>
+</div>
+</div>
+<section id="r-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-4">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>p_func2 <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs, g, k, n) <span class="fu">c</span>(g <span class="sc">/</span> n, k <span class="sc">*</span> Xs[<span class="dv">1</span>])          <span class="co"># burst production, degradation</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>s_func2 <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind, g, k, n) <span class="fu">cbind</span>(<span class="fu">c</span>(n), <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>))[, r_ind]   <span class="co"># +n or -1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># larger bursts (bigger n) at the same mean level</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="dv">16</span>; k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>res_burst <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (n <span class="cf">in</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>)) {</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">91</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">ssa</span>(p_func2, s_func2, <span class="fu">c</span>(<span class="dv">160</span>), <span class="at">tmax =</span> <span class="dv">2000</span>, <span class="at">iter_max =</span> <span class="dv">500000</span>, <span class="at">g =</span> g, <span class="at">k =</span> k, <span class="at">n =</span> n)</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  res_burst[[<span class="fu">as.character</span>(n)]] <span class="ot">&lt;-</span> res</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(res[, <span class="dv">1</span>], res[, <span class="dv">2</span>], <span class="at">type =</span> <span class="st">"s"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Time"</span>, <span class="at">ylab =</span> <span class="st">"x"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> <span class="fu">paste</span>(<span class="st">"n ="</span>, n), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">220</span>))</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">h =</span> <span class="dv">160</span>, <span class="at">col =</span> <span class="dv">3</span>)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:92.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean stays fixed, noise grows with burst size</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>n_all <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>stats_b <span class="ot">&lt;-</span> <span class="fu">lapply</span>(res_burst, cal_stat)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(n_all, <span class="fu">sapply</span>(stats_b, <span class="cf">function</span>(s) s<span class="sc">$</span>mean), <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"n"</span>, <span class="at">ylab =</span> <span class="st">"Mean"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">8</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">200</span>))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(n_all, <span class="fu">sapply</span>(stats_b, <span class="cf">function</span>(s) s<span class="sc">$</span>sd), <span class="at">type =</span> <span class="st">"b"</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"n"</span>, <span class="at">ylab =</span> <span class="st">"SD"</span>, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">8</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">35</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-4">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> p_func2(Xs, g, k, n):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([g <span class="op">/</span> n, k <span class="op">*</span> Xs[<span class="dv">0</span>]])                      <span class="co"># burst production, degradation</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> s_func2(r_ind, g, k, n):</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([[n], [<span class="op">-</span><span class="dv">1</span>]])[r_ind]                      <span class="co"># +n or -1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># larger bursts (bigger n) at the same mean level</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">6</span>))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> <span class="dv">16</span><span class="op">;</span> k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>res_burst <span class="op">=</span> {}</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, n <span class="kw">in</span> <span class="bu">zip</span>(axs.flat, (<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>)):</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">91</span>)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> ssa(p_func2, s_func2, [<span class="dv">160</span>], tmax<span class="op">=</span><span class="dv">2000</span>, iter_max<span class="op">=</span><span class="dv">500000</span>, g<span class="op">=</span>g, k<span class="op">=</span>k, n<span class="op">=</span>n)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    res_burst[n] <span class="op">=</span> res</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    ax.step(res[:, <span class="dv">0</span>], res[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    ax.axhline(<span class="dv">160</span>, color<span class="op">=</span><span class="st">"green"</span>)</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Time"</span>, ylabel<span class="op">=</span><span class="st">"x"</span>, title<span class="op">=</span><span class="ss">f"n = </span><span class="sc">{</span>n<span class="sc">}</span><span class="ss">"</span>, ylim<span class="op">=</span>(<span class="dv">100</span>, <span class="dv">220</span>))</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:92.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean stays fixed, noise grows with burst size</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>n_all <span class="op">=</span> [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">8</span>]</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>stats_b <span class="op">=</span> [cal_stat(res_burst[n]) <span class="cf">for</span> n <span class="kw">in</span> n_all]</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="dv">4</span>))</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].plot(n_all, [s[<span class="st">"mean"</span>][<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> stats_b], <span class="st">"o-"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"n"</span>, ylabel<span class="op">=</span><span class="st">"Mean"</span>, xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">8</span>), ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">200</span>))</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].plot(n_all, [s[<span class="st">"sd"</span>][<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> stats_b], <span class="st">"o-"</span>, color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"n"</span>, ylabel<span class="op">=</span><span class="st">"SD"</span>, xlim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">8</span>), ylim<span class="op">=</span>(<span class="dv">0</span>, <span class="dv">35</span>))</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-18-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The mean stays at 160 regardless of <span class="math inline">\(n\)</span>, but the standard deviation grows with the burst size: larger, rarer bursts inject more noise than frequent single-molecule events, even at the same average production rate. Transcriptional bursting is thus a source of gene-expression noise beyond the Poisson floor of the simple birth-death process.</p>
+</section>
+</section>
+<section id="d.4-a-self-inhibiting-gene" class="level2">
+<h2 class="anchored" data-anchor-id="d.4-a-self-inhibiting-gene">8D.4 A self-inhibiting gene</h2>
+<p>Finally we model a gene that represses itself. The promoter has an unbound state <span class="math inline">\(D\)</span> and a bound state <span class="math inline">\(C\)</span>; two molecules of <span class="math inline">\(M\)</span> can bind the promoter (a dimer), switching it from <span class="math inline">\(D\)</span> to <span class="math inline">\(C\)</span>. Production is faster from the unbound promoter (<span class="math inline">\(g_0 &gt; g_1\)</span>), so accumulating <span class="math inline">\(M\)</span> shuts down its own production. The five reactions are production from each promoter state, degradation of <span class="math inline">\(M\)</span>, and binding/unbinding:</p>
+<p><span class="math display">\[
+\begin{aligned}
+D &amp;\xrightarrow{g_0} D + M , &amp; M &amp;\xrightarrow{k} 0 , &amp; 2M + D &amp;\xrightarrow{k_\text{on}} C , \\
+C &amp;\xrightarrow{k_\text{off}} 2M + D , &amp; C &amp;\xrightarrow{g_1} C + M . &amp;&amp;
+\end{aligned}
+\]</span></p>
+<p>The binding propensity carries the degeneracy factor <span class="math inline">\(M(M-1)/2\)</span> for choosing two of the <span class="math inline">\(M\)</span> molecules, and the effective dissociation constant is <span class="math inline">\(K = \sqrt{2 k_\text{off} / k_\text{on}}\)</span>. We omit the promoter-occupancy traces and focus on the <span class="math inline">\(M\)</span> dynamics.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 8D.4.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 8D.4.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Show that negative autoregulation suppresses gene-expression noise.</p>
+<p><strong>Model.</strong> A self-repressing gene with promoter states (unbound D, bound C) and molecules M: production from D at rate g0 and from C at the slower g1, degradation <code>M -&gt; 0</code> at rate k, and dimer binding/unbinding <code>2M + D &lt;-&gt; C</code> at rates kon, koff.</p>
+<p><strong>Method.</strong> The Gillespie stochastic simulation algorithm for a gene circuit with promoter binding.</p>
+<p><strong>Test.</strong> <code>k = 0.1</code> throughout; self-inhibition (<code>g0 = 55, g1 = 5, kon = 0.002, koff = 90</code>), no feedback (<code>g0 = g1 = 30</code>), and low copy number (<code>g0 = 5.5, g1 = 0.5, kon = 0.2, koff = 90</code>); seed 101.</p>
+<p><strong>Show.</strong> Trajectories of the molecule count for each regime, with the mean and standard deviation.</p>
+<p><strong>Verification.</strong> The self-inhibiting gene has a lower standard deviation than the no-feedback case, and at low copy number the few-molecule binding makes the dynamics strongly bursty.</p>
+</div>
+</div>
+<section id="r-implementation-5" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-5">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># state Xs = (D, C, M): D unbound promoter, C bound promoter, M molecules</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>p_func3 <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs, g0, g1, k, kon, koff) {</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> Xs[<span class="dv">1</span>]; c <span class="ot">&lt;-</span> Xs[<span class="dv">2</span>]; m <span class="ot">&lt;-</span> Xs[<span class="dv">3</span>]</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(g0 <span class="sc">*</span> d, k <span class="sc">*</span> m, kon <span class="sc">*</span> d <span class="sc">*</span> m <span class="sc">*</span> (m <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>, koff <span class="sc">*</span> c, g1 <span class="sc">*</span> c)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>s_func3 <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind, g0, g1, k, kon, koff) {</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>),    <span class="co"># production from D: M + 1</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="sc">-</span><span class="dv">1</span>),   <span class="co"># degradation: M - 1</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="sc">-</span><span class="dv">2</span>),  <span class="co"># binding: D - 1, C + 1, M - 2</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">2</span>),   <span class="co"># unbinding: D + 1, C - 1, M + 2</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>))[, r_ind]   <span class="co"># production from C: M + 1</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># three regimes: self-inhibition (high copy), no feedback, self-inhibition (low copy)</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>runs <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">main =</span> <span class="st">"self-inhibition"</span>,  <span class="at">g0 =</span> <span class="dv">55</span>,  <span class="at">g1 =</span> <span class="dv">5</span>,   <span class="at">kon =</span> <span class="fl">0.002</span>, <span class="at">koff =</span> <span class="dv">90</span>, <span class="at">X0 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">300</span>), <span class="at">tmax =</span> <span class="dv">400</span>, <span class="at">ymax =</span> <span class="dv">600</span>),</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">main =</span> <span class="st">"no feedback"</span>,      <span class="at">g0 =</span> <span class="dv">30</span>,  <span class="at">g1 =</span> <span class="dv">30</span>,  <span class="at">kon =</span> <span class="dv">0</span>,     <span class="at">koff =</span> <span class="dv">0</span>,  <span class="at">X0 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">300</span>), <span class="at">tmax =</span> <span class="dv">300</span>, <span class="at">ymax =</span> <span class="dv">600</span>),</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">main =</span> <span class="st">"low copy number"</span>,  <span class="at">g0 =</span> <span class="fl">5.5</span>, <span class="at">g1 =</span> <span class="fl">0.5</span>, <span class="at">kon =</span> <span class="fl">0.2</span>,   <span class="at">koff =</span> <span class="dv">90</span>, <span class="at">X0 =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">30</span>),  <span class="at">tmax =</span> <span class="dv">300</span>, <span class="at">ymax =</span> <span class="dv">60</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">3</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>stats_si <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (r <span class="cf">in</span> runs) {</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set.seed</span>(<span class="dv">101</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">ssa</span>(p_func3, s_func3, r<span class="sc">$</span>X0, r<span class="sc">$</span>tmax, <span class="dv">50000</span>, <span class="at">g0 =</span> r<span class="sc">$</span>g0, <span class="at">g1 =</span> r<span class="sc">$</span>g1, <span class="at">k =</span> <span class="fl">0.1</span>, <span class="at">kon =</span> r<span class="sc">$</span>kon, <span class="at">koff =</span> r<span class="sc">$</span>koff)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  stats_si[[r<span class="sc">$</span>main]] <span class="ot">&lt;-</span> <span class="fu">cal_stat</span>(res)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(res[, <span class="dv">1</span>], res[, <span class="dv">4</span>], <span class="at">type =</span> <span class="st">"s"</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">xlab =</span> <span class="st">"Time"</span>, <span class="at">ylab =</span> <span class="st">"M"</span>,</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">main =</span> r<span class="sc">$</span>main, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, r<span class="sc">$</span>tmax), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, r<span class="sc">$</span>ymax))</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean and SD of M in each regime</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(stats_si, <span class="cf">function</span>(s) <span class="fu">c</span>(<span class="at">mean_M =</span> s<span class="sc">$</span>mean[<span class="dv">3</span>], <span class="at">sd_M =</span> s<span class="sc">$</span>sd[<span class="dv">3</span>]))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       self-inhibition no feedback low copy number
+mean_M       297.92632   296.48158       30.341959
+sd_M          13.62181    16.54486        3.967586</code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-5" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-5">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># state Xs = (D, C, M): D unbound promoter, C bound promoter, M molecules</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> p_func3(Xs, g0, g1, k, kon, koff):</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    d, c, m <span class="op">=</span> Xs</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.array([g0 <span class="op">*</span> d, k <span class="op">*</span> m, kon <span class="op">*</span> d <span class="op">*</span> m <span class="op">*</span> (m <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> <span class="dv">2</span>, koff <span class="op">*</span> c, g1 <span class="op">*</span> c])</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> s_func3(r_ind, g0, g1, k, kon, koff):</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> np.array([[<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>],    <span class="co"># production from D: M + 1</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">0</span>, <span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>],   <span class="co"># degradation: M - 1</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>                  [<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>, <span class="op">-</span><span class="dv">2</span>],  <span class="co"># binding: D - 1, C + 1, M - 2</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">1</span>, <span class="op">-</span><span class="dv">1</span>, <span class="dv">2</span>],   <span class="co"># unbinding: D + 1, C - 1, M + 2</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>                  [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>]])   <span class="co"># production from C: M + 1</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> S[r_ind]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># three regimes: self-inhibition (high copy), no feedback, self-inhibition (low copy)</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>runs <span class="op">=</span> [</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">dict</span>(main<span class="op">=</span><span class="st">"self-inhibition"</span>, g0<span class="op">=</span><span class="dv">55</span>,  g1<span class="op">=</span><span class="dv">5</span>,   kon<span class="op">=</span><span class="fl">0.002</span>, koff<span class="op">=</span><span class="dv">90</span>, X0<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">300</span>], tmax<span class="op">=</span><span class="dv">400</span>, ymax<span class="op">=</span><span class="dv">600</span>),</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">dict</span>(main<span class="op">=</span><span class="st">"no feedback"</span>,     g0<span class="op">=</span><span class="dv">30</span>,  g1<span class="op">=</span><span class="dv">30</span>,  kon<span class="op">=</span><span class="dv">0</span>,     koff<span class="op">=</span><span class="dv">0</span>,  X0<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">300</span>], tmax<span class="op">=</span><span class="dv">300</span>, ymax<span class="op">=</span><span class="dv">600</span>),</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">dict</span>(main<span class="op">=</span><span class="st">"low copy number"</span>, g0<span class="op">=</span><span class="fl">5.5</span>, g1<span class="op">=</span><span class="fl">0.5</span>, kon<span class="op">=</span><span class="fl">0.2</span>,   koff<span class="op">=</span><span class="dv">90</span>, X0<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">30</span>],  tmax<span class="op">=</span><span class="dv">300</span>, ymax<span class="op">=</span><span class="dv">60</span>),</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">3.2</span>))</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>stats_si <span class="op">=</span> {}</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, r <span class="kw">in</span> <span class="bu">zip</span>(axs, runs):</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>    np.random.seed(<span class="dv">101</span>)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> ssa(p_func3, s_func3, r[<span class="st">"X0"</span>], r[<span class="st">"tmax"</span>], <span class="dv">50000</span>,</span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>              g0<span class="op">=</span>r[<span class="st">"g0"</span>], g1<span class="op">=</span>r[<span class="st">"g1"</span>], k<span class="op">=</span><span class="fl">0.1</span>, kon<span class="op">=</span>r[<span class="st">"kon"</span>], koff<span class="op">=</span>r[<span class="st">"koff"</span>])</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>    stats_si[r[<span class="st">"main"</span>]] <span class="op">=</span> cal_stat(res)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a>    ax.step(res[:, <span class="dv">0</span>], res[:, <span class="dv">3</span>], color<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a>    ax.<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"Time"</span>, ylabel<span class="op">=</span><span class="st">"M"</span>, title<span class="op">=</span>r[<span class="st">"main"</span>], xlim<span class="op">=</span>(<span class="dv">0</span>, r[<span class="st">"tmax"</span>]), ylim<span class="op">=</span>(<span class="dv">0</span>, r[<span class="st">"ymax"</span>]))</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08d-gillespie-algorithm_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:95.0%"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mean and SD of M in each regime</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, s <span class="kw">in</span> stats_si.items():</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(name, <span class="st">"mean_M ="</span>, <span class="bu">round</span>(s[<span class="st">"mean"</span>][<span class="dv">2</span>], <span class="dv">1</span>), <span class="st">"sd_M ="</span>, <span class="bu">round</span>(s[<span class="st">"sd"</span>][<span class="dv">2</span>], <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>self-inhibition mean_M = 295.6 sd_M = 15.2
+no feedback mean_M = 299.7 sd_M = 12.2
+low copy number mean_M = 30.6 sd_M = 4.8</code></pre>
+</div>
+</div>
+<p>The middle panel turns the feedback off (setting <span class="math inline">\(k_\text{on} = k_\text{off} = 0\)</span> and <span class="math inline">\(g_0 = g_1\)</span> so the mean <span class="math inline">\(M\)</span> is unchanged), reducing the circuit to a constitutively expressed gene. Comparing it with the self-inhibiting case on the left, the self-inhibiting gene has a lower standard deviation: negative autoregulation suppresses gene-expression noise, a result established both theoretically and experimentally <span class="citation" data-cites="becskei2000engineering">(<a href="../references.html#ref-becskei2000engineering" role="doc-biblioref">Becskei and Serrano 2000</a>)</span>. At low copy number (right panel), the binding and unbinding of just a few molecules make the dynamics strongly bursty, resembling noisy oscillations.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-becskei2000engineering" class="csl-entry" role="listitem">
+Becskei, Attila, and Luis Serrano. 2000. <span>“Engineering Stability in Gene Networks by Autoregulation.”</span> <em>Nature</em> 405 (6786): 590–93. <a href="https://doi.org/10.1038/35014651">https://doi.org/10.1038/35014651</a>.
+</div>
+<div id="ref-gillespie1976general" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1976. <span>“A General Method for Numerically Simulating the Stochastic Time Evolution of Coupled Chemical Reactions.”</span> <em>Journal of Computational Physics</em> 22 (4): 403–34. <a href="https://doi.org/10.1016/0021-9991(76)90041-3">https://doi.org/10.1016/0021-9991(76)90041-3</a>.
+</div>
+<div id="ref-gillespie1977exact" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1977. <span>“Exact Stochastic Simulation of Coupled Chemical Reactions.”</span> <em>The Journal of Physical Chemistry</em> 81 (25): 2340–61. <a href="https://doi.org/10.1021/j100540a008">https://doi.org/10.1021/j100540a008</a>.
+</div>
+<div id="ref-gillespie1992rigorous" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1992. <span>“A Rigorous Derivation of the Chemical Master Equation.”</span> <em>Physica A: Statistical Mechanics and Its Applications</em> 188 (1–3): 404–25. <a href="https://doi.org/10.1016/0378-4371(92)90283-V">https://doi.org/10.1016/0378-4371(92)90283-V</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="pagination-link" aria-label="8C. Particles in a box: MCMC sampling">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../08-monte-carlo/08e-exercises.html" class="pagination-link" aria-label="8E. Exercises">
+        <span class="nav-page-text"><span class="chapter-title">8E. Exercises</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

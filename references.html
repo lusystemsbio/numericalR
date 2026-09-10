@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>References – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./appendix-recipe-index.html" rel="prev">
+<link href="./assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./references.html">References</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="./index.html" class="sidebar-logo-link">
+      <img src="./assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="./assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">References</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-allen2017computer" class="csl-entry" role="listitem">
+Allen, Michael P., and Dominic J. Tildesley. 2017. <em>Computer
+Simulation of Liquids</em>. 2nd ed. Oxford University Press.
+</div>
+<div id="ref-allgower1990continuation" class="csl-entry" role="listitem">
+Allgower, Eugene L., and Kurt Georg. 1990. <em>Numerical Continuation
+Methods: An Introduction</em>. Vol. 13. Springer Series in Computational
+Mathematics. Springer-Verlag. <a href="https://doi.org/10.1007/978-3-642-61257-2">https://doi.org/10.1007/978-3-642-61257-2</a>.
+</div>
+<div id="ref-alon2019systems" class="csl-entry" role="listitem">
+Alon, Uri. 2019. <em>An Introduction to Systems Biology: Design
+Principles of Biological Circuits</em>. 2nd ed. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429283321">https://doi.org/10.1201/9780429283321</a>.
+</div>
+<div id="ref-barabasi1999emergence" class="csl-entry" role="listitem">
+Barabási, Albert-László, and Réka Albert. 1999. <span>“Emergence of
+Scaling in Random Networks.”</span> <em>Science</em> 286 (5439): 509–12.
+<a href="https://doi.org/10.1126/science.286.5439.509">https://doi.org/10.1126/science.286.5439.509</a>.
+</div>
+<div id="ref-barabasi2004network" class="csl-entry" role="listitem">
+Barabási, Albert-László, and Zoltán N. Oltvai. 2004. <span>“Network
+Biology: Understanding the Cell’s Functional Organization.”</span>
+<em>Nature Reviews Genetics</em> 5 (2): 101–13. <a href="https://doi.org/10.1038/nrg1272">https://doi.org/10.1038/nrg1272</a>.
+</div>
+<div id="ref-becskei2000engineering" class="csl-entry" role="listitem">
+Becskei, Attila, and Luis Serrano. 2000. <span>“Engineering Stability in
+Gene Networks by Autoregulation.”</span> <em>Nature</em> 405 (6786):
+590–93. <a href="https://doi.org/10.1038/35014651">https://doi.org/10.1038/35014651</a>.
+</div>
+<div id="ref-bellman1957dynamic" class="csl-entry" role="listitem">
+Bellman, Richard. 1957. <em>Dynamic Programming</em>. Princeton
+University Press.
+</div>
+<div id="ref-bellman1963differential" class="csl-entry" role="listitem">
+Bellman, Richard, and Kenneth L. Cooke. 1963.
+<em>Differential-Difference Equations</em>. Academic Press.
+</div>
+<div id="ref-blondel2008fast" class="csl-entry" role="listitem">
+Blondel, Vincent D., Jean-Loup Guillaume, Renaud Lambiotte, and Etienne
+Lefebvre. 2008. <span>“Fast Unfolding of Communities in Large
+Networks.”</span> <em>Journal of Statistical Mechanics: Theory and
+Experiment</em> 2008 (10): P10008. <a href="https://doi.org/10.1088/1742-5468/2008/10/P10008">https://doi.org/10.1088/1742-5468/2008/10/P10008</a>.
+</div>
+<div id="ref-deboor2001splines" class="csl-entry" role="listitem">
+Boor, Carl de. 2001. <em>A Practical Guide to Splines</em>. Revised.
+Springer. <a href="https://doi.org/10.1007/978-1-4612-6333-3">https://doi.org/10.1007/978-1-4612-6333-3</a>.
+</div>
+<div id="ref-box1958note" class="csl-entry" role="listitem">
+Box, G. E. P., and Mervin E. Muller. 1958. <span>“A Note on the
+Generation of Random Normal Deviates.”</span> <em>The Annals of
+Mathematical Statistics</em> 29 (2): 610–11. <a href="https://doi.org/10.1214/aoms/1177706645">https://doi.org/10.1214/aoms/1177706645</a>.
+</div>
+<div id="ref-buffon1777essai" class="csl-entry" role="listitem">
+Buffon, Comte de, Georges-Louis Leclerc. 1777. <span>“Essai
+d’arithm<span>é</span>tique Morale.”</span> In
+<em>Suppl<span>é</span>ment <span class="nocase">à</span> l’histoire
+Naturelle</em>, vol. 4. Imprimerie Royale.
+</div>
+<div id="ref-carroll2016serengeti" class="csl-entry" role="listitem">
+Carroll, Sean B. 2016. <em>The Serengeti Rules: The Quest to Discover
+How Life Works and Why It Matters</em>. Princeton University Press.
+</div>
+<div id="ref-cox1985theory" class="csl-entry" role="listitem">
+Cox, John C., Jonathan E. Ingersoll, and Stephen A. Ross. 1985. <span>“A
+Theory of the Term Structure of Interest Rates.”</span>
+<em>Econometrica</em> 53 (2): 385–407. <a href="https://doi.org/10.2307/1911242">https://doi.org/10.2307/1911242</a>.
+</div>
+<div id="ref-dempster1977maximum" class="csl-entry" role="listitem">
+Dempster, Arthur P., Nan M. Laird, and Donald B. Rubin. 1977.
+<span>“Maximum Likelihood from Incomplete Data via the <span>EM</span>
+Algorithm.”</span> <em>Journal of the Royal Statistical Society: Series
+B</em> 39 (1): 1–22. <a href="https://doi.org/10.1111/j.2517-6161.1977.tb01600.x">https://doi.org/10.1111/j.2517-6161.1977.tb01600.x</a>.
+</div>
+<div id="ref-devroye1986nonuniform" class="csl-entry" role="listitem">
+Devroye, Luc. 1986. <em>Non-Uniform Random Variate Generation</em>.
+Springer-Verlag.
+</div>
+<div id="ref-dunn2019common" class="csl-entry" role="listitem">
+Dunn, Sara-Jane, Meng Amy Li, Elena Carbognin, Austin Smith, and
+Graziano Martello. 2019. <span>“A Common Molecular Logic Determines
+Embryonic Stem Cell Self-Renewal and Reprogramming.”</span> <em>The EMBO
+Journal</em> 38 (1): e100003. <a href="https://doi.org/10.15252/embj.2018100003">https://doi.org/10.15252/embj.2018100003</a>.
+</div>
+<div id="ref-dunn2014defining" class="csl-entry" role="listitem">
+Dunn, Sara-Jane, Graziano Martello, Boyan Yordanov, Stephen Emmott, and
+Austin G. Smith. 2014. <span>“Defining an Essential Transcription Factor
+Program for Naive Pluripotency.”</span> <em>Science</em> 344 (6188):
+1156–60. <a href="https://doi.org/10.1126/science.1248882">https://doi.org/10.1126/science.1248882</a>.
+</div>
+<div id="ref-einstein1905brownian" class="csl-entry" role="listitem">
+Einstein, Albert. 1905. <span>“<span>Ü</span>ber Die von Der
+Molekularkinetischen Theorie Der w<span>ä</span>rme Geforderte Bewegung
+von in Ruhenden Fl<span>ü</span>ssigkeiten Suspendierten
+Teilchen.”</span> <em>Annalen Der Physik</em> 322 (8): 549–60. <a href="https://doi.org/10.1002/andp.19053220806">https://doi.org/10.1002/andp.19053220806</a>.
+</div>
+<div id="ref-elowitz2000repressilator" class="csl-entry" role="listitem">
+Elowitz, Michael B., and Stanislas Leibler. 2000. <span>“A Synthetic
+Oscillatory Network of Transcriptional Regulators.”</span>
+<em>Nature</em> 403 (6767): 335–38. <a href="https://doi.org/10.1038/35002125">https://doi.org/10.1038/35002125</a>.
+</div>
+<div id="ref-erdos1959random" class="csl-entry" role="listitem">
+Erdős, Paul, and Alfréd Rényi. 1959. <span>“On Random Graphs i.”</span>
+<em>Publicationes Mathematicae Debrecen</em> 6: 290–97.
+</div>
+<div id="ref-fisher1937wave" class="csl-entry" role="listitem">
+Fisher, Ronald A. 1937. <span>“The Wave of Advance of Advantageous
+Genes.”</span> <em>Annals of Eugenics</em> 7 (4): 355–69. <a href="https://doi.org/10.1111/j.1469-1809.1937.tb02153.x">https://doi.org/10.1111/j.1469-1809.1937.tb02153.x</a>.
+</div>
+<div id="ref-fitzhugh1961impulses" class="csl-entry" role="listitem">
+FitzHugh, Richard. 1961. <span>“Impulses and Physiological States in
+Theoretical Models of Nerve Membrane.”</span> <em>Biophysical
+Journal</em> 1 (6): 445–66. <a href="https://doi.org/10.1016/S0006-3495(61)86902-6">https://doi.org/10.1016/S0006-3495(61)86902-6</a>.
+</div>
+<div id="ref-fowler1998square" class="csl-entry" role="listitem">
+Fowler, David, and Eleanor Robson. 1998. <span>“Square Root
+Approximations in Old Babylonian Mathematics: <span>YBC</span> 7289 in
+Context.”</span> <em>Historia Mathematica</em> 25 (4): 366–78. <a href="https://doi.org/10.1006/hmat.1998.2209">https://doi.org/10.1006/hmat.1998.2209</a>.
+</div>
+<div id="ref-freeman1977set" class="csl-entry" role="listitem">
+Freeman, Linton C. 1977. <span>“A Set of Measures of Centrality Based on
+Betweenness.”</span> <em>Sociometry</em> 40 (1): 35–41. <a href="https://doi.org/10.2307/3033543">https://doi.org/10.2307/3033543</a>.
+</div>
+<div id="ref-frenkel2023understanding" class="csl-entry" role="listitem">
+Frenkel, Daan, and Berend Smit. 2023. <em>Understanding Molecular
+Simulation: From Algorithms to Applications</em>. 3rd ed. Academic
+Press.
+</div>
+<div id="ref-gardiner2009stochastic" class="csl-entry" role="listitem">
+Gardiner, Crispin W. 2009. <em>Stochastic Methods: A Handbook for the
+Natural and Social Sciences</em>. 4th ed. Springer-Verlag.
+</div>
+<div id="ref-gardner1970game" class="csl-entry" role="listitem">
+Gardner, Martin. 1970. <span>“Mathematical Games: The Fantastic
+Combinations of John Conway’s New Solitaire Game "Life".”</span>
+<em>Scientific American</em> 223 (4): 120–23. <a href="https://doi.org/10.1038/scientificamerican1070-120">https://doi.org/10.1038/scientificamerican1070-120</a>.
+</div>
+<div id="ref-gardner2000toggle" class="csl-entry" role="listitem">
+Gardner, Timothy S., Charles R. Cantor, and James J. Collins. 2000.
+<span>“Construction of a Genetic Toggle Switch in <span class="nocase">Escherichia coli</span>.”</span> <em>Nature</em> 403
+(6767): 339–42. <a href="https://doi.org/10.1038/35002131">https://doi.org/10.1038/35002131</a>.
+</div>
+<div id="ref-gierer1972theory" class="csl-entry" role="listitem">
+Gierer, Alfred, and Hans Meinhardt. 1972. <span>“A Theory of Biological
+Pattern Formation.”</span> <em>Kybernetik</em> 12 (1): 30–39. <a href="https://doi.org/10.1007/BF00289234">https://doi.org/10.1007/BF00289234</a>.
+</div>
+<div id="ref-gillespie1976general" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1976. <span>“A General Method for Numerically
+Simulating the Stochastic Time Evolution of Coupled Chemical
+Reactions.”</span> <em>Journal of Computational Physics</em> 22 (4):
+403–34. <a href="https://doi.org/10.1016/0021-9991(76)90041-3">https://doi.org/10.1016/0021-9991(76)90041-3</a>.
+</div>
+<div id="ref-gillespie1977exact" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1977. <span>“Exact Stochastic Simulation of Coupled
+Chemical Reactions.”</span> <em>The Journal of Physical Chemistry</em>
+81 (25): 2340–61. <a href="https://doi.org/10.1021/j100540a008">https://doi.org/10.1021/j100540a008</a>.
+</div>
+<div id="ref-gillespie1992rigorous" class="csl-entry" role="listitem">
+Gillespie, Daniel T. 1992. <span>“A Rigorous Derivation of the Chemical
+Master Equation.”</span> <em>Physica A: Statistical Mechanics and Its
+Applications</em> 188 (1–3): 404–25. <a href="https://doi.org/10.1016/0378-4371(92)90283-V">https://doi.org/10.1016/0378-4371(92)90283-V</a>.
+</div>
+<div id="ref-goldberg1989genetic" class="csl-entry" role="listitem">
+Goldberg, David E. 1989. <em>Genetic Algorithms in Search, Optimization,
+and Machine Learning</em>. Addison-Wesley.
+</div>
+<div id="ref-golding2005realtime" class="csl-entry" role="listitem">
+Golding, Ido, Johan Paulsson, Scott M. Zawilski, and Edward C. Cox.
+2005. <span>“Real-Time Kinetics of Gene Activity in Individual
+Bacteria.”</span> <em>Cell</em> 123 (6): 1025–36. <a href="https://doi.org/10.1016/j.cell.2005.09.031">https://doi.org/10.1016/j.cell.2005.09.031</a>.
+</div>
+<div id="ref-hairer1993solving" class="csl-entry" role="listitem">
+Hairer, Ernst, Syvert P. Nørsett, and Gerhard Wanner. 1993. <em>Solving
+Ordinary Differential Equations i: Nonstiff Problems</em>. 2nd ed.
+Springer Series in Computational Mathematics. Springer-Verlag. <a href="https://doi.org/10.1007/978-3-540-78862-1">https://doi.org/10.1007/978-3-540-78862-1</a>.
+</div>
+<div id="ref-hastie1989principal" class="csl-entry" role="listitem">
+Hastie, Trevor, and Werner Stuetzle. 1989. <span>“Principal
+Curves.”</span> <em>Journal of the American Statistical Association</em>
+84 (406): 502–16. <a href="https://doi.org/10.1080/01621459.1989.10478797">https://doi.org/10.1080/01621459.1989.10478797</a>.
+</div>
+<div id="ref-hastings1970monte" class="csl-entry" role="listitem">
+Hastings, W. Keith. 1970. <span>“Monte Carlo Sampling Methods Using
+Markov Chains and Their Applications.”</span> <em>Biometrika</em> 57
+(1): 97–109. <a href="https://doi.org/10.1093/biomet/57.1.97">https://doi.org/10.1093/biomet/57.1.97</a>.
+</div>
+<div id="ref-held1962dynamic" class="csl-entry" role="listitem">
+Held, Michael, and Richard M. Karp. 1962. <span>“A Dynamic Programming
+Approach to Sequencing Problems.”</span> <em>Journal of the Society for
+Industrial and Applied Mathematics</em> 10 (1): 196–210. <a href="https://doi.org/10.1137/0110015">https://doi.org/10.1137/0110015</a>.
+</div>
+<div id="ref-hill1910aggregation" class="csl-entry" role="listitem">
+Hill, Archibald Vivian. 1910. <span>“The Possible Effects of the
+Aggregation of the Molecules of Haemoglobin on Its Dissociation
+Curves.”</span> <em>The Journal of Physiology</em> 40: iv–vii.
+</div>
+<div id="ref-himmelblau1972applied" class="csl-entry" role="listitem">
+Himmelblau, David M. 1972. <em>Applied Nonlinear Programming</em>.
+McGraw-Hill.
+</div>
+<div id="ref-holland1975adaptation" class="csl-entry" role="listitem">
+Holland, John H. 1975. <em>Adaptation in Natural and Artificial
+Systems</em>. University of Michigan Press.
+</div>
+<div id="ref-hotelling1933analysis" class="csl-entry" role="listitem">
+Hotelling, Harold. 1933. <span>“Analysis of a Complex of Statistical
+Variables into Principal Components.”</span> <em>Journal of Educational
+Psychology</em> 24 (6): 417–41. <a href="https://doi.org/10.1037/h0071325">https://doi.org/10.1037/h0071325</a>.
+</div>
+<div id="ref-hu2022emergent" class="csl-entry" role="listitem">
+Hu, Jiliang, Daniel R. Amor, Matthieu Barbier, Guy Bunin, and Jeff Gore.
+2022. <span>“Emergent Phases of Ecological Diversity and Dynamics Mapped
+in Microcosms.”</span> <em>Science</em> 378 (6615): 85–89. <a href="https://doi.org/10.1126/science.abm7841">https://doi.org/10.1126/science.abm7841</a>.
+</div>
+<div id="ref-hukushima1996exchange" class="csl-entry" role="listitem">
+Hukushima, Koji, and Koji Nemoto. 1996. <span>“Exchange Monte Carlo
+Method and Application to Spin Glass Simulations.”</span> <em>Journal of
+the Physical Society of Japan</em> 65 (6): 1604–8. <a href="https://doi.org/10.1143/JPSJ.65.1604">https://doi.org/10.1143/JPSJ.65.1604</a>.
+</div>
+<div id="ref-hutchinson1948circular" class="csl-entry" role="listitem">
+Hutchinson, G. Evelyn. 1948. <span>“Circular Causal Systems in
+Ecology.”</span> <em>Annals of the New York Academy of Sciences</em> 50
+(4): 221–46. <a href="https://doi.org/10.1111/j.1749-6632.1948.tb39854.x">https://doi.org/10.1111/j.1749-6632.1948.tb39854.x</a>.
+</div>
+<div id="ref-ising1925beitrag" class="csl-entry" role="listitem">
+Ising, Ernst. 1925. <span>“Beitrag Zur Theorie Des
+Ferromagnetismus.”</span> <em>Zeitschrift f<span>ü</span>r Physik</em>
+31 (1): 253–58. <a href="https://doi.org/10.1007/BF02980577">https://doi.org/10.1007/BF02980577</a>.
+</div>
+<div id="ref-kamada1989algorithm" class="csl-entry" role="listitem">
+Kamada, Tomihisa, and Satoru Kawai. 1989. <span>“An Algorithm for
+Drawing General Undirected Graphs.”</span> <em>Information Processing
+Letters</em> 31 (1): 7–15. <a href="https://doi.org/10.1016/0020-0190(89)90102-6">https://doi.org/10.1016/0020-0190(89)90102-6</a>.
+</div>
+<div id="ref-kauffman1969metabolic" class="csl-entry" role="listitem">
+Kauffman, Stuart A. 1969. <span>“Metabolic Stability and Epigenesis in
+Randomly Constructed Genetic Nets.”</span> <em>Journal of Theoretical
+Biology</em> 22 (3): 437–67. <a href="https://doi.org/10.1016/0022-5193(69)90015-0">https://doi.org/10.1016/0022-5193(69)90015-0</a>.
+</div>
+<div id="ref-kermack1927contribution" class="csl-entry" role="listitem">
+Kermack, William O., and Anderson G. McKendrick. 1927. <span>“A
+Contribution to the Mathematical Theory of Epidemics.”</span>
+<em>Proceedings of the Royal Society of London. Series A</em> 115 (772):
+700–721. <a href="https://doi.org/10.1098/rspa.1927.0118">https://doi.org/10.1098/rspa.1927.0118</a>.
+</div>
+<div id="ref-kessler1993pattern" class="csl-entry" role="listitem">
+Kessler, David A., and Herbert Levine. 1993. <span>“Pattern Formation in
+<em>Dictyostelium</em> via the Dynamics of Cooperative Biological
+Entities.”</span> <em>Physical Review E</em> 48 (6): 4801–4. <a href="https://doi.org/10.1103/PhysRevE.48.4801">https://doi.org/10.1103/PhysRevE.48.4801</a>.
+</div>
+<div id="ref-kirkpatrick1983optimization" class="csl-entry" role="listitem">
+Kirkpatrick, Scott, C. Daniel Gelatt, and Mario P. Vecchi. 1983.
+<span>“Optimization by Simulated Annealing.”</span> <em>Science</em> 220
+(4598): 671–80. <a href="https://doi.org/10.1126/science.220.4598.671">https://doi.org/10.1126/science.220.4598.671</a>.
+</div>
+<div id="ref-kloeden1992numerical" class="csl-entry" role="listitem">
+Kloeden, Peter E., and Eckhard Platen. 1992. <em>Numerical Solution of
+Stochastic Differential Equations</em>. Vol. 23. Applications of
+Mathematics. Springer-Verlag. <a href="https://doi.org/10.1007/978-3-662-12616-5">https://doi.org/10.1007/978-3-662-12616-5</a>.
+</div>
+<div id="ref-kramers1940brownian" class="csl-entry" role="listitem">
+Kramers, Hendrik Anthony. 1940. <span>“Brownian Motion in a Field of
+Force and the Diffusion Model of Chemical Reactions.”</span>
+<em>Physica</em> 7 (4): 284–304. <a href="https://doi.org/10.1016/S0031-8914(40)90098-2">https://doi.org/10.1016/S0031-8914(40)90098-2</a>.
+</div>
+<div id="ref-lennardjones1924" class="csl-entry" role="listitem">
+Lennard-Jones, J. E. 1924. <span>“On the Determination of Molecular
+Fields. II. From the Equation of State of a Gas.”</span> <em>Proceedings
+of the Royal Society of London A</em> 106 (738): 463–77. <a href="https://doi.org/10.1098/rspa.1924.0082">https://doi.org/10.1098/rspa.1924.0082</a>.
+</div>
+<div id="ref-leveque2007finite" class="csl-entry" role="listitem">
+LeVeque, Randall J. 2007. <em>Finite Difference Methods for Ordinary and
+Partial Differential Equations: Steady-State and Time-Dependent
+Problems</em>. Society for Industrial; Applied Mathematics. <a href="https://doi.org/10.1137/1.9780898717839">https://doi.org/10.1137/1.9780898717839</a>.
+</div>
+<div id="ref-li2004yeast" class="csl-entry" role="listitem">
+Li, Fangting, Tao Long, Ying Lu, Qi Ouyang, and Chao Tang. 2004.
+<span>“The Yeast Cell-Cycle Network Is Robustly Designed.”</span>
+<em>Proceedings of the National Academy of Sciences</em> 101 (14):
+4781–86. <a href="https://doi.org/10.1073/pnas.0305937101">https://doi.org/10.1073/pnas.0305937101</a>.
+</div>
+<div id="ref-lloyd1982least" class="csl-entry" role="listitem">
+Lloyd, Stuart P. 1982. <span>“Least Squares Quantization in
+<span>PCM</span>.”</span> <em>IEEE Transactions on Information
+Theory</em> 28 (2): 129–37. <a href="https://doi.org/10.1109/TIT.1982.1056489">https://doi.org/10.1109/TIT.1982.1056489</a>.
+</div>
+<div id="ref-lorenz1963deterministic" class="csl-entry" role="listitem">
+Lorenz, Edward N. 1963. <span>“Deterministic Nonperiodic Flow.”</span>
+<em>Journal of the Atmospheric Sciences</em> 20 (2): 130–41. <a href="https://doi.org/10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2">https://doi.org/10.1175/1520-0469(1963)020&lt;0130:DNF&gt;2.0.CO;2</a>.
+</div>
+<div id="ref-lotka1925elements" class="csl-entry" role="listitem">
+Lotka, Alfred J. 1925. <em>Elements of Physical Biology</em>. Williams
+&amp; Wilkins.
+</div>
+<div id="ref-ludwig1978qualitative" class="csl-entry" role="listitem">
+Ludwig, Donald, Dixon D. Jones, and Crawford S. Holling. 1978.
+<span>“Qualitative Analysis of Insect Outbreak Systems: The Spruce
+Budworm and Forest.”</span> <em>Journal of Animal Ecology</em> 47 (1):
+315–32. <a href="https://doi.org/10.2307/3939">https://doi.org/10.2307/3939</a>.
+</div>
+<div id="ref-vandermaaten2008tsne" class="csl-entry" role="listitem">
+Maaten, Laurens van der, and Geoffrey Hinton. 2008. <span>“Visualizing
+Data Using <span class="nocase">t-SNE</span>.”</span> <em>Journal of
+Machine Learning Research</em> 9: 2579–605.
+</div>
+<div id="ref-marinari1992simulated" class="csl-entry" role="listitem">
+Marinari, Enzo, and Giorgio Parisi. 1992. <span>“Simulated Tempering: A
+New <span>Monte Carlo</span> Scheme.”</span> <em>Europhysics
+Letters</em> 19 (6): 451–58. <a href="https://doi.org/10.1209/0295-5075/19/6/002">https://doi.org/10.1209/0295-5075/19/6/002</a>.
+</div>
+<div id="ref-mcinnes2018umap" class="csl-entry" role="listitem">
+McInnes, Leland, John Healy, and James Melville. 2018.
+<span>“<span>UMAP</span>: Uniform Manifold Approximation and Projection
+for Dimension Reduction.”</span> <em>arXiv Preprint
+arXiv:1802.03426</em>, ahead of print. <a href="https://doi.org/10.48550/arXiv.1802.03426">https://doi.org/10.48550/arXiv.1802.03426</a>.
+</div>
+<div id="ref-metropolis1953equation" class="csl-entry" role="listitem">
+Metropolis, Nicholas, Arianna W. Rosenbluth, Marshall N. Rosenbluth,
+Augusta H. Teller, and Edward Teller. 1953. <span>“Equation of State
+Calculations by Fast Computing Machines.”</span> <em>The Journal of
+Chemical Physics</em> 21 (6): 1087–92. <a href="https://doi.org/10.1063/1.1699114">https://doi.org/10.1063/1.1699114</a>.
+</div>
+<div id="ref-metropolis1949monte" class="csl-entry" role="listitem">
+Metropolis, Nicholas, and Stanislaw Ulam. 1949. <span>“The <span>Monte
+Carlo</span> Method.”</span> <em>Journal of the American Statistical
+Association</em> 44 (247): 335–41. <a href="https://doi.org/10.1080/01621459.1949.10483310">https://doi.org/10.1080/01621459.1949.10483310</a>.
+</div>
+<div id="ref-nagumo1962active" class="csl-entry" role="listitem">
+Nagumo, Jin, Suguru Arimoto, and Shuji Yoshizawa. 1962. <span>“An Active
+Pulse Transmission Line Simulating Nerve Axon.”</span> <em>Proceedings
+of the IRE</em> 50 (10): 2061–70. <a href="https://doi.org/10.1109/JRPROC.1962.288235">https://doi.org/10.1109/JRPROC.1962.288235</a>.
+</div>
+<div id="ref-needleman1970general" class="csl-entry" role="listitem">
+Needleman, Saul B., and Christian D. Wunsch. 1970. <span>“A General
+Method Applicable to the Search for Similarities in the Amino Acid
+Sequence of Two Proteins.”</span> <em>Journal of Molecular Biology</em>
+48 (3): 443–53. <a href="https://doi.org/10.1016/0022-2836(70)90057-4">https://doi.org/10.1016/0022-2836(70)90057-4</a>.
+</div>
+<div id="ref-newman2006modularity" class="csl-entry" role="listitem">
+Newman, Mark E. J. 2006. <span>“Modularity and Community Structure in
+Networks.”</span> <em>Proceedings of the National Academy of
+Sciences</em> 103 (23): 8577–82. <a href="https://doi.org/10.1073/pnas.0601602103">https://doi.org/10.1073/pnas.0601602103</a>.
+</div>
+<div id="ref-onsager1944crystal" class="csl-entry" role="listitem">
+Onsager, Lars. 1944. <span>“Crystal Statistics. I. A Two-Dimensional
+Model with an Order-Disorder Transition.”</span> <em>Physical
+Review</em> 65 (3–4): 117–49. <a href="https://doi.org/10.1103/PhysRev.65.117">https://doi.org/10.1103/PhysRev.65.117</a>.
+</div>
+<div id="ref-park1988random" class="csl-entry" role="listitem">
+Park, Stephen K., and Keith W. Miller. 1988. <span>“Random Number
+Generators: Good Ones Are Hard to Find.”</span> <em>Communications of
+the ACM</em> 31 (10): 1192–201. <a href="https://doi.org/10.1145/63039.63042">https://doi.org/10.1145/63039.63042</a>.
+</div>
+<div id="ref-pearson1901lines" class="csl-entry" role="listitem">
+Pearson, Karl. 1901. <span>“On Lines and Planes of Closest Fit to
+Systems of Points in Space.”</span> <em>The London, Edinburgh, and
+Dublin Philosophical Magazine and Journal of Science</em> 2 (11):
+559–72. <a href="https://doi.org/10.1080/14786440109462720">https://doi.org/10.1080/14786440109462720</a>.
+</div>
+<div id="ref-pickover1995random" class="csl-entry" role="listitem">
+Pickover, Clifford A. 1995. <span>“Random Number Generators: Pretty Good
+Ones Are Easy to Find.”</span> <em>The Visual Computer</em> 11 (7):
+369–77. <a href="https://doi.org/10.1007/BF01909878">https://doi.org/10.1007/BF01909878</a>.
+</div>
+<div id="ref-press2007numerical" class="csl-entry" role="listitem">
+Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian
+P. Flannery. 2007. <em>Numerical Recipes: The Art of Scientific
+Computing</em>. 3rd ed. Cambridge University Press.
+</div>
+<div id="ref-reinelt1991tsplib" class="csl-entry" role="listitem">
+Reinelt, Gerhard. 1991. <span>“<span>TSPLIB</span> — a Traveling
+Salesman Problem Library.”</span> <em>ORSA Journal on Computing</em> 3
+(4): 376–84. <a href="https://doi.org/10.1287/ijoc.3.4.376">https://doi.org/10.1287/ijoc.3.4.376</a>.
+</div>
+<div id="ref-robert2004monte" class="csl-entry" role="listitem">
+Robert, Christian P., and George Casella. 2004. <em>Monte Carlo
+Statistical Methods</em>. 2nd ed. Springer. <a href="https://doi.org/10.1007/978-1-4757-4145-2">https://doi.org/10.1007/978-1-4757-4145-2</a>.
+</div>
+<div id="ref-scrucca2016mclust" class="csl-entry" role="listitem">
+Scrucca, Luca, Michael Fop, T. Brendan Murphy, and Adrian E. Raftery.
+2016. <span>“Mclust 5: Clustering, Classification and Density Estimation
+Using Gaussian Finite Mixture Models.”</span> <em>The R Journal</em> 8
+(1): 289–317. <a href="https://doi.org/10.32614/RJ-2016-021">https://doi.org/10.32614/RJ-2016-021</a>.
+</div>
+<div id="ref-smith2011delay" class="csl-entry" role="listitem">
+Smith, Hal. 2011. <em>An Introduction to Delay Differential Equations
+with Applications to the Life Sciences</em>. Vol. 57. Texts in Applied
+Mathematics. Springer. <a href="https://doi.org/10.1007/978-1-4419-7646-8">https://doi.org/10.1007/978-1-4419-7646-8</a>.
+</div>
+<div id="ref-smith1981identification" class="csl-entry" role="listitem">
+Smith, Temple F., and Michael S. Waterman. 1981. <span>“Identification
+of Common Molecular Subsequences.”</span> <em>Journal of Molecular
+Biology</em> 147 (1): 195–97. <a href="https://doi.org/10.1016/0022-2836(81)90087-5">https://doi.org/10.1016/0022-2836(81)90087-5</a>.
+</div>
+<div id="ref-soetaert2009rootsolve" class="csl-entry" role="listitem">
+Soetaert, Karline. 2009. <em><span class="nocase">rootSolve</span>:
+Nonlinear Root Finding, Equilibrium and Steady-State Analysis of
+Ordinary Differential Equations</em>. <a href="https://CRAN.R-project.org/package=rootSolve">https://CRAN.R-project.org/package=rootSolve</a>.
+</div>
+<div id="ref-soetaert2010desolve" class="csl-entry" role="listitem">
+Soetaert, Karline, Thomas Petzoldt, and R. Woodrow Setzer. 2010.
+<span>“Solving Differential Equations in <span>R</span>: Package <span class="nocase">deSolve</span>.”</span> <em>Journal of Statistical
+Software</em> 33 (9): 1–25. <a href="https://doi.org/10.18637/jss.v033.i09">https://doi.org/10.18637/jss.v033.i09</a>.
+</div>
+<div id="ref-sontag_systemsbio" class="csl-entry" role="listitem">
+Sontag, Eduardo D. 2026. <em>Lecture Notes on Mathematical Systems
+Biology</em>. Version 9.1.1, Northeastern University. <a href="http://www.sontaglab.org/PUBDIR/Category/books.html">http://www.sontaglab.org/PUBDIR/Category/books.html</a>.
+</div>
+<div id="ref-stirling1730methodus" class="csl-entry" role="listitem">
+Stirling, James. 1730. <em>Methodus Differentialis: Sive Tractatus de
+Summatione Et Interpolatione Serierum Infinitarum</em>. G. Bowyer. <a href="https://archive.org/details/methodusdifferen00stir">https://archive.org/details/methodusdifferen00stir</a>.
+</div>
+<div id="ref-strogatz2015nonlinear" class="csl-entry" role="listitem">
+Strogatz, Steven H. 2015. <em>Nonlinear Dynamics and Chaos: With
+Applications to Physics, Biology, Chemistry, and Engineering</em>. 2nd
+ed. Westview Press.
+</div>
+<div id="ref-swope1982computer" class="csl-entry" role="listitem">
+Swope, William C., Hans C. Andersen, Peter H. Berens, and Kent R.
+Wilson. 1982. <span>“A Computer Simulation Method for the Calculation of
+Equilibrium Constants for the Formation of Physical Clusters of
+Molecules: Application to Small Water Clusters.”</span> <em>The Journal
+of Chemical Physics</em> 76 (1): 637–49. <a href="https://doi.org/10.1063/1.442716">https://doi.org/10.1063/1.442716</a>.
+</div>
+<div id="ref-torgerson1952multidimensional" class="csl-entry" role="listitem">
+Torgerson, Warren S. 1952. <span>“Multidimensional Scaling: I. Theory
+and Method.”</span> <em>Psychometrika</em> 17 (4): 401–19. <a href="https://doi.org/10.1007/BF02288916">https://doi.org/10.1007/BF02288916</a>.
+</div>
+<div id="ref-torn1989global" class="csl-entry" role="listitem">
+Törn, Aimo, and Antanas Žilinskas. 1989. <em>Global Optimization</em>.
+Vol. 350. Lecture Notes in Computer Science. Springer. <a href="https://doi.org/10.1007/3-540-50871-6">https://doi.org/10.1007/3-540-50871-6</a>.
+</div>
+<div id="ref-turing1952chemical" class="csl-entry" role="listitem">
+Turing, Alan M. 1952. <span>“The Chemical Basis of
+Morphogenesis.”</span> <em>Philosophical Transactions of the Royal
+Society of London. Series B, Biological Sciences</em> 237 (641): 37–72.
+<a href="https://doi.org/10.1098/rstb.1952.0012">https://doi.org/10.1098/rstb.1952.0012</a>.
+</div>
+<div id="ref-uhlenbeck1930theory" class="csl-entry" role="listitem">
+Uhlenbeck, George E., and Leonard S. Ornstein. 1930. <span>“On the
+Theory of the Brownian Motion.”</span> <em>Physical Review</em> 36 (5):
+823–41. <a href="https://doi.org/10.1103/PhysRev.36.823">https://doi.org/10.1103/PhysRev.36.823</a>.
+</div>
+<div id="ref-verlet1967computer" class="csl-entry" role="listitem">
+Verlet, Loup. 1967. <span>“Computer "Experiments" on Classical Fluids.
+I. Thermodynamical Properties of Lennard-Jones Molecules.”</span>
+<em>Physical Review</em> 159 (1): 98–103. <a href="https://doi.org/10.1103/PhysRev.159.98">https://doi.org/10.1103/PhysRev.159.98</a>.
+</div>
+<div id="ref-virtanen2020scipy" class="csl-entry" role="listitem">
+<span class="nocase">Virtanen, Pauli, Ralf Gommers, Travis E. Oliphant,
+et al.</span> 2020. <span>“<span>SciPy</span> 1.0: Fundamental
+Algorithms for Scientific Computing in <span>Python</span>.”</span>
+<em>Nature Methods</em> 17: 261–72. <a href="https://doi.org/10.1038/s41592-019-0686-2">https://doi.org/10.1038/s41592-019-0686-2</a>.
+</div>
+<div id="ref-volterra1926fluctuations" class="csl-entry" role="listitem">
+Volterra, Vito. 1926. <span>“Fluctuations in the Abundance of a Species
+Considered Mathematically.”</span> <em>Nature</em> 118: 558–60. <a href="https://doi.org/10.1038/118558a0">https://doi.org/10.1038/118558a0</a>.
+</div>
+<div id="ref-waddington1957strategy" class="csl-entry" role="listitem">
+Waddington, Conrad Hal. 1957. <em>The Strategy of the Genes</em>. George
+Allen &amp; Unwin.
+</div>
+<div id="ref-ward1963hierarchical" class="csl-entry" role="listitem">
+Ward, Joe H. 1963. <span>“Hierarchical Grouping to Optimize an Objective
+Function.”</span> <em>Journal of the American Statistical
+Association</em> 58 (301): 236–44. <a href="https://doi.org/10.1080/01621459.1963.10500845">https://doi.org/10.1080/01621459.1963.10500845</a>.
+</div>
+<div id="ref-watts1998collective" class="csl-entry" role="listitem">
+Watts, Duncan J., and Steven H. Strogatz. 1998. <span>“Collective
+Dynamics of <span>‘Small-World’</span> Networks.”</span> <em>Nature</em>
+393 (6684): 440–42. <a href="https://doi.org/10.1038/30918">https://doi.org/10.1038/30918</a>.
+</div>
+<div id="ref-zachary1977information" class="csl-entry" role="listitem">
+Zachary, Wayne W. 1977. <span>“An Information Flow Model for Conflict
+and Fission in Small Groups.”</span> <em>Journal of Anthropological
+Research</em> 33 (4): 452–73. <a href="https://doi.org/10.1086/jar.33.4.3629752">https://doi.org/10.1086/jar.33.4.3629752</a>.
+</div>
+</div>
+
+
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./appendix-recipe-index.html" class="pagination-link" aria-label="Appendix 3. Recipe index">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">Appendix 3. Recipe index</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

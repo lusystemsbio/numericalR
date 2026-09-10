@@ -1,0 +1,112 @@
+/* Right-side "On this page" TOC: Quarto emits the list as .collapse (hidden
+   until its JS expands it), which can leave it hidden. Force it visible. */
+nav#TOC ul {
+  display: block !important;
+}
+
+/* "R implementation" / "Python implementation" labels — styled, unnumbered.
+   R is blue; Python is light purple (distinguished by its section anchor id). */
+h3.impl {
+  background-color: #e7f0fb;
+  border-left: 4px solid #4a86c7;
+  padding: 0.35rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-top: 1.4rem;
+  margin-bottom: 0.8rem;
+}
+h3.impl[data-anchor-id^="python-implementation"] {
+  background-color: #f0e7fb;
+  border-left-color: #8a5cc7;
+}
+
+/* Code blocks: smaller text, and soft-wrap so lines never need horizontal
+   scrolling (short or long). Pandoc's highlighting CSS forces, on screen,
+   `pre > code.sourceCode { white-space: pre }` (its pre-wrap variant is locked
+   in @media print) plus `div.sourceCode { overflow: auto }`. Override both with
+   a matching-specificity selector + !important. Applies to HTML and EPUB. */
+div.sourceCode {
+  overflow: visible !important;
+}
+pre.sourceCode,
+pre > code.sourceCode {
+  white-space: pre-wrap !important;
+  overflow-wrap: break-word !important;
+  word-break: break-word;
+  font-size: 0.85em;
+}
+
+/* Figures in EPUB. Some e-readers (e.g. Apple Books) size a figure's container to
+   the image's intrinsic pixels, making the container wider than the page: a
+   horizontal scrollbar appears and centering then shifts the figure to the right.
+   Fix: constrain EVERY nesting container AND the image to the page width, and
+   center via text-align (NOT display:block + auto margins, which triggered the
+   overflow). Harmless in HTML, which already centers via Bootstrap. */
+.cell-output-display,
+.quarto-figure,
+figure,
+figure > p {
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  text-align: center;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Wide display equations (e.g. the bilinear matrix form) can exceed the narrow
+   EPUB page. Constrain block MathML to the page width and let the equation scroll
+   within its own box rather than pushing the whole page wider. Targets MathML, so
+   it applies to EPUB only (HTML renders math via MathJax, not <math>). */
+math[display="block"] {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* 1A.3 VS Code split-pane mockup (HTML only; see 01a-getting-started.qmd) */
+table.vscode-mockup {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.82em;
+}
+table.vscode-mockup th {
+  text-align: left;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ccc;
+  background-color: #eaeaea;
+  font-weight: 600;
+}
+table.vscode-mockup td {
+  vertical-align: top;
+  border: 1px solid #ccc;
+  padding: 0.6rem;
+  width: 50%;
+}
+table.vscode-mockup td:first-child {
+  background-color: #fafafa;
+}
+table.vscode-mockup td:last-child {
+  background-color: #fafafa;
+}
+table.vscode-mockup pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+/* Brand colours for the R and Py in the title "Numerical ReciPy".
+   R blue, and a dark gold for Py: Python's #FFD43B scores only 1.43 contrast
+   on white, below the 3.0 needed for large bold text, while #B8860B scores 3.25. */
+.brand-r  { color: #276DC3; }
+.brand-py { color: #B8860B; }

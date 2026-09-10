@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>10C. Network algorithms – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../10-high-dim-data/10d-exercises.html" rel="next">
+<link href="../10-high-dim-data/10b-clustering.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../10-high-dim-data/10a-dimensionality-reduction.html">Part 10: High-dimensional data analysis</a></li><li class="breadcrumb-item"><a href="../10-high-dim-data/10c-network-algorithms.html"><span class="chapter-title">10C. Network algorithms</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#c.1-networks-and-their-properties" id="toc-c.1-networks-and-their-properties" class="nav-link active" data-scroll-target="#c.1-networks-and-their-properties">10C.1 Networks and their properties</a></li>
+  <li><a href="#c.2-random-network-models" id="toc-c.2-random-network-models" class="nav-link" data-scroll-target="#c.2-random-network-models">10C.2 Random-network models</a></li>
+  <li><a href="#c.3-community-detection-by-modularity" id="toc-c.3-community-detection-by-modularity" class="nav-link" data-scroll-target="#c.3-community-detection-by-modularity">10C.3 Community detection by modularity</a></li>
+  <li><a href="#c.4-boolean-network-models" id="toc-c.4-boolean-network-models" class="nav-link" data-scroll-target="#c.4-boolean-network-models">10C.4 Boolean network models</a></li>
+  <li><a href="#c.5-toggle-switch" id="toc-c.5-toggle-switch" class="nav-link" data-scroll-target="#c.5-toggle-switch">10C.5 Toggle switch</a></li>
+  <li><a href="#c.6-boolean-repressilator" id="toc-c.6-boolean-repressilator" class="nav-link" data-scroll-target="#c.6-boolean-repressilator">10C.6 Boolean repressilator</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../10-high-dim-data/10a-dimensionality-reduction.html">Part 10: High-dimensional data analysis</a></li><li class="breadcrumb-item"><a href="../10-high-dim-data/10c-network-algorithms.html"><span class="chapter-title">10C. Network algorithms</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">10C. Network algorithms</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Many biological systems are naturally described as <em>networks</em>: protein-protein interaction networks, gene regulatory networks, metabolic networks, and cell-signaling networks all connect components (genes, proteins, metabolites) by their interactions <span class="citation" data-cites="barabasi2004network">(<a href="../references.html#ref-barabasi2004network" role="doc-biblioref">Barabási and Oltvai 2004</a>)</span>. A network, or <em>graph</em>, is a set of <em>vertices</em> (nodes) joined by <em>edges</em>. This chapter represents networks as adjacency matrices, computes their structural properties, generates random-network models, detects community structure by modularity, and models discrete gene-regulatory dynamics with Boolean networks. We compute the core quantities from scratch and use <code>igraph</code> (R) and <code>networkx</code> (Python) for graph layout and the longer standard algorithms.</p>
+<section id="c.1-networks-and-their-properties" class="level2">
+<h2 class="anchored" data-anchor-id="c.1-networks-and-their-properties">10C.1 Networks and their properties</h2>
+<p>A network of <span class="math inline">\(n\)</span> vertices is stored as an <span class="math inline">\(n \times n\)</span> <em>adjacency matrix</em> <span class="math inline">\(A\)</span>, with <span class="math inline">\(A_{ij} = 1\)</span> when vertices <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are connected and 0 otherwise (symmetric for an undirected network). From <span class="math inline">\(A\)</span> we read off the basic structure. The <em>degree</em> of a vertex is its number of neighbors, <span class="math inline">\(k_i = \sum_j A_{ij}\)</span>. The <em>clustering coefficient</em> measures how interconnected a vertex’s neighbors are: for a vertex of degree <span class="math inline">\(k\)</span> with <span class="math inline">\(e\)</span> edges among its neighbors, <span class="math inline">\(c = e / \binom{k}{2}\)</span>. The <em>distance</em> between two vertices is the length of the shortest path between them, and the <em>diameter</em> is the largest such distance. We illustrate on Zachary’s karate club <span class="citation" data-cites="zachary1977information">(<a href="../references.html#ref-zachary1977information" role="doc-biblioref">Zachary 1977</a>)</span>, a classic 34-member social network, drawn with the Kamada-Kawai layout <span class="citation" data-cites="kamada1989algorithm">(<a href="../references.html#ref-kamada1989algorithm" role="doc-biblioref">Kamada and Kawai 1989</a>)</span>: unlike a force-directed layout, this is a deterministic stress-majorization of the shortest-path distances, so the R and Python renderings closely agree instead of depending on each library’s own stochastic algorithm.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.1.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.1.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Compute the structural properties of a network.</p>
+<p><strong>Model.</strong> The input is an undirected adjacency matrix; the example is Zachary’s karate club (34 vertices).</p>
+<p><strong>Method.</strong> Network properties computed from scratch: degree distribution, clustering coefficient, shortest-path distance matrix, and diameter, plus betweenness centrality.</p>
+<p><strong>Test.</strong> Zachary’s karate club, drawn with a Kamada-Kawai layout.</p>
+<p><strong>Show.</strong> The printed degree, clustering, diameter, and betweenness, and the network drawn with a Kamada-Kawai layout.</p>
+<p><strong>Verification.</strong> The club has a few high-degree hubs, mean degree about 4.6, diameter 5, and clustering about 0.57, and the two highest-betweenness nodes are the instructor and president who bridge the factions.</p>
+</div>
+</div>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">make_graph</span>(<span class="st">"Zachary"</span>); A <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">as_adjacency_matrix</span>(g)); n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(A)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>degree_v <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(A)                                   <span class="co"># degree of each vertex</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># clustering coefficient (averaged over all vertices; degree &lt; 2 contributes 0)</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>clustering <span class="ot">&lt;-</span> <span class="cf">function</span>(A) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mean</span>(<span class="fu">sapply</span>(<span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(A), <span class="cf">function</span>(u) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    nb <span class="ot">&lt;-</span> <span class="fu">which</span>(A[u, ] <span class="sc">&gt;</span> <span class="dv">0</span>); k <span class="ot">&lt;-</span> <span class="fu">length</span>(nb)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (k <span class="sc">&lt;</span> <span class="dv">2</span>) <span class="dv">0</span> <span class="cf">else</span> <span class="fu">sum</span>(A[nb, nb]) <span class="sc">/</span> <span class="dv">2</span> <span class="sc">/</span> (k <span class="sc">*</span> (k <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  }))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co"># shortest-path distances via boolean adjacency powers; diameter = largest distance</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="cf">function</span>(A) {</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(A); D <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">Inf</span>, n, n); <span class="fu">diag</span>(D) <span class="ot">&lt;-</span> <span class="dv">0</span>; reach <span class="ot">&lt;-</span> <span class="fu">diag</span>(n)</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (l <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(n <span class="sc">-</span> <span class="dv">1</span>)) { reach <span class="ot">&lt;-</span> (reach <span class="sc">%*%</span> A) <span class="sc">&gt;</span> <span class="dv">0</span>; D[D <span class="sc">==</span> <span class="cn">Inf</span> <span class="sc">&amp;</span> reach] <span class="ot">&lt;-</span> l }</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  D</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">dist_matrix</span>(A)</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"mean degree:"</span>, <span class="fu">round</span>(<span class="fu">mean</span>(degree_v), <span class="dv">2</span>), <span class="st">" clustering:"</span>, <span class="fu">round</span>(<span class="fu">clustering</span>(A), <span class="dv">3</span>),</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">" diameter:"</span>, <span class="fu">max</span>(D[<span class="fu">is.finite</span>(D)]), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mean degree: 4.59  clustering: 0.571  diameter: 5 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>bc <span class="ot">&lt;-</span> <span class="fu">betweenness</span>(g)                                     <span class="co"># betweenness (igraph)</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Kamada-Kawai layout: a deterministic stress-majorization of the shortest-path distances</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co"># computed above (no random initialization), so it reproduces closely in Python, unlike a</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># force-directed layout; unlike raw classical MDS, it also optimizes for readability, so</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># nodes spread out instead of clustering</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>lay <span class="ot">&lt;-</span> <span class="fu">layout_with_kk</span>(g)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">vertex.size =</span> <span class="dv">4</span> <span class="sc">+</span> degree_v, <span class="at">vertex.color =</span> <span class="st">"gold"</span>, <span class="at">vertex.frame.color =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">vertex.label =</span> <span class="cn">NA</span>, <span class="at">edge.color =</span> <span class="st">"#B3B3B3"</span>, <span class="at">layout =</span> lay)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:65.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">barplot</span>(<span class="fu">table</span>(degree_v), <span class="at">xlab =</span> <span class="st">"degree k"</span>, <span class="at">ylab =</span> <span class="st">"number of vertices"</span>, <span class="at">main =</span> <span class="st">"Degree distribution"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(degree_v, bc, <span class="at">xlab =</span> <span class="st">"degree"</span>, <span class="at">ylab =</span> <span class="st">"betweenness"</span>, <span class="at">main =</span> <span class="st">"Betweenness vs degree"</span>, <span class="at">pch =</span> <span class="dv">19</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np, networkx <span class="im">as</span> nx, matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>G <span class="op">=</span> nx.karate_club_graph()<span class="op">;</span> A <span class="op">=</span> nx.to_numpy_array(G, weight<span class="op">=</span><span class="va">None</span>)<span class="op">;</span> n <span class="op">=</span> <span class="bu">len</span>(A)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>degree_v <span class="op">=</span> A.<span class="bu">sum</span>(<span class="dv">1</span>).astype(<span class="bu">int</span>)                          <span class="co"># degree of each vertex</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># clustering coefficient (averaged over all vertices; degree &lt; 2 contributes 0)</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> clustering(A):</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(A)<span class="op">;</span> c <span class="op">=</span> np.zeros(n)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> u <span class="kw">in</span> <span class="bu">range</span>(n):</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        nb <span class="op">=</span> np.where(A[u] <span class="op">&gt;</span> <span class="dv">0</span>)[<span class="dv">0</span>]<span class="op">;</span> k <span class="op">=</span> <span class="bu">len</span>(nb)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k <span class="op">&gt;=</span> <span class="dv">2</span>: c[u] <span class="op">=</span> A[np.ix_(nb, nb)].<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">2</span> <span class="op">/</span> (k <span class="op">*</span> (k <span class="op">-</span> <span class="dv">1</span>) <span class="op">/</span> <span class="dv">2</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> c.mean()</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co"># shortest-path distances via boolean adjacency powers; diameter = largest distance</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dist_matrix(A):</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(A)<span class="op">;</span> D <span class="op">=</span> np.full((n, n), np.inf)<span class="op">;</span> np.fill_diagonal(D, <span class="dv">0</span>)<span class="op">;</span> reach <span class="op">=</span> np.eye(n)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> l <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n):</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        reach <span class="op">=</span> (reach <span class="op">@</span> A) <span class="op">&gt;</span> <span class="dv">0</span><span class="op">;</span> D[(D <span class="op">==</span> np.inf) <span class="op">&amp;</span> reach] <span class="op">=</span> l</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> D</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>D <span class="op">=</span> dist_matrix(A)</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"mean degree:"</span>, <span class="bu">round</span>(degree_v.mean(), <span class="dv">2</span>), <span class="st">" clustering:"</span>, <span class="bu">round</span>(clustering(A), <span class="dv">3</span>),</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">" diameter:"</span>, <span class="bu">int</span>(D[np.isfinite(D)].<span class="bu">max</span>()))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mean degree: 4.59  clustering: 0.571  diameter: 5</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bc <span class="op">=</span> np.array(<span class="bu">list</span>(nx.betweenness_centrality(G).values()))   <span class="co"># betweenness (networkx)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Kamada-Kawai layout: a deterministic stress-majorization of the graph's shortest-path</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># distances (no random initialization), so it reproduces closely in R, unlike a</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># force-directed layout; unlike raw classical MDS, it also optimizes for readability, so</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># nodes spread out instead of clustering</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>pos <span class="op">=</span> nx.kamada_kawai_layout(G)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co"># node_size is an AREA in networkx (vs. a diameter-like scale in igraph's vertex.size),</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co"># so square the same "4 + degree" formula used in R to match the visual size contrast</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>nx.draw(G, pos, node_size<span class="op">=</span>(<span class="dv">4</span> <span class="op">+</span> degree_v) <span class="op">**</span> <span class="dv">2</span> <span class="op">*</span> <span class="fl">1.2</span>, node_color<span class="op">=</span><span class="st">"gold"</span>, edge_color<span class="op">=</span><span class="st">"#B3B3B3"</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:65.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.4</span>))</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>vals, counts <span class="op">=</span> np.unique(degree_v, return_counts<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].bar(vals, counts)<span class="op">;</span> axs[<span class="dv">0</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"degree k"</span>, ylabel<span class="op">=</span><span class="st">"number of vertices"</span>, title<span class="op">=</span><span class="st">"Degree distribution"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].scatter(degree_v, bc <span class="op">*</span> (n <span class="op">-</span> <span class="dv">1</span>) <span class="op">*</span> (n <span class="op">-</span> <span class="dv">2</span>) <span class="op">/</span> <span class="dv">2</span>)<span class="op">;</span> axs[<span class="dv">1</span>].<span class="bu">set</span>(xlabel<span class="op">=</span><span class="st">"degree"</span>, ylabel<span class="op">=</span><span class="st">"betweenness"</span>, title<span class="op">=</span><span class="st">"Betweenness vs degree"</span>)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The karate club has a few high-degree hubs and many low-degree members, a mean degree near 4.6, a diameter of 5, and a fairly high clustering coefficient (about 0.57): friends of friends tend to be friends, a hallmark of the “small-world” networks of Watts and Strogatz <span class="citation" data-cites="watts1998collective">(<a href="../references.html#ref-watts1998collective" role="doc-biblioref">Watts and Strogatz 1998</a>)</span>. Betweenness, the number of shortest paths passing through a vertex <span class="citation" data-cites="freeman1977set">(<a href="../references.html#ref-freeman1977set" role="doc-biblioref">Freeman 1977</a>)</span>, tracks degree loosely but not exactly; the two highest-betweenness nodes are the instructor and the club president, the bridges through which most paths run.</p>
+</section>
+</section>
+<section id="c.2-random-network-models" class="level2">
+<h2 class="anchored" data-anchor-id="c.2-random-network-models">10C.2 Random-network models</h2>
+<p>To judge whether a real network’s structure is surprising, we compare it with random models. The <em>Erdős-Rényi</em> model <span class="citation" data-cites="erdos1959random">(<a href="../references.html#ref-erdos1959random" role="doc-biblioref">Erdős and Rényi 1959</a>)</span> connects each pair of vertices independently with probability <span class="math inline">\(p\)</span>, giving a Poisson-like degree distribution peaked at the mean. The <em>Barabási-Albert</em> model <span class="citation" data-cites="barabasi1999emergence">(<a href="../references.html#ref-barabasi1999emergence" role="doc-biblioref">Barabási and Albert 1999</a>)</span> grows a network by <em>preferential attachment</em>: each new vertex attaches to <span class="math inline">\(m\)</span> existing ones with probability proportional to their degree, so hubs accumulate ever more connections. This produces a <em>scale-free</em> degree distribution with a heavy, power-law tail, closer to what many biological networks show. Both generators are short to write.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.2.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.2.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Generate random networks from two classic models and compare their degree distributions.</p>
+<p><strong>Model.</strong> The Erdos-Renyi model <code>G(n, p)</code> connects each vertex pair independently with probability p; the Barabasi-Albert model grows by attaching each new vertex to m existing ones with probability proportional to their degree (preferential attachment).</p>
+<p><strong>Method.</strong> The Erdos-Renyi and Barabasi-Albert random-network models, implemented from scratch.</p>
+<p><strong>Test.</strong> <code>n = 1000</code>; Erdos-Renyi with <code>p = 0.006</code>, Barabasi-Albert with <code>m = 3</code>; seed 1.</p>
+<p><strong>Show.</strong> The degree distributions: a histogram for Erdos-Renyi and a log-log scatter for Barabasi-Albert.</p>
+<p><strong>Verification.</strong> Erdos-Renyi degrees cluster tightly around the mean, while Barabasi-Albert degrees follow a straight line on log-log axes (a scale-free power law), matching biological networks better.</p>
+</div>
+</div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Erdos-Renyi: connect each pair with probability p</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>er_network <span class="ot">&lt;-</span> <span class="cf">function</span>(n, p) {</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  A <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n, n); ut <span class="ot">&lt;-</span> <span class="fu">upper.tri</span>(A)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  A[ut] <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(<span class="fu">sum</span>(ut), <span class="dv">1</span>, p); A <span class="sc">+</span> <span class="fu">t</span>(A)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Barabasi-Albert: grow by preferential attachment (m links per new vertex)</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>ba_network <span class="ot">&lt;-</span> <span class="cf">function</span>(n, m) {</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  A <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n, n); A[<span class="dv">1</span><span class="sc">:</span>(m <span class="sc">+</span> <span class="dv">1</span>), <span class="dv">1</span><span class="sc">:</span>(m <span class="sc">+</span> <span class="dv">1</span>)] <span class="ot">&lt;-</span> <span class="dv">1</span>; <span class="fu">diag</span>(A) <span class="ot">&lt;-</span> <span class="dv">0</span>   <span class="co"># seed clique</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (v <span class="cf">in</span> (m <span class="sc">+</span> <span class="dv">2</span>)<span class="sc">:</span>n) {</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    deg <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(A)[<span class="dv">1</span><span class="sc">:</span>(v <span class="sc">-</span> <span class="dv">1</span>)]</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    targets <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>(v <span class="sc">-</span> <span class="dv">1</span>), m, <span class="at">prob =</span> deg)                      <span class="co"># attach prop. to degree</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    A[v, targets] <span class="ot">&lt;-</span> <span class="dv">1</span>; A[targets, v] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  A</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>er <span class="ot">&lt;-</span> <span class="fu">er_network</span>(<span class="dv">1000</span>, <span class="fl">0.006</span>); ba <span class="ot">&lt;-</span> <span class="fu">ba_network</span>(<span class="dv">1000</span>, <span class="dv">3</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>), <span class="at">mar =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(<span class="fu">rowSums</span>(er), <span class="at">breaks =</span> <span class="dv">20</span>, <span class="at">main =</span> <span class="st">"Erdos-Renyi"</span>, <span class="at">xlab =</span> <span class="st">"degree"</span>, <span class="at">col =</span> <span class="st">"grey"</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(table(...)) draws value-to-zero bars, which log-scaling breaks (log(0) = -Inf);</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the (degree, count) points directly instead, as a proper log-log scatter</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>ba_tab <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="fu">rowSums</span>(ba))</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">as.numeric</span>(<span class="fu">names</span>(ba_tab)), <span class="fu">as.numeric</span>(ba_tab), <span class="at">log =</span> <span class="st">"xy"</span>, <span class="at">pch =</span> <span class="dv">19</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">"Barabasi-Albert (log-log)"</span>, <span class="at">xlab =</span> <span class="st">"degree"</span>, <span class="at">ylab =</span> <span class="st">"count"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Erdos-Renyi: connect each pair with probability p</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> er_network(n, p):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># compare to p FIRST, then restrict to the upper triangle -- np.triu(rand, 1) zeroes</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># the lower triangle before comparing, so those zeros would wrongly satisfy `&lt; p`</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> np.triu((np.random.rand(n, n) <span class="op">&lt;</span> p).astype(<span class="bu">int</span>), <span class="dv">1</span>)<span class="op">;</span> <span class="cf">return</span> A <span class="op">+</span> A.T</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Barabasi-Albert: grow by preferential attachment (m links per new vertex)</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> ba_network(n, m):</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> np.zeros((n, n), <span class="bu">int</span>)<span class="op">;</span> A[:m <span class="op">+</span> <span class="dv">1</span>, :m <span class="op">+</span> <span class="dv">1</span>] <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> np.fill_diagonal(A, <span class="dv">0</span>)   <span class="co"># seed clique</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> v <span class="kw">in</span> <span class="bu">range</span>(m <span class="op">+</span> <span class="dv">1</span>, n):</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>        deg <span class="op">=</span> A[:v].<span class="bu">sum</span>(<span class="dv">1</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>        targets <span class="op">=</span> np.random.choice(v, m, replace<span class="op">=</span><span class="va">False</span>, p<span class="op">=</span>deg <span class="op">/</span> deg.<span class="bu">sum</span>())     <span class="co"># attach prop. to degree</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        A[v, targets] <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> A[targets, v] <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> A</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">1</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>er <span class="op">=</span> er_network(<span class="dv">1000</span>, <span class="fl">0.006</span>)<span class="op">;</span> ba <span class="op">=</span> ba_network(<span class="dv">1000</span>, <span class="dv">3</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>fig, axs <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">7</span>, <span class="fl">3.4</span>))</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>er_deg <span class="op">=</span> er.<span class="bu">sum</span>(<span class="dv">1</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co"># bin edges at half-integers so each bin holds exactly one degree value; bins=20 alone</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># misaligns with these integer degrees and leaves visible gaps between some bars</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>bins <span class="op">=</span> np.arange(er_deg.<span class="bu">min</span>(), er_deg.<span class="bu">max</span>() <span class="op">+</span> <span class="dv">2</span>) <span class="op">-</span> <span class="fl">0.5</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">0</span>].hist(er_deg, bins<span class="op">=</span>bins, color<span class="op">=</span><span class="st">"grey"</span>)<span class="op">;</span> axs[<span class="dv">0</span>].<span class="bu">set</span>(title<span class="op">=</span><span class="st">"Erdos-Renyi"</span>, xlabel<span class="op">=</span><span class="st">"degree"</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>v, c <span class="op">=</span> np.unique(ba.<span class="bu">sum</span>(<span class="dv">1</span>), return_counts<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>axs[<span class="dv">1</span>].loglog(v, c, <span class="st">"o"</span>)<span class="op">;</span> axs[<span class="dv">1</span>].<span class="bu">set</span>(title<span class="op">=</span><span class="st">"Barabasi-Albert (log-log)"</span>, xlabel<span class="op">=</span><span class="st">"degree"</span>, ylabel<span class="op">=</span><span class="st">"count"</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The Erdős-Rényi degrees cluster tightly around the mean, so a highly connected hub is essentially impossible. The Barabási-Albert degrees instead fall off as a straight line on log-log axes, the signature of a power law: most vertices have few links but a few hubs have very many. Biological networks such as protein interaction networks resemble the scale-free model far more than the random one, which is why hubs (often essential genes) are a recurring theme.</p>
+</section>
+</section>
+<section id="c.3-community-detection-by-modularity" class="level2">
+<h2 class="anchored" data-anchor-id="c.3-community-detection-by-modularity">10C.3 Community detection by modularity</h2>
+<p>Networks often divide into <em>communities</em>, groups of vertices more densely connected among themselves than to the rest. Newman’s <em>modularity</em> <span class="math inline">\(Q\)</span> measures how good a division is, comparing the fraction of edges inside groups with the fraction expected if edges were placed at random while preserving degrees <span class="citation" data-cites="newman2006modularity">(<a href="../references.html#ref-newman2006modularity" role="doc-biblioref">Newman 2006</a>)</span>,</p>
+<p><span class="math display">\[ Q = \frac{1}{2m} \sum_{i,j} \left( A_{ij} - \frac{k_i k_j}{2m} \right) \delta(c_i, c_j) , \tag{1} \]</span></p>
+<p>where <span class="math inline">\(m\)</span> is the number of edges, <span class="math inline">\(k_i\)</span> the degree of vertex <span class="math inline">\(i\)</span>, and <span class="math inline">\(\delta(c_i, c_j)\)</span> is 1 when <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> are in the same community. Newman’s <em>spectral method</em> splits a network in two using the <em>modularity matrix</em> <span class="math inline">\(B_{ij} = A_{ij} - k_i k_j / 2m\)</span>: the signs of the leading eigenvector of <span class="math inline">\(B\)</span> assign vertices to the two groups, the division that best increases <span class="math inline">\(Q\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.3.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.3.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Split a network into communities by maximizing modularity.</p>
+<p><strong>Model.</strong> The input is the karate-club adjacency matrix; the modularity objective is <code>Q = (1/2m)*sum_ij (A_ij - k_i*k_j/2m)*delta(c_i, c_j)</code>.</p>
+<p><strong>Method.</strong> Newman spectral community detection (bisection by the leading eigenvector of the modularity matrix), with the eigenvector sign fixed so the labeling is reproducible.</p>
+<p><strong>Test.</strong> Zachary’s karate club, drawn with the same Kamada-Kawai layout as 10C.1.</p>
+<p><strong>Show.</strong> The network drawn with nodes colored by community, and the modularity Q.</p>
+<p><strong>Verification.</strong> The spectral split separates the club into communities of 18 and 16 with modularity about 0.37, closely matching the factional split Zachary recorded.</p>
+</div>
+</div>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># modularity of a given community assignment (Eq. 1)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>modularity_Q <span class="ot">&lt;-</span> <span class="cf">function</span>(A, membership) {</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">sum</span>(A) <span class="sc">/</span> <span class="dv">2</span>; k <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(A)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  B <span class="ot">&lt;-</span> A <span class="sc">-</span> <span class="fu">outer</span>(k, k) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> m)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>(B <span class="sc">*</span> <span class="fu">outer</span>(membership, membership, <span class="st">"=="</span>)) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> m)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Newman spectral bisection: sign of the leading eigenvector of the modularity matrix.</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># An eigensolver may return either v or -v equally validly, so fix a sign convention</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># (vertex 1 always in group 1) to make the assignment reproducible across languages.</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>spectral_split <span class="ot">&lt;-</span> <span class="cf">function</span>(A) {</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">sum</span>(A) <span class="sc">/</span> <span class="dv">2</span>; k <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(A)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  B <span class="ot">&lt;-</span> A <span class="sc">-</span> <span class="fu">outer</span>(k, k) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> m)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  v <span class="ot">&lt;-</span> <span class="fu">eigen</span>(B, <span class="at">symmetric =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>vectors[, <span class="dv">1</span>]</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (v[<span class="dv">1</span>] <span class="sc">&lt;</span> <span class="dv">0</span>) v <span class="ot">&lt;-</span> <span class="sc">-</span>v</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ifelse</span>(v <span class="sc">&gt;</span> <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>comm <span class="ot">&lt;-</span> <span class="fu">spectral_split</span>(A)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"community sizes:"</span>, <span class="fu">table</span>(comm), <span class="st">" modularity Q:"</span>, <span class="fu">round</span>(<span class="fu">modularity_Q</span>(A, comm), <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>community sizes: 16 18  modularity Q: 0.371 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">vertex.color =</span> <span class="fu">c</span>(<span class="st">"tomato"</span>, <span class="st">"skyblue"</span>)[comm], <span class="at">vertex.size =</span> <span class="dv">8</span>, <span class="at">vertex.frame.color =</span> <span class="cn">NA</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>     <span class="at">vertex.label =</span> <span class="cn">NA</span>, <span class="at">edge.color =</span> <span class="st">"#B3B3B3"</span>, <span class="at">layout =</span> lay)   <span class="co"># same layout as 10C.1</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-9-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:65.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># modularity of a given community assignment (Eq. 1)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> modularity_Q(A, membership):</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> A.<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">2</span><span class="op">;</span> k <span class="op">=</span> A.<span class="bu">sum</span>(<span class="dv">1</span>)<span class="op">;</span> B <span class="op">=</span> A <span class="op">-</span> np.outer(k, k) <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> m)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    same <span class="op">=</span> membership[:, <span class="va">None</span>] <span class="op">==</span> membership[<span class="va">None</span>, :]</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (B <span class="op">*</span> same).<span class="bu">sum</span>() <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> m)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Newman spectral bisection: sign of the leading eigenvector of the modularity matrix.</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co"># An eigensolver may return either v or -v equally validly, so fix a sign convention</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># (vertex 1 always in group 1) to make the assignment reproducible across languages.</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> spectral_split(A):</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> A.<span class="bu">sum</span>() <span class="op">/</span> <span class="dv">2</span><span class="op">;</span> k <span class="op">=</span> A.<span class="bu">sum</span>(<span class="dv">1</span>)<span class="op">;</span> B <span class="op">=</span> A <span class="op">-</span> np.outer(k, k) <span class="op">/</span> (<span class="dv">2</span> <span class="op">*</span> m)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    v <span class="op">=</span> np.linalg.eigh(B)[<span class="dv">1</span>][:, <span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> v[<span class="dv">0</span>] <span class="op">&lt;</span> <span class="dv">0</span>: v <span class="op">=</span> <span class="op">-</span>v</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (v <span class="op">&gt;</span> <span class="dv">0</span>).astype(<span class="bu">int</span>)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>comm <span class="op">=</span> spectral_split(A)</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"community sizes:"</span>, np.bincount(comm), <span class="st">" modularity Q:"</span>, <span class="bu">round</span>(modularity_Q(A, comm), <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>community sizes: [18 16]  modularity Q: 0.371</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">6</span>, <span class="dv">5</span>))</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>nx.draw(G, pos, node_color<span class="op">=</span>[<span class="st">"tomato"</span> <span class="cf">if</span> c <span class="cf">else</span> <span class="st">"skyblue"</span> <span class="cf">for</span> c <span class="kw">in</span> comm],</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        node_size<span class="op">=</span><span class="dv">8</span> <span class="op">**</span> <span class="dv">2</span> <span class="op">*</span> <span class="fl">1.2</span>, edge_color<span class="op">=</span><span class="st">"#B3B3B3"</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="10c-network-algorithms_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:65.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The spectral split cleanly separates the karate club into two communities of sizes 18 and 16, with modularity <span class="math inline">\(Q \approx 0.37\)</span>, and this partition closely matches the actual split of the club into two factions after a dispute, the outcome Zachary recorded. For more than two communities one applies the bisection recursively or uses a fast optimizer such as the Louvain method <span class="citation" data-cites="blondel2008fast">(<a href="../references.html#ref-blondel2008fast" role="doc-biblioref">Blondel et al. 2008</a>)</span> (<code>cluster_louvain</code> in igraph, <code>greedy_modularity_communities</code> in networkx), which we would reach for on larger networks.</p>
+</section>
+</section>
+<section id="c.4-boolean-network-models" class="level2">
+<h2 class="anchored" data-anchor-id="c.4-boolean-network-models">10C.4 Boolean network models</h2>
+<p>Gene regulatory networks can be modeled without kinetic parameters by treating each gene as either on (1) or off (0) and updating its state by a logical rule of its regulators’ states <span class="citation" data-cites="kauffman1969metabolic">(<a href="../references.html#ref-kauffman1969metabolic" role="doc-biblioref">Kauffman 1969</a>)</span>. The system state is a binary vector; in <em>synchronous</em> updating, every gene is updated together at each discrete time step, <span class="math inline">\(x_i(t+1) = f_i(\mathbf{x}(t))\)</span>. Iterating from any start eventually falls into an <em>attractor</em>: a fixed point (a steady state, <span class="math inline">\(\mathbf{x}(t+1) = \mathbf{x}(t)\)</span>) or a cycle (an oscillation). We enumerate the attractors by running every possible initial state to its repeat, then apply this to two circuits already studied as continuous systems in <a href="../03-phase-plane/03h-multi-component.html">Part 3H</a>: a toggle switch and a repressilator.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.4.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.4.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Enumerate the attractors of a Boolean network.</p>
+<p><strong>Model.</strong> A Boolean network: each gene is on or off and updates synchronously by <code>x_i(t+1) = f_i(x(t))</code>; iterating from any start falls into a fixed-point or cyclic attractor.</p>
+<p><strong>Method.</strong> Boolean network dynamics with synchronous updating, enumerating attractors exhaustively from all initial states.</p>
+<p><strong>Test.</strong> The generic <code>boolean_attractors(update, n)</code> driver, which runs every one of the <code>2^n</code> start states to its first repeat.</p>
+<p><strong>Show.</strong> The attractors enumerated for a given update rule (applied in 10C.5 and 10C.6).</p>
+<p><strong>Verification.</strong> The routine returns every fixed-point and cyclic attractor, ready to apply to specific circuits.</p>
+</div>
+</div>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># enumerate attractors: run every start state to the first repeat; the cycle is the attractor</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>boolean_attractors <span class="ot">&lt;-</span> <span class="cf">function</span>(update, n) {</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  states <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">expand.grid</span>(<span class="fu">rep</span>(<span class="fu">list</span>(<span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>), n))); found <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (r <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(states)) {</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    s <span class="ot">&lt;-</span> states[r, ]; seen <span class="ot">&lt;-</span> <span class="fu">character</span>(<span class="dv">0</span>); traj <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">repeat</span> {</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>      key <span class="ot">&lt;-</span> <span class="fu">paste</span>(s, <span class="at">collapse =</span> <span class="st">""</span>)</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (key <span class="sc">%in%</span> seen) {</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>        cyc <span class="ot">&lt;-</span> traj[<span class="fu">which</span>(seen <span class="sc">==</span> key)<span class="sc">:</span><span class="fu">length</span>(seen)]</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>        canon <span class="ot">&lt;-</span> <span class="fu">paste</span>(<span class="fu">sort</span>(<span class="fu">sapply</span>(cyc, paste, <span class="at">collapse =</span> <span class="st">""</span>)), <span class="at">collapse =</span> <span class="st">"|"</span>)</span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (<span class="fu">is.null</span>(found[[canon]])) found[[canon]] <span class="ot">&lt;-</span> cyc</span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>      seen <span class="ot">&lt;-</span> <span class="fu">c</span>(seen, key); traj[[<span class="fu">length</span>(traj) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> s; s <span class="ot">&lt;-</span> <span class="fu">update</span>(s)</span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  found</span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>show_att <span class="ot">&lt;-</span> <span class="cf">function</span>(a) <span class="fu">sapply</span>(a, <span class="cf">function</span>(cyc) <span class="fu">paste0</span>(<span class="st">"{"</span>, <span class="fu">paste</span>(<span class="fu">sapply</span>(cyc, paste, <span class="at">collapse =</span> <span class="st">""</span>), <span class="at">collapse =</span> <span class="st">" -&gt; "</span>), <span class="st">"}"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># enumerate attractors: run every start state to the first repeat; the cycle is the attractor</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> itertools <span class="im">import</span> product</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> boolean_attractors(update, n):</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    found <span class="op">=</span> {}</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> s0 <span class="kw">in</span> product([<span class="dv">0</span>, <span class="dv">1</span>], repeat<span class="op">=</span>n):</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> <span class="bu">list</span>(s0)<span class="op">;</span> seen <span class="op">=</span> []</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">while</span> <span class="va">True</span>:</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>            key <span class="op">=</span> <span class="bu">tuple</span>(s)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> key <span class="kw">in</span> seen:</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                cyc <span class="op">=</span> seen[seen.index(key):]<span class="op">;</span> found[<span class="bu">tuple</span>(<span class="bu">sorted</span>(cyc))] <span class="op">=</span> cyc<span class="op">;</span> <span class="cf">break</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>            seen.append(key)<span class="op">;</span> s <span class="op">=</span> update(s)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">list</span>(found.values())</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_att(a):</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [<span class="st">" {"</span> <span class="op">+</span> <span class="st">" -&gt; "</span>.join(<span class="st">""</span>.join(<span class="bu">map</span>(<span class="bu">str</span>, s)) <span class="cf">for</span> s <span class="kw">in</span> cyc) <span class="op">+</span> <span class="st">"}"</span> <span class="cf">for</span> cyc <span class="kw">in</span> a]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="c.5-toggle-switch" class="level2">
+<h2 class="anchored" data-anchor-id="c.5-toggle-switch">10C.5 Toggle switch</h2>
+<p>A toggle switch is two genes that mutually repress each other:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/10C/toggle.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:38.0%"></p>
+</figure>
+</div>
+<p><span class="math display">\[ X(t+1) = \neg Y(t), \qquad Y(t+1) = \neg X(t) \]</span></p>
+<p>Its Boolean form reduces each gene to on or off; applying <code>boolean_attractors</code> to this update rule enumerates all its attractors from every one of the 4 possible starting states.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.5.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.5.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Find the attractors of a Boolean toggle switch.</p>
+<p><strong>Model.</strong> A Boolean toggle switch of two mutually repressing genes, <code>X(t+1) = NOT Y(t)</code>, <code>Y(t+1) = NOT X(t)</code>.</p>
+<p><strong>Method.</strong> Boolean attractor enumeration (from 10C.4) over all four states.</p>
+<p><strong>Test.</strong> The toggle-switch update rule on <code>n = 2</code> genes.</p>
+<p><strong>Show.</strong> The toggle switch’s attractors printed as arrow chains.</p>
+<p><strong>Verification.</strong> It finds two fixed points, <code>01</code> and <code>10</code> (the mutually exclusive on-states of a bistable switch), and an oscillation <code>00 -&gt; 11 -&gt; 00</code>.</p>
+</div>
+</div>
+<section id="r-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-4">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># toggle switch: two mutually repressing genes, X = NOT Y, Y = NOT X</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>toggle <span class="ot">&lt;-</span> <span class="cf">function</span>(s) <span class="fu">c</span>(<span class="dv">1</span> <span class="sc">-</span> s[<span class="dv">2</span>], <span class="dv">1</span> <span class="sc">-</span> s[<span class="dv">1</span>])</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">show_att</span>(<span class="fu">boolean_attractors</span>(toggle, <span class="dv">2</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       00|11           10           01 
+"{00 -&gt; 11}"       "{10}"       "{01}" </code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-4">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># toggle switch: two mutually repressing genes, X = NOT Y, Y = NOT X</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>toggle <span class="op">=</span> <span class="kw">lambda</span> s: [<span class="dv">1</span> <span class="op">-</span> s[<span class="dv">1</span>], <span class="dv">1</span> <span class="op">-</span> s[<span class="dv">0</span>]]</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(show_att(boolean_attractors(toggle, <span class="dv">2</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[' {11 -&gt; 00}', ' {01}', ' {10}']</code></pre>
+</div>
+</div>
+<p>The toggle switch has two attractors:</p>
+<ul>
+<li>Fixed points: <code>01</code> and <code>10</code>, the two mutually exclusive on-states of a bistable switch</li>
+<li>Oscillation: <code>00 -&gt; 11 -&gt; 00</code>, a two-state cycle</li>
+</ul>
+</section>
+</section>
+<section id="c.6-boolean-repressilator" class="level2">
+<h2 class="anchored" data-anchor-id="c.6-boolean-repressilator">10C.6 Boolean repressilator</h2>
+<p>A repressilator is a ring of three repressions, each gene repressing the next:</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/10C/repressilator.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:28.0%"></p>
+</figure>
+</div>
+<p><span class="math display">\[ X(t+1) = \neg Z(t), \qquad Y(t+1) = \neg X(t), \qquad Z(t+1) = \neg Y(t) \]</span></p>
+<p>Its continuous version oscillates on a limit cycle <span class="citation" data-cites="elowitz2000repressilator">(<a href="../references.html#ref-elowitz2000repressilator" role="doc-biblioref">Elowitz and Leibler 2000</a>)</span>; the Boolean version has the same three-gene ring topology, reduced to on/off states.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 10C.6.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 10C.6.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Find the attractors of a Boolean repressilator.</p>
+<p><strong>Model.</strong> A Boolean repressilator, a ring of three repressions, <code>X(t+1) = NOT Z(t)</code>, <code>Y(t+1) = NOT X(t)</code>, <code>Z(t+1) = NOT Y(t)</code>.</p>
+<p><strong>Method.</strong> Boolean attractor enumeration (from 10C.4) over all eight states.</p>
+<p><strong>Test.</strong> The repressilator update rule on <code>n = 3</code> genes.</p>
+<p><strong>Show.</strong> The repressilator’s attractors printed as arrow chains.</p>
+<p><strong>Verification.</strong> It finds no fixed points, only two cyclic attractors: <code>000 -&gt; 111 -&gt; 000</code> and a six-state cycle, the discrete analog of the continuous limit cycle.</p>
+</div>
+</div>
+<section id="r-implementation-5" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-5">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># repressilator: a ring of three repressions, X -| Y -| Z -| X</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>repressilator <span class="ot">&lt;-</span> <span class="cf">function</span>(s) <span class="fu">c</span>(<span class="dv">1</span> <span class="sc">-</span> s[<span class="dv">3</span>], <span class="dv">1</span> <span class="sc">-</span> s[<span class="dv">1</span>], <span class="dv">1</span> <span class="sc">-</span> s[<span class="dv">2</span>])</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">show_att</span>(<span class="fu">boolean_attractors</span>(repressilator, <span class="dv">3</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                   000|111 
+                            "{000 -&gt; 111}" 
+                   001|010|011|100|101|110 
+"{100 -&gt; 101 -&gt; 001 -&gt; 011 -&gt; 010 -&gt; 110}" </code></pre>
+</div>
+</div>
+</section>
+<section id="python-implementation-5" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-5">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># repressilator: a ring of three repressions, X -| Y -| Z -| X</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>repressilator <span class="op">=</span> <span class="kw">lambda</span> s: [<span class="dv">1</span> <span class="op">-</span> s[<span class="dv">2</span>], <span class="dv">1</span> <span class="op">-</span> s[<span class="dv">0</span>], <span class="dv">1</span> <span class="op">-</span> s[<span class="dv">1</span>]]</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(show_att(boolean_attractors(repressilator, <span class="dv">3</span>)))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[' {111 -&gt; 000}', ' {110 -&gt; 100 -&gt; 101 -&gt; 001 -&gt; 011 -&gt; 010}']</code></pre>
+</div>
+</div>
+<p>The Boolean repressilator has no fixed points, only two cyclic attractors:</p>
+<ul>
+<li><code>000 -&gt; 111 -&gt; 000</code>, a short two-state oscillation</li>
+<li><code>100 -&gt; 101 -&gt; 001 -&gt; 011 -&gt; 010 -&gt; 110 -&gt; 100</code>, a six-state cycle, the discrete analog of the continuous limit cycle</li>
+</ul>
+<p>Despite their extreme simplicity, Boolean networks reproduce the qualitative dynamics of real regulatory circuits: Li et al.&nbsp;showed that the Boolean network of the yeast cell cycle has a single dominant attractor corresponding to the biological cell-cycle sequence <span class="citation" data-cites="li2004yeast">(<a href="../references.html#ref-li2004yeast" role="doc-biblioref">Li et al. 2004</a>)</span>, evidence that the network’s wiring, not finely tuned parameters, sets its behavior.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-barabasi1999emergence" class="csl-entry" role="listitem">
+Barabási, Albert-László, and Réka Albert. 1999. <span>“Emergence of Scaling in Random Networks.”</span> <em>Science</em> 286 (5439): 509–12. <a href="https://doi.org/10.1126/science.286.5439.509">https://doi.org/10.1126/science.286.5439.509</a>.
+</div>
+<div id="ref-barabasi2004network" class="csl-entry" role="listitem">
+Barabási, Albert-László, and Zoltán N. Oltvai. 2004. <span>“Network Biology: Understanding the Cell’s Functional Organization.”</span> <em>Nature Reviews Genetics</em> 5 (2): 101–13. <a href="https://doi.org/10.1038/nrg1272">https://doi.org/10.1038/nrg1272</a>.
+</div>
+<div id="ref-blondel2008fast" class="csl-entry" role="listitem">
+Blondel, Vincent D., Jean-Loup Guillaume, Renaud Lambiotte, and Etienne Lefebvre. 2008. <span>“Fast Unfolding of Communities in Large Networks.”</span> <em>Journal of Statistical Mechanics: Theory and Experiment</em> 2008 (10): P10008. <a href="https://doi.org/10.1088/1742-5468/2008/10/P10008">https://doi.org/10.1088/1742-5468/2008/10/P10008</a>.
+</div>
+<div id="ref-elowitz2000repressilator" class="csl-entry" role="listitem">
+Elowitz, Michael B., and Stanislas Leibler. 2000. <span>“A Synthetic Oscillatory Network of Transcriptional Regulators.”</span> <em>Nature</em> 403 (6767): 335–38. <a href="https://doi.org/10.1038/35002125">https://doi.org/10.1038/35002125</a>.
+</div>
+<div id="ref-erdos1959random" class="csl-entry" role="listitem">
+Erdős, Paul, and Alfréd Rényi. 1959. <span>“On Random Graphs i.”</span> <em>Publicationes Mathematicae Debrecen</em> 6: 290–97.
+</div>
+<div id="ref-freeman1977set" class="csl-entry" role="listitem">
+Freeman, Linton C. 1977. <span>“A Set of Measures of Centrality Based on Betweenness.”</span> <em>Sociometry</em> 40 (1): 35–41. <a href="https://doi.org/10.2307/3033543">https://doi.org/10.2307/3033543</a>.
+</div>
+<div id="ref-kamada1989algorithm" class="csl-entry" role="listitem">
+Kamada, Tomihisa, and Satoru Kawai. 1989. <span>“An Algorithm for Drawing General Undirected Graphs.”</span> <em>Information Processing Letters</em> 31 (1): 7–15. <a href="https://doi.org/10.1016/0020-0190(89)90102-6">https://doi.org/10.1016/0020-0190(89)90102-6</a>.
+</div>
+<div id="ref-kauffman1969metabolic" class="csl-entry" role="listitem">
+Kauffman, Stuart A. 1969. <span>“Metabolic Stability and Epigenesis in Randomly Constructed Genetic Nets.”</span> <em>Journal of Theoretical Biology</em> 22 (3): 437–67. <a href="https://doi.org/10.1016/0022-5193(69)90015-0">https://doi.org/10.1016/0022-5193(69)90015-0</a>.
+</div>
+<div id="ref-li2004yeast" class="csl-entry" role="listitem">
+Li, Fangting, Tao Long, Ying Lu, Qi Ouyang, and Chao Tang. 2004. <span>“The Yeast Cell-Cycle Network Is Robustly Designed.”</span> <em>Proceedings of the National Academy of Sciences</em> 101 (14): 4781–86. <a href="https://doi.org/10.1073/pnas.0305937101">https://doi.org/10.1073/pnas.0305937101</a>.
+</div>
+<div id="ref-newman2006modularity" class="csl-entry" role="listitem">
+Newman, Mark E. J. 2006. <span>“Modularity and Community Structure in Networks.”</span> <em>Proceedings of the National Academy of Sciences</em> 103 (23): 8577–82. <a href="https://doi.org/10.1073/pnas.0601602103">https://doi.org/10.1073/pnas.0601602103</a>.
+</div>
+<div id="ref-watts1998collective" class="csl-entry" role="listitem">
+Watts, Duncan J., and Steven H. Strogatz. 1998. <span>“Collective Dynamics of <span>‘Small-World’</span> Networks.”</span> <em>Nature</em> 393 (6684): 440–42. <a href="https://doi.org/10.1038/30918">https://doi.org/10.1038/30918</a>.
+</div>
+<div id="ref-zachary1977information" class="csl-entry" role="listitem">
+Zachary, Wayne W. 1977. <span>“An Information Flow Model for Conflict and Fission in Small Groups.”</span> <em>Journal of Anthropological Research</em> 33 (4): 452–73. <a href="https://doi.org/10.1086/jar.33.4.3629752">https://doi.org/10.1086/jar.33.4.3629752</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../10-high-dim-data/10b-clustering.html" class="pagination-link" aria-label="10B. Clustering">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">10B. Clustering</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../10-high-dim-data/10d-exercises.html" class="pagination-link" aria-label="10D. Exercises">
+        <span class="nav-page-text"><span class="chapter-title">10D. Exercises</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

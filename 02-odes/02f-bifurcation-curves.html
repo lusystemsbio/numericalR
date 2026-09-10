@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Mingyang Lu">
+
+<title>2F. Bifurcation: finding curves – Numerical ReciPy</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../02-odes/02g-exercises.html" rel="next">
+<link href="../02-odes/02e-bifurcation.html" rel="prev">
+<link href="../assets/favicon.svg" rel="icon" type="image/svg+xml">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-5ccb035bea26c1e21f80f44cf7c27909.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02-odes/02a-modeling-gene-circuits.html">Part 2: Ordinary differential equations</a></li><li class="breadcrumb-item"><a href="../02-odes/02f-bifurcation-curves.html"><span class="chapter-title">2F. Bifurcation: finding curves</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo light-content py-0 d-lg-inline d-none">
+      <img src="../assets/logo.svg" alt="" class="sidebar-logo dark-content py-0 d-lg-inline d-none">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Numerical ReciPy</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 1: Introduction to numerical methods</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01a-getting-started.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1A. Getting started with R and Python</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01b-efficient-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1B. Efficient programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01c-numerical-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1C. Numerical methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../01-intro/01d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">Part 2: Ordinary differential equations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02a-modeling-gene-circuits.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2A. Modeling gene circuits with rate equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02b-numerical-integration.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2B. Numerical integration</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02c-bacterial-growth.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2C. Modeling bacterial growth</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02d-effective-potential.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2D. Stability and effective potential</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02e-bifurcation.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02f-bifurcation-curves.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">2F. Bifurcation: finding curves</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../02-odes/02g-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2G. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 3: Phase plane</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03a-nullclines.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3A. Nullclines</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03b-steady-states-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3B. Steady states in 2D</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03c-chemostat.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3C. Modeling a chemostat</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03d-predator-prey.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3D. Modeling predator-prey dynamics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03e-bifurcation-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3E. Bifurcation for two-variable systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03f-separatrix.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3F. Separatrix</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03g-effective-potential-2d.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3G. Effective potential revisited</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03h-multi-component.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3H. Multi-component systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../03-phase-plane/03i-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3I. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 4: Systems with time delays</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04a-delayed-differential-equations.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4A. Delayed differential equations</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04b-modeling-time-delays.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4B. Modeling systems with time delays</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04c-indirect-interactions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4C. Delays from indirect interactions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../04-time-delays/04d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 5: Molecular dynamics</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05a-second-order-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5A. Integrators for second-order ODEs</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05b-orbital-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5B. Orbital motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05c-box-of-particles.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5C. Modeling a box of particles</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../05-molecular-dynamics/05d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 6: Stochastic differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06a-random-number-generators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6A. Random number generators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06b-brownian-motion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6B. Brownian motion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06c-sde-integrators.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6C. SDE integrators</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06d-stochastic-transitions.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6D. Stochastic state transitions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../06-stochastic/06e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 7: Partial differential equations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07a-modeling-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7A. Modeling diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07b-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7B. Reaction-diffusion systems</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07c-turing-instability.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7C. Turing instability</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07d-pattern-formation-dictyostelium.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7D. Pattern formation in Dictyostelium</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07e-2d-reaction-diffusion.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7E. Two-dimensional reaction-diffusion</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../07-pde/07f-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7F. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 8: Monte Carlo simulations</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08a-monte-carlo-methods.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8A. Monte Carlo methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08b-metropolis-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8B. Metropolis algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08c-particles-in-a-box.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8C. Particles in a box: MCMC sampling</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08d-gillespie-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8D. Gillespie algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../08-monte-carlo/08e-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8E. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 9: Global optimization</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09a-mcmc-optimization.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9A. MCMC optimization methods</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09b-dynamic-programming.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9B. Dynamic programming</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09c-genetic-algorithm.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9C. Genetic algorithm</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../09-optimization/09d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false">
+ <span class="menu-text">Part 10: High-dimensional data analysis</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10a-dimensionality-reduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10A. Dimensionality reduction</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10b-clustering.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10B. Clustering</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10c-network-algorithms.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10C. Network algorithms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../10-high-dim-data/10d-exercises.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10D. Exercises</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Appendices</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth1 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-method-reference.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 1. Method reference</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-library-map.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 2. R and Python libraries</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../appendix-recipe-index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">Appendix 3. Recipe index</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul class="collapse">
+  <li><a href="#f.1-the-model-derivative" id="toc-f.1-the-model-derivative" class="nav-link active" data-scroll-target="#f.1-the-model-derivative">2F.1 The model derivative</a></li>
+  <li><a href="#f.2-contour-method" id="toc-f.2-contour-method" class="nav-link" data-scroll-target="#f.2-contour-method">2F.2 Contour method</a></li>
+  <li><a href="#f.3-bilinear-interpolation" id="toc-f.3-bilinear-interpolation" class="nav-link" data-scroll-target="#f.3-bilinear-interpolation">2F.3 Bilinear interpolation</a></li>
+  <li><a href="#f.4-bicubic-interpolation" id="toc-f.4-bicubic-interpolation" class="nav-link" data-scroll-target="#f.4-bicubic-interpolation">2F.4 Bicubic interpolation</a></li>
+  <li><a href="#f.5-numerical-continuation" id="toc-f.5-numerical-continuation" class="nav-link" data-scroll-target="#f.5-numerical-continuation">2F.5 Numerical continuation</a></li>
+  <li><a href="#f.6-arc-length-continuation" id="toc-f.6-arc-length-continuation" class="nav-link" data-scroll-target="#f.6-arc-length-continuation">2F.6 Arc-length continuation</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../02-odes/02a-modeling-gene-circuits.html">Part 2: Ordinary differential equations</a></li><li class="breadcrumb-item"><a href="../02-odes/02f-bifurcation-curves.html"><span class="chapter-title">2F. Bifurcation: finding curves</span></a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-title">2F. Bifurcation: finding curves</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Mingyang Lu </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In <a href="../02-odes/02e-bifurcation.html">Part 2E</a> we built the bifurcation diagram by <em>sampling</em>: at each value of <span class="math inline">\(k\)</span> we located the steady states (the roots of <span class="math inline">\(f(X, k) = 0\)</span>, or the states an ODE relaxes onto), producing a cloud of points that we then connected into a curve. That works, but it treats the diagram as a set of independent points and depends on a post-hoc reordering step to make a curve out of them.</p>
+<p>This chapter takes the complementary view: the bifurcation set <span class="math inline">\(\{(k, X) : f(X, k) = 0\}\)</span> is a <em>curve</em> in the <span class="math inline">\((k, X)\)</span> plane, and we trace it directly. Two families of methods do this. The <strong>contour method</strong> treats <span class="math inline">\(f(k, X)\)</span> as a surface and extracts its zero-level contour, interpolating within a grid to place the curve accurately. <strong>Numerical continuation</strong> starts from one point on the curve and walks along it with a predictor–corrector step. These are the general-purpose tools of bifurcation analysis, and they return the curve already ordered.</p>
+<section id="f.1-the-model-derivative" class="level2">
+<h2 class="anchored" data-anchor-id="f.1-the-model-derivative">2F.1 The model derivative</h2>
+<p>We use the same self-activating-gene model as in <a href="../02-odes/02e-bifurcation.html">Part 2E</a>,</p>
+<p><span class="math display">\[\begin{equation}
+\frac{dX}{dt} = f(X, k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX . \tag{1}
+\end{equation}\]</span></p>
+<p>Every method below evaluates <span class="math inline">\(f(X, k)\)</span>, so we define it once in each language. Because each chapter renders as an independent session, this repeats the <code>derivs_k</code> used in <a href="../02-odes/02e-bifurcation.html">Part 2E</a> rather than relying on it.</p>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>derivs_k <span class="ot">&lt;-</span> <span class="cf">function</span>(X, k) <span class="dv">10</span> <span class="sc">+</span> <span class="dv">45</span> <span class="sc">*</span> X<span class="sc">^</span><span class="dv">4</span> <span class="sc">/</span> (X<span class="sc">^</span><span class="dv">4</span> <span class="sc">+</span> <span class="dv">200</span><span class="sc">^</span><span class="dv">4</span>) <span class="sc">-</span> k <span class="sc">*</span> X</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> derivs_k(X, k):</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">10</span> <span class="op">+</span> <span class="dv">45</span> <span class="op">*</span> X<span class="op">**</span><span class="dv">4</span> <span class="op">/</span> (X<span class="op">**</span><span class="dv">4</span> <span class="op">+</span> <span class="dv">200</span><span class="op">**</span><span class="dv">4</span>) <span class="op">-</span> k <span class="op">*</span> X</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="f.2-contour-method" class="level2">
+<h2 class="anchored" data-anchor-id="f.2-contour-method">2F.2 Contour method</h2>
+<p>Write <span class="math inline">\(z = f(k, X)\)</span>, a surface over the <span class="math inline">\((k, X)\)</span> plane. The steady states are exactly the points where this surface crosses zero, so the bifurcation curve is the <strong>zero-level contour</strong> of <span class="math inline">\(z\)</span>. Standard contour algorithms take <span class="math inline">\(f\)</span> on a grid of <span class="math inline">\((k, X)\)</span> and trace the level set <span class="math inline">\(z = 0\)</span>; both R’s <code>contour()</code> and Matplotlib’s <code>contour()</code> do this. The method is powerful and stable, and, unlike the sampling methods of <a href="../02-odes/02e-bifurcation.html">Part 2E</a>, it returns the curve as connected, ordered line segments rather than a point cloud. Its one weakness is that it can miss a branch if the solution set is not connected. Here <span class="math inline">\(f(X, k) = 0\)</span> is a single connected S-shaped curve, so one contour captures all of it.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2F.2.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2F.2.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Trace the bifurcation curve as a connected, ordered set of steady states.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> Treat <code>z = f(k, X)</code> as a surface over the (k, X) plane and take its zero-level contour on a grid.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code>, evaluated over a grid of (k, X).</p>
+<p><strong>Show.</strong> A plot of the zero contour of f(k, X) in the (k, X) plane (the bifurcation curve).</p>
+<p><strong>Verification.</strong> The zero contour is the same S-shaped curve as in Part 2E, returned as connected line segments rather than a point cloud; one contour captures the whole connected curve.</p>
+</div>
+</div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># evaluate f on a grid of (k, X), then draw its zero-level contour</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>X_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">600</span>, <span class="at">by =</span> <span class="dv">5</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">outer</span>(k_all, X_all, <span class="cf">function</span>(k, X) <span class="fu">derivs_k</span>(X, k))   <span class="co"># z[i, j] = f(X_all[j], k_all[i])</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">contour</span>(k_all, X_all, z, <span class="at">levels =</span> <span class="dv">0</span>, <span class="at">col =</span> <span class="dv">2</span>, <span class="at">drawlabels =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">xlab =</span> <span class="st">"k"</span>, <span class="at">ylab =</span> <span class="st">"X"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># evaluate f on a grid of (k, X), then draw its zero-level contour</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> np.arange(<span class="fl">0.1</span>, <span class="fl">0.2</span> <span class="op">+</span> <span class="fl">0.001</span>, <span class="fl">0.001</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> np.arange(<span class="dv">0</span>, <span class="dv">600</span> <span class="op">+</span> <span class="dv">5</span>, <span class="dv">5</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>K, Xg <span class="op">=</span> np.meshgrid(k_all, X_all)          <span class="co"># grid of k and X</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> derivs_k(Xg, K)                         <span class="co"># f(X, k) at every grid point</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>plt.contour(k_all, X_all, z, levels<span class="op">=</span>[<span class="dv">0</span>], colors<span class="op">=</span><span class="st">"red"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"k"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"X"</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The contour traces the whole S-curve as connected segments, already ordered by the algorithm, with no separate reordering step. This ordered output is the main practical advantage over the point-sampling methods, and it is what the interpolation and continuation methods below build on.</p>
+</section>
+</section>
+<section id="f.3-bilinear-interpolation" class="level2">
+<h2 class="anchored" data-anchor-id="f.3-bilinear-interpolation">2F.3 Bilinear interpolation</h2>
+<p>The built-in contour routines are black boxes. To see how contour extraction works, we build a simple one from <strong>bilinear interpolation</strong>, the two-dimensional analogue of linear interpolation. Inside a grid square with corners <span class="math inline">\((x_1, y_1), (x_2, y_1), (x_1, y_2), (x_2, y_2)\)</span> and corner values <span class="math inline">\(f_{ij} = f(x_i, y_j)\)</span>, a solution of <span class="math inline">\(f(x, y) = 0\)</span> exists whenever the four corners are not all the same sign. We first interpolate linearly in <span class="math inline">\(x\)</span> along the bottom and top edges,</p>
+<p><span class="math display">\[\begin{equation}
+\begin{cases}
+f(x, y_1) = \dfrac{x_2 - x}{x_2 - x_1} f_{11} + \dfrac{x - x_1}{x_2 - x_1} f_{21} \\[2mm]
+f(x, y_2) = \dfrac{x_2 - x}{x_2 - x_1} f_{12} + \dfrac{x - x_1}{x_2 - x_1} f_{22}
+\end{cases} \tag{2}
+\end{equation}\]</span></p>
+<p>and then interpolate those linearly in <span class="math inline">\(y\)</span>, giving the full bilinear surface</p>
+<p><span class="math display">\[
+\begin{aligned}
+f(x, y) = {} &amp; \frac{1}{(x_2 - x_1)(y_2 - y_1)}
+\begin{pmatrix} x_2 - x &amp; x - x_1 \end{pmatrix} \\
+&amp; \times \begin{pmatrix} f_{11} &amp; f_{12} \\ f_{21} &amp; f_{22} \end{pmatrix}
+\begin{pmatrix} y_2 - y \\ y - y_1 \end{pmatrix} .
+\end{aligned}
+\]</span></p>
+<p>Setting <span class="math inline">\(f(x, y) = 0\)</span> and solving for <span class="math inline">\(y\)</span> gives</p>
+<p><span class="math display">\[\begin{equation}
+y = \frac{f(x, y_1)\, y_2 - f(x, y_2)\, y_1}{f(x, y_1) - f(x, y_2)} , \tag{3}
+\end{equation}\]</span></p>
+<p>which has the same form as the false-position step of <a href="../02-odes/02e-bifurcation.html">Part 2E</a>. To trace the contour we visit every grid square whose corners differ in sign, sample <span class="math inline">\(x\)</span> across it, and read off the matching <span class="math inline">\(y\)</span> from Equations (2) and (3), keeping only points that land inside the square.</p>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bilinear contour in one grid square: sample x, solve f = 0 for y (Eqs 2-3)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># returns flattened x,y pairs where the z = 0 curve crosses the square, or NULL</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>contour_segment_bilinear <span class="ot">&lt;-</span> <span class="cf">function</span>(x_all, y_all, z, ind_x, ind_y, <span class="at">npoints =</span> <span class="dv">20</span>) {</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  f11 <span class="ot">&lt;-</span> z[ind_x, ind_y];     f21 <span class="ot">&lt;-</span> z[ind_x <span class="sc">+</span> <span class="dv">1</span>, ind_y]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  f12 <span class="ot">&lt;-</span> z[ind_x, ind_y <span class="sc">+</span> <span class="dv">1</span>]; f22 <span class="ot">&lt;-</span> z[ind_x <span class="sc">+</span> <span class="dv">1</span>, ind_y <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(<span class="fu">unique</span>(<span class="fu">sign</span>(<span class="fu">c</span>(f11, f21, f12, f22)))) <span class="sc">==</span> <span class="dv">1</span>) <span class="fu">return</span>(<span class="cn">NULL</span>)  <span class="co"># all same sign: no crossing</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  x1 <span class="ot">&lt;-</span> x_all[ind_x]; x2 <span class="ot">&lt;-</span> x_all[ind_x <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  y1 <span class="ot">&lt;-</span> y_all[ind_y]; y2 <span class="ot">&lt;-</span> y_all[ind_y <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  x_points <span class="ot">&lt;-</span> <span class="fu">seq</span>(x1, x2, <span class="at">length.out =</span> npoints)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  f_x_y1 <span class="ot">&lt;-</span> ((x2 <span class="sc">-</span> x_points) <span class="sc">*</span> f11 <span class="sc">+</span> (x_points <span class="sc">-</span> x1) <span class="sc">*</span> f21) <span class="sc">/</span> (x2 <span class="sc">-</span> x1)   <span class="co"># Eq (2)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  f_x_y2 <span class="ot">&lt;-</span> ((x2 <span class="sc">-</span> x_points) <span class="sc">*</span> f12 <span class="sc">+</span> (x_points <span class="sc">-</span> x1) <span class="sc">*</span> f22) <span class="sc">/</span> (x2 <span class="sc">-</span> x1)   <span class="co"># Eq (2)</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  y_points <span class="ot">&lt;-</span> (f_x_y1 <span class="sc">*</span> y2 <span class="sc">-</span> f_x_y2 <span class="sc">*</span> y1) <span class="sc">/</span> (f_x_y1 <span class="sc">-</span> f_x_y2)             <span class="co"># Eq (3)</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  keep <span class="ot">&lt;-</span> <span class="fu">which</span>((y_points <span class="sc">-</span> y1) <span class="sc">*</span> (y2 <span class="sc">-</span> y_points) <span class="sc">&gt;</span> <span class="dv">0</span>)   <span class="co"># keep y inside (y1, y2)</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(keep) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="fu">t</span>(<span class="fu">cbind</span>(x_points[keep], y_points[keep])))</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># build f on the grid, then extract the zero contour square by square</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>X_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">600</span>, <span class="at">by =</span> <span class="dv">5</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">outer</span>(k_all, X_all, <span class="cf">function</span>(k, X) <span class="fu">derivs_k</span>(X, k))   <span class="co"># z[i, j] = f(X_all[j], k_all[i])</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>segments <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">length</span>(k_all) <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">length</span>(X_all) <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    seg <span class="ot">&lt;-</span> <span class="fu">contour_segment_bilinear</span>(k_all, X_all, z, i, j)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">length</span>(seg) <span class="sc">&gt;</span> <span class="dv">0</span>) segments[[<span class="fu">length</span>(segments) <span class="sc">+</span> <span class="dv">1</span>]] <span class="ot">&lt;-</span> seg</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>null_contour <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">unlist</span>(segments), <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(null_contour[, <span class="dv">1</span>], null_contour[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">20</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> <span class="dv">2</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># bilinear contour in one grid square: sample x, solve f = 0 for y (Eqs 2-3)</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># returns x,y pairs where the z = 0 curve crosses the square, or None</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> contour_segment_bilinear(x_all, y_all, z, ind_x, ind_y, npoints<span class="op">=</span><span class="dv">20</span>):</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    f11 <span class="op">=</span> z[ind_x, ind_y]<span class="op">;</span>     f21 <span class="op">=</span> z[ind_x <span class="op">+</span> <span class="dv">1</span>, ind_y]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    f12 <span class="op">=</span> z[ind_x, ind_y <span class="op">+</span> <span class="dv">1</span>]<span class="op">;</span> f22 <span class="op">=</span> z[ind_x <span class="op">+</span> <span class="dv">1</span>, ind_y <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(np.unique(np.sign([f11, f21, f12, f22]))) <span class="op">==</span> <span class="dv">1</span>:   <span class="co"># all same sign: no crossing</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">None</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    x1, x2 <span class="op">=</span> x_all[ind_x], x_all[ind_x <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    y1, y2 <span class="op">=</span> y_all[ind_y], y_all[ind_y <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    x_points <span class="op">=</span> np.linspace(x1, x2, npoints)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    f_x_y1 <span class="op">=</span> ((x2 <span class="op">-</span> x_points) <span class="op">*</span> f11 <span class="op">+</span> (x_points <span class="op">-</span> x1) <span class="op">*</span> f21) <span class="op">/</span> (x2 <span class="op">-</span> x1)   <span class="co"># Eq (2)</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    f_x_y2 <span class="op">=</span> ((x2 <span class="op">-</span> x_points) <span class="op">*</span> f12 <span class="op">+</span> (x_points <span class="op">-</span> x1) <span class="op">*</span> f22) <span class="op">/</span> (x2 <span class="op">-</span> x1)   <span class="co"># Eq (2)</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    y_points <span class="op">=</span> (f_x_y1 <span class="op">*</span> y2 <span class="op">-</span> f_x_y2 <span class="op">*</span> y1) <span class="op">/</span> (f_x_y1 <span class="op">-</span> f_x_y2)             <span class="co"># Eq (3)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    keep <span class="op">=</span> (y_points <span class="op">-</span> y1) <span class="op">*</span> (y2 <span class="op">-</span> y_points) <span class="op">&gt;</span> <span class="dv">0</span>                          <span class="co"># keep y inside (y1, y2)</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    pts <span class="op">=</span> np.column_stack((x_points[keep], y_points[keep]))</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pts <span class="cf">if</span> pts.size <span class="cf">else</span> <span class="va">None</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># build f on the grid, then extract the zero contour square by square</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>k_all <span class="op">=</span> np.arange(<span class="fl">0.1</span>, <span class="fl">0.2</span> <span class="op">+</span> <span class="fl">0.001</span>, <span class="fl">0.001</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>X_all <span class="op">=</span> np.arange(<span class="dv">0</span>, <span class="dv">600</span> <span class="op">+</span> <span class="dv">5</span>, <span class="dv">5</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>K, Xg <span class="op">=</span> np.meshgrid(k_all, X_all, indexing<span class="op">=</span><span class="st">"ij"</span>)   <span class="co"># z[i, j] = f(X_all[j], k_all[i])</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>z <span class="op">=</span> derivs_k(Xg, K)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>segments <span class="op">=</span> []</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(k_all) <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(X_all) <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        seg <span class="op">=</span> contour_segment_bilinear(k_all, X_all, z, i, j)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> seg <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>            segments.append(seg)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>null_contour <span class="op">=</span> np.vstack(segments)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>plt.scatter(null_contour[:, <span class="dv">0</span>], null_contour[:, <span class="dv">1</span>], color<span class="op">=</span><span class="st">"red"</span>, s<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The hand-built extractor recovers the same S-curve as the library contour routine. Bilinear interpolation is cheap and widely used (in image processing, for instance), but it treats <span class="math inline">\(f\)</span> as flat-sided within each square, so a coarse grid shows visible facets. A smoother fit needs a higher-order scheme.</p>
+</section>
+</section>
+<section id="f.4-bicubic-interpolation" class="level2">
+<h2 class="anchored" data-anchor-id="f.4-bicubic-interpolation">2F.4 Bicubic interpolation</h2>
+<p><strong>Bicubic interpolation</strong> is that higher-order scheme. Instead of a flat-sided fit, it models <span class="math inline">\(f\)</span> within each grid square as a bicubic polynomial</p>
+<p><span class="math display">\[ f(x, y) = \sum_{i=0}^{3} \sum_{j=0}^{3} a_{ij}\, x^i y^j , \]</span></p>
+<p>whose 16 coefficients <span class="math inline">\(a_{ij}\)</span> are fixed by 16 conditions at the four corners: the four function values, the eight first derivatives (<span class="math inline">\(\partial f / \partial x\)</span> and <span class="math inline">\(\partial f / \partial y\)</span>), and the four mixed derivatives <span class="math inline">\(\partial^2 f / \partial x\, \partial y\)</span>. The fit is then continuous in both value and slope across square boundaries, so the extracted contour comes out smooth rather than faceted. We do not implement it here; the construction is detailed in the “Higher Order for Smoothness: Bicubic Interpolation” section of <em>Numerical Recipes</em> <span class="citation" data-cites="press2007numerical">(<a href="../references.html#ref-press2007numerical" role="doc-biblioref">Press et al. 2007</a>)</span>.</p>
+</section>
+<section id="f.5-numerical-continuation" class="level2">
+<h2 class="anchored" data-anchor-id="f.5-numerical-continuation">2F.5 Numerical continuation</h2>
+<p>The most general method, and the one used by professional bifurcation software, is <strong>numerical continuation</strong> <span class="citation" data-cites="allgower1990continuation">(<a href="../references.html#ref-allgower1990continuation" role="doc-biblioref">Allgower and Georg 1990</a>)</span>. We want <span class="math inline">\(X(k)\)</span> satisfying <span class="math inline">\(f(X, k) = 0\)</span> across a range of <span class="math inline">\(k\)</span>. Differentiating that constraint implicitly, <span class="math inline">\(\frac{\partial f}{\partial X}\,dX + \frac{\partial f}{\partial k}\,dk = 0\)</span>, gives the slope of the bifurcation curve,</p>
+<p><span class="math display">\[\begin{equation}
+\frac{dX}{dk} \equiv h(X, k) = -\frac{\partial f / \partial k}{\partial f / \partial X} . \tag{4}
+\end{equation}\]</span></p>
+<p>Continuation then alternates a <strong>predictor</strong> and a <strong>corrector</strong>. From a known point <span class="math inline">\((k, X)\)</span> on the curve, the predictor steps along the tangent,</p>
+<p><span class="math display">\[\begin{equation}
+\begin{cases}
+k_{new} = k + \Delta k \\
+X_{new} = X + \dfrac{dX}{dk}\,\Delta k
+\end{cases} \tag{5}
+\end{equation}\]</span></p>
+<p>and the corrector pulls that guess back onto the curve. We correct with <strong>Newton’s method</strong>: to solve <span class="math inline">\(f(X) = 0\)</span> from a guess <span class="math inline">\(X_0\)</span>, linearize <span class="math inline">\(f(X_0 + \Delta X) \approx f(X_0) + f'(X_0)\,\Delta X = 0\)</span>, giving</p>
+<p><span class="math display">\[\begin{equation}
+\Delta X = -\frac{f(X_0)}{f'(X_0)} , \qquad
+X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} , \tag{6}
+\end{equation}\]</span></p>
+<p>iterated until <span class="math inline">\(|f| &lt; \epsilon\)</span>. Unlike bisection, Newton is not bracketed: it converges to whichever root is nearest the guess, so the initial value decides which branch we land on. For our <span class="math inline">\(f\)</span> the derivatives it needs are <span class="math inline">\(\frac{\partial f}{\partial X} = \frac{180}{X}\frac{(X/200)^4}{(1 + (X/200)^4)^2} - k\)</span> and <span class="math inline">\(\frac{\partial f}{\partial k} = -X\)</span>.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2F.5.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2F.5.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Follow the bifurcation curve <code>X(k)</code> with a predictor-corrector method.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> Numerical continuation: from a known point on <code>f(X, k) = 0</code>, predict along the tangent <code>dX/dk = -(df/dk) / (df/dX)</code>, then correct back onto the curve with a root solve at the new k.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code>, continued across a range of k.</p>
+<p><strong>Show.</strong> A plot of the continued branch X(k), showing where it stalls at the fold.</p>
+<p><strong>Verification.</strong> It follows a branch accurately away from folds but stalls at a fold, where <code>dX/dk</code> diverges because k is multivalued there.</p>
+</div>
+</div>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Newton's method: solve f(X) = 0 from a guess; stop if X leaves X_range (Eq. 6)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>dfdX <span class="ot">&lt;-</span> <span class="cf">function</span>(X, k) <span class="dv">180</span> <span class="sc">/</span> X <span class="sc">*</span> (X<span class="sc">/</span><span class="dv">200</span>)<span class="sc">^</span><span class="dv">4</span> <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> (X<span class="sc">/</span><span class="dv">200</span>)<span class="sc">^</span><span class="dv">4</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> k   <span class="co"># df/dX</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>find_root_Newton <span class="ot">&lt;-</span> <span class="cf">function</span>(X, func, dfunc, X_range, <span class="at">error =</span> <span class="fl">1e-3</span>, ...) {</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">func</span>(X, ...)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">while</span> (<span class="fu">abs</span>(f) <span class="sc">&gt;</span> error) {</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    X <span class="ot">&lt;-</span> X <span class="sc">-</span> f <span class="sc">/</span> <span class="fu">dfunc</span>(X, ...)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ((X <span class="sc">-</span> X_range[<span class="dv">1</span>]) <span class="sc">*</span> (X <span class="sc">-</span> X_range[<span class="dv">2</span>]) <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="cf">break</span>   <span class="co"># left the range: not converging</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    f <span class="ot">&lt;-</span> <span class="fu">func</span>(X, ...)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  X</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># from different guesses at k = 0.15, Newton finds different roots</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="dv">500</span>, <span class="fl">0.1</span>), <span class="fu">c</span>(<span class="dv">500</span>, <span class="fl">0.15</span>), <span class="fu">c</span>(<span class="dv">100</span>, <span class="fl">0.15</span>), <span class="fu">c</span>(<span class="dv">150</span>, <span class="fl">0.15</span>))) {</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  root <span class="ot">&lt;-</span> <span class="fu">find_root_Newton</span>(g[<span class="dv">1</span>], derivs_k, dfdX, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>), <span class="at">k =</span> g[<span class="dv">2</span>])</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"guess %3d, k = %.2f: root = %.1f</span><span class="sc">\n</span><span class="st">"</span>, g[<span class="dv">1</span>], g[<span class="dv">2</span>], root))</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>guess 500, k = 0.10: root = 541.8
+guess 500, k = 0.15: root = 331.6
+guess 100, k = 0.15: root = 71.5
+guess 150, k = 0.15: root = 170.7</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># march along the curve: tangent predictor (Eq. 5) + Newton corrector, stepping in k</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>dfdk <span class="ot">&lt;-</span> <span class="cf">function</span>(X, k) <span class="sc">-</span>X   <span class="co"># df/dk</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>k_range <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>); dk <span class="ot">&lt;-</span> <span class="fl">0.001</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">nrow =</span> (k_range[<span class="dv">2</span>] <span class="sc">-</span> k_range[<span class="dv">1</span>]) <span class="sc">/</span> dk <span class="sc">+</span> <span class="dv">1</span>, <span class="at">ncol =</span> <span class="dv">3</span>)  <span class="co"># k, X, stability</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>X_new <span class="ot">&lt;-</span> <span class="fu">find_root_Newton</span>(<span class="dv">500</span>, derivs_k, dfdX, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>), <span class="at">k =</span> k)   <span class="co"># start on the high branch</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>cycle <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>results[cycle, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, X_new, <span class="cf">if</span> (<span class="fu">dfdX</span>(X_new, k) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (k <span class="sc">&lt;</span> k_range[<span class="dv">2</span>]) {</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  slope <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">dfdk</span>(X_new, k) <span class="sc">/</span> <span class="fu">dfdX</span>(X_new, k)   <span class="co"># dX/dk from Equation (4); blows up at a fold</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> k <span class="sc">+</span> dk</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>  X_init <span class="ot">&lt;-</span> X_new <span class="sc">+</span> dk <span class="sc">*</span> slope                <span class="co"># predictor, Equation (5)</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  X_new <span class="ot">&lt;-</span> <span class="fu">find_root_Newton</span>(X_init, derivs_k, dfdX, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>), <span class="at">k =</span> k)   <span class="co"># Newton correction</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  cycle <span class="ot">&lt;-</span> cycle <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  results[cycle, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, X_new, <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(X_new) <span class="sc">&amp;&amp;</span> <span class="fu">dfdX</span>(X_new, k) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> results[<span class="dv">1</span><span class="sc">:</span>cycle, ]</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> results[, <span class="dv">3</span>],</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Newton's method: solve f(X) = 0 from a guess; stop if X leaves X_range (Eq. 6)</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dfdX(X, k):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    x_frac <span class="op">=</span> (X <span class="op">/</span> <span class="dv">200</span>)<span class="op">**</span><span class="dv">4</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="dv">180</span> <span class="op">/</span> X <span class="op">*</span> x_frac <span class="op">/</span> (<span class="dv">1</span> <span class="op">+</span> x_frac)<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> k</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> find_root_Newton(X, func, dfunc, X_range, error<span class="op">=</span><span class="fl">1e-3</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> func(X, <span class="op">**</span>kwargs)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> <span class="bu">abs</span>(f) <span class="op">&gt;</span> error:</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        X <span class="op">=</span> X <span class="op">-</span> f <span class="op">/</span> dfunc(X, <span class="op">**</span>kwargs)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (X <span class="op">-</span> X_range[<span class="dv">0</span>]) <span class="op">*</span> (X <span class="op">-</span> X_range[<span class="dv">1</span>]) <span class="op">&gt;</span> <span class="dv">0</span>:   <span class="co"># left the range: not converging</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">break</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        f <span class="op">=</span> func(X, <span class="op">**</span>kwargs)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co"># from different guesses at k = 0.15, Newton finds different roots</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> X0, k <span class="kw">in</span> [(<span class="dv">500</span>, <span class="fl">0.1</span>), (<span class="dv">500</span>, <span class="fl">0.15</span>), (<span class="dv">100</span>, <span class="fl">0.15</span>), (<span class="dv">150</span>, <span class="fl">0.15</span>)]:</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    root <span class="op">=</span> find_root_Newton(X0, derivs_k, dfdX, (<span class="dv">0</span>, <span class="dv">800</span>), k<span class="op">=</span>k)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"guess </span><span class="sc">{</span>X0<span class="sc">:3d}</span><span class="ss">, k = </span><span class="sc">{</span>k<span class="sc">:.2f}</span><span class="ss">: root = </span><span class="sc">{</span>root<span class="sc">:.1f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>guess 500, k = 0.10: root = 541.8
+guess 500, k = 0.15: root = 331.6
+guess 100, k = 0.15: root = 71.5
+guess 150, k = 0.15: root = 170.7</code></pre>
+</div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># march along the curve: tangent predictor (Eq. 5) + Newton corrector, stepping in k</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dfdk(X, k):</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">-</span>X</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>k_range <span class="op">=</span> (<span class="fl">0.1</span>, <span class="fl">0.2</span>)<span class="op">;</span> dk <span class="op">=</span> <span class="fl">0.001</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>X_new <span class="op">=</span> find_root_Newton(<span class="dv">500</span>, derivs_k, dfdX, (<span class="dv">0</span>, <span class="dv">800</span>), k<span class="op">=</span>k)   <span class="co"># start on the high branch</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>ks, Xs, stab <span class="op">=</span> [k], [X_new], [<span class="dv">1</span> <span class="cf">if</span> dfdX(X_new, k) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span>]</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> k <span class="op">&lt;</span> k_range[<span class="dv">1</span>]:</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    slope <span class="op">=</span> <span class="op">-</span>dfdk(X_new, k) <span class="op">/</span> dfdX(X_new, k)   <span class="co"># dX/dk from Equation (4); blows up at a fold</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    k <span class="op">+=</span> dk</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    X_init <span class="op">=</span> X_new <span class="op">+</span> dk <span class="op">*</span> slope                <span class="co"># predictor, Equation (5)</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    X_new <span class="op">=</span> find_root_Newton(X_init, derivs_k, dfdX, (<span class="dv">0</span>, <span class="dv">800</span>), k<span class="op">=</span>k)   <span class="co"># Newton correction</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    ks.append(k)<span class="op">;</span> Xs.append(X_new)<span class="op">;</span> stab.append(<span class="dv">1</span> <span class="cf">if</span> dfdX(X_new, k) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>ks, Xs, stab <span class="op">=</span> np.array(ks), np.array(Xs), np.array(stab)</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>plt.scatter(ks, Xs, s<span class="op">=</span><span class="dv">3</span>, c<span class="op">=</span>np.where(stab <span class="op">==</span> <span class="dv">1</span>, <span class="st">"black"</span>, <span class="st">"red"</span>))</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Continuation traces the high stable branch cleanly from <span class="math inline">\(k = 0.1\)</span> down to the upper turning point near <span class="math inline">\(k = 0.168\)</span>. There the slope <span class="math inline">\(dX/dk \to \infty\)</span> (the curve is vertical in the <span class="math inline">\((k, X)\)</span> plane), the tangent predictor overshoots, and Newton lands on the far low branch, which the sweep then follows. So stepping in <span class="math inline">\(k\)</span> captures the two stable branches but jumps across the fold: it misses the unstable middle branch and cannot turn the corner. It is also awkward that one slope value corresponds to two travel directions along the curve. Arc-length continuation, next, fixes both.</p>
+</section>
+</section>
+<section id="f.6-arc-length-continuation" class="level2">
+<h2 class="anchored" data-anchor-id="f.6-arc-length-continuation">2F.6 Arc-length continuation</h2>
+<p>The trouble at the fold is that we parameterized the curve by <span class="math inline">\(k\)</span>, which is multivalued there. <strong>Arc-length continuation</strong> <span class="citation" data-cites="allgower1990continuation">(<a href="../references.html#ref-allgower1990continuation" role="doc-biblioref">Allgower and Georg 1990</a>)</span> parameterizes instead by the arc length <span class="math inline">\(s\)</span> measured along the curve, seeking <span class="math inline">\(X(s)\)</span> and <span class="math inline">\(k(s)\)</span>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="images/02f/fig1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+<p>A step of length <span class="math inline">\(\Delta s\)</span> along the curve splits into a <span class="math inline">\(\Delta k\)</span> and a <span class="math inline">\(\Delta X\)</span> with <span class="math inline">\(\Delta s^2 = \Delta k^2 + \Delta X^2\)</span> and <span class="math inline">\(\Delta X = h\,\Delta k\)</span>, where <span class="math inline">\(h(X, k) = dX/dk\)</span> from Equation (4). Solving these together,</p>
+<p><span class="math display">\[\begin{equation}
+\begin{cases}
+\Delta k = \pm \dfrac{1}{\sqrt{1 + h^2}}\,\Delta s \\[2mm]
+\Delta X = h\,\Delta k
+\end{cases} \tag{7}
+\end{equation}\]</span></p>
+<p>Now even at a fold, where <span class="math inline">\(h \to \infty\)</span>, the steps stay bounded: <span class="math inline">\(\Delta k \to 0\)</span> and <span class="math inline">\(\Delta X \to \pm\Delta s\)</span>, so the predictor moves almost vertically and rounds the corner instead of overshooting. The <span class="math inline">\(\pm\)</span> sign is chosen to keep travelling in the same direction as the previous step, and Newton corrects each predicted point back onto the curve.</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Recipe 2F.6.1">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Recipe 2F.6.1
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Objective.</strong> Trace the entire S-curve, through the folds, without stalling.</p>
+<p><strong>Model.</strong> A self-activating gene: basal transcription plus an excitatory Hill function, minus linear degradation, <code>f(X, k) = g0 + g1*(X/Xth)^n/(1 + (X/Xth)^n) - k*X</code>, with k the control parameter.</p>
+<p><strong>Method.</strong> Arc-length continuation: parameterize by arc length s instead of k, splitting each step into <code>dk</code> and <code>dX</code> with <code>ds^2 = dk^2 + dX^2</code> and <code>dX = h*dk</code> (h = dX/dk), so the step stays finite where <code>dX/dk</code> diverges.</p>
+<p><strong>Test.</strong> <code>g0 = 10, g1 = 45, Xth = 200, n = 4</code>, across the full bistable range.</p>
+<p><strong>Show.</strong> A plot of the full S-shaped curve traced through both folds.</p>
+<p><strong>Verification.</strong> The curve is traced smoothly through both folds, recovering the full S-shape (both stable branches and the unstable middle) where plain k-continuation stalled.</p>
+</div>
+</div>
+<section id="r-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-4">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the whole curve in arc length s: each step splits into (dk, dX) by Eq (7)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>k_range <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>); ds <span class="ot">&lt;-</span> <span class="fl">0.3</span>; nmax <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="cn">NA</span>, <span class="at">nrow =</span> nmax, <span class="at">ncol =</span> <span class="dv">3</span>)   <span class="co"># columns: k, X, stability</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fl">0.1</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>X_new <span class="ot">&lt;-</span> <span class="fu">find_root_Newton</span>(<span class="dv">500</span>, derivs_k, dfdX, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>), <span class="at">k =</span> k)   <span class="co"># start on the high branch</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>step_k_prev <span class="ot">&lt;-</span> <span class="dv">1</span>; step_X_prev <span class="ot">&lt;-</span> <span class="dv">0</span>             <span class="co"># initial travel direction: increasing k</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>cycle <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>results[cycle, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, X_new, <span class="cf">if</span> (<span class="fu">dfdX</span>(X_new, k) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> ((k <span class="sc">-</span> k_range[<span class="dv">1</span>]) <span class="sc">*</span> (k <span class="sc">-</span> k_range[<span class="dv">2</span>]) <span class="sc">&lt;=</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> cycle <span class="sc">&lt;</span> nmax) {</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  h <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">dfdk</span>(X_new, k) <span class="sc">/</span> <span class="fu">dfdX</span>(X_new, k)         <span class="co"># dX/dk, Equation (4)</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  step_k <span class="ot">&lt;-</span> ds <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="dv">1</span> <span class="sc">+</span> h<span class="sc">^</span><span class="dv">2</span>)                  <span class="co"># Equation (7); bounded even as h -&gt; Inf</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  step_X <span class="ot">&lt;-</span> step_k <span class="sc">*</span> h</span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (step_k_prev <span class="sc">*</span> step_k <span class="sc">+</span> step_X_prev <span class="sc">*</span> step_X <span class="sc">&lt;</span> <span class="dv">0</span>) {   <span class="co"># keep the same travel direction</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    step_k <span class="ot">&lt;-</span> <span class="sc">-</span>step_k; step_X <span class="ot">&lt;-</span> <span class="sc">-</span>step_X</span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a>  step_k_prev <span class="ot">&lt;-</span> step_k; step_X_prev <span class="ot">&lt;-</span> step_X</span>
+<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a>  k <span class="ot">&lt;-</span> k <span class="sc">+</span> step_k</span>
+<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>  X_new <span class="ot">&lt;-</span> <span class="fu">find_root_Newton</span>(X_new <span class="sc">+</span> step_X, derivs_k, dfdX, <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">800</span>), <span class="at">k =</span> k)   <span class="co"># predict + correct</span></span>
+<span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a>  cycle <span class="ot">&lt;-</span> cycle <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a>  results[cycle, ] <span class="ot">&lt;-</span> <span class="fu">c</span>(k, X_new, <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.na</span>(X_new) <span class="sc">&amp;&amp;</span> <span class="fu">dfdX</span>(X_new, k) <span class="sc">&lt;</span> <span class="dv">0</span>) <span class="dv">1</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">na.omit</span>(results)</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(results[, <span class="dv">1</span>], results[, <span class="dv">2</span>], <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.3</span>, <span class="at">col =</span> results[, <span class="dv">3</span>],</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="fu">expression</span>(k <span class="sc">~</span> (Minute<span class="sc">^</span>{<span class="sc">-</span><span class="dv">1</span>})), <span class="at">ylab =</span> <span class="st">"Xs (nM)"</span>,</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlim =</span> <span class="fu">c</span>(<span class="fl">0.09</span>, <span class="fl">0.21</span>), <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">600</span>))</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">inset =</span> <span class="fl">0.02</span>, <span class="at">legend =</span> <span class="fu">c</span>(<span class="st">"Stable"</span>, <span class="st">"Unstable"</span>),</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">pch =</span> <span class="dv">1</span>, <span class="at">cex =</span> <span class="fl">0.8</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-13-3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation-4" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-4">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># trace the whole curve in arc length s: each step splits into (dk, dX) by Eq (7)</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>k_range <span class="op">=</span> (<span class="fl">0.1</span>, <span class="fl">0.2</span>)<span class="op">;</span> ds <span class="op">=</span> <span class="fl">0.3</span><span class="op">;</span> nmax <span class="op">=</span> <span class="dv">10000</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="fl">0.1</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>X_new <span class="op">=</span> find_root_Newton(<span class="dv">500</span>, derivs_k, dfdX, (<span class="dv">0</span>, <span class="dv">800</span>), k<span class="op">=</span>k)   <span class="co"># start on the high branch</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>step_k_prev, step_X_prev <span class="op">=</span> <span class="fl">1.0</span>, <span class="fl">0.0</span>            <span class="co"># initial travel direction: increasing k</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>ks, Xs, stab <span class="op">=</span> [k], [X_new], [<span class="dv">1</span> <span class="cf">if</span> dfdX(X_new, k) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span>]</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>cycle <span class="op">=</span> <span class="dv">1</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (k <span class="op">-</span> k_range[<span class="dv">0</span>]) <span class="op">*</span> (k <span class="op">-</span> k_range[<span class="dv">1</span>]) <span class="op">&lt;=</span> <span class="dv">0</span> <span class="kw">and</span> cycle <span class="op">&lt;</span> nmax:</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    h <span class="op">=</span> <span class="op">-</span>dfdk(X_new, k) <span class="op">/</span> dfdX(X_new, k)        <span class="co"># dX/dk, Equation (4)</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    step_k <span class="op">=</span> ds <span class="op">/</span> np.sqrt(<span class="dv">1</span> <span class="op">+</span> h<span class="op">**</span><span class="dv">2</span>)             <span class="co"># Equation (7); bounded even as h -&gt; inf</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    step_X <span class="op">=</span> step_k <span class="op">*</span> h</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> step_k_prev <span class="op">*</span> step_k <span class="op">+</span> step_X_prev <span class="op">*</span> step_X <span class="op">&lt;</span> <span class="dv">0</span>:   <span class="co"># keep the same travel direction</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>        step_k, step_X <span class="op">=</span> <span class="op">-</span>step_k, <span class="op">-</span>step_X</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    step_k_prev, step_X_prev <span class="op">=</span> step_k, step_X</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    k <span class="op">+=</span> step_k</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    X_new <span class="op">=</span> find_root_Newton(X_new <span class="op">+</span> step_X, derivs_k, dfdX, (<span class="dv">0</span>, <span class="dv">800</span>), k<span class="op">=</span>k)   <span class="co"># predict + correct</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    ks.append(k)<span class="op">;</span> Xs.append(X_new)<span class="op">;</span> stab.append(<span class="dv">1</span> <span class="cf">if</span> dfdX(X_new, k) <span class="op">&lt;</span> <span class="dv">0</span> <span class="cf">else</span> <span class="dv">2</span>)</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    cycle <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>ks, Xs, stab <span class="op">=</span> np.array(ks), np.array(Xs), np.array(stab) <span class="op">==</span> <span class="dv">1</span>   <span class="co"># boolean stable mask</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>plt.scatter(ks[stab],  Xs[stab],  s<span class="op">=</span><span class="dv">3</span>, color<span class="op">=</span><span class="st">"black"</span>, label<span class="op">=</span><span class="st">"Stable"</span>)</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>plt.scatter(ks[<span class="op">~</span>stab], Xs[<span class="op">~</span>stab], s<span class="op">=</span><span class="dv">3</span>, color<span class="op">=</span><span class="st">"red"</span>,   label<span class="op">=</span><span class="st">"Unstable"</span>)</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">k</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">Minute</span><span class="dv">$^</span><span class="vs">{-1}</span><span class="dv">$</span><span class="kw">)</span><span class="vs">"</span>)<span class="op">;</span> plt.ylabel(<span class="vs">r"</span><span class="dv">$</span><span class="vs">X_s</span><span class="dv">$</span><span class="vs"> </span><span class="kw">(</span><span class="vs">nM</span><span class="kw">)</span><span class="vs">"</span>)</span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>plt.xlim(<span class="fl">0.09</span>, <span class="fl">0.21</span>)<span class="op">;</span> plt.ylim(<span class="dv">0</span>, <span class="dv">600</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(0.09, 0.21)
+(0.0, 600.0)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>plt.legend(loc<span class="op">=</span><span class="st">"upper right"</span>, fontsize<span class="op">=</span><span class="dv">8</span>)<span class="op">;</span> plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="02f-bifurcation-curves_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>This traces the entire S-curve in a single sweep, unstable middle branch included, rounding both folds. Arc-length continuation (and its pseudo-arclength refinements) is the engine behind bifurcation-analysis software. The Newton correction can still struggle extremely close to a fold, where <span class="math inline">\(f'(X) \approx 0\)</span>; higher-order correctors such as Halley’s method ease that case.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-allgower1990continuation" class="csl-entry" role="listitem">
+Allgower, Eugene L., and Kurt Georg. 1990. <em>Numerical Continuation Methods: An Introduction</em>. Vol. 13. Springer Series in Computational Mathematics. Springer-Verlag. <a href="https://doi.org/10.1007/978-3-642-61257-2">https://doi.org/10.1007/978-3-642-61257-2</a>.
+</div>
+<div id="ref-press2007numerical" class="csl-entry" role="listitem">
+Press, William H., Saul A. Teukolsky, William T. Vetterling, and Brian P. Flannery. 2007. <em>Numerical Recipes: The Art of Scientific Computing</em>. 3rd ed. Cambridge University Press.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script>
+// Robust right-side TOC scrollspy.
+// Quarto's built-in active-highlighting was not updating on this book (the
+// .active class stayed stuck on the first entry). This mirrors Quarto's logic
+// but computes each section's absolute document position with
+// getBoundingClientRect() (rather than offsetTop, which is relative to the
+// offsetParent and can be wrong), and it registers after quarto.js so it wins
+// the scroll handler. HTML-only; ignored by PDF/EPUB.
+(function () {
+  function initTocSpy() {
+    var toc = document.querySelector('nav#TOC[role="doc-toc"]') ||
+              document.querySelector('nav[role="doc-toc"].toc-active');
+    if (!toc) return;
+
+    var links = Array.prototype.slice.call(
+      toc.querySelectorAll('a[data-scroll-target], a[href^="#"]')
+    );
+    var entries = links.map(function (a) {
+      var id = (a.getAttribute('data-scroll-target') || a.getAttribute('href') || '')
+                 .replace(/^#/, '');
+      var sec = id ? document.getElementById(decodeURIComponent(id)) : null;
+      return { link: a, section: sec };
+    }).filter(function (e) { return e.section; });
+    if (!entries.length) return;
+
+    var MARGIN = 200;
+    function absTop(el) {
+      return el.getBoundingClientRect().top + (window.scrollY || window.pageYOffset);
+    }
+    function update() {
+      var y = window.scrollY || window.pageYOffset;
+      var idx = 0;
+      for (var i = 0; i < entries.length; i++) {
+        if (absTop(entries[i].section) - MARGIN <= y) idx = i;
+      }
+      // at the very bottom, the last section should be active
+      if (window.innerHeight + y >= document.body.offsetHeight - 2) {
+        idx = entries.length - 1;
+      }
+      for (var j = 0; j < entries.length; j++) {
+        entries[j].link.classList.toggle('active', j === idx);
+      }
+    }
+
+    var ticking = false;
+    function onScroll() {
+      if (!ticking) {
+        window.requestAnimationFrame(function () { update(); ticking = false; });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTocSpy);
+  } else {
+    initTocSpy();
+  }
+})();
+</script>
+<!-- HTML-only R/Python implementation switch.
+     Injected via `format: html: include-after-body`, so it never reaches PDF/EPUB
+     (which keep both languages, per the no-tabsets convention). On load it tags each
+     `### R/Python implementation {.impl}` heading and its code cells, then a small
+     "Both / R / Python" control hides the non-selected language's CODE only. Prose
+     (shared concept text, shared post-Python discussion) is never tagged, so it stays
+     visible in every mode. The choice persists across chapters via localStorage. The
+     switch appears only on genuinely dual-language chapter pages (both languages
+     present, not an exercises page). Single-language SOURCE copies for practice are a
+     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
+     chapter's .qmd), not a web download. -->
+<style>
+.lang-switch {
+  display: inline-flex; margin: 0.25rem 0 1.25rem 0;
+  border: 1px solid #d0d0d0; border-radius: 6px; overflow: hidden;
+  font-size: 0.8rem; user-select: none;
+}
+.lang-switch button {
+  border: none; border-right: 1px solid #d0d0d0; background: #fff;
+  padding: 4px 14px; cursor: pointer; color: #444; line-height: 1.4;
+}
+.lang-switch button:last-child { border-right: none; }
+.lang-switch button:hover { background: #f2f6fb; }
+.lang-switch button.active { background: #2780e3; color: #fff; }
+/* hide the non-selected implementation (heading + code cells only) */
+body.lang-r  .impl-py { display: none !important; }
+body.lang-py .impl-r  { display: none !important; }
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
+  var heads = document.querySelectorAll("h3.impl");
+  if (!heads.length) return;   // no R/Python implementation blocks -> no switch
+
+  // 1. tag each implementation heading + its code cells with impl-r / impl-py
+  var hasR = false, hasPy = false;
+  heads.forEach(function (h) {
+    var id = (h.getAttribute("data-anchor-id") || h.textContent).toLowerCase();
+    var cls = id.indexOf("python") >= 0 ? "impl-py"
+            : id.indexOf("r-implementation") >= 0 || id.indexOf("r implementation") >= 0 ? "impl-r"
+            : null;
+    if (!cls) return;
+    if (cls === "impl-r") hasR = true; else hasPy = true;
+    h.classList.add(cls);
+    var el = h.nextElementSibling;
+    while (el && !/^H[1-4]$/.test(el.tagName)) {          // stop at the next heading
+      var isCode = el.matches("div.cell, div.sourceCode") || el.tagName === "PRE"
+                   || (el.querySelector && el.querySelector("div.sourceCode, pre.sourceCode"));
+      if (isCode) el.classList.add(cls);                  // tag code only, never prose
+      el = el.nextElementSibling;
+    }
+  });
+
+  if (!hasR || !hasPy) return;   // switch only on genuinely dual-language pages
+
+  // 2. build the Both / R / Python switch
+  var bar = document.createElement("div");
+  bar.className = "lang-switch";
+  bar.setAttribute("aria-label", "Show R or Python implementation");
+  ["Both", "R", "Python"].forEach(function (lab) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.textContent = lab;
+    b.addEventListener("click", function () { setLang(lab); });
+    bar.appendChild(b);
+  });
+
+  var title = document.getElementById("title-block-header");
+  if (title) title.insertAdjacentElement("afterend", bar);
+  else {
+    var main = document.querySelector("main") || document.body;
+    main.insertBefore(bar, main.firstChild);
+  }
+
+  function setLang(lab) {
+    document.body.classList.remove("lang-r", "lang-py", "lang-both");
+    document.body.classList.add(lab === "R" ? "lang-r" : lab === "Python" ? "lang-py" : "lang-both");
+    bar.querySelectorAll("button").forEach(function (b) {
+      b.classList.toggle("active", b.textContent === lab);
+    });
+    try { localStorage.setItem("impl-lang", lab); } catch (e) {}
+  }
+
+  var saved = "Both";
+  try { saved = localStorage.getItem("impl-lang") || "Both"; } catch (e) {}
+  setLang(saved);
+});
+</script>
+<!-- HTML-only: add a "Copy prompt" button to each Recipe card. It assembles a
+     ready-to-paste, context-free prompt from the card's plain-text fields
+     (Objective / Model / Method / Test / Show / Verification) wrapped in the
+     standard template, and copies it to the clipboard. Registered under format:
+     html include-after-body, so PDF/EPUB are unaffected. Cards are written in plain
+     text (no typeset math, no cross-references), so the copied prompt is clean and
+     self-contained. -->
+<style>
+.recipe-copy-btn {
+  margin-left: auto; border: 1px solid #cfd8e3; background: #fff; color: #2780e3;
+  border-radius: 5px; cursor: pointer; font-size: 0.72rem; line-height: 1.4;
+  padding: 1px 9px; white-space: nowrap;
+}
+.recipe-copy-btn:hover { background: #f2f6fb; }
+/* Plain code blocks (AI-session transcripts, prompts) are not .sourceCode, so they
+   render at the default font, whose ~72-character authored lines overflow the content
+   column. Match the code-block font (0.85em) so those lines fit as written, without
+   re-wrapping or spilling out. HTML-only (recipe-copy.html is an html
+   include-after-body), so EPUB keeps its fixed-width ASCII mockups intact. */
+pre:not(.sourceCode), pre:not(.sourceCode) > code {
+  font-size: 0.85em; white-space: pre-wrap;
+}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll('.callout[title^="Recipe"]').forEach(function (card) {
+    var header = card.querySelector(".callout-header");
+    var body = card.querySelector(".callout-body");
+    if (!header || !body) return;
+
+    // pull the four fields out of the body paragraphs
+    var f = {};
+    body.querySelectorAll("p").forEach(function (p) {
+      var m = p.textContent.match(/^\s*(Objective|Model|Method|Test|Show|Verification)\.\s*([\s\S]*)$/);
+      if (m) f[m[1]] = m[2].trim().replace(/\s+/g, " ");
+    });
+    if (!f.Objective) return;
+
+    // fill the 1A.2 prompt template with the card fields: drop each field's
+    // trailing period so the template's own punctuation reads cleanly, and
+    // lower-case the fields that slot mid-sentence.
+    var frag = function (s) { return (s || "").trim().replace(/\.$/, ""); };
+    var lc = function (s) { return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; };
+
+    var prompt =
+      "In R (or Python), " + lc(frag(f.Objective)) + ". " +
+      (f.Model ? "The model is " + lc(frag(f.Model)) + ". " : "") +
+      "Use " + lc(frag(f.Method)) + ". " +
+      "Test it on " + frag(f.Test) + ". " +
+      (f.Show ? "Produce " + lc(frag(f.Show)) + ". " : "") +
+      "As a separate check, confirm that " + lc(frag(f.Verification)) + ". " +
+      "Implement the method explicitly with short comments rather than calling a " +
+      "routine that does it in one step, and explain in one sentence why that " +
+      "check confirms the result.";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "recipe-copy-btn";
+    btn.textContent = "Copy prompt";
+    btn.addEventListener("click", function () {
+      navigator.clipboard.writeText(prompt).then(function () {
+        var t = btn.textContent;
+        btn.textContent = "Copied";
+        setTimeout(function () { btn.textContent = t; }, 1200);
+      }).catch(function () { btn.textContent = "Copy failed"; });
+    });
+    header.appendChild(btn);
+  });
+});
+</script>
+<!-- Colour the R and Py in the displayed book title ("Numerical ReciPy").
+
+     Done in the DOM, not via a Pandoc span in `book: title:`, because Quarto
+     builds each chapter page's <title> element by concatenating the RAW title
+     string without processing markup, so a span there leaks visibly into every
+     browser tab. Only exact matches of the plain title are rewritten, so
+     nothing else on the page is touched. The preface's in-body mention of the
+     title still uses a Pandoc span, which renders correctly in all formats. -->
+<script>
+  window.document.addEventListener("DOMContentLoaded", function () {
+    const TITLE = "Numerical ReciPy";
+    const HTML  = 'Numerical <span class="brand-r">R</span>eci' +
+                  '<span class="brand-py">Py</span>';
+    document.querySelectorAll(
+      ".sidebar-title a, .sidebar-title, h1.title, .navbar-title"
+    ).forEach(function (el) {
+      if (el.textContent.trim() === TITLE) { el.innerHTML = HTML; }
+    });
+  });
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../02-odes/02e-bifurcation.html" class="pagination-link" aria-label="2E. Bifurcation: finding roots/steady states">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">2E. Bifurcation: finding roots/steady states</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../02-odes/02g-exercises.html" class="pagination-link" aria-label="2G. Exercises">
+        <span class="nav-page-text"><span class="chapter-title">2G. Exercises</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
