@@ -16,6 +16,10 @@ book:
   title: "Numerical ReciPy"   # R/Py coloured in the DOM by brand-title.html
                               # (a span here leaks into every page's <title> tag)
   subtitle: "Computational Systems Biology and Biophysics in R and Python"
+  author:
+    - name: "Mingyang Lu"
+      affiliation: "Lu Lab for Computational Systems Biology, Northeastern University"
+      url: "https://lusystemsbio.northeastern.edu"
   output-file: "NumericalReciPy"   # base name for the PDF/EPUB downloads
   favicon: assets/favicon.svg     # simplified mark; legible down to 16px
   # Fold the left nav: parts collapsed by default, only the current part
