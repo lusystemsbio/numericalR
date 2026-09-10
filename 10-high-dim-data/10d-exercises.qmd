@@ -152,7 +152,7 @@ Nanog*   = (Sall4 or Sox2 or (Tbx3 and not MEKERK)) or (Sall4 and Sox2 and Tbx3)
 Sox2*    = Tbx3 or Sall4 or Tcf3
 ```
 
-The corresponding network is shown below (pink: the three signalling inputs; gold: every other node, covering both the signalling effectors and the transcription factors; green edges: activation; red edges: inhibition).
+The corresponding network is shown below (pink: the three signalling nodes, which serve as the input control; gold: all other nodes, both signalling effectors and transcription factors; green edges: activation; red edges: inhibition).
 
 ![](images/10d/esc-network.png){width=75% fig-align="center"}
 
