@@ -4,8 +4,7 @@ author: "Mingyang Lu"
 old_id: "07B"
 ---
 
-Adding a *reaction* term $f(u, t)$ to the [diffusion equation](07a-modeling-diffusion.qmd)
-gives a reaction-diffusion equation for a field $u(X, t)$,
+Adding a *reaction* term $f(u, t)$ to the [diffusion equation](07a-modeling-diffusion.qmd) gives a reaction-diffusion equation for a field $u(X, t)$,
 
 $$ \frac{\partial u(X, t)}{\partial t} = f(u, t) + D \frac{\partial^2 u(X, t)}{\partial X^2} . \tag{1} $$
 
@@ -13,9 +12,7 @@ The reaction term is just the ordinary rate equation of earlier chapters,
 
 $$ \frac{du}{dt} = f(u, t) , \tag{2} $$
 
-and when it vanishes we recover pure diffusion. The two ingredients together,
-local kinetics plus spatial spreading, produce traveling waves and, later,
-spatial patterns.
+and when it vanishes we recover pure diffusion. The two ingredients together, local kinetics plus spatial spreading, produce traveling waves and, later, spatial patterns.
 
 ## 7B.1 Fisher's equation
 
@@ -23,11 +20,7 @@ Taking logistic growth as the reaction gives Fisher's equation,
 
 $$ \frac{\partial u}{\partial t} = r u \left( 1 - \frac{u}{B} \right) + D \frac{\partial^2 u}{\partial X^2} , \tag{3} $$
 
-where $u$ is a population size and $B$ its carrying capacity. Fisher introduced it
-to describe the spread of an advantageous gene, with $u$ the mutant frequency, $r$
-the selection strength, and $D$ the dispersal rate; it became a foundation of
-population genetics [@fisher1937wave]. The integrator is the diffusion solver of
-Part 7A with the reaction term added at each step (Dirichlet, $u = 0$ at the ends).
+where $u$ is a population size and $B$ its carrying capacity. Fisher introduced it to describe the spread of an advantageous gene, with $u$ the mutant frequency, $r$ the selection strength, and $D$ the dispersal rate; it became a foundation of population genetics [@fisher1937wave]. The integrator is the diffusion solver of Part 7A with the reaction term added at each step (Dirichlet, $u = 0$ at the ends).
 
 ::: {.callout-note title="Recipe 7B.1.1"}
 **Objective.** Simulate Fisher's equation and see traveling waves of advance.
@@ -78,8 +71,7 @@ for (i in 1:5) {
 legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
 ```
 
-A central patch grows to the carrying capacity and sends out two fronts that
-travel outward at a constant speed until they reach the boundaries.
+A central patch grows to the carrying capacity and sends out two fronts that travel outward at a constant speed until they reach the boundaries.
 
 ```{r}
 u0 <- numeric(ngrid)
@@ -143,9 +135,7 @@ plt.xlabel("X"); plt.ylabel("u"); plt.xlim(0, 100); plt.ylim(0, 100)
 plt.legend(title="Iterations", loc="upper right", fontsize=8); plt.show()
 ```
 
-Starting instead from a patch at the left end, a single front travels rightward,
-carrying the population across the domain, exactly the wave of advance Fisher used
-to picture an advantageous gene sweeping through a range.
+Starting instead from a patch at the left end, a single front travels rightward, carrying the population across the domain, exactly the wave of advance Fisher used to picture an advantageous gene sweeping through a range.
 
 ## 7B.2 The Fokker-Planck equation
 
@@ -153,20 +143,15 @@ An SDE with drift and (possibly state-dependent) diffusion,
 
 $$ \frac{dX}{dt} = f(X, t) + \sqrt{2 D(X, t)}\, \eta(t) , \tag{4} $$
 
-has a probability distribution $P(X, t)$ that obeys the Fokker-Planck equation
-[@gardiner2009stochastic],
+has a probability distribution $P(X, t)$ that obeys the Fokker-Planck equation [@gardiner2009stochastic],
 
 $$ \frac{\partial P}{\partial t} = -\frac{\partial (f P)}{\partial X} + \frac{\partial^2 (D P)}{\partial X^2} . \tag{5} $$
 
-This is a reaction-diffusion-like PDE for $P$, reducing to the plain diffusion
-equation when $f = 0$. The new drift term is a *first* space derivative, which we
-approximate with a centered difference (again from a Taylor expansion, as in
-Part 7A),
+This is a reaction-diffusion-like PDE for $P$, reducing to the plain diffusion equation when $f = 0$. The new drift term is a *first* space derivative, which we approximate with a centered difference (again from a Taylor expansion, as in Part 7A),
 
 $$ \frac{\partial F}{\partial X} \approx \frac{F_{i+1}^n - F_{i-1}^n}{2 \Delta X} . \tag{6} $$
 
-For constant $D$, the explicit update combines this drift term with the familiar
-diffusion term,
+For constant $D$, the explicit update combines this drift term with the familiar diffusion term,
 
 $$
 \begin{aligned}
@@ -208,13 +193,11 @@ pde_fd_fokker_planck <- function(derivs, ngrid, X_all, dX, dt, D, t0, t.total, p
 }
 ```
 
-We test it on the Ornstein-Uhlenbeck process (a particle in a harmonic well,
-drift $f = -kX$, constant noise), whose Fokker-Planck equation is
+We test it on the Ornstein-Uhlenbeck process (a particle in a harmonic well, drift $f = -kX$, constant noise), whose Fokker-Planck equation is
 
 $$ \frac{\partial P}{\partial t} = -\frac{\partial (-kX P)}{\partial X} + D \frac{\partial^2 P}{\partial X^2} , \tag{8} $$
 
-with the analytic steady state (a Gaussian set by the balance of drift and
-diffusion)
+with the analytic steady state (a Gaussian set by the balance of drift and diffusion)
 
 $$ P_{ss}(X) = \sqrt{\frac{k}{2\pi D}}\, e^{-\frac{k X^2}{2D}} . \tag{9} $$
 
@@ -237,9 +220,7 @@ points(X_all, P_ss(X_all), col = 1)            # analytic steady state
 legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
 ```
 
-The distribution starts localized at the center and relaxes to the steady-state
-Gaussian (open dots), matching the theory. A stiffer spring confines it to a
-narrower peak.
+The distribution starts localized at the center and relaxes to the steady-state Gaussian (open dots), matching the theory. A stiffer spring confines it to a narrower peak.
 
 ```{r}
 k <- 0.03
@@ -326,8 +307,4 @@ plt.xlabel("X"); plt.ylabel("u"); plt.xlim(-50, 50); plt.ylim(0, 0.1)
 plt.legend(title="Iterations", loc="upper right"); plt.show()
 ```
 
-With the stiffer spring ($k = 0.03$) the peak is narrower, and starting from a
-uniform distribution the system relaxes to the very same steady-state Gaussian,
-confirming that the Fokker-Planck dynamics forget their initial condition. Solving
-the PDE for $P$ is thus a deterministic alternative to averaging many stochastic
-trajectories from the [SDE integrators of Part 6C](../06-stochastic/06c-sde-integrators.qmd).
+With the stiffer spring ($k = 0.03$) the peak is narrower, and starting from a uniform distribution the system relaxes to the very same steady-state Gaussian, confirming that the Fokker-Planck dynamics forget their initial condition. Solving the PDE for $P$ is thus a deterministic alternative to averaging many stochastic trajectories from the [SDE integrators of Part 6C](../06-stochastic/06c-sde-integrators.qmd).

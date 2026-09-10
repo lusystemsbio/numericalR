@@ -4,32 +4,20 @@ author: "Mingyang Lu"
 old_id: "03G"
 ---
 
-[Part 2D](../02-odes/02d-effective-potential.qmd) defined an effective potential
-for a one-variable system as $U(X) = -\int f(X)\,dX$, turning the dynamics into a
-particle rolling downhill. It is tempting to carry this over to two variables by
-treating $(-f_X, -f_Y)$ as a 2D force and integrating it along a path,
+[Part 2D](../02-odes/02d-effective-potential.qmd) defined an effective potential for a one-variable system as $U(X) = -\int f(X)\,dX$, turning the dynamics into a particle rolling downhill. It is tempting to carry this over to two variables by treating $(-f_X, -f_Y)$ as a 2D force and integrating it along a path,
 
 $$ U(X, Y) = -\int_{s_0}^{s} \big(f_X\,dx + f_Y\,dy\big) + U(X_0, Y_0) . \tag{1} $$
 
-This chapter shows the construction has a fatal flaw: the result depends on the
-path, so it is not a potential at all. Discretized, each step along a path
-contributes
+This chapter shows the construction has a fatal flaw: the result depends on the path, so it is not a potential at all. Discretized, each step along a path contributes
 
 $$ \Delta U = -\tfrac{1}{2}\big(f_X^{(i)} + f_X^{(i+1)}\big)\Delta x
              - \tfrac{1}{2}\big(f_Y^{(i)} + f_Y^{(i+1)}\big)\Delta y , \tag{2} $$
 
-the trapezoidal rule applied to the line integral. We integrate along the two
-nullclines of the toggle switch; along $dX/dt = 0$ the first term vanishes, and
-along $dY/dt = 0$ the second does.
+the trapezoidal rule applied to the line integral. We integrate along the two nullclines of the toggle switch; along $dX/dt = 0$ the first term vanishes, and along $dY/dt = 0$ the second does.
 
 ## 3G.1 The system and its nullclines
 
-We use a symmetric version of the toggle switch: both genes have basal rate $5$,
-maximum production $20$, threshold $100$, Hill coefficient $4$, and degradation
-rate $0.1$, so the two nullclines are mirror images across the diagonal. The
-circuit has three steady states, two asymmetric stable states and a symmetric
-saddle at $(118, 118)$, found by the intersection method of
-[Part 3B](03b-steady-states-2d.qmd).
+We use a symmetric version of the toggle switch: both genes have basal rate $5$, maximum production $20$, threshold $100$, Hill coefficient $4$, and degradation rate $0.1$, so the two nullclines are mirror images across the diagonal. The circuit has three steady states, two asymmetric stable states and a symmetric saddle at $(118, 118)$, found by the intersection method of [Part 3B](03b-steady-states-2d.qmd).
 
 ### R implementation {.impl}
 
@@ -105,11 +93,7 @@ plt.xlim(0, 250); plt.ylim(0, 250); plt.legend(); plt.show()
 
 ## 3G.2 Effective potential along the nullclines
 
-We now integrate Equation (2) by the trapezoidal rule along each nullcline and
-plot the accumulated potential against $X$ and against $Y$. Each curve dips to a
-local minimum at the stable states and rises to a maximum at the saddle, so it
-does locate the steady states as extrema. The two paths, however, do not agree on
-the potential values.
+We now integrate Equation (2) by the trapezoidal rule along each nullcline and plot the accumulated potential against $X$ and against $Y$. Each curve dips to a local minimum at the stable states and rises to a maximum at the saddle, so it does locate the steady states as extrema. The two paths, however, do not agree on the potential values.
 
 ::: {.callout-note title="Recipe 3G.2.1"}
 **Objective.** Compute an effective potential for the two-variable toggle switch along its nullclines, to locate the steady states as extrema.
@@ -178,24 +162,12 @@ for xi, xlab in [(0, "X (nM)"), (1, "Y (nM)")]:
     plt.xlim(0, 250); plt.ylim(-500, 100); plt.legend(); plt.show()
 ```
 
-The two curves disagree: the potential assigned to a given point depends on which
-path was used to reach it. A genuine potential is path-independent, so this 2D
-effective potential is ill-defined. The cause is that the force $(f_X, f_Y)$ is
-**non-conservative**,
+The two curves disagree: the potential assigned to a given point depends on which path was used to reach it. A genuine potential is path-independent, so this 2D effective potential is ill-defined. The cause is that the force $(f_X, f_Y)$ is **non-conservative**,
 
 $$ \frac{\partial f_Y}{\partial X} - \frac{\partial f_X}{\partial Y} \neq 0 . $$
 
-A force derived from a potential, $f_X = -\partial U/\partial X$ and
-$f_Y = -\partial U/\partial Y$, would instead satisfy
-$\partial f_Y/\partial X = \partial f_X/\partial Y = -\partial^2 U/\partial X\,\partial Y$,
-so a molecular force field is always conservative. A general nonlinear dynamical
-system is not. Defining a meaningful landscape (a quasi-potential) for such
-systems is possible but beyond the scope of this book.
+A force derived from a potential, $f_X = -\partial U/\partial X$ and $f_Y = -\partial U/\partial Y$, would instead satisfy $\partial f_Y/\partial X = \partial f_X/\partial Y = -\partial^2 U/\partial X\,\partial Y$, so a molecular force field is always conservative. A general nonlinear dynamical system is not. Defining a meaningful landscape (a quasi-potential) for such systems is possible but beyond the scope of this book.
 
 ::: {.callout-note title="Practice Q1"}
-Confirm the field is non-conservative: evaluate
-$\partial f_Y/\partial X - \partial f_X/\partial Y$ numerically at a few points
-and show it is nonzero. Then integrate $\Delta U$ (Equation (2)) around a closed
-loop in the $(X, Y)$ plane and show the total is not zero, whereas a conservative
-field would return exactly to its starting value.
+Confirm the field is non-conservative: evaluate $\partial f_Y/\partial X - \partial f_X/\partial Y$ numerically at a few points and show it is nonzero. Then integrate $\Delta U$ (Equation (2)) around a closed loop in the $(X, Y)$ plane and show the total is not zero, whereas a conservative field would return exactly to its starting value.
 :::

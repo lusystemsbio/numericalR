@@ -6,30 +6,13 @@ old_id: "01C"
 
 ## 1C.1 What is a numerical method?
 
-Most quantities of interest in this book, an equilibrium concentration, a
-trajectory over time, the root of an equation, cannot be written down in closed
-form. A numerical method is the computational recipe that gets you an answer
-anyway: it starts from a mathematical model (an equation, a system of equations,
-a curve to be reconstructed from data), replaces whatever is continuous or exact
-in that model with something a computer can represent and manipulate, and
-repeats a well-defined update until the result is close enough to trust.
+Most problems of interest in this book, finding an equilibrium concentration, a trajectory over time, the root of an equation, cannot be solved analytically. A numerical method is the computational recipe to find the solution: it starts from a mathematical model (an equation, a system of equations, a curve to be reconstructed from data), replaces whatever is continuous or exact in that model with something a computer can represent and manipulate, and repeats a well-defined update until the result is close enough to trust.
 
-Two properties decide whether a numerical method is any good. **Accuracy**
-depends on where error enters: the model itself may only approximate the real
-system (modeling error), replacing a continuous quantity with a finite
-representation introduces further error (discretization error), and stopping an
-iterative process early leaves a residual error (iteration error). **Efficiency**
-is the computational cost of getting that accuracy, in both runtime and memory.
-Every method in this book, from the Babylonian method below to the ODE
-integrators of [Part 2B](../02-odes/02b-numerical-integration.qmd), is a particular
-trade-off between these two.
+Two properties decide whether a numerical method is any good. **Accuracy** depends on where error enters: the model itself may only approximate the real system (modeling error), replacing a continuous quantity with a finite representation introduces further error (discretization error), and stopping an iterative process early leaves a residual error (iteration error). **Efficiency** is the computational cost of getting that accuracy, in both runtime and memory. Every method in this book, from the Babylonian method below to the ODE integrators of [Part 2B](../02-odes/02b-numerical-integration.qmd), is a particular trade-off between these two.
 
 ## 1C.2 Machine precision
 
-A computer represents a real number with a fixed number of bits, so most real
-numbers are stored as the nearest representable approximation rather than
-exactly. R and Python both use double precision (64 bits) for their default
-numeric type, giving roughly 16 significant decimal digits.
+A computer represents a real number with a fixed number of bits, so most real numbers are stored as the nearest representable approximation rather than exactly. R and Python both use double precision (64 bits) for their default numeric type, giving roughly 16 significant decimal digits.
 
 ### R implementation {.impl}
 
@@ -46,29 +29,15 @@ import sys
 sys.float_info.epsilon
 ```
 
-`0.1` and `0.2` cannot be represented exactly in binary floating point, so their
-sum lands a tiny bit off from the double closest to `0.3`, and the direct
-comparison is `FALSE`/`False` in both languages. `.Machine$double.eps` /
-`sys.float_info.epsilon` (about $2.2\times 10^{-16}$) is machine epsilon, the
-smallest relative gap between two distinct representable numbers; it sets a
-hard floor on how precisely any double-precision calculation can agree with the
-exact answer, a limit that reappears in 1C.3 below.
+`0.1` and `0.2` cannot be represented exactly in binary floating point, so their sum lands a tiny bit off from the double closest to `0.3`, and the direct comparison is `FALSE`/`False` in both languages. `.Machine$double.eps` / `sys.float_info.epsilon` (about $2.2\times 10^{-16}$) is machine epsilon, the smallest relative gap between two distinct representable numbers; it sets a hard floor on how precisely any double-precision calculation can agree with the exact answer, a limit that reappears in 1C.3 below.
 
 ::: {.callout-note title="Practice Q1"}
-Write a function `real_equal(x, y, tol)` that reports whether two real numbers
-should be considered equal, given that direct `==` comparison is unreliable.
-(Hint: compare `abs(x - y)` against a small tolerance rather than testing for
-exact equality.) Test it on `0.1 + 0.2` and `0.3`.
+Write a function `real_equal(x, y, tol)` that reports whether two real numbers should be considered equal, given that direct `==` comparison is unreliable. (Hint: compare `abs(x - y)` against a small tolerance rather than testing for exact equality.) Test it on `0.1 + 0.2` and `0.3`.
 :::
 
 ## 1C.3 The Babylonian method for square roots
 
-Long before iterative numerical methods had that name, they were already in
-use: a Babylonian clay tablet catalogued as YBC 7289 records a base-60
-approximation of $\sqrt{2}$ accurate to about six decimal digits
-[@fowler1998square]. The method it reflects, now called the Babylonian method,
-finds $\sqrt{a}$ for $a > 0$ by repeatedly averaging a guess with $a$ divided by
-that guess:
+Long before iterative numerical methods had that name, they were already in use: a Babylonian clay tablet catalogued as YBC 7289 records a base-60 approximation of $\sqrt{2}$ accurate to about six decimal digits [@fowler1998square]. The method it reflects, now called the Babylonian method, finds $\sqrt{a}$ for $a > 0$ by repeatedly averaging a guess with $a$ divided by that guess:
 
 $$x_{n+1} = \frac{1}{2} \left(x_n + \frac{a}{x_{n}}\right)$$
 
@@ -76,9 +45,7 @@ starting from any $x_1 > 0$, until
 
 $$ |x_{n+1}^2 - a| < \epsilon$$
 
-for a chosen tolerance $\epsilon$. (This is in fact a special case of Newton's
-method for finding the root of $f(x) = x^2 - a$; [Part 2F](../02-odes/02f-bifurcation-curves.qmd)
-implements Newton's method for a general $f$.)
+for a chosen tolerance $\epsilon$. (This is in fact a special case of Newton's method for finding the root of $f(x) = x^2 - a$; [Part 2F](../02-odes/02f-bifurcation-curves.qmd) implements Newton's method for a general $f$.)
 
 ::: {.callout-note title="Recipe 1C.3.1"}
 **Objective.** Compute the square root of a positive number by iteration, without a built-in square-root function.
@@ -147,9 +114,7 @@ babylonian(2, 100)
 babylonian(2, 200)
 ```
 
-The method converges fast: each iteration roughly doubles the number of
-correct digits. Tracking the digits of accuracy against $\sqrt{2}$ directly
-confirms this, and also shows machine precision (1C.2) in action:
+The method converges fast: each iteration roughly doubles the number of correct digits. Tracking the digits of accuracy against $\sqrt{2}$ directly confirms this, and also shows machine precision (1C.2) in action:
 
 ```{r}
 x <- 1
@@ -161,26 +126,15 @@ for (i in 1:7) {
 }
 ```
 
-The digit count roughly doubles for the first several iterations (1.1, 2.6,
-5.7, 11.8), then flattens out around 15-16 digits by iteration 5: that plateau
-is machine epsilon's limit on double precision. Reaching genuinely dozens of
-correct digits, as historical demonstrations of this method sometimes show,
-requires arbitrary-precision arithmetic (R's `Rmpfr`, Python's `decimal` or
-`mpmath`) rather than R's or Python's default double.
+The digit count roughly doubles for the first several iterations (1.1, 2.6, 5.7, 11.8), then flattens out around 15-16 digits by iteration 5: that plateau is machine epsilon's limit on double precision. Reaching genuinely dozens of correct digits, as historical demonstrations of this method sometimes show, requires arbitrary-precision arithmetic (R's `Rmpfr`, Python's `decimal` or `mpmath`) rather than R's or Python's default double.
 
 ::: {.callout-note title="Practice Q2"}
-Modify `babylonian()` to also print the relative error, $|x_{n+1} - x_n| /
-x_n$, at every iteration, and confirm it shrinks roughly quadratically (matches
-the doubling-digits pattern above) until it hits the machine-epsilon floor.
+Modify `babylonian()` to also print the relative error, $|x_{n+1} - x_n| / x_n$, at every iteration, and confirm it shrinks roughly quadratically (matches the doubling-digits pattern above) until it hits the machine-epsilon floor.
 :::
 
 ## 1C.4 Algorithmic complexity (Big-O notation)
 
-Big-O notation describes how a method's cost, whether time or memory, grows as
-the problem size $n$ grows, ignoring constant factors and lower-order terms.
-It answers "if I double $n$, roughly how much more expensive does this get?"
-rather than giving an exact operation count. A few complexity classes recur
-throughout this book:
+Big-O notation describes how a method's cost, whether time or memory, grows as the problem size $n$ grows, ignoring constant factors and lower-order terms. It answers "if I double $n$, roughly how much more expensive does this get?" rather than giving an exact operation count. A few complexity classes recur throughout this book:
 
 | Complexity | Meaning | Example |
 |:-----------|:--------|:--------|
@@ -191,48 +145,27 @@ throughout this book:
 | $O(n^2)$ | quadratic | selection sort |
 | $O(2^n)$, $O(n!)$ | exponential, factorial | enumerating all subsets, or all permutations, of $n$ items |
 
-[Part 9B](../09-optimization/09b-dynamic-programming.qmd) leans on this
-vocabulary directly, contrasting an $O(n^2 2^n)$ dynamic-programming solution
-against a brute-force $O(n!)$ one.
-
 ::: {.callout-note title="Practice Q3"}
-The Babylonian method's iteration count grows with $-\log_{10}\epsilon$ (since
-each step roughly doubles the number of correct digits, the number of
-iterations needed grows only with the logarithm of the number of digits
-requested). What is its time complexity in terms of the tolerance $\epsilon$,
-and how does that compare to the complexity classes in the table above?
+The Babylonian method's iteration count grows with $-\log_{10}\epsilon$ (since each step roughly doubles the number of correct digits, the number of iterations needed grows only with the logarithm of the number of digits requested). What is its time complexity in terms of the tolerance $\epsilon$, and how does that compare to the complexity classes in the table above?
 :::
 
 ## 1C.5 Curve interpolation
 
-Representing a curve on a computer usually means storing it as a finite set of
-$(x, y)$ points and filling in the gaps between them. The simplest choice,
-linear interpolation, connects consecutive points with straight-line segments;
-it is cheap but has a visible kink at every data point. A smoother alternative,
-cubic spline interpolation [@deboor2001splines], fits a separate cubic
-polynomial between each pair of consecutive points and chooses their
-coefficients so that value, first derivative, and second derivative all agree
-at every shared point, so the whole curve looks smooth rather than piecewise.
+Representing a curve on a computer usually means storing it as a finite set of $(x, y)$ points and filling in the gaps between them. The simplest choice, linear interpolation, connects consecutive points with straight-line segments; it is cheap but has a visible kink at every data point. A smoother alternative, cubic spline interpolation [@deboor2001splines], fits a separate cubic polynomial between each pair of consecutive points and chooses their coefficients so that value, first derivative, and second derivative all agree at every shared point, so the whole curve looks smooth rather than piecewise.
 
-For $n+1$ points $(x_0, y_0), \dots, (x_n, y_n)$, the cubic piece between
-$(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$ is
+For $n+1$ points $(x_0, y_0), \dots, (x_n, y_n)$, the cubic piece between $(x_i, y_i)$ and $(x_{i+1}, y_{i+1})$ is
 
 $$y_i(x) = a_i x^3 + b_i x^2 + c_i x + d_i , \tag{1}$$
 
-and matching value, first derivative, and second derivative at each interior
-point $x_i$ gives
+and matching value, first derivative, and second derivative at each interior point $x_i$ gives
 
 $$ y_i(x_i) = y_{i+1}(x_i), \quad \frac{dy_i}{dx}(x_i) = \frac{dy_{i+1}}{dx}(x_i), \quad \frac{d^2y_i}{dx^2}(x_i) = \frac{d^2y_{i+1}}{dx^2}(x_i) . \tag{2}$$
 
-Two more conditions are still needed to pin down the remaining coefficients;
-the natural choice sets the second derivative to zero at the two endpoints,
+Two more conditions are still needed to pin down the remaining coefficients; the natural choice sets the second derivative to zero at the two endpoints,
 
 $$ \frac{d^2y_0}{dx^2}(x_0) = \frac{d^2y_{n-1}}{dx^2}(x_n) = 0 . \tag{3}$$
 
-For a small example ($n = 3$ points, so two cubic pieces), Equations (1)-(3)
-reduce to a system of 8 linear equations in the 8 unknown coefficients, solved
-directly. Here is a 3-point data set of average temperatures at different
-latitudes:
+For a small example ($n = 3$ points, so two cubic pieces), Equations (1)-(3) reduce to a system of 8 linear equations in the 8 unknown coefficients, solved directly. Here is a 3-point data set of average temperatures at different latitudes:
 
 ```{r}
 x <- c(5, 15, 25)
@@ -309,8 +242,4 @@ _ = plt.legend(loc="lower left")
 plt.show()
 ```
 
-The two cubic pieces meet smoothly at the middle point, while the linear
-interpolation (dashed) has a visible kink there, the trade-off this section
-opened with: linear interpolation is simpler and cheaper, but cubic spline
-interpolation better matches how a physical quantity like temperature actually
-varies continuously with latitude.
+The two cubic pieces meet smoothly at the middle point, while the linear interpolation (dashed) has a visible kink there, the trade-off this section opened with: linear interpolation is simpler and cheaper, but cubic spline interpolation better matches how a physical quantity like temperature actually varies continuously with latitude.

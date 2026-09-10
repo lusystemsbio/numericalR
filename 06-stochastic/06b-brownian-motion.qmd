@@ -4,19 +4,11 @@ author: "Mingyang Lu"
 old_id: "06B"
 ---
 
-Brownian motion, the erratic wandering of a particle buffeted by random kicks, is
-the prototypical stochastic process and the foundation for the stochastic
-differential equations of the following chapters. We build it up from a simple
-one-dimensional random walk, study the statistics of an ensemble of walks, and
-arrive at the Wiener process.
+Brownian motion, the erratic wandering of a particle buffeted by random kicks, is the prototypical stochastic process and the foundation for the stochastic differential equations of the following chapters. We build it up from a simple one-dimensional random walk, study the statistics of an ensemble of walks, and arrive at the Wiener process.
 
 ## 6B.1 A one-dimensional random walk
 
-A particle starts at the origin, $x(0) = 0$. At each time step it hops left or
-right by a fixed distance $\Delta x$, with equal probability. We write two
-implementations: one with an explicit loop (like an ODE integrator) and one using
-only vector operations. The vectorized version is concise but less flexible for
-more complex dynamics; both give statistically identical walks.
+A particle starts at the origin, $x(0) = 0$. At each time step it hops left or right by a fixed distance $\Delta x$, with equal probability. We write two implementations: one with an explicit loop (like an ODE integrator) and one using only vector operations. The vectorized version is concise but less flexible for more complex dynamics; both give statistically identical walks.
 
 ::: {.callout-note title="Recipe 6B.1.1"}
 **Objective.** Simulate an ensemble of one-dimensional random walks and see how they spread.
@@ -92,23 +84,15 @@ for i in range(10):
 plt.show()
 ```
 
-Each walk wanders differently because it draws its own random steps, but as a
-group they spread symmetrically about the origin, some ending far from it and
-others near.
+Each walk wanders differently because it draws its own random steps, but as a group they spread symmetrically about the origin, some ending far from it and others near.
 
 ## 6B.2 Statistics of the ensemble
 
-Across many walks the mean position stays at zero while the spread grows with
-time. At any fixed $t$ the distribution of $x$ is (exactly) binomial and, after
-many steps, approaches a Gaussian by the central limit theorem, with a width that
-widens as $t$ increases. Theory gives the variance $\langle x^2 \rangle = 2 D t$,
-with the one-dimensional diffusion constant [@einstein1905brownian]
+Across many walks the mean position stays at zero while the spread grows with time. At any fixed $t$ the distribution of $x$ is (exactly) binomial and, after many steps, approaches a Gaussian by the central limit theorem, with a width that widens as $t$ increases. Theory gives the variance $\langle x^2 \rangle = 2 D t$, with the one-dimensional diffusion constant [@einstein1905brownian]
 
 $$ D = \lim_{\Delta t \rightarrow 0} \frac{\Delta x^2}{2 \Delta t} . \tag{3} $$
 
-We view the spread with a box plot across sampled times, confirm the Gaussian
-shape with histograms at a few times, and check the variance against the theory.
-For our steps ($\Delta x = \Delta t = 1$), $D = 0.5$, so $\langle x^2 \rangle = t$.
+We view the spread with a box plot across sampled times, confirm the Gaussian shape with histograms at a few times, and check the variance against the theory. For our steps ($\Delta x = \Delta t = 1$), $D = 0.5$, so $\langle x^2 \rangle = t$.
 
 ### R implementation {.impl}
 
@@ -181,17 +165,11 @@ plt.xlabel("t"); plt.ylabel("Values"); plt.xlim(0, 910); plt.ylim(-20, 1000)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-The box plot shows a mean pinned at zero with a spread that grows with time, and
-the histograms confirm an approximately Gaussian shape that widens as $t$
-increases. The measured $\langle x^2 \rangle$ tracks the line $y = t$, so
-$D \approx 0.5$ as expected, with residual scatter that would shrink with more
-walks.
+The box plot shows a mean pinned at zero with a spread that grows with time, and the histograms confirm an approximately Gaussian shape that widens as $t$ increases. The measured $\langle x^2 \rangle$ tracks the line $y = t$, so $D \approx 0.5$ as expected, with residual scatter that would shrink with more walks.
 
 ## 6B.3 Gaussian move steps
 
-Nothing forces the steps to be discrete $\pm \Delta x$. Drawing each step from a
-Gaussian of mean $0$ and standard deviation $\Delta x$ gives the same large-scale
-statistics.
+Nothing forces the steps to be discrete $\pm \Delta x$. Drawing each step from a Gaussian of mean $0$ and standard deviation $\Delta x$ gives the same large-scale statistics.
 
 ::: {.callout-note title="Recipe 6B.3.1"}
 **Objective.** Repeat the random walk with continuous Gaussian steps and compare the spread to discrete steps.
@@ -244,13 +222,11 @@ plt.boxplot(data_gauss); plt.xticks(range(1, len(t_ind)+1), t_ind)
 plt.xlabel("t"); plt.ylabel("x"); plt.ylim(-100, 100); plt.show()
 ```
 
-The box plot is statistically the same as before: the step distribution does not
-matter for the long-time behavior, only its mean and variance.
+The box plot is statistically the same as before: the step distribution does not matter for the long-time behavior, only its mean and variance.
 
 ## 6B.4 Brownian motion in 2D
 
-The walk generalizes to a plane by drawing an independent Gaussian step for each
-of $x$ and $y$ at every time.
+The walk generalizes to a plane by drawing an independent Gaussian step for each of $x$ and $y$ at every time.
 
 ::: {.callout-note title="Recipe 6B.4.1"}
 **Objective.** Simulate Brownian motion in a plane.
@@ -312,28 +288,21 @@ plt.gca().set_aspect("equal")
 plt.xlabel("x"); plt.ylabel("y"); plt.xlim(-100, 100); plt.ylim(-100, 100); plt.show()
 ```
 
-The path is a tangled two-dimensional walk that drifts away from the origin over
-time, its typical distance again growing like $\sqrt{t}$.
+The path is a tangled two-dimensional walk that drifts away from the origin over time, its typical distance again growing like $\sqrt{t}$.
 
 ## 6B.5 The Wiener process
 
-A precise mathematical description of Brownian motion is the *Wiener process*
-$W_t$, a continuous-time process with four defining properties
-[@gardiner2009stochastic]:
+A precise mathematical description of Brownian motion is the *Wiener process* $W_t$, a continuous-time process with four defining properties [@gardiner2009stochastic]:
 
 **(1)** $W_0 = 0$.
 
-**(2)** Independent increments: for $t > 0$ and $h \geq 0$, the increment
-$W_{t+h} - W_t$ is independent of the past $\{W_s : s < t\}$.
+**(2)** Independent increments: for $t > 0$ and $h \geq 0$, the increment $W_{t+h} - W_t$ is independent of the past $\{W_s : s < t\}$.
 
 **(3)** Gaussian increments: $W_{t+h} - W_t \sim \mathcal{N}(0, h)$.
 
 **(4)** Continuous paths: $W_t$ is continuous in $t$.
 
-Our Gaussian-step walk is essentially a Wiener process. To make the diffusion
-constant explicit, we scale the step standard deviation as $\sqrt{2 D \Delta t}$,
-so that the variance grows as $2 D t$ regardless of the step size. This scaling is
-essential: a common mistake is to set the standard deviation to $\Delta t$.
+Our Gaussian-step walk is essentially a Wiener process. To make the diffusion constant explicit, we scale the step standard deviation as $\sqrt{2 D \Delta t}$, so that the variance grows as $2 D t$ regardless of the step size. This scaling is essential: a common mistake is to set the standard deviation to $\Delta t$.
 
 ::: {.callout-note title="Recipe 6B.5.1"}
 **Objective.** Simulate a Wiener process whose variance stays correct regardless of the step size.
@@ -392,9 +361,4 @@ plt.boxplot(data_wiener); plt.xticks(range(1, len(tw_ind)+1), tw_sample.astype(i
 plt.xlabel("t"); plt.ylabel("x"); plt.ylim(-100, 100); plt.show()
 ```
 
-Even with the much larger step $\Delta t = 10$, the statistics come out right,
-because the $\sqrt{2 D \Delta t}$ scaling keeps the variance on track. A large step
-is fine for pure diffusion, but once a deterministic force is added the step must
-again be small, just as for an ODE. That combination of deterministic drift and
-random diffusion is the stochastic differential equation we take up in
-[Part 6C](06c-sde-integrators.qmd).
+Even with the much larger step $\Delta t = 10$, the statistics come out right, because the $\sqrt{2 D \Delta t}$ scaling keeps the variance on track. A large step is fine for pure diffusion, but once a deterministic force is added the step must again be small, just as for an ODE. That combination of deterministic drift and random diffusion is the stochastic differential equation we take up in [Part 6C](06c-sde-integrators.qmd).

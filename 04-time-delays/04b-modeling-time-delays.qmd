@@ -4,26 +4,15 @@ author: "Mingyang Lu"
 old_id: "04B"
 ---
 
-We now apply DDEs to three familiar models and watch how a time delay changes
-their behavior. Throughout we integrate with the second-order Heun scheme from
-[Part 4A](04a-delayed-differential-equations.qmd), redefined at the start of the
-first example so the chapter is self-contained.
+We now apply DDEs to three familiar models and watch how a time delay changes their behavior. Throughout we integrate with the second-order Heun scheme from [Part 4A](04a-delayed-differential-equations.qmd), redefined at the start of the first example so the chapter is self-contained.
 
 ## 4B.1 Delay logistic growth
 
-Adding a delay to the logistic model gives the **Hutchinson equation**
-[@hutchinson1948circular], in which the growth of $N$ is limited by the population
-one delay $\tau$ in the past,
+Adding a delay to the logistic model gives the **Hutchinson equation** [@hutchinson1948circular], in which the growth of $N$ is limited by the population one delay $\tau$ in the past,
 
 $$ \frac{dN}{dt} = r\, N(t)\left[1 - \frac{N(t - \tau)}{B}\right] , \tag{1} $$
 
-with carrying capacity $B$. We fix $B = 100$ and $\tau = 1$ and vary the growth
-rate $r$. The delay drives a Hopf bifurcation at $r\tau = \pi/2$: below it the
-population settles at $B$; above it, it oscillates forever. Four values of $r$
-trace the transition: $r = 0.3$ (monotonic growth to $B$), $r = 1.5$ (just below
-$\pi/2$, a damped oscillation settling at $B$), $r = \pi/2 \approx 1.57$ (the Hopf
-point, an oscillation that decays extremely slowly), and $r = 1.7$ (above $\pi/2$,
-a sustained oscillation, a stable limit cycle).
+with carrying capacity $B$. We fix $B = 100$ and $\tau = 1$ and vary the growth rate $r$. The delay drives a Hopf bifurcation at $r\tau = \pi/2$: below it the population settles at $B$; above it, it oscillates forever. Four values of $r$ trace the transition: $r = 0.3$ (monotonic growth to $B$), $r = 1.5$ (just below $\pi/2$, a damped oscillation settling at $B$), $r = \pi/2 \approx 1.57$ (the Hopf point, an oscillation that decays extremely slowly), and $r = 1.7$ (above $\pi/2$, a sustained oscillation, a stable limit cycle).
 
 ::: {.callout-note title="Recipe 4B.1.1"}
 **Objective.** Simulate delay-driven logistic growth and locate the onset of sustained oscillation.
@@ -115,19 +104,11 @@ for r, tmax, xl, yl, lab in cases:
 
 ## 4B.2 A self-inhibiting gene with delay
 
-A gene whose product represses its own transcription forms a negative-feedback
-loop. Because transcription and translation take time, the repression acts on the
-protein level a delay $\tau$ earlier,
+A gene whose product represses its own transcription forms a negative-feedback loop. Because transcription and translation take time, the repression acts on the protein level a delay $\tau$ earlier,
 
 $$ \frac{dX}{dt} = g_0 + g_1\frac{1}{1 + (X(t - \tau)/X_{th})^n} - k X(t) , \tag{2} $$
 
-where $g_0$ is the leakage rate, $g_0 + g_1$ the maximum rate (reached when $X$ is
-low and the inhibitory Hill term approaches $1$), $X_{th}$ the Hill threshold, $n$
-the Hill coefficient, and $k$ the degradation rate. With $g_0 = 10$, $g_1 = 60$,
-$X_{th} = 200$, $n = 4$, $k = 0.1$, the delay decides the dynamics: a short delay
-($\tau = 5$) settles at the steady state near $250$, but as $\tau$ grows the
-response turns into a damped and then a sustained oscillation. Delayed negative
-feedback is a generic route to biological oscillations.
+where $g_0$ is the leakage rate, $g_0 + g_1$ the maximum rate (reached when $X$ is low and the inhibitory Hill term approaches $1$), $X_{th}$ the Hill threshold, $n$ the Hill coefficient, and $k$ the degradation rate. With $g_0 = 10$, $g_1 = 60$, $X_{th} = 200$, $n = 4$, $k = 0.1$, the delay decides the dynamics: a short delay ($\tau = 5$) settles at the steady state near $250$, but as $\tau$ grows the response turns into a damped and then a sustained oscillation. Delayed negative feedback is a generic route to biological oscillations.
 
 ::: {.callout-note title="Recipe 4B.2.1"}
 **Objective.** Simulate a self-repressing gene whose feedback acts after a delay, and watch oscillations emerge as the delay grows.
@@ -184,8 +165,7 @@ plt.legend(loc="upper left"); plt.show()
 
 ## 4B.3 Delayed Lotka-Volterra
 
-Finally, a two-variable delay: in the Lotka-Volterra predator-prey model each
-species reacts to the other after a lag,
+Finally, a two-variable delay: in the Lotka-Volterra predator-prey model each species reacts to the other after a lag,
 
 \begin{equation}
 \begin{cases}
@@ -194,11 +174,7 @@ species reacts to the other after a lag,
 \end{cases} \tag{3}
 \end{equation}
 
-For simplicity we set $\tau_1 = \tau_2 = \tau$, which needs an integrator that
-carries a *vector* history. The undelayed model ($\tau = 0$) has neutrally stable
-closed orbits (the center of [Part 3D](../03-phase-plane/03d-predator-prey.qmd)).
-The delay breaks that neutral balance: even a one-step delay ($\tau = 0.01$) makes
-the orbit spiral outward, and larger delays deviate faster.
+For simplicity we set $\tau_1 = \tau_2 = \tau$, which needs an integrator that carries a *vector* history. The undelayed model ($\tau = 0$) has neutrally stable closed orbits (the center of [Part 3D](../03-phase-plane/03d-predator-prey.qmd)). The delay breaks that neutral balance: even a one-step delay ($\tau = 0.01$) makes the orbit spiral outward, and larger delays deviate faster.
 
 ::: {.callout-note title="Recipe 4B.3.1"}
 **Objective.** Simulate a predator-prey model in which each species responds to the other after a lag.
@@ -310,6 +286,4 @@ plt.xlabel("N"); plt.ylabel("P"); plt.xlim(0, 180); plt.ylim(0, 150)
 plt.legend(loc="upper right"); plt.show()
 ```
 
-The delayed Lotka-Volterra approach extends to unequal delays $\tau_1 \neq \tau_2$
-with a little more bookkeeping (a separate delay index per variable), left as an
-exercise.
+The delayed Lotka-Volterra approach extends to unequal delays $\tau_1 \neq \tau_2$ with a little more bookkeeping (a separate delay index per variable), left as an exercise.

@@ -4,12 +4,7 @@ author: "Mingyang Lu"
 old_id: "06D"
 ---
 
-We now apply the SDE methods to the
-[toggle switch](../02-odes/02a-modeling-gene-circuits.qmd), the mutually
-repressing two-gene circuit whose deterministic phase plane we studied in
-[Part 3](../03-phase-plane/03a-nullclines.qmd).
-With gene-expression noise added, each rate equation gains a noise term and the
-circuit becomes a two-variable SDE,
+We now apply the SDE methods to the [toggle switch](../02-odes/02a-modeling-gene-circuits.qmd), the mutually repressing two-gene circuit whose deterministic phase plane we studied in [Part 3](../03-phase-plane/03a-nullclines.qmd). With gene-expression noise added, each rate equation gains a noise term and the circuit becomes a two-variable SDE,
 
 $$
 \begin{cases}
@@ -18,9 +13,7 @@ $$
 \end{cases} \tag{1}
 $$
 
-We use constant noise, $s_X = s_Y = b$, so the Euler-Maruyama method applies. The
-state is a vector $(X, Y)$, and the drift and noise functions return length-two
-vectors.
+We use constant noise, $s_X = s_Y = b$, so the Euler-Maruyama method applies. The state is a vector $(X, Y)$, and the drift and noise functions return length-two vectors.
 
 ## 6D.1 A toggle switch with noise
 
@@ -123,27 +116,15 @@ plt.gca().set_aspect("equal")
 plt.xlabel("X"); plt.ylabel("Y"); plt.xlim(0, 500); plt.ylim(0, 500); plt.show()
 ```
 
-Like the self-activating gene, the toggle switch is bistable, here with a low-$X$
-high-$Y$ state and a high-$X$ low-$Y$ state. The noise drives *state transitions*:
-the trajectory hops between the two, swapping which gene is highly expressed, as
-both the time series and the phase-plane view make clear.
+Like the self-activating gene, the toggle switch is bistable, here with a low-$X$ high-$Y$ state and a high-$X$ low-$Y$ state. The noise drives *state transitions*: the trajectory hops between the two, swapping which gene is highly expressed, as both the time series and the phase-plane view make clear.
 
 ## 6D.2 Counting state transitions
 
-A useful statistic of such a bistable system is the *transition rate*, the number
-of state transitions per unit time. By analogy, the circuit is a particle in a
-double-well potential: a transition from basin A to basin B requires crossing the
-barrier at C.
+A useful statistic of such a bistable system is the *transition rate*, the number of state transitions per unit time. By analogy, the circuit is a particle in a double-well potential: a transition from basin A to basin B requires crossing the barrier at C.
 
 ![](images/06d/fig1.png){width=55% fig-align="center"}
 
-To count transitions from a trajectory we need a rule for which state the system
-is in. We split the phase plane along the [separatrix](../03-phase-plane/03f-separatrix.qmd)
-$Y = X$ (with constant noise this line is unchanged), then fit an ellipse to the
-cloud of points on each side by eigen-decomposing its covariance matrix. A point
-is assigned to a state only when it lies inside that state's ellipse; if it lies
-outside both, the state is left unchanged, and a transition is recorded when the
-system enters the opposite ellipse.
+To count transitions from a trajectory we need a rule for which state the system is in. We split the phase plane along the [separatrix](../03-phase-plane/03f-separatrix.qmd) $Y = X$ (with constant noise this line is unchanged), then fit an ellipse to the cloud of points on each side by eigen-decomposing its covariance matrix. A point is assigned to a state only when it lies inside that state's ellipse; if it lies outside both, the state is left unchanged, and a transition is recorded when the system enters the opposite ellipse.
 
 ::: {.callout-note title="Recipe 6D.2.1"}
 **Objective.** Count how often the noisy toggle switch jumps between its two states.
@@ -248,42 +229,23 @@ print("1->2 at steps:", np.where(d ==  1)[0])   # steps of state 1 -> 2 transiti
 print("2->1 at steps:", np.where(d == -1)[0])   # steps of state 2 -> 1 transitions
 ```
 
-The ellipses capture most of each state's cloud (the factor of 1.5 enlarges the
-axes to do so). Printing the step at which each transition is detected, rather than
-just the total, exposes why the count is unreliable: several of them fall within a
-few steps of one another, a $1 \to 2$ immediately followed by a $2 \to 1$ and
-another $1 \to 2$. These are not separate events but a single trajectory jittering
-back and forth across the boundary before it settles, with each wobble counted as a
-transition. That over-counting, together with the slowness of the point-by-point R
-loop, is why we turn to a more robust statistic.
+The ellipses capture most of each state's cloud (the factor of 1.5 enlarges the axes to do so). Printing the step at which each transition is detected, rather than just the total, exposes why the count is unreliable: several of them fall within a few steps of one another, a $1 \to 2$ immediately followed by a $2 \to 1$ and another $1 \to 2$. These are not separate events but a single trajectory jittering back and forth across the boundary before it settles, with each wobble counted as a transition. That over-counting, together with the slowness of the point-by-point R loop, is why we turn to a more robust statistic.
 
 ## 6D.3 Mean first passage time
 
-A more robust route to the rate is the *mean first passage time* (MFPT) $\tau$,
-the average time to first reach the separatrix from a state
-[@gardiner2009stochastic]. The transition rate follows from
+A more robust route to the rate is the *mean first passage time* (MFPT) $\tau$, the average time to first reach the separatrix from a state [@gardiner2009stochastic]. The transition rate follows from
 
 $$ \kappa = \frac{1}{2\tau} . \tag{2} $$
 
-The factor of two is because, on reaching the separatrix, the system is equally
-likely to complete the transition or fall back, so the mean waiting time for a
-full transition is $2\tau$. The algorithm records the current state, simulates
-until the trajectory crosses to the other side, logs the passage time, waits a
-fixed relaxation time, and repeats; averaging the passage times gives $\tau$.
+The factor of two is because, on reaching the separatrix, the system is equally likely to complete the transition or fall back, so the mean waiting time for a full transition is $2\tau$. The algorithm records the current state, simulates until the trajectory crosses to the other side, logs the passage time, waits a fixed relaxation time, and repeats; averaging the passage times gives $\tau$.
 
-Because this needs long simulations, we implement it in compiled Fortran, in
-`sub_sde_2g.f90`. Its random numbers come from a
-Park-Miller (Lehmer) generator [@park1988random] for uniform draws, converted to
-Gaussian draws by the Marsaglia polar method [@box1958note]. The source is
-compiled to a shared library,
+Because this needs long simulations, we implement it in compiled Fortran, in `sub_sde_2g.f90`. Its random numbers come from a Park-Miller (Lehmer) generator [@park1988random] for uniform draws, converted to Gaussian draws by the Marsaglia polar method [@box1958note]. The source is compiled to a shared library,
 
 ```sh
 gfortran -fpic -shared 06-stochastic/src/sub_sde_2g.f90 -o 06-stochastic/src/sub_sde_2g.so
 ```
 
-which both languages then call: R through `.Fortran`, Python through `ctypes`. The
-routine `sde_simulation(iseed, t_total, kappa, nrun)` returns the two transition
-rates and the numbers of transitions counted.
+which both languages then call: R through `.Fortran`, Python through `ctypes`. The routine `sde_simulation(iseed, t_total, kappa, nrun)` returns the two transition rates and the numbers of transitions counted.
 
 ### R implementation {.impl}
 
@@ -307,10 +269,4 @@ print("transition rates (1->2, 2->1):", list(kappa))
 print("transitions counted:", list(nrun))
 ```
 
-In contrast to the crude counter above, both calls run the very same compiled
-routine with the same seed, so they return bit-for-bit identical rates, a clean
-demonstration that the numerics live in the shared library rather than in either
-host language. For accurate rates the simulation
-time should be pushed from $10^5$ toward $10^7$, or many runs combined in
-parallel. For more complex circuits, though, finding the separatrix and deciding
-the current state from $(X, Y)$ becomes much harder.
+In contrast to the crude counter above, both calls run the very same compiled routine with the same seed, so they return bit-for-bit identical rates, a clean demonstration that the numerics live in the shared library rather than in either host language. For accurate rates the simulation time should be pushed from $10^5$ toward $10^7$, or many runs combined in parallel. For more complex circuits, though, finding the separatrix and deciding the current state from $(X, Y)$ becomes much harder.

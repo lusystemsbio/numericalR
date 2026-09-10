@@ -4,29 +4,15 @@ author: "Mingyang Lu"
 old_id: "08B"
 ---
 
-A *Markov chain* is a stochastic process in which the probability of the next state
-depends only on the current state, not on the earlier history. The random walk of
-[Part 6B](../06-stochastic/06b-brownian-motion.qmd) is one example: each step chooses
-a direction based only on where the walker is now. This chapter builds from Markov
-chains to the *Metropolis-Hastings algorithm*, a Markov chain Monte Carlo (MCMC)
-method that samples an arbitrary probability distribution by constructing a Markov
-chain whose stationary distribution is the one we want.
+A *Markov chain* is a stochastic process in which the probability of the next state depends only on the current state, not on the earlier history. The random walk of [Part 6B](../06-stochastic/06b-brownian-motion.qmd) is one example: each step chooses a direction based only on where the walker is now. This chapter builds from Markov chains to the *Metropolis-Hastings algorithm*, a Markov chain Monte Carlo (MCMC) method that samples an arbitrary probability distribution by constructing a Markov chain whose stationary distribution is the one we want.
 
 ## 8B.1 A Markov chain: a bursting gene
 
-Many genes are transcribed in *bursts*: the promoter switches between an active state,
-where it produces mRNA, and an inactive state, where it is silent, and it can dwell in
-each for a while before switching [@golding2005realtime]. We model the promoter as a
-two-state Markov chain, "active" and "inactive", where each step either keeps the
-current state or switches it, with fixed probabilities that depend only on the current
-state. The state diagram shows the transition probabilities.
+Many genes are transcribed in *bursts*: the promoter switches between an active state, where it produces mRNA, and an inactive state, where it is silent, and it can dwell in each for a while before switching [@golding2005realtime]. We model the promoter as a two-state Markov chain, "active" and "inactive", where each step either keeps the current state or switches it, with fixed probabilities that depend only on the current state. The state diagram shows the transition probabilities.
 
 ![](images/08B/fig1.png){width=60% fig-align="center"}
 
-The dynamics are captured by a *transition matrix* $T$, whose entry in row $i$,
-column $j$ is the probability of moving from state $i$ to state $j$. Each row sums to
-1, since the chain must go somewhere. To simulate the chain, at each step we draw a
-uniform random number and use it to pick the next state from the current row of $T$.
+The dynamics are captured by a *transition matrix* $T$, whose entry in row $i$, column $j$ is the probability of moving from state $i$ to state $j$. Each row sums to 1, since the chain must go somewhere. To simulate the chain, at each step we draw a uniform random number and use it to pick the next state from the current row of $T$.
 
 ::: {.callout-note title="Recipe 8B.1.1"}
 **Objective.** Simulate a two-state promoter as a Markov chain and find its long-run state fractions.
@@ -107,22 +93,15 @@ plt.xlabel("Step"); plt.ylabel("Probability"); plt.ylim(0, 1); plt.legend(); plt
 print(p_active[-1], p_inactive[-1])
 ```
 
-The trajectory shows the bursting pattern: short spells in the active state separated
-by longer silent stretches, because the inactive state is stickier (it switches away
-only with probability 0.1 per step). The running fractions converge to a stable
-distribution, roughly 25% active and 75% inactive. (R labels the states 1 and 2,
-Python 0 and 1, to match each language's array indexing; the model is identical.)
+The trajectory shows the bursting pattern: short spells in the active state separated by longer silent stretches, because the inactive state is stickier (it switches away only with probability 0.1 per step). The running fractions converge to a stable distribution, roughly 25% active and 75% inactive. (R labels the states 1 and 2, Python 0 and 1, to match each language's array indexing; the model is identical.)
 
 ## 8B.2 The steady-state distribution
 
-There is a faster way to find those long-run probabilities than simulating a long
-trajectory. If $p_i$ is the row vector of state probabilities at step $i$, then one
-step of the chain updates it by a matrix multiplication with the transition matrix,
+There is a faster way to find those long-run probabilities than simulating a long trajectory. If $p_i$ is the row vector of state probabilities at step $i$, then one step of the chain updates it by a matrix multiplication with the transition matrix,
 
 $$ p_{i+1} = p_i T . \tag{1} $$
 
-Iterating from any starting distribution converges to a fixed vector $p_{ss}$, the
-*steady-state* (or stationary) distribution.
+Iterating from any starting distribution converges to a fixed vector $p_{ss}$, the *steady-state* (or stationary) distribution.
 
 ### R implementation {.impl}
 
@@ -165,10 +144,7 @@ plt.xlabel("Step"); plt.ylabel("Probability"); plt.ylim(0, 1); plt.legend(); plt
 print(p_ss)
 ```
 
-Starting from a fully active promoter, $p_i$ settles within a few steps to $p_{ss}
-\approx (0.25, 0.75)$, matching the fractions from the long simulation. A Markov chain
-has a
-unique steady-state distribution when it is *ergodic*, meaning it is both
+Starting from a fully active promoter, $p_i$ settles within a few steps to $p_{ss} \approx (0.25, 0.75)$, matching the fractions from the long simulation. A Markov chain has a unique steady-state distribution when it is *ergodic*, meaning it is both
 
 - **irreducible**: every state is reachable from every other state, and
 - **aperiodic**: it does not return to a state only at fixed regular intervals.
@@ -177,15 +153,9 @@ Ergodicity is the key requirement that makes Markov chain Monte Carlo work.
 
 ## 8B.3 The Metropolis-Hastings algorithm
 
-Markov chain Monte Carlo turns this idea around. Instead of reading off the
-stationary distribution of a *given* chain, we are handed a target distribution
-$P(x)$ and asked to *build* a chain whose stationary distribution is $P$. The
-Metropolis-Hastings algorithm [@metropolis1953equation; @hastings1970monte;
-@robert2004monte] does exactly that, and it needs only the ability to evaluate $P(x)$
-up to a constant.
+Markov chain Monte Carlo turns this idea around. Instead of reading off the stationary distribution of a *given* chain, we are handed a target distribution $P(x)$ and asked to *build* a chain whose stationary distribution is $P$. The Metropolis-Hastings algorithm [@metropolis1953equation; @hastings1970monte; @robert2004monte] does exactly that, and it needs only the ability to evaluate $P(x)$ up to a constant.
 
-The construction relies on *detailed balance*, a stronger condition than mere
-stationarity:
+The construction relies on *detailed balance*, a stronger condition than mere stationarity:
 
 $$ T(x \rightarrow x')\, P(x) = T(x' \rightarrow x)\, P(x') . \tag{2} $$
 
@@ -193,21 +163,13 @@ Summing over $x'$ recovers the stationarity condition,
 
 $$ \sum_{x'} T(x \rightarrow x')\, P(x) = \sum_{x'} T(x' \rightarrow x)\, P(x') , \tag{3} $$
 
-so any chain satisfying detailed balance has $P$ as a stationary distribution.
-Metropolis-Hastings builds such a chain in two steps. From the current state $x$, we
-first *propose* a move to $x'$ drawn from a proposal distribution
-$g(x \rightarrow x')$. We then *accept* the move with probability
+so any chain satisfying detailed balance has $P$ as a stationary distribution. Metropolis-Hastings builds such a chain in two steps. From the current state $x$, we first *propose* a move to $x'$ drawn from a proposal distribution $g(x \rightarrow x')$. We then *accept* the move with probability
 
 $$ a = \min\left(1, \frac{P(x')\, g(x' \rightarrow x)}{P(x)\, g(x \rightarrow x')}\right) , \tag{4} $$
 
-setting the next state to $x'$ if accepted and keeping $x$ otherwise. This acceptance
-rule guarantees detailed balance regardless of the proposal $g$.
+setting the next state to $x'$ if accepted and keeping $x$ otherwise. This acceptance rule guarantees detailed balance regardless of the proposal $g$.
 
-To see it in action, we resample the bursting-gene model. This time we ignore the
-true transition matrix and only use the steady-state distribution $p_{ss}$ as the
-target. With a symmetric proposal that always suggests the other state,
-$g(1 \rightarrow 2) = g(2 \rightarrow 1) = 1$, the acceptance probability simplifies
-to
+To see it in action, we resample the bursting-gene model. This time we ignore the true transition matrix and only use the steady-state distribution $p_{ss}$ as the target. With a symmetric proposal that always suggests the other state, $g(1 \rightarrow 2) = g(2 \rightarrow 1) = 1$, the acceptance probability simplifies to
 
 $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) . \tag{5} $$
 
@@ -299,23 +261,15 @@ print(cal_transit(results_gene))    # the original Markov chain
 print(cal_transit(results_gene2))   # the Metropolis sampler
 ```
 
-The Metropolis sampler visits the two states with a very different transition pattern
-from the original chain (its recovered transition matrix is not the same), yet it
-reproduces the same stationary distribution. That is the point of MCMC: many different
-chains can share one stationary distribution, and we are free to pick a convenient one.
+The Metropolis sampler visits the two states with a very different transition pattern from the original chain (its recovered transition matrix is not the same), yet it reproduces the same stationary distribution. That is the point of MCMC: many different chains can share one stationary distribution, and we are free to pick a convenient one.
 
 ## 8B.4 Sampling a Gaussian distribution
 
-Metropolis-Hastings really shines on continuous distributions. We sample
-$P(x) \propto e^{-x^2}$ (a Gaussian with variance $1/2$). Starting at $x = 0$, each
-step proposes $x' = x + dx$ with $dx$ drawn uniformly from $(-dx_\text{max},
-dx_\text{max})$. This proposal is symmetric, $g(x \rightarrow x') = g(x' \rightarrow
-x)$, so the acceptance probability is
+Metropolis-Hastings really shines on continuous distributions. We sample $P(x) \propto e^{-x^2}$ (a Gaussian with variance $1/2$). Starting at $x = 0$, each step proposes $x' = x + dx$ with $dx$ drawn uniformly from $(-dx_\text{max}, dx_\text{max})$. This proposal is symmetric, $g(x \rightarrow x') = g(x' \rightarrow x)$, so the acceptance probability is
 
 $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) = \min\left(1, e^{-x'^2 + x^2}\right) . \tag{6} $$
 
-The step size $dx_\text{max}$ is a tuning knob. We try several values and compare the
-sampled histogram with the true density.
+The step size $dx_\text{max}$ is a tuning knob. We try several values and compare the sampled histogram with the true density.
 
 ::: {.callout-note title="Recipe 8B.4.1"}
 **Objective.** Sample a continuous Gaussian with Metropolis-Hastings and see how the step size affects the result.
@@ -393,36 +347,23 @@ for ax, dx_max in zip(axs.flat, (0.1, 0.5, 2.0, 10.0)):
 plt.tight_layout(); plt.show()
 ```
 
-The step size trades off two effects. A small $dx_\text{max}$ is almost always
-accepted but moves slowly and barely explores the distribution; a large one proposes
-big jumps that are usually rejected, so the chain sticks in place. Both extremes
-sample poorly. The best histograms here come from an intermediate step with an
-acceptance rate near 50%. This tuning matters little for a one-dimensional Gaussian we
-could sample directly, but it becomes essential for the complex systems where MCMC is
-the only practical option.
+The step size trades off two effects. A small $dx_\text{max}$ is almost always accepted but moves slowly and barely explores the distribution; a large one proposes big jumps that are usually rejected, so the chain sticks in place. Both extremes sample poorly. The best histograms here come from an intermediate step with an acceptance rate near 50%. This tuning matters little for a one-dimensional Gaussian we could sample directly, but it becomes essential for the complex systems where MCMC is the only practical option.
 
 ## 8B.5 The 1D Ising model
 
-The Ising model is a classic model of ferromagnetism [@ising1925beitrag] and a
-standard testbed for Monte Carlo methods. We place $n$ spins on a line; each spin
-$s_i$ is either $+1$ (up) or $-1$ (down). Neighboring spins interact, and the total
-energy is
+The Ising model is a classic model of ferromagnetism [@ising1925beitrag] and a standard testbed for Monte Carlo methods. We place $n$ spins on a line; each spin $s_i$ is either $+1$ (up) or $-1$ (down). Neighboring spins interact, and the total energy is
 
 $$ E = -\sum_{i=1}^{n-1} J s_i s_{i+1} . \tag{7} $$
 
-With $J > 0$, aligned neighbors lower the energy (favored) and opposed neighbors raise
-it (disfavored).
+With $J > 0$, aligned neighbors lower the energy (favored) and opposed neighbors raise it (disfavored).
 
 ![](images/08B/fig2.png){width=60% fig-align="center"}
 
-At a fixed temperature $T$, the equilibrium probability of a configuration follows the
-*Boltzmann distribution*
+At a fixed temperature $T$, the equilibrium probability of a configuration follows the *Boltzmann distribution*
 
 $$ p \propto e^{-E / (kT)} , \tag{8} $$
 
-where we set the Boltzmann constant $k = 1$ and absorb it into a rescaled $T$. We
-sample configurations with Metropolis-Hastings, proposing a move by flipping one
-randomly chosen spin. The proposal is symmetric, so the move is accepted with
+where we set the Boltzmann constant $k = 1$ and absorb it into a rescaled $T$. We sample configurations with Metropolis-Hastings, proposing a move by flipping one randomly chosen spin. The proposal is symmetric, so the move is accepted with
 
 $$ a = \min\left(1, \frac{P(x')}{P(x)}\right) = \min\left(1, e^{-(E_{x'} - E_x) / T}\right) . \tag{9} $$
 
@@ -506,14 +447,11 @@ plt.plot(range(nstep + 1), res_ising["e"], "r-")
 plt.xlabel("Step"); plt.ylabel("Total energy"); plt.show()
 ```
 
-At $T = 1$ the sampler moves between the minimum-energy configuration ($E = -9$ for
-ten aligned spins) and higher-energy ones, with an acceptance rate around 20%.
+At $T = 1$ the sampler moves between the minimum-energy configuration ($E = -9$ for ten aligned spins) and higher-energy ones, with an acceptance rate around 20%.
 
 ## 8B.6 A more efficient implementation
 
-Two changes speed up the Ising sampler. First, because the interaction is local,
-flipping spin $i$ changes only the one or two energy terms it touches, so we compute
-the energy difference directly instead of re-summing the whole chain,
+Two changes speed up the Ising sampler. First, because the interaction is local, flipping spin $i$ changes only the one or two energy terms it touches, so we compute the energy difference directly instead of re-summing the whole chain,
 
 $$ \Delta E = \begin{cases}
   2 J s_1 s_2 & i = 1 \\
@@ -521,8 +459,7 @@ $$ \Delta E = \begin{cases}
   2 J s_i (s_{i-1} + s_{i+1}) & \text{otherwise}
 \end{cases} , \tag{10} $$
 
-where the $s_i$ are the current spins before the flip. Second, when $\Delta E < 0$ the
-move is always accepted, so we can skip evaluating the exponential in that case.
+where the $s_i$ are the current spins before the flip. Second, when $\Delta E < 0$ the move is always accepted, so we can skip evaluating the exponential in that case.
 
 ### R implementation {.impl}
 
@@ -636,16 +573,9 @@ print("mean energy:", np.mean(res_ising["e"]))
 plot_ising(res_ising, nstep)
 ```
 
-The number of up-spins (blue) reveals two ground states of energy $E = -9$: all spins
-up (ten up-spins) and all spins down (zero up-spins). At $T = 1$ the chain samples
-configurations across a range of energies and crosses between the two ground states.
-The mean energy over the run is an *ensemble average*, which for an equilibrium system
-equals the long-time average once enough samples are collected.
+The number of up-spins (blue) reveals two ground states of energy $E = -9$: all spins up (ten up-spins) and all spins down (zero up-spins). At $T = 1$ the chain samples configurations across a range of energies and crosses between the two ground states. The mean energy over the run is an *ensemble average*, which for an equilibrium system equals the long-time average once enough samples are collected.
 
-Temperature controls how freely the chain explores. At a low temperature the
-uphill moves in Equation (9) become rare, so the chain stays near a ground state; at a
-high temperature almost every flip is accepted, so it wanders among high-energy,
-disordered configurations and rarely visits a ground state.
+Temperature controls how freely the chain explores. At a low temperature the uphill moves in Equation (9) become rare, so the chain stays near a ground state; at a high temperature almost every flip is accepted, so it wanders among high-energy, disordered configurations and rarely visits a ground state.
 
 ### R implementation {.impl}
 
@@ -679,14 +609,8 @@ print("mean energy:", np.mean(res_high["e"]))
 plot_ising(res_high, 10**3)
 ```
 
-At $T = 0.3$ the sampler locks onto one ground state (here all up-spins) and rarely
-leaves it. At $T = 3$ it almost never reaches a ground state and instead samples
-mostly intermediate energies. The mean energy rises with temperature, tracing out the
-thermal behavior of the model.
+At $T = 0.3$ the sampler locks onto one ground state (here all up-spins) and rarely leaves it. At $T = 3$ it almost never reaches a ground state and instead samples mostly intermediate energies. The mean energy rises with temperature, tracing out the thermal behavior of the model.
 
 ::: {.callout-note title="Practice Q1"}
-Explore how the Ising sampler depends on its parameters. How does the acceptance rate
-of `metropolis_ising` change as the temperature $T$ increases or decreases, and as the
-interaction strength $J$ changes? Run the sampler from several random initial
-conditions at a low temperature: do you always end up in the same ground state?
+Explore how the Ising sampler depends on its parameters. How does the acceptance rate of `metropolis_ising` change as the temperature $T$ increases or decreases, and as the interaction strength $J$ changes? Run the sampler from several random initial conditions at a low temperature: do you always end up in the same ground state?
 :::

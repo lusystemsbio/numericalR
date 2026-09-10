@@ -4,22 +4,11 @@ author: "Mingyang Lu"
 old_id: "10B"
 ---
 
-Clustering groups data points so that points in the same cluster are more similar to
-each other than to those in other clusters. It is *unsupervised*: unlike the labeled
-conditions in [Part 10A](10a-dimensionality-reduction.qmd), we look for structure
-without being told the groups. This chapter builds k-means from scratch, shows how to
-choose the number of clusters, covers hierarchical clustering, applies clustering to the
-gene-expression data as a heatmap, and ends with a probabilistic (Gaussian mixture)
-alternative.
+Clustering groups data points so that points in the same cluster are more similar to each other than to those in other clusters. It is *unsupervised*: unlike the labeled conditions in [Part 10A](10a-dimensionality-reduction.qmd), we look for structure without being told the groups. This chapter builds k-means from scratch, shows how to choose the number of clusters, covers hierarchical clustering, applies clustering to the gene-expression data as a heatmap, and ends with a probabilistic (Gaussian mixture) alternative.
 
 ## 10B.1 k-means from scratch
 
-k-means partitions $n$ points into $k$ clusters, each represented by a centroid
-[@lloyd1982least]. Starting from random centroids, it alternates two steps until
-convergence: **assign** each point to its nearest centroid, then **update** each
-centroid to the mean of its assigned points. The result depends on the random start, so
-we run several restarts and keep the one with the smallest total within-cluster sum of
-squares (WSS).
+k-means partitions $n$ points into $k$ clusters, each represented by a centroid [@lloyd1982least]. Starting from random centroids, it alternates two steps until convergence: **assign** each point to its nearest centroid, then **update** each centroid to the mean of its assigned points. The result depends on the random start, so we run several restarts and keep the one with the smallest total within-cluster sum of squares (WSS).
 
 ::: {.callout-note title="Recipe 10B.1.1"}
 **Objective.** Cluster points into groups with k-means implemented from scratch.
@@ -120,17 +109,11 @@ plt.scatter(res["centroids"][:, 0], res["centroids"][:, 1], c="black", marker="*
 plt.gca().set_aspect("equal"); plt.xlabel("x"); plt.ylabel("y"); plt.show()
 ```
 
-k-means recovers the three blobs, placing a centroid at the middle of each. The restarts
-matter: a single unlucky initialization can converge to a poor split, so keeping the
-lowest-WSS run guards against that. k-means assumes roughly spherical, equal-sized
-clusters and requires the number of clusters $k$ in advance.
+k-means recovers the three blobs, placing a centroid at the middle of each. The restarts matter: a single unlucky initialization can converge to a poor split, so keeping the lowest-WSS run guards against that. k-means assumes roughly spherical, equal-sized clusters and requires the number of clusters $k$ in advance.
 
 ### Choosing the number of clusters
 
-k-means needs $k$, but we rarely know it. The *elbow method* runs k-means for a range of
-$k$ and plots the total WSS against $k$. WSS always decreases as $k$ grows, but it drops
-sharply until the natural number of clusters is reached and then flattens; the "elbow"
-marks a good choice.
+k-means needs $k$, but we rarely know it. The *elbow method* runs k-means for a range of $k$ and plots the total WSS against $k$. WSS always decreases as $k$ grows, but it drops sharply until the natural number of clusters is reached and then flattens; the "elbow" marks a good choice.
 
 ### R implementation {.impl}
 
@@ -157,19 +140,11 @@ plt.plot(range(1, 9), wss_k, "o-", color="red")
 plt.xlabel("Number of clusters k"); plt.ylabel("Total within-cluster SS"); plt.show()
 ```
 
-The curve bends sharply at $k = 3$ and flattens afterward, correctly identifying the
-three blobs. The elbow is a heuristic, not a rule, but it is a quick and widely used
-guide.
+The curve bends sharply at $k = 3$ and flattens afterward, correctly identifying the three blobs. The elbow is a heuristic, not a rule, but it is a quick and widely used guide.
 
 ## 10B.2 Hierarchical clustering
 
-Hierarchical clustering builds a tree (dendrogram) instead of a flat partition, and does
-not need $k$ up front. *Agglomerative* clustering starts with every point in its own
-cluster and repeatedly merges the two closest clusters. How "closest" is measured is the
-*linkage*: **single** (nearest pair), **complete** (farthest pair), **average** (mean
-pairwise distance), and **Ward** (merge that least increases WSS [@ward1963hierarchical]).
-Cutting the tree at a chosen height yields a flat clustering. We use the built-in
-routines (`hclust` in R, `scipy` in Python).
+Hierarchical clustering builds a tree (dendrogram) instead of a flat partition, and does not need $k$ up front. *Agglomerative* clustering starts with every point in its own cluster and repeatedly merges the two closest clusters. How "closest" is measured is the *linkage*: **single** (nearest pair), **complete** (farthest pair), **average** (mean pairwise distance), and **Ward** (merge that least increases WSS [@ward1963hierarchical]). Cutting the tree at a chosen height yields a flat clustering. We use the built-in routines (`hclust` in R, `scipy` in Python).
 
 ::: {.callout-note title="Recipe 10B.2.1"}
 **Objective.** Cluster points by building a dendrogram instead of a flat partition.
@@ -216,17 +191,11 @@ axs[1].set(xlabel="x", ylabel="y", aspect="equal", title="cut into 3 clusters")
 plt.tight_layout(); plt.show()
 ```
 
-The dendrogram shows three clear branches; cutting it into three groups recovers the
-blobs, agreeing with k-means. Different linkages can give different trees (single linkage
-tends to chain points together, Ward produces compact clusters), so the choice matters.
+The dendrogram shows three clear branches; cutting it into three groups recovers the blobs, agreeing with k-means. Different linkages can give different trees (single linkage tends to chain points together, Ward produces compact clusters), so the choice matters.
 
 ## 10B.3 Clustering the gene-expression data
 
-Applied to the gene-expression data of [Part 10A](10a-dimensionality-reduction.qmd),
-clustering finds *modules* of genes that vary together across the conditions. We
-$z$-score each gene (so all genes share a scale), cluster the 500 genes with k-means, and
-draw a heatmap with the genes ordered by cluster, the canonical way to display expression
-data.
+Applied to the gene-expression data of [Part 10A](10a-dimensionality-reduction.qmd), clustering finds *modules* of genes that vary together across the conditions. We $z$-score each gene (so all genes share a scale), cluster the 500 genes with k-means, and draw a heatmap with the genes ordered by cluster, the canonical way to display expression data.
 
 ::: {.callout-note title="Recipe 10B.3.1"}
 **Objective.** Cluster genes by expression and display them as a heatmap.
@@ -285,23 +254,11 @@ for b in np.cumsum(np.bincount(gene_clusters))[:-1]:
 plt.xlabel("sample (A-I)"); plt.ylabel("gene (ordered by cluster)"); plt.show()
 ```
 
-The heatmap splits the genes into co-expression modules: each block of rows is a set of
-genes that rise and fall together across the A-to-I conditions. Some modules are high in
-the early conditions and low in the late ones, others the reverse, reflecting the same
-gene-expression progression seen in the PCA of Part 10A, now resolved into the specific
-groups of genes that drive it.
+The heatmap splits the genes into co-expression modules: each block of rows is a set of genes that rise and fall together across the A-to-I conditions. Some modules are high in the early conditions and low in the late ones, others the reverse, reflecting the same gene-expression progression seen in the PCA of Part 10A, now resolved into the specific groups of genes that drive it.
 
 ## 10B.4 Gaussian mixture models
 
-k-means assigns each point to exactly one cluster (a *hard* assignment) and assumes
-spherical clusters. A *Gaussian mixture model* (GMM) is a probabilistic alternative: it
-models the data as a mixture of Gaussian components with their own means, covariances,
-and weights, fit by the expectation-maximization algorithm [@dempster1977maximum], and
-gives each point a *probability* of belonging to each cluster (a *soft* assignment).
-Because each component has its own covariance, a GMM can capture elongated, tilted
-clusters that k-means cannot, and model selection (via the BIC) can choose the number of
-components automatically. We use `mclust` [@scrucca2016mclust] in R and scikit-learn in
-Python.
+k-means assigns each point to exactly one cluster (a *hard* assignment) and assumes spherical clusters. A *Gaussian mixture model* (GMM) is a probabilistic alternative: it models the data as a mixture of Gaussian components with their own means, covariances, and weights, fit by the expectation-maximization algorithm [@dempster1977maximum], and gives each point a *probability* of belonging to each cluster (a *soft* assignment). Because each component has its own covariance, a GMM can capture elongated, tilted clusters that k-means cannot, and model selection (via the BIC) can choose the number of components automatically. We use `mclust` [@scrucca2016mclust] in R and scikit-learn in Python.
 
 ::: {.callout-note title="Recipe 10B.4.1"}
 **Objective.** Cluster points with a Gaussian mixture and pick the number of components automatically.
@@ -349,8 +306,4 @@ plt.gca().set_aspect("equal"); plt.xlabel("x"); plt.ylabel("y")
 plt.title(f"{gmm.n_components} components (BIC)"); plt.show()
 ```
 
-The BIC selects three components, matching the blobs, and the GMM recovers them with soft
-probabilities rather than hard labels. For these well-separated spherical blobs the GMM
-and k-means agree, but the GMM is the more flexible model: its per-component covariances
-let it fit clusters of different shapes and sizes, and its probabilistic assignments
-quantify how confidently each point belongs to its cluster.
+The BIC selects three components, matching the blobs, and the GMM recovers them with soft probabilities rather than hard labels. For these well-separated spherical blobs the GMM and k-means agree, but the GMM is the more flexible model: its per-component covariances let it fit clusters of different shapes and sizes, and its probabilistic assignments quantify how confidently each point belongs to its cluster.

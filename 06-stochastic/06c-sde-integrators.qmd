@@ -4,21 +4,15 @@ author: "Mingyang Lu"
 old_id: "06C"
 ---
 
-The random walk of [Part 6B](06b-brownian-motion.qmd) had $\langle x \rangle = 0$
-and $\langle x^2 \rangle \sim t$, statistics captured by the Wiener process. That
-framework generalizes to many other stochastic processes through *stochastic
-differential equations* (SDEs) [@gardiner2009stochastic],
+The random walk of [Part 6B](06b-brownian-motion.qmd) had $\langle x \rangle = 0$ and $\langle x^2 \rangle \sim t$, statistics captured by the Wiener process. That framework generalizes to many other stochastic processes through *stochastic differential equations* (SDEs) [@gardiner2009stochastic],
 
 $$ dX = f(X)\,dt + \sqrt{2 D(X)}\,dW , \tag{1} $$
 
-where $W$ is a Wiener process, $f(X)$ is the drift (the same derivative function as
-in an ODE), and $D(X)$ is a state-dependent diffusion coefficient that sets the
-noise strength. Physics often writes the same process as a *Langevin equation*,
+where $W$ is a Wiener process, $f(X)$ is the drift (the same derivative function as in an ODE), and $D(X)$ is a state-dependent diffusion coefficient that sets the noise strength. Physics often writes the same process as a *Langevin equation*,
 
 $$ \frac{dX}{dt} = f(X) + \sqrt{2 D(X)}\,\eta(t) , \tag{2} $$
 
-with a noise term $\eta(t)$. The usual choice is Gaussian white noise, which is
-uncorrelated in time and has equal intensity at all frequencies,
+with a noise term $\eta(t)$. The usual choice is Gaussian white noise, which is uncorrelated in time and has equal intensity at all frequencies,
 
 $$
 \begin{cases}
@@ -27,22 +21,15 @@ $$
 \end{cases} \tag{3}
 $$
 
-where $\langle \cdot \rangle$ denotes an average and $\delta$ is the Dirac delta
-function. This white noise is the continuous-time counterpart of the Wiener
-increments.
+where $\langle \cdot \rangle$ denotes an average and $\delta$ is the Dirac delta function. This white noise is the continuous-time counterpart of the Wiener increments.
 
 ## 6C.1 The Euler-Maruyama method
 
-The Euler-Maruyama method extends the Euler method for ODEs to SDEs
-[@kloeden1992numerical]. Solving Equation (1) step by step,
+The Euler-Maruyama method extends the Euler method for ODEs to SDEs [@kloeden1992numerical]. Solving Equation (1) step by step,
 
 $$ X_{n+1} = X_n + f(X_n)\,\Delta t + \sqrt{2 D(X_n)}\,\Delta W_n , \tag{4} $$
 
-where each $\Delta W_n$ is a normal random variable of mean zero and variance
-$\Delta t$ (so $\langle \Delta W_n^2 \rangle = \Delta t$). A common beginner's
-mistake is to fold $\sqrt{2 D}$ into the drift and use the plain ODE Euler step:
-that is wrong, because it gives the noise a variance of $\Delta t^2$ rather than
-$\Delta t$. We test the method first on pure Brownian motion, $f(X) = 0$.
+where each $\Delta W_n$ is a normal random variable of mean zero and variance $\Delta t$ (so $\langle \Delta W_n^2 \rangle = \Delta t$). A common beginner's mistake is to fold $\sqrt{2 D}$ into the drift and use the plain ODE Euler step: that is wrong, because it gives the noise a variance of $\Delta t^2$ rather than $\Delta t$. We test the method first on pure Brownian motion, $f(X) = 0$.
 
 ::: {.callout-note title="Recipe 6C.1.1"}
 **Objective.** Integrate a stochastic differential equation and recover free Brownian motion as a test.
@@ -117,22 +104,15 @@ for i in range(10):
 plt.show()
 ```
 
-The trajectories reproduce the free Brownian motion of the previous chapter. We
-generate all Wiener increments in one call, which is fast but memory-hungry for
-long runs; a compiled Fortran or C routine (as in
-[Part 6D](06d-stochastic-transitions.qmd)) is the better choice there.
+The trajectories reproduce the free Brownian motion of the previous chapter. We generate all Wiener increments in one call, which is fast but memory-hungry for long runs; a compiled Fortran or C routine (as in [Part 6D](06d-stochastic-transitions.qmd)) is the better choice there.
 
 ## 6C.2 The Ornstein-Uhlenbeck process
 
-Adding a restoring drift $f(X) = -kX$ (a particle tethered to a spring, by Hooke's
-law) with constant noise gives the Ornstein-Uhlenbeck process
-[@uhlenbeck1930theory],
+Adding a restoring drift $f(X) = -kX$ (a particle tethered to a spring, by Hooke's law) with constant noise gives the Ornstein-Uhlenbeck process [@uhlenbeck1930theory],
 
 $$ dX = -kX\,dt + \sqrt{2 D}\,dW . \tag{5} $$
 
-Unlike free Brownian motion, $X$ now fluctuates around zero with a variance set by
-the balance of drift and noise, $\langle x^2 \rangle = D/k$. We run three noise
-levels and check the variance against this prediction.
+Unlike free Brownian motion, $X$ now fluctuates around zero with a variance set by the balance of drift and noise, $\langle x^2 \rangle = D/k$. We run three noise levels and check the variance against this prediction.
 
 ::: {.callout-note title="Recipe 6C.2.1"}
 **Objective.** Simulate the Ornstein-Uhlenbeck process and confirm its stationary variance.
@@ -195,14 +175,11 @@ plt.plot(D_all, D_all, color="black")
 plt.xlabel("D"); plt.ylabel("Variance"); plt.show()
 ```
 
-The larger the diffusion $D$, the noisier the trajectory. The measured variances
-fall close to the line $\langle x^2 \rangle = D$ (since $k = 1$), with small
-deviations that would shrink for longer runs.
+The larger the diffusion $D$, the noisier the trajectory. The measured variances fall close to the line $\langle x^2 \rangle = D$ (since $k = 1$), with small deviations that would shrink for longer runs.
 
 ## 6C.3 The Milstein method
 
-The Milstein method is a more accurate SDE integrator [@kloeden1992numerical]. For
-an SDE written as
+The Milstein method is a more accurate SDE integrator [@kloeden1992numerical]. For an SDE written as
 
 $$ dX = f(X)\,dt + s(X)\,dW , \tag{6} $$
 
@@ -210,9 +187,7 @@ it adds a correction term derived from a stochastic Taylor expansion,
 
 $$ X_{n+1} = X_n + f(X_n)\,\Delta t + s(X_n)\,\Delta W_n + \tfrac{1}{2} s(X_n) s'(X_n) \left( \Delta W_n^2 - \Delta t \right) , \tag{7} $$
 
-where $s'$ is the derivative of $s(X)$ with respect to $X$ and $s(X) = \sqrt{2 D(X)}$.
-When $D$ is constant, $s' = 0$ and the method reduces to Euler-Maruyama; the extra
-term only matters, and improves convergence, when the noise depends on the state.
+where $s'$ is the derivative of $s(X)$ with respect to $X$ and $s(X) = \sqrt{2 D(X)}$. When $D$ is constant, $s' = 0$ and the method reduces to Euler-Maruyama; the extra term only matters, and improves convergence, when the noise depends on the state.
 
 ::: {.callout-note title="Recipe 6C.3.1"}
 **Objective.** Implement the Milstein integrator, which improves on Euler-Maruyama when the noise depends on the state.
@@ -266,16 +241,11 @@ def SDE_Milstein(derivs, noise, dnoise, t0, X0, t_total, dt, **kwargs):
 
 ## 6C.4 Gene expression noise in a gene circuit
 
-As a biological application, we add noise to the bistable
-[self-activating gene](../02-odes/02a-modeling-gene-circuits.qmd) of Part 2, with a
-state-dependent noise term $s(X) = b\sqrt{X}$,
+As a biological application, we add noise to the bistable [self-activating gene](../02-odes/02a-modeling-gene-circuits.qmd) of Part 2, with a state-dependent noise term $s(X) = b\sqrt{X}$,
 
 $$ dX = \left[ g_0 + g_1 \frac{(X/X_0)^{n_X}}{1 + (X/X_0)^{n_X}} - kX \right] dt + b\sqrt{X}\,dW . \tag{8} $$
 
-The noise standard deviation grows with $\sqrt{X}$, so it is large at high
-expression and vanishes as $X \to 0$. A similar square-root noise underlies the
-Cox-Ingersoll-Ross model of interest rates in finance [@cox1985theory]. Because the
-noise depends on $X$, we integrate with the Milstein method.
+The noise standard deviation grows with $\sqrt{X}$, so it is large at high expression and vanishes as $X \to 0$. A similar square-root noise underlies the Cox-Ingersoll-Ross model of interest rates in finance [@cox1985theory]. Because the noise depends on $X$, we integrate with the Milstein method.
 
 ::: {.callout-note title="Recipe 6C.4.1"}
 **Objective.** Simulate expression noise in a bistable self-activating gene whose noise depends on the state.
@@ -329,15 +299,9 @@ for r, b, c in zip(res_1g, b_all, ["red", "green", "blue"]):
 plt.legend(title="b", loc="upper right", fontsize="small"); plt.show()
 ```
 
-The circuit is bistable, with stable states near $X = 100$ and $X = 300$ (its
-[effective potential](../02-odes/02d-effective-potential.qmd) has two wells). The
-states persist under noise, and the striking new feature is *noise-induced
-transitions* between them: at low noise ($b = 0.5$) $X$ just jitters around one
-state; at $b = 2$ occasional jumps appear; and at $b = 5$ the circuit hops between
-states frequently.
+The circuit is bistable, with stable states near $X = 100$ and $X = 300$ (its [effective potential](../02-odes/02d-effective-potential.qmd) has two wells). The states persist under noise, and the striking new feature is *noise-induced transitions* between them: at low noise ($b = 0.5$) $X$ just jitters around one state; at $b = 2$ occasional jumps appear; and at $b = 5$ the circuit hops between states frequently.
 
-For comparison, the same circuit with a **constant** noise $s(X) = b$ (so
-$s' = 0$, and Milstein equals Euler-Maruyama) behaves quite differently.
+For comparison, the same circuit with a **constant** noise $s(X) = b$ (so $s' = 0$, and Milstein equals Euler-Maruyama) behaves quite differently.
 
 ### R implementation {.impl}
 
@@ -371,8 +335,4 @@ for r, b, c in zip(res_1gc, b_all, ["red", "green", "blue"]):
 plt.legend(title="b", loc="upper right", fontsize="small"); plt.show()
 ```
 
-The constant-noise dynamics look different in two ways. With state-independent
-noise the low state now fluctuates as much as (indeed more than) the high state,
-whereas the $\sqrt{X}$ noise damped fluctuations at low $X$. And at high noise the
-low state can be driven below $X = 0$, an artifact of the finite time step that a
-smaller $\Delta t$ would reduce.
+The constant-noise dynamics look different in two ways. With state-independent noise the low state now fluctuates as much as (indeed more than) the high state, whereas the $\sqrt{X}$ noise damped fluctuations at low $X$. And at high noise the low state can be driven below $X = 0$, an artifact of the finite time step that a smaller $\Delta t$ would reduce.

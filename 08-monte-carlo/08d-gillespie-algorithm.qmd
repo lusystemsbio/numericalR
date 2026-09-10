@@ -4,45 +4,28 @@ author: "Mingyang Lu"
 old_id: "08D"
 ---
 
-The stochastic differential equations of [Part 6](../06-stochastic/06a-random-number-generators.qmd)
-add continuous noise to a deterministic rate equation. For a chemical reaction
-network with small molecule numbers, a different and more fundamental description is
-often needed: the molecules are discrete and react one event at a time. The
-*Gillespie algorithm* [@gillespie1976general; @gillespie1977exact], also called the
-stochastic simulation algorithm (SSA), generates exact sample trajectories of such a
-network from its chemical master equation.
+The stochastic differential equations of [Part 6](../06-stochastic/06a-random-number-generators.qmd) add continuous noise to a deterministic rate equation. For a chemical reaction network with small molecule numbers, a different and more fundamental description is often needed: the molecules are discrete and react one event at a time. The *Gillespie algorithm* [@gillespie1976general; @gillespie1977exact], also called the stochastic simulation algorithm (SSA), generates exact sample trajectories of such a network from its chemical master equation.
 
-We describe the system by a state vector $\mathbf{S}$ holding the number of molecules
-of each species. Each reaction $j$ converts reactants into products,
+We describe the system by a state vector $\mathbf{S}$ holding the number of molecules of each species. Each reaction $j$ converts reactants into products,
 
 $$ \sum_i \alpha_{ij} S_i \rightarrow \sum_i \beta_{ij} S_i , $$
 
-and changes the state by its *stoichiometry vector* $\boldsymbol{\gamma}_j$, the
-$j$-th column of the stoichiometry matrix with entries
-$\Gamma_{ij} = \beta_{ij} - \alpha_{ij}$. Each reaction has a *propensity* $R_j$, the
-probability per unit time that it fires, given by the law of mass action times a
-combinatorial degeneracy factor [@gillespie1992rigorous],
+and changes the state by its *stoichiometry vector* $\boldsymbol{\gamma}_j$, the $j$-th column of the stoichiometry matrix with entries $\Gamma_{ij} = \beta_{ij} - \alpha_{ij}$. Each reaction has a *propensity* $R_j$, the probability per unit time that it fires, given by the law of mass action times a combinatorial degeneracy factor [@gillespie1992rigorous],
 
 $$ R_j = k_j \prod_{i} \binom{S_i}{\alpha_{ij}} \approx k_j \prod_i S_i^{\alpha_{ij}} , $$
 
-where the binomial factor counts the distinct ways of choosing the reactant
-molecules (for example, $S(S-1)/2$ ways to pick two of $S$ identical molecules).
+where the binomial factor counts the distinct ways of choosing the reactant molecules (for example, $S(S-1)/2$ ways to pick two of $S$ identical molecules).
 
 ## 8D.1 The algorithm
 
 Given the propensities, each Gillespie step advances the system by one reaction event:
 
 1. compute all propensities $R_j(\mathbf{S})$;
-2. draw the waiting time $\tau$ to the next event from an exponential distribution
-   with rate $R_\text{tot} = \sum_j R_j$;
-3. pick which reaction fires, choosing reaction $j$ with probability
-   $R_j / R_\text{tot}$;
-4. advance time $t \rightarrow t + \tau$ and update the state
-   $\mathbf{S} \rightarrow \mathbf{S} + \boldsymbol{\gamma}_j$.
+2. draw the waiting time $\tau$ to the next event from an exponential distribution with rate $R_\text{tot} = \sum_j R_j$;
+3. pick which reaction fires, choosing reaction $j$ with probability $R_j / R_\text{tot}$;
+4. advance time $t \rightarrow t + \tau$ and update the state $\mathbf{S} \rightarrow \mathbf{S} + \boldsymbol{\gamma}_j$.
 
-Repeating until a stopping time gives one exact realization. The generic driver below
-takes user-supplied `propensity` and `stoichiometry` functions, so the same code runs
-any reaction network.
+Repeating until a stopping time gives one exact realization. The generic driver below takes user-supplied `propensity` and `stoichiometry` functions, so the same code runs any reaction network.
 
 ::: {.callout-note title="Recipe 8D.1.1"}
 **Objective.** Build a Gillespie stochastic simulation for a general chemical reaction network.
@@ -118,14 +101,11 @@ def ssa(propensity, stoichiometry, X0, tmax, iter_max, **kw):
 
 ## 8D.2 A constitutively transcribed gene
 
-The simplest example is a gene produced at a constant rate $g$ and degraded at rate
-$k$, a birth-death process,
+The simplest example is a gene produced at a constant rate $g$ and degraded at rate $k$, a birth-death process,
 
 $$ 0 \xrightarrow{g} x \xrightarrow{k} 0 , $$
 
-whose deterministic rate equation $dx/dt = g - kx$ has steady state
-$\bar{x} = g/k$. We specify the network with two functions: the propensities
-$(g,\, kx)$ and the stoichiometry ($+1$ for production, $-1$ for degradation).
+whose deterministic rate equation $dx/dt = g - kx$ has steady state $\bar{x} = g/k$. We specify the network with two functions: the propensities $(g,\, kx)$ and the stoichiometry ($+1$ for production, $-1$ for degradation).
 
 ::: {.callout-note title="Recipe 8D.2.1"}
 **Objective.** Simulate a constitutively transcribed gene with Gillespie and measure its intrinsic noise.
@@ -192,11 +172,7 @@ for ax, g in zip(axs, (100, 10, 1)):
 plt.tight_layout(); plt.show()
 ```
 
-The fluctuations around the steady state grow in absolute size but shrink in relative
-size as the copy number increases: a striking feature of intrinsic noise. To quantify
-it we compute the time-weighted mean and standard deviation, weighting each state by
-how long the system dwells there (the waiting times $\Delta t_i$ are not constant, so
-plain averaging would be wrong):
+The fluctuations around the steady state grow in absolute size but shrink in relative size as the copy number increases: a striking feature of intrinsic noise. To quantify it we compute the time-weighted mean and standard deviation, weighting each state by how long the system dwells there (the waiting times $\Delta t_i$ are not constant, so plain averaging would be wrong):
 
 $$
 \langle x \rangle = \frac{\sum_i x_i\, \Delta t_i}{\sum_i \Delta t_i} , \qquad
@@ -274,12 +250,7 @@ axs[1].set(xlabel="Steady-state x", ylabel="SD / Mean", xlim=(0, 1000), ylim=(0,
 plt.tight_layout(); plt.show()
 ```
 
-The standard deviation follows $\text{SD}(x) = \sqrt{\bar{x}}$, the Poisson result for
-a birth-death process, so the *relative* noise $\text{SD}/\text{mean} = 1/\sqrt{\bar{x}}$
-falls as the copy number rises. This is why low-abundance species are intrinsically
-noisier. Starting instead from $x = 0$, the trajectories climb toward the steady state
-along the deterministic curve $\bar{x}(1 - e^{-kt})$, with fluctuations that again
-shrink in relative terms at higher copy number.
+The standard deviation follows $\text{SD}(x) = \sqrt{\bar{x}}$, the Poisson result for a birth-death process, so the *relative* noise $\text{SD}/\text{mean} = 1/\sqrt{\bar{x}}$ falls as the copy number rises. This is why low-abundance species are intrinsically noisier. Starting instead from $x = 0$, the trajectories climb toward the steady state along the deterministic curve $\bar{x}(1 - e^{-kt})$, with fluctuations that again shrink in relative terms at higher copy number.
 
 ### R implementation {.impl}
 
@@ -320,10 +291,7 @@ plt.tight_layout(); plt.show()
 
 ## 8D.3 Bursting transcription
 
-Genes often produce proteins in *bursts*: a promoter fires occasionally but releases
-several molecules each time. We model this by making each production event add $n$
-molecules at rate $g/n$, so the mean production rate $g$ (and the deterministic steady
-state $\bar{x} = g/k$) stay fixed as $n$ varies,
+Genes often produce proteins in *bursts*: a promoter fires occasionally but releases several molecules each time. We model this by making each production event add $n$ molecules at rate $g/n$, so the mean production rate $g$ (and the deterministic steady state $\bar{x} = g/k$) stay fixed as $n$ varies,
 
 $$ 0 \xrightarrow{g/n} n\,x , \qquad x \xrightarrow{k} 0 . $$
 
@@ -424,19 +392,11 @@ axs[1].set(xlabel="n", ylabel="SD", xlim=(0, 8), ylim=(0, 35))
 plt.tight_layout(); plt.show()
 ```
 
-The mean stays at 160 regardless of $n$, but the standard deviation grows with the
-burst size: larger, rarer bursts inject more noise than frequent single-molecule
-events, even at the same average production rate. Transcriptional bursting is thus a
-source of gene-expression noise beyond the Poisson floor of the simple birth-death
-process.
+The mean stays at 160 regardless of $n$, but the standard deviation grows with the burst size: larger, rarer bursts inject more noise than frequent single-molecule events, even at the same average production rate. Transcriptional bursting is thus a source of gene-expression noise beyond the Poisson floor of the simple birth-death process.
 
 ## 8D.4 A self-inhibiting gene
 
-Finally we model a gene that represses itself. The promoter has an unbound state $D$
-and a bound state $C$; two molecules of $M$ can bind the promoter (a dimer),
-switching it from $D$ to $C$. Production is faster from the unbound promoter
-($g_0 > g_1$), so accumulating $M$ shuts down its own production. The five reactions
-are production from each promoter state, degradation of $M$, and binding/unbinding:
+Finally we model a gene that represses itself. The promoter has an unbound state $D$ and a bound state $C$; two molecules of $M$ can bind the promoter (a dimer), switching it from $D$ to $C$. Production is faster from the unbound promoter ($g_0 > g_1$), so accumulating $M$ shuts down its own production. The five reactions are production from each promoter state, degradation of $M$, and binding/unbinding:
 
 $$
 \begin{aligned}
@@ -445,10 +405,7 @@ C &\xrightarrow{k_\text{off}} 2M + D , & C &\xrightarrow{g_1} C + M . &&
 \end{aligned}
 $$
 
-The binding propensity carries the degeneracy factor $M(M-1)/2$ for choosing two of
-the $M$ molecules, and the effective dissociation constant is
-$K = \sqrt{2 k_\text{off} / k_\text{on}}$. We omit the promoter-occupancy traces and
-focus on the $M$ dynamics.
+The binding propensity carries the degeneracy factor $M(M-1)/2$ for choosing two of the $M$ molecules, and the effective dissociation constant is $K = \sqrt{2 k_\text{off} / k_\text{on}}$. We omit the promoter-occupancy traces and focus on the $M$ dynamics.
 
 ::: {.callout-note title="Recipe 8D.4.1"}
 **Objective.** Show that negative autoregulation suppresses gene-expression noise.
@@ -546,11 +503,4 @@ for name, s in stats_si.items():
     print(name, "mean_M =", round(s["mean"][2], 1), "sd_M =", round(s["sd"][2], 1))
 ```
 
-The middle panel turns the feedback off (setting $k_\text{on} = k_\text{off} = 0$ and
-$g_0 = g_1$ so the mean $M$ is unchanged), reducing the circuit to a constitutively
-expressed gene. Comparing it with the self-inhibiting case on the left, the
-self-inhibiting gene has a lower standard deviation: negative autoregulation
-suppresses gene-expression noise, a result established both theoretically and
-experimentally [@becskei2000engineering]. At low copy number (right panel), the
-binding and unbinding of just a few molecules make the dynamics strongly bursty,
-resembling noisy oscillations.
+The middle panel turns the feedback off (setting $k_\text{on} = k_\text{off} = 0$ and $g_0 = g_1$ so the mean $M$ is unchanged), reducing the circuit to a constitutively expressed gene. Comparing it with the self-inhibiting case on the left, the self-inhibiting gene has a lower standard deviation: negative autoregulation suppresses gene-expression noise, a result established both theoretically and experimentally [@becskei2000engineering]. At low copy number (right panel), the binding and unbinding of just a few molecules make the dynamics strongly bursty, resembling noisy oscillations.

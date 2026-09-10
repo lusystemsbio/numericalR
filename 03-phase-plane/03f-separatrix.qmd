@@ -4,15 +4,7 @@ author: "Mingyang Lu"
 old_id: "03F"
 ---
 
-[Part 3B](03b-steady-states-2d.qmd) classified the toggle switch's three steady
-states: two stable nodes and, between them, a saddle. Each stable node has a
-**basin of attraction**, the set of initial conditions that flow to it, and the
-curve dividing the two basins is the **separatrix** [@strogatz2015nonlinear]. A
-trajectory that starts on one side of the separatrix always ends at that side's
-attractor. Computing a separatrix is hard in general, but for a saddle it has a
-clean description: the separatrix is the saddle's **stable manifold**, the pair of
-trajectories that flow *into* the saddle. We recover it with a simple reverse-time
-trick.
+[Part 3B](03b-steady-states-2d.qmd) classified the toggle switch's three steady states: two stable nodes and, between them, a saddle. Each stable node has a **basin of attraction**, the set of initial conditions that flow to it, and the curve dividing the two basins is the **separatrix** [@strogatz2015nonlinear]. A trajectory that starts on one side of the separatrix always ends at that side's attractor. Computing a separatrix is hard in general, but for a saddle it has a clean description: the separatrix is the saddle's **stable manifold**, the pair of trajectories that flow *into* the saddle. We recover it with a simple reverse-time trick.
 
 Reversing time negates every derivative,
 
@@ -23,18 +15,11 @@ $$
 \end{cases}
 $$
 
-which reverses the direction of every trajectory. Under this reversal the saddle
-keeps being a saddle, but its stable manifold becomes an *unstable* manifold: the
-trajectories that used to flow into the saddle now flow out of it, along the
-separatrix. So we integrate the reversed system from points just beside the saddle
-and let them run out along the separatrix.
+which reverses the direction of every trajectory. Under this reversal the saddle keeps being a saddle, but its stable manifold becomes an *unstable* manifold: the trajectories that used to flow into the saddle now flow out of it, along the separatrix. So we integrate the reversed system from points just beside the saddle and let them run out along the separatrix.
 
 ## 3F.1 The reversed vector field
 
-We first draw the unit vector field of the reversed toggle switch (the same
-circuit as [Part 3A](03a-nullclines.qmd), every derivative negated). Near the
-saddle the arrows now point *inward* along the line joining the three steady
-states and *outward* along the separatrix, the reverse of the original flow.
+We first draw the unit vector field of the reversed toggle switch (the same circuit as [Part 3A](03a-nullclines.qmd), every derivative negated). Near the saddle the arrows now point *inward* along the line joining the three steady states and *outward* along the separatrix, the reverse of the original flow.
 
 ### R implementation {.impl}
 
@@ -100,12 +85,7 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.xlim(0, 600); plt.ylim(0, 650); plt.show()
 
 ## 3F.2 Tracing the separatrix
 
-Now we seed the reversed system with ten points just beside the saddle
-(approximately $(190, 127)$, from [Part 3B](03b-steady-states-2d.qmd)) and
-integrate: they flow outward along the separatrix, which we draw in red. Overlaid
-in blue are trajectories of the *original* system from ten random starts. Each
-blue trajectory settles onto one of the two attractors, and none of them crosses
-the red separatrix, confirming that it is the boundary between the two basins.
+Now we seed the reversed system with ten points just beside the saddle (approximately $(190, 127)$, from [Part 3B](03b-steady-states-2d.qmd)) and integrate: they flow outward along the separatrix, which we draw in red. Overlaid in blue are trajectories of the *original* system from ten random starts. Each blue trajectory settles onto one of the two attractors, and none of them crosses the red separatrix, confirming that it is the boundary between the two basins.
 
 ::: {.callout-note title="Recipe 3F.2.1"}
 **Objective.** Trace the separatrix dividing the toggle switch's two basins of attraction.
@@ -227,8 +207,5 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.xlim(0, 600); plt.ylim(0, 650); plt.show()
 ```
 
 ::: {.callout-note title="Practice Q1"}
-Take two initial conditions on opposite sides of the separatrix but very close to
-it, integrate the *original* system, and confirm they end at different attractors.
-How does the time a trajectory lingers near the saddle depend on how close its
-start is to the separatrix?
+Take two initial conditions on opposite sides of the separatrix but very close to it, integrate the *original* system, and confirm they end at different attractors. How does the time a trajectory lingers near the saddle depend on how close its start is to the separatrix?
 :::

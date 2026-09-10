@@ -4,16 +4,9 @@ author: "Mingyang Lu"
 old_id: "07E"
 ---
 
-[Part 7C](07c-turing-instability.qmd) followed two-component Turing systems on a
-line. The same diffusion-driven instability acts in two spatial dimensions, where it
-produces the spots, stripes, and labyrinths seen on animal coats and many other
-biological surfaces [@turing1952chemical]. Here we extend the Gierer-Meinhardt models
-of Part 7C [@gierer1972theory] from a one-dimensional grid to a two-dimensional
-lattice, keeping the same reaction terms but now letting each species diffuse in both
-$X$ and $Y$.
+[Part 7C](07c-turing-instability.qmd) followed two-component Turing systems on a line. The same diffusion-driven instability acts in two spatial dimensions, where it produces the spots, stripes, and labyrinths seen on animal coats and many other biological surfaces [@turing1952chemical]. Here we extend the Gierer-Meinhardt models of Part 7C [@gierer1972theory] from a one-dimensional grid to a two-dimensional lattice, keeping the same reaction terms but now letting each species diffuse in both $X$ and $Y$.
 
-For a two-component system with fields $u(X, Y, t)$ and $v(X, Y, t)$, the
-reaction-diffusion equations are
+For a two-component system with fields $u(X, Y, t)$ and $v(X, Y, t)$, the reaction-diffusion equations are
 
 $$
 \begin{aligned}
@@ -22,9 +15,7 @@ $$
 \end{aligned} \tag{1}
 $$
 
-with reaction terms $f$, $g$ and diffusion constants $D_u$, $D_v$. We discretize the
-two-dimensional Laplacian with the five-point stencil of
-[Part 7D](07d-pattern-formation-dictyostelium.qmd), giving the explicit update
+with reaction terms $f$, $g$ and diffusion constants $D_u$, $D_v$. We discretize the two-dimensional Laplacian with the five-point stencil of [Part 7D](07d-pattern-formation-dictyostelium.qmd), giving the explicit update
 
 $$
 \begin{aligned}
@@ -33,21 +24,13 @@ u_{i,j}^{n+1} = u_{i,j}^n &+ f\,\Delta t \\
 \end{aligned} \tag{2}
 $$
 
-and the same for $v$ with $D_v$. As in Part 7C we use a *periodic* boundary, wrapping
-the lattice in both directions so the pattern tiles the plane without an edge.
+and the same for $v$ with $D_v$. As in Part 7C we use a *periodic* boundary, wrapping the lattice in both directions so the pattern tiles the plane without an edge.
 
 ## 7E.1 A two-dimensional integrator
 
-The one-dimensional integrator of Part 7C called the reaction term at each grid point
-in turn. In two dimensions that would be slow, so we exploit the fact that the
-reaction is *local* (the value of $f$ and $g$ at a point depends only on $u$ and $v$
-at that point) and evaluate it on the whole grid at once. The diffusion term is the
-periodic five-point Laplacian, computed by shifting the array in each direction and
-wrapping the edges.
+The one-dimensional integrator of Part 7C called the reaction term at each grid point in turn. In two dimensions that would be slow, so we exploit the fact that the reaction is *local* (the value of $f$ and $g$ at a point depends only on $u$ and $v$ at that point) and evaluate it on the whole grid at once. The diffusion term is the periodic five-point Laplacian, computed by shifting the array in each direction and wrapping the edges.
 
-One caveat specific to two dimensions: each point now has four neighbors instead of
-two, so the explicit scheme is stable only when $D\,\Delta t / \Delta X^2 < 1/4$. We
-therefore use a smaller time step, $\Delta t = 0.005$, than the 1D runs of Part 7C.
+One caveat specific to two dimensions: each point now has four neighbors instead of two, so the explicit scheme is stable only when $D\,\Delta t / \Delta X^2 < 1/4$. We therefore use a smaller time step, $\Delta t = 0.005$, than the 1D runs of Part 7C.
 
 ::: {.callout-note title="Recipe 7E.1.1"}
 **Objective.** Build a two-component reaction-diffusion integrator on a 2D grid.
@@ -104,10 +87,7 @@ def pde_fd_rd_2d(reaction, D, u, v, n, dX, dt, t_total, **kw):
     return u, v
 ```
 
-To watch a pattern develop, we run the integrator in successive blocks of time,
-starting from a nearly uniform state $u = v \approx 1$ with a small random
-perturbation, and display the $u$ field after each block. The helper below wraps this
-loop and draws the six snapshots on a shared grid.
+To watch a pattern develop, we run the integrator in successive blocks of time, starting from a nearly uniform state $u = v \approx 1$ with a small random perturbation, and display the $u$ field after each block. The helper below wraps this loop and draws the six snapshots on a shared grid.
 
 ### R implementation {.impl}
 
@@ -153,9 +133,7 @@ g(u, v) &= \mu (1 - u^2 v) ,
 \end{aligned} \tag{3}
 $$
 
-with $v$ a fast-diffusing substrate that activates $u$ and is depleted by it. On the
-line this gave a periodic array of peaks. On the plane, with $d = 0.1$ and
-$\mu = 1.5$, the same instability grows into a labyrinth of stripes.
+with $v$ a fast-diffusing substrate that activates $u$ and is depleted by it. On the line this gave a periodic array of peaks. On the plane, with $d = 0.1$ and $\mu = 1.5$, the same instability grows into a labyrinth of stripes.
 
 ::: {.callout-note title="Recipe 7E.2.1"}
 **Objective.** Grow a 2D Turing pattern from a substrate-depletion model.
@@ -198,15 +176,11 @@ n = 101; dX = 0.2; dt = 0.005; D = np.array([0.1, 1.0]); mu = 1.5
 run_rd_2d(asdm, D, mu, n, dX, dt, block=20, nplot=6)
 ```
 
-The nearly uniform initial field first develops fine ripples, which coarsen and link
-up into winding stripes. The stripe width is set by the same fastest-growing mode
-that fixed the peak spacing in one dimension. Each color scale is set per snapshot,
-so the early panels show structure that is still very small in amplitude.
+The nearly uniform initial field first develops fine ripples, which coarsen and link up into winding stripes. The stripe width is set by the same fastest-growing mode that fixed the peak spacing in one dimension. Each color scale is set per snapshot, so the early panels show structure that is still very small in amplitude.
 
 ## 7E.3 An activator-inhibitor model
 
-Switching the reaction terms to the activator-inhibitor model, again with
-$D_u = d$, $D_v = 1$ and
+Switching the reaction terms to the activator-inhibitor model, again with $D_u = d$, $D_v = 1$ and
 
 $$
 \begin{aligned}
@@ -255,10 +229,4 @@ def aim(u, v, mu):
 run_rd_2d(aim, D, mu, n, dX, dt, block=20, nplot=6)
 ```
 
-Instead of stripes, the activator-inhibitor model settles into a regular array of
-spots, with high-$u$ peaks on a low-$u$ background. The two Gierer-Meinhardt variants
-thus select two of the classic two-dimensional Turing morphologies, stripes and
-spots, from the same random start. Which one appears is a property of the reaction
-kinetics, not of the initial condition: as in the earlier chapters, the R and Python
-runs use independent random perturbations and so produce different specific
-realizations of the same pattern type.
+Instead of stripes, the activator-inhibitor model settles into a regular array of spots, with high-$u$ peaks on a low-$u$ background. The two Gierer-Meinhardt variants thus select two of the classic two-dimensional Turing morphologies, stripes and spots, from the same random start. Which one appears is a property of the reaction kinetics, not of the initial condition: as in the earlier chapters, the R and Python runs use independent random perturbations and so produce different specific realizations of the same pattern type.

@@ -4,20 +4,9 @@ author: "Mingyang Lu"
 old_id: "08C"
 ---
 
-In [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd) we studied a box of
-particles interacting through the Lennard-Jones potential by *molecular dynamics*,
-integrating Newton's equations to follow the trajectory in time. Here we study the
-same box with the *Metropolis-Hastings algorithm* of
-[Part 8B](08b-metropolis-algorithm.qmd), sampling configurations directly from the
-Boltzmann distribution instead of propagating dynamics.
+In [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd) we studied a box of particles interacting through the Lennard-Jones potential by *molecular dynamics*, integrating Newton's equations to follow the trajectory in time. Here we study the same box with the *Metropolis-Hastings algorithm* of [Part 8B](08b-metropolis-algorithm.qmd), sampling configurations directly from the Boltzmann distribution instead of propagating dynamics.
 
-The two methods target the same equilibrium properties but from opposite angles.
-Molecular dynamics tracks positions and velocities through time; Monte Carlo needs
-only positions. The reason is that the kinetic energy in the Boltzmann distribution
-depends only on the velocities and factors out of the partition function (a result
-from statistical mechanics we take on faith here). So the sampling depends solely on
-the particle positions and the potential energy, and we can drop velocities and
-kinetic energy entirely.
+The two methods target the same equilibrium properties but from opposite angles. Molecular dynamics tracks positions and velocities through time; Monte Carlo needs only positions. The reason is that the kinetic energy in the Boltzmann distribution depends only on the velocities and factors out of the partition function (a result from statistical mechanics we take on faith here). So the sampling depends solely on the particle positions and the potential energy, and we can drop velocities and kinetic energy entirely.
 
 ## 8C.1 The Lennard-Jones potential
 
@@ -29,11 +18,7 @@ whose potential energy [@lennardjones1924] is
 
 $$ U(r) = \int -F(r)\, dr = \frac{1}{12 r^{12}} - \frac{1}{6 r^{6}} , \tag{2} $$
 
-with a minimum at $r = 1$. We write the potential as a function of $r^2$ rather than
-$r$, which lets the pairwise routines skip a square root. Distances use the periodic
-box and the minimum image convention introduced in
-[Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd), so each particle
-interacts with the nearest image of every other particle.
+with a minimum at $r = 1$. We write the potential as a function of $r^2$ rather than $r$, which lets the pairwise routines skip a square root. Distances use the periodic box and the minimum image convention introduced in [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd), so each particle interacts with the nearest image of every other particle.
 
 ### R implementation {.impl}
 
@@ -107,18 +92,11 @@ def potential_tot(x_all, a):
     return p_tot
 ```
 
-The potential has the familiar Lennard-Jones shape: a steep repulsive wall at short
-range and a shallow attractive well with its minimum at $r = 1$. A configuration is
-stored as a flat vector `x_all` of length $2 N$, holding $(x_1, y_1, x_2, y_2, \dots)$.
+The potential has the familiar Lennard-Jones shape: a steep repulsive wall at short range and a shallow attractive well with its minimum at $r = 1$. A configuration is stored as a flat vector `x_all` of length $2 N$, holding $(x_1, y_1, x_2, y_2, \dots)$.
 
 ## 8C.2 Local moves and incremental energy
 
-Metropolis-Hastings needs the *change* in energy for each proposed move, not the full
-energy. We propose a local move, displacing one randomly chosen particle by a small
-amount. Because only that particle's interactions change, we recompute just the terms
-involving it, which costs $O(N)$ instead of the $O(N^2)$ of a full recomputation.
-This is the same idea as the incremental energy update for the Ising model in
-[Part 8B](08b-metropolis-algorithm.qmd).
+Metropolis-Hastings needs the *change* in energy for each proposed move, not the full energy. We propose a local move, displacing one randomly chosen particle by a small amount. Because only that particle's interactions change, we recompute just the terms involving it, which costs $O(N)$ instead of the $O(N^2)$ of a full recomputation. This is the same idea as the incremental energy update for the Ising model in [Part 8B](08b-metropolis-algorithm.qmd).
 
 ### R implementation {.impl}
 
@@ -155,12 +133,7 @@ def dp(x_all, a, x_new, i):
 
 ## 8C.3 Metropolis-Hastings sampling
 
-We start from 25 particles on an evenly spaced grid. The box size $a = 6.25 = 5
-\times 1.25$ is chosen so the grid tiles periodically: every nearest-neighbor
-spacing, including across the boundary, equals 1.25. The sampler picks a random
-particle, proposes a small uniform displacement, wraps it back into the box, and
-accepts the move with the Metropolis rule using the incremental energy `dp`. As with
-the Ising model, a move that lowers the energy is always accepted.
+We start from 25 particles on an evenly spaced grid. The box size $a = 6.25 = 5 \times 1.25$ is chosen so the grid tiles periodically: every nearest-neighbor spacing, including across the boundary, equals 1.25. The sampler picks a random particle, proposes a small uniform displacement, wraps it back into the box, and accepts the move with the Metropolis rule using the incremental energy `dp`. As with the Ising model, a move that lowers the energy is always accepted.
 
 ::: {.callout-note title="Recipe 8C.3.1"}
 **Objective.** Sample equilibrium configurations of a Lennard-Jones particle box with Metropolis Monte Carlo.
@@ -214,9 +187,7 @@ metropolis_particle <- function(ntot, cal_e, cal_de, x0, dxmax, nstep, temp, a) 
 }
 ```
 
-The first run is an equilibration phase: the grid starts at a higher energy than the
-low temperature $T = 0.05$ favors, so the energy drops as the particles rearrange. We
-tuned `dxmax` to keep the acceptance rate near 40-50%.
+The first run is an equilibration phase: the grid starts at a higher energy than the low temperature $T = 0.05$ favors, so the energy drops as the particles rearrange. We tuned `dxmax` to keep the acceptance rate near 40-50%.
 
 ```{r}
 set.seed(10)
@@ -309,20 +280,11 @@ plt.plot(range(10001), res_final["e"], "r-")
 plt.xlabel("Step"); plt.ylabel("Total energy"); plt.show()
 ```
 
-During equilibration the energy falls steadily as the particles condense from the
-open grid into a denser, lower-energy arrangement; the post-equilibration snapshot
-shows them clustered rather than spread on the original lattice. In the second phase
-the energy fluctuates around a low plateau, which is the set of near-equilibrium
-configurations we sample for the analysis below.
+During equilibration the energy falls steadily as the particles condense from the open grid into a denser, lower-energy arrangement; the post-equilibration snapshot shows them clustered rather than spread on the original lattice. In the second phase the energy fluctuates around a low plateau, which is the set of near-equilibrium configurations we sample for the analysis below.
 
 ## 8C.4 The radial distribution function
 
-The radial distribution function (RDF) measures how particle density varies with
-distance from a reference particle, exactly as computed from the molecular-dynamics
-trajectory in [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd). Here we
-average it over the second-phase configurations. Successive MCMC steps move only one
-particle and are highly correlated, so we thin the trajectory, using every 20th
-configuration as a roughly independent sample.
+The radial distribution function (RDF) measures how particle density varies with distance from a reference particle, exactly as computed from the molecular-dynamics trajectory in [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd). Here we average it over the second-phase configurations. Successive MCMC steps move only one particle and are highly correlated, so we thin the trajectory, using every 20th configuration as a roughly independent sample.
 
 ### R implementation {.impl}
 
@@ -375,17 +337,8 @@ plt.plot(r_mean, rdf, "r-")
 plt.xlabel("r"); plt.ylabel("g(r)"); plt.show()
 ```
 
-The RDF rises to a sharp first peak near $r = 1$, the equilibrium separation of the
-Lennard-Jones potential, and shows further peaks at larger distances, the signature
-of short-range order in the condensed cluster. This matches the picture from the
-molecular-dynamics simulation of Part 5C: two very different sampling methods,
-Newtonian dynamics and Metropolis Monte Carlo, recover the same equilibrium
-structure.
+The RDF rises to a sharp first peak near $r = 1$, the equilibrium separation of the Lennard-Jones potential, and shows further peaks at larger distances, the signature of short-range order in the condensed cluster. This matches the picture from the molecular-dynamics simulation of Part 5C: two very different sampling methods, Newtonian dynamics and Metropolis Monte Carlo, recover the same equilibrium structure.
 
 ::: {.callout-note title="Practice Q1"}
-Compare this Monte Carlo calculation with the molecular-dynamics simulation of
-Part 5C. Which reaches equilibrium in fewer operations for this system? Then consider
-efficiency of the sampler itself: the local move recomputes only $O(N)$ interaction
-terms per step. Could you propose a move that displaces several particles at once, and
-would it improve or hurt the acceptance rate?
+Compare this Monte Carlo calculation with the molecular-dynamics simulation of Part 5C. Which reaches equilibrium in fewer operations for this system? Then consider efficiency of the sampler itself: the local move recomputes only $O(N)$ interaction terms per step. Could you propose a move that displaces several particles at once, and would it improve or hurt the acceptance rate?
 :::

@@ -4,20 +4,13 @@ author: "Mingyang Lu"
 old_id: "05A"
 ---
 
-Molecular dynamics (MD) simulates the motion of interacting particles by
-integrating Newton's equation of motion forward in time [@frenkel2023understanding].
-Before adding the complications of many particles and realistic forces, this
-chapter develops the integrators themselves on the simplest mechanical system, a
-one-dimensional harmonic oscillator.
+Molecular dynamics (MD) simulates the motion of interacting particles by integrating Newton's equation of motion forward in time [@frenkel2023understanding]. Before adding the complications of many particles and realistic forces, this chapter develops the integrators themselves on the simplest mechanical system, a one-dimensional harmonic oscillator.
 
 Newton's second law relates a particle's acceleration to the force acting on it,
 
 $$ \frac{d^2 x(t)}{dt^2} = \frac{F(x, t)}{m} = f(x, t) . \tag{1} $$
 
-Here $x$ is the position, $t$ is time, $F$ is the force, and $m$ is the mass. We
-write $f = F/m$ (the acceleration, or force per unit mass) to keep the notation
-compact. A second-order ODE can always be recast as a coupled pair of first-order
-ODEs by introducing the velocity $v = dx/dt$,
+Here $x$ is the position, $t$ is time, $F$ is the force, and $m$ is the mass. We write $f = F/m$ (the acceleration, or force per unit mass) to keep the notation compact. A second-order ODE can always be recast as a coupled pair of first-order ODEs by introducing the velocity $v = dx/dt$,
 
 $$
 \begin{cases}
@@ -26,20 +19,15 @@ $$
 \end{cases} \tag{2}
 $$
 
-The integrators below advance this pair step by step. Throughout, $h$ is the time
-step size, and a subscript $n$ denotes a quantity evaluated at time
-$t_n = t_0 + n h$, so $f_n = f(x_n, t_n)$.
+The integrators below advance this pair step by step. Throughout, $h$ is the time step size, and a subscript $n$ denotes a quantity evaluated at time $t_n = t_0 + n h$, so $f_n = f(x_n, t_n)$.
 
 ## 5A.1 Modeling a harmonic oscillator
 
-We test each integrator on the harmonic oscillator, a mass on a spring of
-stiffness $k$, whose force is linear in the displacement,
+We test each integrator on the harmonic oscillator, a mass on a spring of stiffness $k$, whose force is linear in the displacement,
 
 $$ f(x) = -k x . $$
 
-Its exact motion is a pure sinusoid with a constant energy, so any growth in
-amplitude or drift in energy that appears in a simulation is a numerical
-artifact we can spot at a glance.
+Its exact motion is a pure sinusoid with a constant energy, so any growth in amplitude or drift in energy that appears in a simulation is a numerical artifact we can spot at a glance.
 
 ::: {.callout-note title="Recipe 5A.1.1"}
 **Objective.** Set up a harmonic oscillator as the test system for comparing integrators, and state what a correct simulation must preserve.
@@ -77,8 +65,7 @@ def f_ho(t, x, k):
 
 ## 5A.2 Euler method
 
-The Euler method carries over directly from the [first-order ODE version](../02-odes/02b-numerical-integration.qmd): advance both the
-velocity and the position by one step using their current derivatives,
+The Euler method carries over directly from the [first-order ODE version](../02-odes/02b-numerical-integration.qmd): advance both the velocity and the position by one step using their current derivatives,
 
 $$
 \begin{aligned}
@@ -87,10 +74,7 @@ x_{n+1} &= x_n + h v_n .
 \end{aligned}
 $$
 
-To judge a simulation we track the *massic energy* (energy per unit mass),
-$e = \tfrac{1}{2} k x^2 + \tfrac{1}{2} v^2$, which is exactly conserved for the
-true oscillator. We run each integrator with a small step ($h = 0.01$) and a
-larger one ($h = 0.1$) from the same initial condition.
+To judge a simulation we track the *massic energy* (energy per unit mass), $e = \tfrac{1}{2} k x^2 + \tfrac{1}{2} v^2$, which is exactly conserved for the true oscillator. We run each integrator with a small step ($h = 0.01$) and a larger one ($h = 0.1$) from the same initial condition.
 
 ::: {.callout-note title="Recipe 5A.2.1"}
 **Objective.** Integrate the harmonic oscillator with the Euler method and check whether it conserves energy.
@@ -203,20 +187,11 @@ plt.xlabel("t"); plt.ylabel("E"); plt.xlim(0,100); plt.ylim(0,6)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-With a small step the simulation reproduces a clean harmonic oscillation, but
-at the larger step the trajectory swings ever wider. The energy makes the problem
-precise: the Euler method does not conserve it. At $h = 0.1$ the energy grows
-steadily, and even at $h = 0.01$ it drifts slowly upward rather than staying
-constant. A good MD integrator should instead keep the energy bounded over long
-runs.
+With a small step the simulation reproduces a clean harmonic oscillation, but at the larger step the trajectory swings ever wider. The energy makes the problem precise: the Euler method does not conserve it. At $h = 0.1$ the energy grows steadily, and even at $h = 0.01$ it drifts slowly upward rather than staying constant. A good MD integrator should instead keep the energy bounded over long runs.
 
 ### Symplectic Euler method
 
-Two properties separate a good MD integrator from a poor one: it should preserve
-the *symplectic form* (which keeps the energy bounded) and be *time-reversible*
-(so the motion can be run backward). The plain Euler method has neither. A tiny
-change, evaluating the position update with the *new* velocity instead of the old
-one,
+Two properties separate a good MD integrator from a poor one: it should preserve the *symplectic form* (which keeps the energy bounded) and be *time-reversible* (so the motion can be run backward). The plain Euler method has neither. A tiny change, evaluating the position update with the *new* velocity instead of the old one,
 
 $$
 \begin{aligned}
@@ -225,13 +200,11 @@ x_{n+1} &= x_n + h v_{n+1} ,
 \end{aligned}
 $$
 
-makes the method symplectic (though still not time-reversible). Its
-implementation and analysis are left as an exercise.
+makes the method symplectic (though still not time-reversible). Its implementation and analysis are left as an exercise.
 
 ## 5A.3 Leapfrog method
 
-The leapfrog method is a second-order integrator that stores the velocity at
-half-integer time steps, so that position and velocity "leap" over each other,
+The leapfrog method is a second-order integrator that stores the velocity at half-integer time steps, so that position and velocity "leap" over each other,
 
 $$
 \begin{aligned}
@@ -240,9 +213,7 @@ v_{n+3/2} &= v_{n+1/2} + h f_{n+1} .
 \end{aligned}
 $$
 
-It needs the position $x_0$ and the half-step velocity $v_{1/2}$ to start; the
-latter is obtained from the initial velocity by a half Euler step,
-$v_{1/2} = v_0 + \tfrac{1}{2} h f_0$.
+It needs the position $x_0$ and the half-step velocity $v_{1/2}$ to start; the latter is obtained from the initial velocity by a half Euler step, $v_{1/2} = v_0 + \tfrac{1}{2} h f_0$.
 
 ::: {.callout-note title="Recipe 5A.3.1"}
 **Objective.** Integrate the harmonic oscillator with the leapfrog method and compare its energy behavior to Euler.
@@ -326,17 +297,11 @@ plt.xlabel("t"); plt.ylabel("E"); plt.xlim(0,100); plt.ylim(0,6)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-Unlike the Euler method, the leapfrog energy does not drift, even at the large
-step size. It is a symplectic, time-reversible method. One caveat affects the
-energy plot: leapfrog stores $x_n$ and $v_{n+1/2}$ at staggered times rather than
-at the same instant, so the massic energy computed from them shows a small
-oscillatory ripple when the step size is large.
+Unlike the Euler method, the leapfrog energy does not drift, even at the large step size. It is a symplectic, time-reversible method. One caveat affects the energy plot: leapfrog stores $x_n$ and $v_{n+1/2}$ at staggered times rather than at the same instant, so the massic energy computed from them shows a small oscillatory ripple when the step size is large.
 
 ## 5A.4 Velocity Verlet method
 
-The leapfrog method never has $x$ and $v$ available at the same time. The
-velocity Verlet method fixes this by splitting the velocity update into two half
-steps that bracket the position update [@swope1982computer],
+The leapfrog method never has $x$ and $v$ available at the same time. The velocity Verlet method fixes this by splitting the velocity update into two half steps that bracket the position update [@swope1982computer],
 
 $$
 \begin{aligned}
@@ -428,27 +393,19 @@ plt.xlabel("t"); plt.ylabel("E"); plt.xlim(0,100); plt.ylim(0,6)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-Velocity Verlet conserves the massic energy at both step sizes and returns $x$
-and $v$ at the same time points, which is why it is the standard workhorse
-integrator in molecular dynamics.
+Velocity Verlet conserves the massic energy at both step sizes and returns $x$ and $v$ at the same time points, which is why it is the standard workhorse integrator in molecular dynamics.
 
 ### Position Verlet method
 
-By symmetry, one can instead split the *position* update into two half steps
-around a full velocity step, giving the position Verlet method. Working out its
-update equations is left as an exercise.
+By symmetry, one can instead split the *position* update into two half steps around a full velocity step, giving the position Verlet method. Working out its update equations is left as an exercise.
 
 ## 5A.5 Verlet method
 
-If the velocity is not needed as an output, the original Verlet method integrates
-the position alone [@verlet1967computer]. Adding the Taylor expansions of
-$x_{n+2}$ and $x_n$ about $x_{n+1}$ cancels the velocity and the odd-order terms,
-leaving
+If the velocity is not needed as an output, the original Verlet method integrates the position alone [@verlet1967computer]. Adding the Taylor expansions of $x_{n+2}$ and $x_n$ about $x_{n+1}$ cancels the velocity and the odd-order terms, leaving
 
 $$ x_{n+2} = 2 x_{n+1} - x_n + h^2 f_{n+1} . $$
 
-The scheme needs two starting positions; the second is obtained from the initial
-position and velocity by
+The scheme needs two starting positions; the second is obtained from the initial position and velocity by
 
 $$ x_1 = x_0 + h v_0 + \tfrac{1}{2} h^2 f_0 . $$
 
@@ -514,7 +471,4 @@ plt.xlabel("t"); plt.ylabel("x"); plt.xlim(0,100); plt.ylim(-10,10)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-The Verlet method reproduces the oscillation at both step sizes while storing
-only positions, which is why it and its velocity Verlet variant underlie most
-practical MD codes. We extend these integrators to systems of many interacting
-particles in [Part 5B](05b-orbital-motion.qmd).
+The Verlet method reproduces the oscillation at both step sizes while storing only positions, which is why it and its velocity Verlet variant underlie most practical MD codes. We extend these integrators to systems of many interacting particles in [Part 5B](05b-orbital-motion.qmd).

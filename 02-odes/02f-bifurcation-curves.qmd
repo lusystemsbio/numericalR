@@ -4,21 +4,9 @@ author: "Mingyang Lu"
 old_id: "02E"
 ---
 
-In [Part 2E](02e-bifurcation.qmd) we built the bifurcation diagram by *sampling*:
-at each value of $k$ we located the steady states (the roots of $f(X, k) = 0$, or
-the states an ODE relaxes onto), producing a cloud of points that we then
-connected into a curve. That works, but it treats the diagram as a set of
-independent points and depends on a post-hoc reordering step to make a curve out
-of them.
+In [Part 2E](02e-bifurcation.qmd) we built the bifurcation diagram by *sampling*: at each value of $k$ we located the steady states (the roots of $f(X, k) = 0$, or the states an ODE relaxes onto), producing a cloud of points that we then connected into a curve. That works, but it treats the diagram as a set of independent points and depends on a post-hoc reordering step to make a curve out of them.
 
-This chapter takes the complementary view: the bifurcation set
-$\{(k, X) : f(X, k) = 0\}$ is a *curve* in the $(k, X)$ plane, and we trace it
-directly. Two families of methods do this. The **contour method** treats
-$f(k, X)$ as a surface and extracts its zero-level contour, interpolating within a
-grid to place the curve accurately. **Numerical continuation** starts from one
-point on the curve and walks along it with a predictor–corrector step. These are
-the general-purpose tools of bifurcation analysis, and they return the curve
-already ordered.
+This chapter takes the complementary view: the bifurcation set $\{(k, X) : f(X, k) = 0\}$ is a *curve* in the $(k, X)$ plane, and we trace it directly. Two families of methods do this. The **contour method** treats $f(k, X)$ as a surface and extracts its zero-level contour, interpolating within a grid to place the curve accurately. **Numerical continuation** starts from one point on the curve and walks along it with a predictor–corrector step. These are the general-purpose tools of bifurcation analysis, and they return the curve already ordered.
 
 ## 2F.1 The model derivative
 
@@ -28,9 +16,7 @@ We use the same self-activating-gene model as in [Part 2E](02e-bifurcation.qmd),
 \frac{dX}{dt} = f(X, k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX . \tag{1}
 \end{equation}
 
-Every method below evaluates $f(X, k)$, so we define it once in each language.
-Because each chapter renders as an independent session, this repeats the
-`derivs_k` used in [Part 2E](02e-bifurcation.qmd) rather than relying on it.
+Every method below evaluates $f(X, k)$, so we define it once in each language. Because each chapter renders as an independent session, this repeats the `derivs_k` used in [Part 2E](02e-bifurcation.qmd) rather than relying on it.
 
 ### R implementation {.impl}
 
@@ -50,15 +36,7 @@ def derivs_k(X, k):
 
 ## 2F.2 Contour method
 
-Write $z = f(k, X)$, a surface over the $(k, X)$ plane. The steady states are
-exactly the points where this surface crosses zero, so the bifurcation curve is
-the **zero-level contour** of $z$. Standard contour algorithms take $f$ on a grid
-of $(k, X)$ and trace the level set $z = 0$; both R's `contour()` and Matplotlib's
-`contour()` do this. The method is powerful and stable, and, unlike the sampling
-methods of [Part 2E](02e-bifurcation.qmd), it returns the curve as connected, ordered line segments
-rather than a point cloud. Its one weakness is that it can miss a branch if the
-solution set is not connected. Here $f(X, k) = 0$ is a single connected S-shaped
-curve, so one contour captures all of it.
+Write $z = f(k, X)$, a surface over the $(k, X)$ plane. The steady states are exactly the points where this surface crosses zero, so the bifurcation curve is the **zero-level contour** of $z$. Standard contour algorithms take $f$ on a grid of $(k, X)$ and trace the level set $z = 0$; both R's `contour()` and Matplotlib's `contour()` do this. The method is powerful and stable, and, unlike the sampling methods of [Part 2E](02e-bifurcation.qmd), it returns the curve as connected, ordered line segments rather than a point cloud. Its one weakness is that it can miss a branch if the solution set is not connected. Here $f(X, k) = 0$ is a single connected S-shaped curve, so one contour captures all of it.
 
 ::: {.callout-note title="Recipe 2F.2.1"}
 **Objective.** Trace the bifurcation curve as a connected, ordered set of steady states.
@@ -100,20 +78,11 @@ plt.xlabel("k"); plt.ylabel("X")
 plt.show()
 ```
 
-The contour traces the whole S-curve as connected segments, already ordered by
-the algorithm, with no separate reordering step. This ordered output is the main
-practical advantage over the point-sampling methods, and it is what the
-interpolation and continuation methods below build on.
+The contour traces the whole S-curve as connected segments, already ordered by the algorithm, with no separate reordering step. This ordered output is the main practical advantage over the point-sampling methods, and it is what the interpolation and continuation methods below build on.
 
 ## 2F.3 Bilinear interpolation
 
-The built-in contour routines are black boxes. To see how contour extraction
-works, we build a simple one from **bilinear interpolation**, the two-dimensional
-analogue of linear interpolation. Inside a grid square with corners
-$(x_1, y_1), (x_2, y_1), (x_1, y_2), (x_2, y_2)$ and corner values
-$f_{ij} = f(x_i, y_j)$, a solution of $f(x, y) = 0$ exists whenever the four
-corners are not all the same sign. We first interpolate linearly in $x$ along the
-bottom and top edges,
+The built-in contour routines are black boxes. To see how contour extraction works, we build a simple one from **bilinear interpolation**, the two-dimensional analogue of linear interpolation. Inside a grid square with corners $(x_1, y_1), (x_2, y_1), (x_1, y_2), (x_2, y_2)$ and corner values $f_{ij} = f(x_i, y_j)$, a solution of $f(x, y) = 0$ exists whenever the four corners are not all the same sign. We first interpolate linearly in $x$ along the bottom and top edges,
 
 \begin{equation}
 \begin{cases}
@@ -139,10 +108,7 @@ Setting $f(x, y) = 0$ and solving for $y$ gives
 y = \frac{f(x, y_1)\, y_2 - f(x, y_2)\, y_1}{f(x, y_1) - f(x, y_2)} , \tag{3}
 \end{equation}
 
-which has the same form as the false-position step of
-[Part 2E](02e-bifurcation.qmd). To trace the contour we visit every grid square
-whose corners differ in sign, sample $x$ across it, and read off the matching $y$
-from Equations (2) and (3), keeping only points that land inside the square.
+which has the same form as the false-position step of [Part 2E](02e-bifurcation.qmd). To trace the contour we visit every grid square whose corners differ in sign, sample $x$ across it, and read off the matching $y$ from Equations (2) and (3), keeping only points that land inside the square.
 
 ### R implementation {.impl}
 
@@ -229,41 +195,25 @@ plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
 plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 ```
 
-The hand-built extractor recovers the same S-curve as the library contour
-routine. Bilinear interpolation is cheap and widely used (in image processing,
-for instance), but it treats $f$ as flat-sided within each square, so a coarse
-grid shows visible facets. A smoother fit needs a higher-order scheme.
+The hand-built extractor recovers the same S-curve as the library contour routine. Bilinear interpolation is cheap and widely used (in image processing, for instance), but it treats $f$ as flat-sided within each square, so a coarse grid shows visible facets. A smoother fit needs a higher-order scheme.
 
 ## 2F.4 Bicubic interpolation
 
-**Bicubic interpolation** is that higher-order scheme. Instead of a flat-sided
-fit, it models $f$ within each grid square as a bicubic polynomial
+**Bicubic interpolation** is that higher-order scheme. Instead of a flat-sided fit, it models $f$ within each grid square as a bicubic polynomial
 
 $$ f(x, y) = \sum_{i=0}^{3} \sum_{j=0}^{3} a_{ij}\, x^i y^j , $$
 
-whose 16 coefficients $a_{ij}$ are fixed by 16 conditions at the four corners: the
-four function values, the eight first derivatives ($\partial f / \partial x$ and
-$\partial f / \partial y$), and the four mixed derivatives
-$\partial^2 f / \partial x\, \partial y$. The fit is then continuous in both value
-and slope across square boundaries, so the extracted contour comes out smooth
-rather than faceted. We do not implement it here; the construction is detailed in
-the "Higher Order for Smoothness: Bicubic Interpolation" section of *Numerical
-Recipes* [@press2007numerical].
+whose 16 coefficients $a_{ij}$ are fixed by 16 conditions at the four corners: the four function values, the eight first derivatives ($\partial f / \partial x$ and $\partial f / \partial y$), and the four mixed derivatives $\partial^2 f / \partial x\, \partial y$. The fit is then continuous in both value and slope across square boundaries, so the extracted contour comes out smooth rather than faceted. We do not implement it here; the construction is detailed in the "Higher Order for Smoothness: Bicubic Interpolation" section of *Numerical Recipes* [@press2007numerical].
 
 ## 2F.5 Numerical continuation
 
-The most general method, and the one used by professional bifurcation software, is
-**numerical continuation** [@allgower1990continuation]. We want $X(k)$ satisfying
-$f(X, k) = 0$ across a range of $k$. Differentiating that constraint implicitly,
-$\frac{\partial f}{\partial X}\,dX + \frac{\partial f}{\partial k}\,dk = 0$, gives
-the slope of the bifurcation curve,
+The most general method, and the one used by professional bifurcation software, is **numerical continuation** [@allgower1990continuation]. We want $X(k)$ satisfying $f(X, k) = 0$ across a range of $k$. Differentiating that constraint implicitly, $\frac{\partial f}{\partial X}\,dX + \frac{\partial f}{\partial k}\,dk = 0$, gives the slope of the bifurcation curve,
 
 \begin{equation}
 \frac{dX}{dk} \equiv h(X, k) = -\frac{\partial f / \partial k}{\partial f / \partial X} . \tag{4}
 \end{equation}
 
-Continuation then alternates a **predictor** and a **corrector**. From a known
-point $(k, X)$ on the curve, the predictor steps along the tangent,
+Continuation then alternates a **predictor** and a **corrector**. From a known point $(k, X)$ on the curve, the predictor steps along the tangent,
 
 \begin{equation}
 \begin{cases}
@@ -272,20 +222,14 @@ X_{new} = X + \dfrac{dX}{dk}\,\Delta k
 \end{cases} \tag{5}
 \end{equation}
 
-and the corrector pulls that guess back onto the curve. We correct with
-**Newton's method**: to solve $f(X) = 0$ from a guess $X_0$, linearize
-$f(X_0 + \Delta X) \approx f(X_0) + f'(X_0)\,\Delta X = 0$, giving
+and the corrector pulls that guess back onto the curve. We correct with **Newton's method**: to solve $f(X) = 0$ from a guess $X_0$, linearize $f(X_0 + \Delta X) \approx f(X_0) + f'(X_0)\,\Delta X = 0$, giving
 
 \begin{equation}
 \Delta X = -\frac{f(X_0)}{f'(X_0)} , \qquad
 X_{n+1} = X_n - \frac{f(X_n)}{f'(X_n)} , \tag{6}
 \end{equation}
 
-iterated until $|f| < \epsilon$. Unlike bisection, Newton is not bracketed: it
-converges to whichever root is nearest the guess, so the initial value decides
-which branch we land on. For our $f$ the derivatives it needs are
-$\frac{\partial f}{\partial X} = \frac{180}{X}\frac{(X/200)^4}{(1 + (X/200)^4)^2} - k$
-and $\frac{\partial f}{\partial k} = -X$.
+iterated until $|f| < \epsilon$. Unlike bisection, Newton is not bracketed: it converges to whichever root is nearest the guess, so the initial value decides which branch we land on. For our $f$ the derivatives it needs are $\frac{\partial f}{\partial X} = \frac{180}{X}\frac{(X/200)^4}{(1 + (X/200)^4)^2} - k$ and $\frac{\partial f}{\partial k} = -X$.
 
 ::: {.callout-note title="Recipe 2F.5.1"}
 **Objective.** Follow the bifurcation curve `X(k)` with a predictor-corrector method.
@@ -397,27 +341,15 @@ plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
 plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 ```
 
-Continuation traces the high stable branch cleanly from $k = 0.1$ down to the
-upper turning point near $k = 0.168$. There the slope $dX/dk \to \infty$ (the
-curve is vertical in the $(k, X)$ plane), the tangent predictor overshoots, and
-Newton lands on the far low branch, which the sweep then follows. So stepping in
-$k$ captures the two stable branches but jumps across the fold: it misses the
-unstable middle branch and cannot turn the corner. It is also awkward that one
-slope value corresponds to two travel directions along the curve. Arc-length
-continuation, next, fixes both.
+Continuation traces the high stable branch cleanly from $k = 0.1$ down to the upper turning point near $k = 0.168$. There the slope $dX/dk \to \infty$ (the curve is vertical in the $(k, X)$ plane), the tangent predictor overshoots, and Newton lands on the far low branch, which the sweep then follows. So stepping in $k$ captures the two stable branches but jumps across the fold: it misses the unstable middle branch and cannot turn the corner. It is also awkward that one slope value corresponds to two travel directions along the curve. Arc-length continuation, next, fixes both.
 
 ## 2F.6 Arc-length continuation
 
-The trouble at the fold is that we parameterized the curve by $k$, which is
-multivalued there. **Arc-length continuation** [@allgower1990continuation]
-parameterizes instead by the arc length $s$ measured along the curve, seeking
-$X(s)$ and $k(s)$.
+The trouble at the fold is that we parameterized the curve by $k$, which is multivalued there. **Arc-length continuation** [@allgower1990continuation] parameterizes instead by the arc length $s$ measured along the curve, seeking $X(s)$ and $k(s)$.
 
 ![](images/02f/fig1.png){width=55% fig-align="center"}
 
-A step of length $\Delta s$ along the curve splits into a $\Delta k$ and a
-$\Delta X$ with $\Delta s^2 = \Delta k^2 + \Delta X^2$ and $\Delta X = h\,\Delta k$,
-where $h(X, k) = dX/dk$ from Equation (4). Solving these together,
+A step of length $\Delta s$ along the curve splits into a $\Delta k$ and a $\Delta X$ with $\Delta s^2 = \Delta k^2 + \Delta X^2$ and $\Delta X = h\,\Delta k$, where $h(X, k) = dX/dk$ from Equation (4). Solving these together,
 
 \begin{equation}
 \begin{cases}
@@ -426,11 +358,7 @@ where $h(X, k) = dX/dk$ from Equation (4). Solving these together,
 \end{cases} \tag{7}
 \end{equation}
 
-Now even at a fold, where $h \to \infty$, the steps stay bounded: $\Delta k \to 0$
-and $\Delta X \to \pm\Delta s$, so the predictor moves almost vertically and rounds
-the corner instead of overshooting. The $\pm$ sign is chosen to keep travelling in
-the same direction as the previous step, and Newton corrects each predicted point
-back onto the curve.
+Now even at a fold, where $h \to \infty$, the steps stay bounded: $\Delta k \to 0$ and $\Delta X \to \pm\Delta s$, so the predictor moves almost vertically and rounds the corner instead of overshooting. The $\pm$ sign is chosen to keep travelling in the same direction as the previous step, and Newton corrects each predicted point back onto the curve.
 
 ::: {.callout-note title="Recipe 2F.6.1"}
 **Objective.** Trace the entire S-curve, through the folds, without stalling.
@@ -513,8 +441,4 @@ plt.xlim(0.09, 0.21); plt.ylim(0, 600)
 plt.legend(loc="upper right", fontsize=8); plt.show()
 ```
 
-This traces the entire S-curve in a single sweep, unstable middle branch included,
-rounding both folds. Arc-length continuation (and its pseudo-arclength refinements)
-is the engine behind bifurcation-analysis software. The Newton correction can still
-struggle extremely close to a fold, where $f'(X) \approx 0$; higher-order
-correctors such as Halley's method ease that case.
+This traces the entire S-curve in a single sweep, unstable middle branch included, rounding both folds. Arc-length continuation (and its pseudo-arclength refinements) is the engine behind bifurcation-analysis software. The Newton correction can still struggle extremely close to a fold, where $f'(X) \approx 0$; higher-order correctors such as Halley's method ease that case.

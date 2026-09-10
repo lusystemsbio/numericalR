@@ -4,63 +4,35 @@ author: "Mingyang Lu"
 old_id: "03B"
 ---
 
-With the two nullclines of [Part 3A](03a-nullclines.qmd) in hand, the steady
-states of the toggle switch are exactly the points where the curves cross: there
-both $dX/dt = 0$ and $dY/dt = 0$. This section covers how to locate those
-intersections numerically and how to classify the stability of each steady state
-from the Jacobian.
+With the two nullclines of [Part 3A](03a-nullclines.qmd) in hand, the steady states of the toggle switch are exactly the points where the curves cross: there both $dX/dt = 0$ and $dY/dt = 0$. This section covers how to locate those intersections numerically and how to classify the stability of each steady state from the Jacobian.
 
 ## 3B.1 Intersection of two line segments
 
-Each nullcline is stored as a series of 2D points,
-$(\mathbf{A_1}, \mathbf{A_2}, \dots, \mathbf{A_n}, \mathbf{A_{n+1}}, \dots)$ for
-curve $A$ and $(\mathbf{B_1}, \mathbf{B_2}, \dots)$ for curve $B$, where
-$\mathbf{A_n} = (X(A_n), Y(A_n))$ is the $n$-th point along $A$. The nullclines
-`null1` and `null2` computed in Part 3A are two such curves. Between consecutive
-points the curve is well approximated by a straight segment, so the basic
-building block is to test a single pair of segments, $(\mathbf{A_n},
-\mathbf{A_{n+1}})$ and $(\mathbf{B_n}, \mathbf{B_{n+1}})$: do they cross, and if
-so, where? The figure below shows the two possibilities, intersecting (left) and
-not intersecting (right).
+Each nullcline is stored as a series of 2D points, $(\mathbf{A_1}, \mathbf{A_2}, \dots, \mathbf{A_n}, \mathbf{A_{n+1}}, \dots)$ for curve $A$ and $(\mathbf{B_1}, \mathbf{B_2}, \dots)$ for curve $B$, where $\mathbf{A_n} = (X(A_n), Y(A_n))$ is the $n$-th point along $A$. The nullclines `null1` and `null2` computed in Part 3A are two such curves. Between consecutive points the curve is well approximated by a straight segment, so the basic building block is to test a single pair of segments, $(\mathbf{A_n}, \mathbf{A_{n+1}})$ and $(\mathbf{B_n}, \mathbf{B_{n+1}})$: do they cross, and if so, where? The figure below shows the two possibilities, intersecting (left) and not intersecting (right).
 
 ![](images/03b/fig1.png){width=70% fig-align="center"}
 
-Any point $\mathbf{C}$ on the segment from $\mathbf{A_n}$ to $\mathbf{A_{n+1}}$
-can be written as
+Any point $\mathbf{C}$ on the segment from $\mathbf{A_n}$ to $\mathbf{A_{n+1}}$ can be written as
 
 $$ \mathbf{C} = \mathbf{A_n} + \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) \tag{1} $$
 
-The parameter $\alpha$ runs from $0$ to $1$ across the segment; values outside
-$[0, 1]$ lie beyond the two endpoints. If $\mathbf{C}$ also lies on the segment
-from $\mathbf{B_n}$ to $\mathbf{B_{n+1}}$, then
+The parameter $\alpha$ runs from $0$ to $1$ across the segment; values outside $[0, 1]$ lie beyond the two endpoints. If $\mathbf{C}$ also lies on the segment from $\mathbf{B_n}$ to $\mathbf{B_{n+1}}$, then
 
 $$ \mathbf{C} = \mathbf{B_n} + \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) \tag{2} $$
 
-Subtracting Equation (2) from Equation (1) gives a linear system with two
-unknowns $\alpha$ and $\beta$ and two component equations,
+Subtracting Equation (2) from Equation (1) gives a linear system with two unknowns $\alpha$ and $\beta$ and two component equations,
 
 $$ \alpha (\mathbf{A_{n+1}} - \mathbf{A_n}) - \beta (\mathbf{B_{n+1}} - \mathbf{B_n}) = \mathbf{B_n} - \mathbf{A_n} \tag{3} $$
 
-To isolate $\alpha$, take the dot product of both sides with a vector
-perpendicular to $\mathbf{B_{n+1}} - \mathbf{B_n}$, which cancels the $\beta$
-term. For a 2D vector $\mathbf{V} = (V_X, V_Y)$ one perpendicular choice is
-$\mathbf{V_{\perp}} = (1/V_X, -1/V_Y)$, since $\mathbf{V} \cdot \mathbf{V_{\perp}} = 0$.
-Applying $\mathbf{V_{B\perp}} = \left(\frac{1}{X_{B_{n+1}} - X_{B_n}}, -\frac{1}{Y_{B_{n+1}} - Y_{B_n}}\right)$
-and clearing denominators yields
+To isolate $\alpha$, take the dot product of both sides with a vector perpendicular to $\mathbf{B_{n+1}} - \mathbf{B_n}$, which cancels the $\beta$ term. For a 2D vector $\mathbf{V} = (V_X, V_Y)$ one perpendicular choice is $\mathbf{V_{\perp}} = (1/V_X, -1/V_Y)$, since $\mathbf{V} \cdot \mathbf{V_{\perp}} = 0$. Applying $\mathbf{V_{B\perp}} = \left(\frac{1}{X_{B_{n+1}} - X_{B_n}}, -\frac{1}{Y_{B_{n+1}} - Y_{B_n}}\right)$ and clearing denominators yields
 
 $$ \alpha = \frac{(X_{B_n} - X_{A_n})(Y_{B_{n+1}} - Y_{B_n}) - (Y_{B_n} - Y_{A_n})(X_{B_{n+1}} - X_{B_n})}{(X_{A_{n+1}} - X_{A_n})(Y_{B_{n+1}} - Y_{B_n}) - (Y_{A_{n+1}} - Y_{A_n})(X_{B_{n+1}} - X_{B_n})} \tag{4} $$
 
-The same construction with a vector perpendicular to
-$\mathbf{A_{n+1}} - \mathbf{A_n}$ gives
+The same construction with a vector perpendicular to $\mathbf{A_{n+1}} - \mathbf{A_n}$ gives
 
 $$ \beta = \frac{(X_{B_n} - X_{A_n})(Y_{A_{n+1}} - Y_{A_n}) - (Y_{B_n} - Y_{A_n})(X_{A_{n+1}} - X_{A_n})}{(X_{A_{n+1}} - X_{A_n})(Y_{B_{n+1}} - Y_{B_n}) - (Y_{A_{n+1}} - Y_{A_n})(X_{B_{n+1}} - X_{B_n})} \tag{5} $$
 
-The shared denominator is the 2D cross product of the two segment directions. The
-two segments genuinely cross only when both $0 \leq \alpha \leq 1$ and
-$0 \leq \beta \leq 1$; the intersection point then follows from Equation (1) (or
-equivalently Equation (2)). The function below returns the intersection with a
-flag, or the raw $(\alpha, \beta)$ when the segments do not cross. The test case
-uses two three-point curves that meet only along their first segments.
+The shared denominator is the 2D cross product of the two segment directions. The two segments genuinely cross only when both $0 \leq \alpha \leq 1$ and $0 \leq \beta \leq 1$; the intersection point then follows from Equation (1) (or equivalently Equation (2)). The function below returns the intersection with a flag, or the raw $(\alpha, \beta)$ when the segments do not cross. The test case uses two three-point curves that meet only along their first segments.
 
 ### R implementation {.impl}
 
@@ -152,19 +124,9 @@ print(find_intersection(lineA, lineB, 1, 1))   # no intersection
 
 ## 3B.2 Finding all steady states
 
-To find every steady state we apply `find_intersection` to the two nullclines. We
-first recompute the nullclines by separation of variables, exactly as in Part 3A,
-so this chapter is self-contained.
+To find every steady state we apply `find_intersection` to the two nullclines. We first recompute the nullclines by separation of variables, exactly as in Part 3A, so this chapter is self-contained.
 
-The direct approach runs `find_intersection` over *all* pairs of segments, one
-from each nullcline. It is simple but wasteful: with curves of a few hundred
-points each, it tests tens of thousands of pairs even though only a handful can
-possibly cross. A faster version narrows the search first. A crossing of the two
-nullclines is a point where $dY/dt = 0$ along the $dX/dt = 0$ nullcline (and
-symmetrically $dX/dt = 0$ along the $dY/dt = 0$ nullcline). So we walk each
-nullcline once, flag the consecutive pairs where the relevant derivative changes
-sign, and only test those. Both methods return the same steady states, but the
-sign-flip version is far faster.
+The direct approach runs `find_intersection` over *all* pairs of segments, one from each nullcline. It is simple but wasteful: with curves of a few hundred points each, it tests tens of thousands of pairs even though only a handful can possibly cross. A faster version narrows the search first. A crossing of the two nullclines is a point where $dY/dt = 0$ along the $dX/dt = 0$ nullcline (and symmetrically $dX/dt = 0$ along the $dY/dt = 0$ nullcline). So we walk each nullcline once, flag the consecutive pairs where the relevant derivative changes sign, and only test those. Both methods return the same steady states, but the sign-flip version is far faster.
 
 ::: {.callout-note title="Recipe 3B.2.1"}
 **Objective.** Find every steady state of the toggle switch as the intersections of its nullclines.
@@ -282,18 +244,14 @@ print(ss_all)
 
 ## 3B.3 Stability from the Jacobian
 
-Locating a steady state is only half the story; we also need to know whether it
-is stable. For a two-variable system
+Locating a steady state is only half the story; we also need to know whether it is stable. For a two-variable system
 
 $$
 \begin{cases} \dfrac{dX}{dt} = f_X(X, Y) \\[2mm]
               \dfrac{dY}{dt} = f_Y(X, Y) \end{cases}
 $$
 
-consider a small perturbation about a steady state $(X_s, Y_s)$, writing
-$X = X_s + \Delta X$ and $Y = Y_s + \Delta Y$. Taylor-expanding $f_X$ and $f_Y$
-and using $f_X(X_s, Y_s) = f_Y(X_s, Y_s) = 0$, the perturbation evolves linearly
-[@strogatz2015nonlinear],
+consider a small perturbation about a steady state $(X_s, Y_s)$, writing $X = X_s + \Delta X$ and $Y = Y_s + \Delta Y$. Taylor-expanding $f_X$ and $f_Y$ and using $f_X(X_s, Y_s) = f_Y(X_s, Y_s) = 0$, the perturbation evolves linearly [@strogatz2015nonlinear],
 
 $$
 \frac{d}{dt}
@@ -309,19 +267,14 @@ $$
 \end{pmatrix} \tag{6}
 $$
 
-where $\mathbf{J}$ is the Jacobian matrix. Substituting the ansatz
-$\Delta X(t) = \delta x\, e^{\lambda t}$ and $\Delta Y(t) = \delta y\, e^{\lambda t}$
-turns Equation (6) into an eigenvalue problem,
+where $\mathbf{J}$ is the Jacobian matrix. Substituting the ansatz $\Delta X(t) = \delta x\, e^{\lambda t}$ and $\Delta Y(t) = \delta y\, e^{\lambda t}$ turns Equation (6) into an eigenvalue problem,
 
 $$
 \lambda \begin{pmatrix} \delta x \\ \delta y \end{pmatrix}
 = \mathbf{J} \begin{pmatrix} \delta x \\ \delta y \end{pmatrix} \tag{7}
 $$
 
-so the growth rates $\lambda$ are the eigenvalues of $\mathbf{J}$. Rather than
-differentiating $f_X$ and $f_Y$ by hand, we estimate the Jacobian numerically
-with finite differences and read off its eigenvalues. The signs of the
-eigenvalues (and their imaginary parts) classify the steady state:
+so the growth rates $\lambda$ are the eigenvalues of $\mathbf{J}$. Rather than differentiating $f_X$ and $f_Y$ by hand, we estimate the Jacobian numerically with finite differences and read off its eigenvalues. The signs of the eigenvalues (and their imaginary parts) classify the steady state:
 
 | Conditions | Stability |
 |-------|---------|
@@ -331,10 +284,7 @@ eigenvalues (and their imaginary parts) classify the steady state:
 | $\mathrm{Re}(\lambda_1) < 0$ and $\mathrm{Re}(\lambda_2) < 0$ | Stable spiral |
 | $\mathrm{Re}(\lambda_1) \geq 0$ and $\mathrm{Re}(\lambda_2) \geq 0$ | Unstable spiral |
 
-The eigenvalues of a Jacobian are not necessarily real; a complex conjugate pair
-signals a spiral. [Part 3H](03h-multi-component.qmd) shows gene circuits that produce spirals. For the toggle
-switch, the two outer steady states are stable and the
-middle one is a saddle point.
+The eigenvalues of a Jacobian are not necessarily real; a complex conjugate pair signals a spiral. [Part 3H](03h-multi-component.qmd) shows gene circuits that produce spirals. For the toggle switch, the two outer steady states are stable and the middle one is a saddle point.
 
 ::: {.callout-note title="Recipe 3B.3.1"}
 **Objective.** Classify each steady state of a two-variable system as stable or unstable.
@@ -412,8 +362,4 @@ results = pd.DataFrame(ss_with_stability, columns=["X", "Y", "Stability"])
 print(results)
 ```
 
-The two methods agree: for the toggle switch there are three steady states, two
-stable nodes (stability code `1`) and one saddle point (code `3`) sitting between
-them. This matches the phase portrait of Part 3A, where trajectories flowed into
-the two outer attractors while the middle crossing repelled them.
-[Part 3H](03h-multi-component.qmd) revisits stability for circuits that also produce spirals.
+The two methods agree: for the toggle switch there are three steady states, two stable nodes (stability code `1`) and one saddle point (code `3`) sitting between them. This matches the phase portrait of Part 3A, where trajectories flowed into the two outer attractors while the middle crossing repelled them. [Part 3H](03h-multi-component.qmd) revisits stability for circuits that also produce spirals.

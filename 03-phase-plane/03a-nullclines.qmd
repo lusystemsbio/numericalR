@@ -4,15 +4,9 @@ author: "Mingyang Lu"
 old_id: "03A"
 ---
 
-Part 3 generalizes the single-variable methods of
-[Part 2](../02-odes/02a-modeling-gene-circuits.qmd) to systems of *two*
-coupled ODEs, using a two-gene circuit as the running example. The main new tool
-is **phase-plane analysis** [@strogatz2015nonlinear], a visual way to characterize
-a nonlinear system by plotting its state in the plane of its two variables.
+Part 3 generalizes the single-variable methods of [Part 2](../02-odes/02a-modeling-gene-circuits.qmd) to systems of *two* coupled ODEs, using a two-gene circuit as the running example. The main new tool is **phase-plane analysis** [@strogatz2015nonlinear], a visual way to characterize a nonlinear system by plotting its state in the plane of its two variables.
 
-We model the genetic **toggle switch** from
-[Part 2A](../02-odes/02a-modeling-gene-circuits.qmd) (Equation (13)): two genes
-$X$ and $Y$ that each repress the other [@gardner2000toggle], with dynamics
+We model the genetic **toggle switch** from [Part 2A](../02-odes/02a-modeling-gene-circuits.qmd) (Equation (13)): two genes $X$ and $Y$ that each repress the other [@gardner2000toggle], with dynamics
 
 $$
 \begin{cases}
@@ -21,18 +15,11 @@ $$
 \end{cases}
 $$
 
-For illustration the kinetic parameters are fixed in the code
-($g_{X0}=5, g_{X1}=50, Y_{th}=100, n_Y=4, k_X=0.1$ and
-$g_{Y0}=4, g_{Y1}=40, X_{th}=150, n_X=4, k_Y=0.12$).
+For illustration the kinetic parameters are fixed in the code ($g_{X0}=5, g_{X1}=50, Y_{th}=100, n_Y=4, k_X=0.1$ and $g_{Y0}=4, g_{Y1}=40, X_{th}=150, n_X=4, k_Y=0.12$).
 
 ## 3A.1 ODE simulation
 
-To integrate a multi-variable system we generalize the fourth-order Runge-Kutta
-method of [Part 2B](../02-odes/02b-numerical-integration.qmd) so that the state
-$X$ and each stage $k_i$ are vectors rather than scalars; the algorithm is
-otherwise identical. Simulating from ten random initial conditions, every
-trajectory settles on one of **two** distinct stable steady states (different
-levels of $X$ and $Y$), the hallmark of the toggle switch's bistability.
+To integrate a multi-variable system we generalize the fourth-order Runge-Kutta method of [Part 2B](../02-odes/02b-numerical-integration.qmd) so that the state $X$ and each stage $k_i$ are vectors rather than scalars; the algorithm is otherwise identical. Simulating from ten random initial conditions, every trajectory settles on one of **two** distinct stable steady states (different levels of $X$ and $Y$), the hallmark of the toggle switch's bistability.
 
 ::: {.callout-note title="Recipe 3A.1.1"}
 **Objective.** Simulate a genetic toggle switch from many initial conditions and see which steady states the trajectories reach.
@@ -141,10 +128,7 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 
 ## 3A.2 Phase plane
 
-The **phase plane** describes the system by two axes, here the levels of $X$ and
-$Y$; each state is a point and each trajectory a curve. Replotting the same ten
-simulations in the $(X, Y)$ plane shows the trajectories flowing into two
-attractors, confirming the two stable steady states.
+The **phase plane** describes the system by two axes, here the levels of $X$ and $Y$; each state is a point and each trajectory a curve. Replotting the same ten simulations in the $(X, Y)$ plane shows the trajectories flowing into two attractors, confirming the two stable steady states.
 
 ### R implementation {.impl}
 
@@ -175,13 +159,7 @@ plt.show()
 
 ## 3A.3 Vector field
 
-At each point of the phase plane the derivative $(V_X, V_Y) = (dX/dt, dY/dt)$
-gives the local direction and speed of motion. Drawing these as arrows on a grid
-produces the **vector field**. The arrows point toward the two stable states; a
-third steady state sits between them, where nearby arrows point in from one
-direction and out along another. That is a **saddle point**, an unstable steady
-state. Normalizing the arrows to unit length highlights the directions without
-the speed.
+At each point of the phase plane the derivative $(V_X, V_Y) = (dX/dt, dY/dt)$ gives the local direction and speed of motion. Drawing these as arrows on a grid produces the **vector field**. The arrows point toward the two stable states; a third steady state sits between them, where nearby arrows point in from one direction and out along another. That is a **saddle point**, an unstable steady state. Normalizing the arrows to unit length highlights the directions without the speed.
 
 ### R implementation {.impl}
 
@@ -257,35 +235,27 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.show()
 
 ## 3A.4 Nullclines: separation of variables
 
-A **nullcline** is the curve on which one derivative vanishes: the *X-nullcline*
-is $dX/dt = 0$ and the *Y-nullcline* is $dY/dt = 0$. Where the two nullclines
-cross, both derivatives are zero, so the intersections are exactly the steady
-states, and counting them reveals the multistability at a glance.
+A **nullcline** is the curve on which one derivative vanishes: the *X-nullcline* is $dX/dt = 0$ and the *Y-nullcline* is $dY/dt = 0$. Where the two nullclines cross, both derivatives are zero, so the intersections are exactly the steady states, and counting them reveals the multistability at a glance.
 
 $$ f_X(X, Y) = g_{X0} + g_{X1}\frac{1}{1 + (Y/Y_{th})^{n_Y}} - k_X X = 0 \tag{1} $$
 
 $$ f_Y(X, Y) = g_{Y0} + g_{Y1}\frac{1}{1 + (X/X_{th})^{n_X}} - k_Y Y = 0 \tag{2} $$
 
-For this circuit each nullcline can be solved in closed form by *separation of
-variables*: rearranging Equation (1) for $X$ and Equation (2) for $Y$,
+For this circuit each nullcline can be solved analytically by *separation of variables*: rearranging Equation (1) for $X$ and Equation (2) for $Y$,
 
 $$ \begin{aligned}
 X(Y) &= \frac{g_{X0} + g_{X1}\dfrac{1}{1 + (Y/Y_{th})^{n_Y}}}{k_X} , \\[2mm]
 Y(X) &= \frac{g_{Y0} + g_{Y1}\dfrac{1}{1 + (X/X_{th})^{n_X}}}{k_Y} .
 \end{aligned} \tag{3} $$
 
-Sweeping $Y$ (or $X$) then traces each nullcline directly. Overlaid on the unit
-vector field, the two nullclines cross three times: the outer two crossings are
-the stable states and the middle one is the saddle. Separation of variables is
-the easiest route whenever it is available, but it fails for most systems, so the
-next two sections give general numerical alternatives.
+Sweeping $Y$ (or $X$) then traces each nullcline directly. Overlaid on the unit vector field, the two nullclines cross three times: the outer two crossings are the stable states and the middle one is the saddle. Separation of variables is the easiest route whenever it is available, but it fails for most systems, so the next two sections give general numerical alternatives.
 
 ::: {.callout-note title="Recipe 3A.4.1"}
 **Objective.** Draw the X- and Y-nullclines of the toggle switch, whose intersections are the steady states.
 
 **Model.** Genes X and Y repress each other; each gene's transcription is a basal rate plus a repressive Hill function of the other, with linear degradation: `dX/dt = gX0 + gX1/(1 + (Y/Yth)^nY) - kX*X`, `dY/dt = gY0 + gY1/(1 + (X/Xth)^nX) - kY*Y`.
 
-**Method.** Solve each nullcline in closed form by separation of variables: rearrange `fX(X,Y) = 0` for X and `fY(X,Y) = 0` for Y, sweeping the other variable.
+**Method.** Solve each nullcline analytically by separation of variables: rearrange `fX(X,Y) = 0` for X and `fY(X,Y) = 0` for Y, sweeping the other variable.
 
 **Test.** The toggle switch with `gX0 = 5, gX1 = 50, Yth = 100, nY = 4, kX = 0.1`; `gY0 = 4, gY1 = 40, Xth = 150, nX = 4, kY = 0.12`.
 
@@ -339,12 +309,7 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.legend(loc="upper right"); plt.show()
 
 ## 3A.5 Contour method
 
-When separation of variables is not possible, the nullcline $f_X(X, Y) = 0$ is
-just the zero-level contour of the surface $Z = f_X(X, Y)$, exactly as in
-[Part 2F](../02-odes/02f-bifurcation-curves.qmd). Evaluating $f_X$ and $f_Y$ on a
-grid and drawing their $Z = 0$ contours recovers both nullclines. The method is
-robust as long as the grid is fine enough for the contour routine to interpolate,
-though a fine grid over two dimensions can be costly.
+When separation of variables is not possible, the nullcline $f_X(X, Y) = 0$ is just the zero-level contour of the surface $Z = f_X(X, Y)$, exactly as in [Part 2F](../02-odes/02f-bifurcation-curves.qmd). Evaluating $f_X$ and $f_Y$ on a grid and drawing their $Z = 0$ contours recovers both nullclines. The method is robust as long as the grid is fine enough for the contour routine to interpolate, though a fine grid over two dimensions can be costly.
 
 ::: {.callout-note title="Recipe 3A.5.1"}
 **Objective.** Draw the nullclines with a general method that does not need separation of variables.
@@ -393,15 +358,7 @@ plt.xlabel("X"); plt.ylabel("Y"); plt.show()
 
 ## 3A.6 Numerical continuation
 
-The third option is **numerical continuation**, the arc-length predictor-corrector
-of [Part 2F](../02-odes/02f-bifurcation-curves.qmd). Tracing the nullcline
-$f_X(X, Y) = 0$ is the same problem as tracing a bifurcation curve: we treat $Y$
-as the control parameter and follow $X(Y)$, stepping along the curve by arc length
-and correcting each step back onto it with Newton's method. The corrector needs
-the partial derivatives $\partial f/\partial X$ and $\partial f/\partial Y$ (the
-Jacobian). The code below adapts the 2F routine to two variables; because the
-method is identical to 2F, the Python implementation is omitted (see
-[Part 2F](../02-odes/02f-bifurcation-curves.qmd)).
+The third option is **numerical continuation**, the arc-length predictor-corrector of [Part 2F](../02-odes/02f-bifurcation-curves.qmd). Tracing the nullcline $f_X(X, Y) = 0$ is the same problem as tracing a bifurcation curve: we treat $Y$ as the control parameter and follow $X(Y)$, stepping along the curve by arc length and correcting each step back onto it with Newton's method. The corrector needs the partial derivatives $\partial f/\partial X$ and $\partial f/\partial Y$ (the Jacobian). The code below adapts the 2F routine to two variables; because the method is identical to 2F, the Python implementation is omitted (see [Part 2F](../02-odes/02f-bifurcation-curves.qmd)).
 
 ::: {.callout-note title="Recipe 3A.6.1"}
 **Objective.** Trace a nullcline by following it as a curve, when neither separation nor a grid contour is convenient.
@@ -506,10 +463,4 @@ points(null2_cont[, 1], null2_cont[, 2], pch = 1, cex = 0.3, col = 4)
 legend("topright", inset = 0.02, legend = c("dX/dt=0", "dY/dt=0"), col = c(2, 4), lty = 1, cex = 0.8)
 ```
 
-The continuation reproduces the same two nullclines as separation of variables
-and the contour method. It is more code, since it needs a starting point on each
-curve, the travel direction, and the Jacobian, and (as written) it has no guard
-against a diverging Newton step. The advantage, as in Part 2F, is that it applies
-to nullclines that cannot be solved in closed form. All three methods feed the
-same next step: [Part 3B](03b-steady-states-2d.qmd) locates the nullcline
-intersections to find the steady states and classify their stability.
+The continuation reproduces the same two nullclines as separation of variables and the contour method. It is more code, since it needs a starting point on each curve, the travel direction, and the Jacobian, and (as written) it has no guard against a diverging Newton step. The advantage, as in Part 2F, is that it applies to nullclines that cannot be solved analytically. All three methods feed the same next step: [Part 3B](03b-steady-states-2d.qmd) locates the nullcline intersections to find the steady states and classify their stability.

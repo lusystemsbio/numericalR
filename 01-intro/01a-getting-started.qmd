@@ -6,135 +6,60 @@ old_id: "01A"
 
 ## 1A.1 Setting up your environment
 
-This book runs R and Python side by side, with [Quarto](https://quarto.org)
-rendering both into one document and [VS Code](https://code.visualstudio.com)
-as the editor. Install, in this order:
+This book illustrates numerical methods in systems biology using R and Python side by side, with [Quarto](https://quarto.org) rendering both into one document and [VS Code](https://code.visualstudio.com) as the editor.
+
+To set up your environment, install, in this order:
 
 1. **R**, from [CRAN](https://cran.r-project.org).
-2. **Python** (3.x), from [python.org](https://www.python.org/downloads/) or
-   your system's package manager.
+2. **Python** (3.x), from [python.org](https://www.python.org/downloads/) or your system's package manager.
 3. **Quarto**, from [quarto.org/docs/get-started](https://quarto.org/docs/get-started/).
-4. **VS Code**, from [code.visualstudio.com](https://code.visualstudio.com),
-   then add three extensions from the Extensions panel: **R** (by
-   REditorSupport), **Python** (by Microsoft), and **Quarto**.
-5. **Claude Code**, a command-line AI assistant that reads, edits, and runs
-   code inside your own project rather than a generic chat window. Install it
-   with
+4. **VS Code**, from [code.visualstudio.com](https://code.visualstudio.com), then add three extensions from the Extensions panel: **R** (by REditorSupport), **Python** (by Microsoft), and **Quarto**.
+5. **Claude Code**, a command-line AI assistant that reads, edits, and runs code inside your own project rather than a generic chat window. Install it with
 
    ```bash
    npm install -g @anthropic-ai/claude-code
    ```
 
-   which requires [Node.js](https://nodejs.org). Anthropic also publishes a
-   VS Code extension for it, so a Claude Code panel can sit next to your
-   editor; check Anthropic's current documentation for the exact setup, since
-   install methods change over time.
+   which requires [Node.js](https://nodejs.org). Anthropic also publishes a VS Code extension for it, so a Claude Code panel can sit next to your editor; check Anthropic's current documentation for the exact setup, since install methods change over time.
 
-Once these are installed, open a project folder in VS Code and run `claude`
-from the integrated terminal to start a session there. The rest of this
-chapter is about what to do with that session once it's open.
+Once these are installed, open a project folder in VS Code and run `claude` from the integrated terminal to start a session there. The rest of this chapter is about what to do with that session once it's open.
 
 ## 1A.2 Learning numerical methods with AI
 
-An AI assistant can now turn a short description into a working script, so
-producing code is no longer the hard part of programming. What an assistant
-cannot do reliably is tell you whether the result is right. That gap matters
-most in numerical work, where a wrong method rarely crashes: it returns a
-number that still plots as a smooth curve. The skills worth building are the
-ones the assistant lacks, understanding a method well enough to know what it
-should produce, and checking that it did.
+An AI assistant can now turn a short description into a working script, so producing code is no longer the hard part of programming. What an assistant cannot do reliably is tell you whether the result is correct or not. That gap matters most in numerical work, where a wrong method rarely crashes. For example, a wrong code may still return a number or plot a curve without displaying error. The skills worth building are the ones the AI assistant may lack, which is understanding a method well enough to know what it should produce, and checking that it did.
 
-This is where the code in this book earns its place. Every method is given as a
-correct, tested implementation, already checked against a known answer. That
-makes it a fixed reference you can trust, while code an assistant generates is
-only plausible until you prove otherwise. You will use the provided code four
-ways: as a worked example to read, as a target to rebuild, as the reference to
-check your own or an assistant's version against, and as a starting point to
-modify once you want to go beyond the chapter.
+This is where the code in this book earns its place. Every method was developed manually before the AI era, and every implementation has been checked against a known answer. Thus, the code in this book creates a reliable reference, while code that an AI assistant generates is only plausible until you prove otherwise. You could use the provided code four ways: (1) as a worked example to read, (2) as a target to rebuild, (3) as the reference to check your own or an AI-generated version against, and (4) as a starting point to modify once you want to go beyond the presented methods.
 
 A good way to work through each method is:
 
-1. **Understand the method before looking at any code.** From the concept and
-   the equations, decide what the result should be and how you will know it is
-   right, for instance a closed-form solution or a quantity that must stay
-   constant.
-2. **Read the provided implementation** to see one correct version, and ask the
-   assistant to explain any line you do not recognize.
-3. **Rebuild it yourself**, letting the assistant fill in parts you can describe
-   precisely. Rewriting the method is what fixes it in your mind; accepting
-   generated code without this step does not.
-4. **Verify against the reference and the check from step 1**, not against how
-   the output looks. Run your version and the book's on the same input and
-   compare. Where they disagree is where the learning is.
-5. **Extend it past the chapter**: change the model, add a variable, alter a
-   boundary. The assistant makes this quick, and the understanding from the
-   earlier steps keeps the extension honest. This is also where your work stops
-   resembling everyone else's.
+1. **Understand the method before checking any code.** From the concept and the equations, decide what the result should be and how you will know it is correct, for instance you expect to observe a Hopf bifurcation for a repressilator gene regualtory circuit.
+2. **Read the provided implementation** to see one correct version, and ask the AI assistant to explain any line you do not recognize or have doubts about.
+3. **Rebuild the method yourself** after reading the provided implementation. You could focus on the parts related to thecore method, while letting the AI assistant fill in parts you are familiar with.
+4. **Verify your results against the reference** once you have rebuilt the method. You could run your version and the book's code on the same input and compare the results, includign both the final and intermediate results, side by side. The verification step allows you to check your understanding of the method, and is also a good opportunity to ask the AI assistant to explain any discrepancy between your results and the reference.
+5. **Generalize for other usages**: change the model, add a variable, alter a boundary. You could ask the AI assistant to help you with the generalization, but you should understand the changes you are making and how they affect the method. By this time, you should be able to make these changes without the AI assistant, and this is a good opportunity to test your understanding of the method and the code.
 
-To make this concrete, each worked method in this book is framed as a **recipe**, a
-short box with six fields: **Objective** (what the code should accomplish),
-**Model** (the governing equations and kinetics, stated fully enough to reproduce the
-system), **Method** (the numerical approach), **Test** (a concrete case to run, with
-every parameter, input, and initial condition), **Show** (the output to produce, such
-as a plot or printed values), and **Verification** (how to tell the result is right,
-which is a check on the output, not the output itself). The Model and Test fields are
-what make a recipe self-contained: the equations plus the parameters are enough to
-rebuild the system without seeing the code. A recipe is something to read and attempt
-before you look at the implementation. Even a failed attempt makes the reference code
-far more useful when you turn to it. (The Model field is dropped for the occasional
-example that has no governing equations.)
 
-Recipe boxes appear for the major methods and applications, not for every code block.
-Each was first drafted by an AI assistant (Claude Opus 4.8) and then checked and
-corrected by hand. Producing them this way doubles as a test of the assistant itself:
-a method it cannot compress into a correct objective, test, and verification is one it
-has not really understood. Every box is collected in the
-[recipe index](appendix-recipe-index.qmd).
 
-A recipe also converts into a **structured prompt**, which is how you get help on
-the parts you cannot yet write without giving up the understanding. Instead of a
-vague request, you fill a fixed template with the recipe's fields:
+To make this concrete, each worked method in this book is framed as a **recipe**, a short box with six fields: **Objective** (what the code should accomplish), **Model** (the governing equations and kinetics, stated fully enough to reproduce the system), **Method** (the numerical approach), **Test** (a concrete case to run, with every parameter, input, and initial condition), **Show** (the output to produce, such as a plot or printed values), and **Verification** (how to tell the result is correct). The Model and Test fields are what make a recipe self-contained to allow generation of reproducible results. In mathematical modeling, the equations plus the parameters are mostly sufficient to rebuild the system without seeing the code. In some cases, the Model field is omitted because the method is not tied to any governing equations.
 
-> In [R or Python], [Objective]. The model is [Model]. Use [Method]. Test it on
-> [Test]. Produce [Show], and as a separate check, confirm that [Verification].
-> Implement the method explicitly with short comments rather than calling a routine
-> that does it in one step, and explain in a sentence why that check confirms the
-> result.
+Recipe boxes appear for the major methods and applications, not for every code block. Each was first drafted by an AI assistant (Claude Opus 4.8) and then checked and corrected by hand. The Recipe boxes serve as the summary of the method and working in plain words (and equations/parameters when applicable). Every box is collected in the [recipe index](../appendix-recipe-index.qmd).
 
-Write it in plain text, typing any equation the way you would in an email; an
-assistant reads `dX/dt = g - kX` as readily as the typeset form. Asking for the output
-and the check separately matters: the thing to produce (the Show field) is usually not
-the same as the quantity you verify against, so naming both keeps the assistant from
-returning only the check. The last two requests are what make this a learning prompt
-rather than one that just vends code: writing the method out so you can see it, and
-saying why the check confirms correctness. In the HTML edition, each recipe box carries
-a **Copy prompt** button that fills this template from the box for you. Whatever the
-assistant returns, run the verification yourself before you trust it.
+A recipe also converts into a **structured prompt**, which is how you get help on the parts you cannot yet write without giving up the understanding. Instead of a vague request, you fill a fixed template with the recipe's fields:
 
-When you instead ask about code that already exists, ask well. Name the actual code
-and the actual confusion: paste the function, then ask what a specific operator,
-argument, or line does and why. A vague request such as "explain this file" returns
-a vague answer. Verify the explanation the same way you verify code: change an
-input, predict the result, run it, and compare. An explanation you have not checked
-is a plausible guess, and assistants produce those freely.
+> In [R or Python], [Objective]. The model is [Model]. Use [Method]. Test it on [Test]. Produce [Show], and as a separate check, confirm that [Verification]. Implement the method explicitly with short comments rather than calling a routine that does it in one step, and explain in a sentence why that check confirms the result.
 
-The next section works this recipe-and-prompt loop through a small example. The two
-after it introduce the R and Python features you will meet most often, and a
-complete simulation to read closely. Every session shown was tested with Claude Opus
-4.8; a different model or version will phrase things differently, but the technique
-is the same.
+Write it in plain text, typing any equation the way you would in an email; an assistant reads `dX/dt = g - kX` as readily as the typeset form. The prompt also specifies the outputs to produce and the checks to run, so the generated code can be verified against the known answer. In the HTML edition, each recipe box carries a **Copy prompt** button that fills this template from the box for you. Whatever the assistant returns, run the verification yourself before you trust it. In a sense, you could consider the structured prompt as the "pseudo-code" of the method in the era of AI.
+
+Finally, you could also ask the AI assistant about code that already exists. Name the actual code and the actual confusion: paste the function, then ask what a specific operator, argument, or line does and why. A vague request such as “explain this file” returns a vague answer. Verify the explanation the same way you verify code: change an input, predict the result, run it, and compare. Checking like that would help greately to avoid hallucination, one of the most common failure modes of AI assistants.
 
 ## 1A.3 A minimal example
 
-Here is the smallest script that still has something worth asking about: a
-comment, a variable, a function, and a loop with a condition inside it. Here is
-its recipe:
+Here is the smallest script that still has something worth asking about: a comment, a variable, a function, and a loop with a condition inside it. Here is its recipe:
 
 ::: {.callout-note title="Recipe 1A.3.1"}
 **Objective.** Label each number in a list as "even" or "odd".
 
-**Method.** Loop over the numbers, test each with the modulo (remainder) operator,
-and print its label.
+**Method.** Loop over the numbers, test each with the modulo (remainder) operator, and print its label.
 
 **Test.** The list 4, 7, 10, 13.
 
@@ -143,8 +68,7 @@ and print its label.
 **Verification.** 4 and 10 print as even; 7 and 13 print as odd.
 :::
 
-Try the recipe first: the **Copy prompt** button on the box turns it into a prompt
-you can hand to an assistant, then compare what comes back with the version below.
+Try the recipe first: the **Copy prompt** button on the box turns it into a prompt you can hand to an assistant, then compare what comes back with the version below.
 
 ### R implementation {.impl}
 
@@ -170,14 +94,9 @@ for n in numbers:
     print(n, "is", classify(n))
 ```
 
-To run this yourself, create a new file `classify.R` (or `classify.py`) in
-VS Code, paste in the code above, and use the Run button the R or Python
-extension adds to the editor, or run `Rscript classify.R` /
-`python3 classify.py` from the integrated terminal.
+To run this yourself, create a new file `classify.R` (or `classify.py`) in VS Code, paste in the code above, and use the Run button the R or Python extension adds to the editor, or run `Rscript classify.R` / `python3 classify.py` from the integrated terminal.
 
-Then open a Claude Code session in the same folder: split the editor so the
-file you are reading stays visible on one side while Claude Code runs on the
-other, rather than switching back and forth between two overlapping windows.
+Then open a Claude Code session in the same folder: split the editor so the file you are reading stays visible on one side while Claude Code runs on the other, rather than switching back and forth between two overlapping windows.
 
 ::: {.content-visible when-format="html:js"}
 <table class="vscode-mockup">
@@ -221,9 +140,7 @@ expression...</pre></td>
 ```
 :::
 
-Ask about the one part that is not obvious on a first read: the inline
-`if (...) "even" else "odd"` in R, or the equivalent conditional expression
-in Python. A session might go like this:
+Ask about the one part that is not obvious on a first read: the inline `if (...) "even" else "odd"` in R, or the equivalent conditional expression in Python. A session might go like this:
 
 ```
 > What does `if (x %% 2 == 0) "even" else "odd"` return, and why is there no
@@ -237,36 +154,21 @@ value. `%%` is R's modulo operator, so `x %% 2 == 0` is TRUE exactly when x
 is even.
 ```
 
-Verify it: call `classify(11)` and confirm you get `"odd"`, then try
-`classify(0)` and check the answer still makes sense.
+Verify it: call `classify(11)` and confirm you get `"odd"`, then try `classify(0)` and check the answer still makes sense.
 
-The R and Python versions do the same thing with different spellings, and that
-contrast is worth asking about too. Paste both blocks and ask the assistant to list
-the differences line by line. A good answer points out that R builds the list with
-`c(...)` while Python uses `[...]`; R's remainder operator is `%%` and Python's is
-`%`; R returns the value of its last expression, the bare `if/else`, whereas Python
-needs an explicit `return` with the conditional expression `A if cond else B`; and R
-prints with `cat`, Python with `print`. Seeing one idea in two spellings is the
-fastest way to stop treating either language's punctuation as magic.
+The R and Python versions do the same thing with different spellings, and that contrast is worth asking about too. Paste both blocks and ask the assistant to list the differences line by line. A good answer points out that R builds the list with `c(...)` while Python uses `[...]`; R's remainder operator is `%%` and Python's is `%`; R returns the value of its last expression, the bare `if/else`, whereas Python needs an explicit `return` with the conditional expression `A if cond else B`; and R prints with `cat`, Python with `print`. Seeing one idea in two spellings is the fastest way to stop treating either language's punctuation as magic.
 
 A few other ways to use an assistant on a script you are reading:
 
-- **Predict, then run.** Before running, tell the assistant what you expect each
-  line to print and ask whether you are right. Being wrong out loud is where the
-  learning happens.
-- **Translate and diff.** Ask it to rewrite the R version in Python (or the
-  reverse), run both, and confirm the outputs match. A translation that agrees line
-  for line means you understood the original.
-- **Change one thing.** Ask what happens if you replace `== 0` with `== 1`, then
-  check the prediction by editing and re-running.
+- **Predict, then run.** Before running, tell the assistant what you expect each line to print and ask whether you are right. Being wrong out loud is where the learning happens.
+- **Translate and diff.** Ask it to rewrite the R version in Python (or the reverse), run both, and confirm the outputs match. A translation that agrees line for line means you understood the original.
+- **Change one thing.** Ask what happens if you replace `== 0` with `== 1`, then check the prediction by editing and re-running.
 
-Each of these keeps you doing the thinking and uses the assistant to check it, which
-is the habit the rest of the book is built around.
+Each of these keeps you doing the thinking and uses the assistant to check it, which is the habit the rest of the book is built around.
 
 ## 1A.4 A little R and Python
 
-This book teaches R and Python by using them rather than through a full language
-course. For a proper grounding, these are good starting points.
+This book teaches R and Python by using them rather than through a full language course. For a proper grounding, these are good starting points.
 
 For R:
 
@@ -280,16 +182,9 @@ For Python:
 - [Scientific Python Lectures](https://lectures.scientific-python.org), covering NumPy, SciPy, and Matplotlib.
 - The reference documentation for [NumPy](https://numpy.org/doc/stable/) and [Matplotlib](https://matplotlib.org/stable/).
 
-Below are two features new readers most often stumble on, each shown in both
-languages: forwarding arguments with an ellipsis, and the difference between a
-matrix and a data frame. When a later chapter's code looks unfamiliar, that is the
-moment to paste it into an assistant and ask.
+Below are two features new readers most often stumble on, each shown in both languages: forwarding arguments with an ellipsis, and the difference between a matrix and a data frame. When a later chapter's code looks unfamiliar, that is the moment to paste it into an assistant and ask.
 
-**Ellipsis and `**kwargs`.** R's `...` and Python's `**kwargs` let a function
-forward whatever arguments it received on to another function whose full
-signature it does not need to know. This pattern shows up in nearly every
-integrator in this book, starting with `Euler()` in
-[Part 2B](../02-odes/02b-numerical-integration.qmd).
+**Ellipsis and `**kwargs`.** R's `...` and Python's `**kwargs` let a function forward whatever arguments it received on to another function whose full signature it does not need to know. This pattern shows up in nearly every integrator in this book, starting with `Euler()` in [Part 2B](../02-odes/02b-numerical-integration.qmd).
 
 ### R implementation {.impl}
 
@@ -315,20 +210,9 @@ def func1(d, e):
 func_main(a=1, func_2nd=func1, d=2.4, e=0.6)
 ```
 
-Paste `func_main` into Claude Code and ask "what does `...`/`**kwargs` do
-here, and why does `func1` need to accept exactly `d` and `e`?" A good answer
-explains that the ellipsis collects any named arguments beyond `a` and
-`func_2nd`, then re-expands them at `func_2nd(...)`. If `func1`'s parameter
-names do not match what was forwarded, the call fails. Verify it: rename
-`func1`'s parameters to `f` and `g` without changing the call, and confirm
-you get an error, since neither `d` nor `e` is among `func1`'s parameter
-names anymore.
+Paste `func_main` into Claude Code and ask "what does `...`/`**kwargs` do here, and why does `func1` need to accept exactly `d` and `e`?" A good answer explains that the ellipsis collects any named arguments beyond `a` and `func_2nd`, then re-expands them at `func_2nd(...)`. If `func1`'s parameter names do not match what was forwarded, the call fails. Verify it: rename `func1`'s parameters to `f` and `g` without changing the call, and confirm you get an error, since neither `d` nor `e` is among `func1`'s parameter names anymore.
 
-**Matrix vs. data frame.** A **matrix** holds elements of a single type and
-supports linear algebra directly; a **data frame** allows a different type per
-column and is what most statistics and plotting functions expect. Confusing the two
-is a common source of trouble, and both languages draw the same distinction. In R,
-`matrix()` builds the first and `data.frame()` the second.
+**Matrix vs. data frame.** A **matrix** holds elements of a single type and supports linear algebra directly; a **data frame** allows a different type per column and is what most statistics and plotting functions expect. Confusing the two is a common source of trouble, and both languages draw the same distinction. In R, `matrix()` builds the first and `data.frame()` the second.
 
 ### R implementation {.impl}
 
@@ -345,8 +229,7 @@ str(df)                                   # each column keeps its own type
 
 ### Python implementation {.impl}
 
-Python draws the same line between a NumPy array (one type, for linear algebra) and
-a pandas data frame (a column per variable, mixed types).
+Python draws the same line between a NumPy array (one type, for linear algebra) and a pandas data frame (a column per variable, mixed types).
 
 ```{python}
 import numpy as np
@@ -362,16 +245,11 @@ df = pd.DataFrame({"atom": ["N", "CA", "C", "O"],   # string column
 print(df.dtypes)                          # each column keeps its own type
 ```
 
-Ask the assistant why a matrix cannot hold a text column alongside numbers, and when
-you would reach for each. Verify it: try to place a string into the numeric matrix
-(`matrix(c(1, "a", 3, 4), 2)` in R, `np.array([1, "a", 3, 4])` in Python) and watch
-every element turn into text, since a matrix or array must share one type.
+Ask the assistant why a matrix cannot hold a text column alongside numbers, and when you would reach for each. Verify it: try to place a string into the numeric matrix (`matrix(c(1, "a", 3, 4), 2)` in R, `np.array([1, "a", 3, 4])` in Python) and watch every element turn into text, since a matrix or array must share one type.
 
 ## 1A.5 A worked example: Conway's Game of Life
 
-Conway's Game of Life is a grid of cells, each alive or dead, updated
-together at every step by three rules applied to each cell's eight
-neighbors [@gardner1970game]:
+Conway's Game of Life is a grid of cells, each alive or dead, updated together at every step by three rules applied to each cell's eight neighbors [@gardner1970game]:
 
 - A live cell with 2 or 3 live neighbors survives.
 - A dead cell with exactly 3 live neighbors becomes alive.
@@ -472,11 +350,7 @@ for a, g, title in zip(ax, [grid, g_end], ["generation 1", "generation 5"]):
 plt.show()
 ```
 
-The two snapshots show the glider one full cycle later: the same five-cell shape,
-shifted one step diagonally. A pair of frames only hints at the motion, so for a
-clearer view we render the whole run as an animation. The code below (R's `gganimate`
-here) is shown as a listing you can run; the resulting GIF is pre-generated and
-embedded, so the book does not rebuild it on every render.
+The two snapshots show the glider one full cycle later: the same five-cell shape, shifted one step diagonally. A pair of frames only hints at the motion, so for a clearer view we render the whole run as an animation. The code below (R's `gganimate` here) is shown as a listing you can run; the resulting GIF is pre-generated and embedded, so the book does not rebuild it on every render.
 
 ```r
 library(ggplot2); library(gganimate); library(gifski)
@@ -505,14 +379,10 @@ anim_save("game-of-life.gif", animation = anim)
 ```
 
 ::: {.content-visible when-format="html:js"}
-![Forty generations of a glider on a 10x10 grid. Red cells are alive, white
-cells are dead.](images/01A/game-of-life.gif){width=40% fig-align="center"}
+![Forty generations of a glider on a 10x10 grid. Red cells are alive, white cells are dead.](images/01A/game-of-life.gif){width=40% fig-align="center"}
 :::
 
-Watch the animation closely around generation 35 to 40: part of the glider
-appears to jump to the opposite side of the grid rather than sliding off it.
-The `neighbor_sum` function above never says anything about what happens at
-the edges of the 10x10 grid, so paste it into Claude Code and ask directly:
+Watch the animation closely around generation 35 to 40: part of the glider appears to jump to the opposite side of the grid rather than sliding off it. The `neighbor_sum` function above never says anything about what happens at the edges of the 10x10 grid, so paste it into Claude Code and ask directly:
 
 ```
 > What is `((idx_r - 1 + di) %% n) + 1` doing, and why does the glider
@@ -528,22 +398,10 @@ is treated as touching the near edge. That is exactly why the glider
 reappears on the opposite side rather than vanishing.
 ```
 
-Verify it: pick a cell in the top row and compute `((0 - 1 + -1) %% 10) + 1`
-by hand to confirm it does map to row 10, not to a negative or out-of-range
-index.
+Verify it: pick a cell in the top row and compute `((0 - 1 + -1) %% 10) + 1` by hand to confirm it does map to row 10, not to a negative or out-of-range index.
 
-Periodic boundaries are not just a trick for a small grid of cells.
-[Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd) applies the same
-idea to a continuous-space molecular dynamics simulation: a particle leaving
-one side of a simulation box re-enters from the opposite side, using a
-function (`bc_periodic`) built on the same wraparound rule shown here.
+Periodic boundaries are not just a trick for a small grid of cells. [Part 5C](../05-molecular-dynamics/05c-box-of-particles.qmd) applies the same idea to a continuous-space molecular dynamics simulation: a particle leaving one side of a simulation box re-enters from the opposite side, using a function (`bc_periodic`) built on the same wraparound rule shown here.
 
 ::: {.callout-tip title="Try it yourself"}
-Compare the two `neighbor_sum` functions above: the R version wraps indices with the
-modulo operator (`%%`), while the Python version shifts the whole grid with
-`np.roll`. Ask the assistant why both produce the same periodic boundary. Then pick
-any function you have not read closely, this one or a later chapter's ODE integrator,
-paste one version into Claude Code, ask one specific question about the part you do
-not understand, and check the answer by changing an input and predicting the output
-before you run it.
+Compare the two `neighbor_sum` functions above: the R version wraps indices with the modulo operator (`%%`), while the Python version shifts the whole grid with `np.roll`. Ask the assistant why both produce the same periodic boundary. Then pick any function you have not read closely, this one or a later chapter's ODE integrator, paste one version into Claude Code, ask one specific question about the part you do not understand, and check the answer by changing an input and predicting the output before you run it.
 :::

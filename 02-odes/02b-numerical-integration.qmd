@@ -4,22 +4,17 @@ author: "Mingyang Lu"
 old_id: "02B"
 ---
 
-Here we introduce numerical methods to solve ODEs, using the constitutively
-expressed gene circuit from [Part 2A](02a-modeling-gene-circuits.qmd) as a running example:
+Here we introduce numerical methods to solve ODEs, using the constitutively expressed gene circuit from [Part 2A](02a-modeling-gene-circuits.qmd) as a running example:
 
 \begin{equation}
 \frac{dX}{dt} = f(X) \equiv g - kX \tag{1}
 \end{equation}
 
-The methods below (Euler, Heun, Runge–Kutta, backward Euler) are standard
-numerical integrators for ordinary differential equations; see [@hairer1993solving]
-for a thorough treatment and [@press2007numerical] for practical implementations.
+The methods below (Euler, Heun, Runge–Kutta, backward Euler) are standard numerical integrators for ordinary differential equations; see [@hairer1993solving] for a thorough treatment and [@press2007numerical] for practical implementations.
 
 ## 2B.1 First-order approximation: the Euler method
 
-The Euler method is a first-order method for integrating ODEs
-[@hairer1993solving]. Given $X$ at time $t$, it estimates $X$ at the next time
-step $t + \Delta t$ by
+The Euler method is a first-order method for integrating ODEs [@hairer1993solving]. Given $X$ at time $t$, it estimates $X$ at the next time step $t + \Delta t$ by
 
 \begin{equation}
 X(t+\Delta t) = X(t) + f(X,t)\,\Delta t . \tag{2}
@@ -27,10 +22,7 @@ X(t+\Delta t) = X(t) + f(X,t)\,\Delta t . \tag{2}
 
 ![](images/02b/fig1.png){width=55% fig-align="center"}
 
-Starting from the initial condition $X(t=0)$ and iterating Equation (2) yields
-$X(t)$ at every time step. The smaller the step size $\Delta t$, the more
-accurate the integration, but the more iterations (and the more compute time)
-are needed to simulate a fixed duration.
+Starting from the initial condition $X(t=0)$ and iterating Equation (2) yields $X(t)$ at every time step. The smaller the step size $\Delta t$, the more accurate the integration, but the more iterations (and the more compute time) are needed to simulate a fixed duration.
 
 ::: {.callout-note title="Recipe 2B.1.1"}
 **Objective.** Integrate the gene-expression ODE from an initial value and compare the numerical solution to the exact one at two step sizes.
@@ -125,8 +117,7 @@ plt.legend(loc="lower right", title="Time dynamics", fontsize=8)
 plt.show()
 ```
 
-With $\Delta t = 0.1$ the Euler method closely tracks the analytical solution;
-with $\Delta t = 1$ there is a visible discrepancy near $t \approx 10$.
+With $\Delta t = 0.1$ the Euler method closely tracks the analytical solution; with $\Delta t = 1$ there is a visible discrepancy near $t \approx 10$.
 
 ## 2B.2 Accuracy
 
@@ -136,22 +127,15 @@ By Taylor expansion for small $\Delta t$,
 X(t+\Delta t) = X(t) + \frac{dX}{dt}\Delta t + O(\Delta t^2) . \tag{3}
 \end{equation}
 
-The term $O(\Delta t^2)$ collects the leading truncated contribution as
-$\Delta t \to 0$ and bounds the error of the expansion. Comparing Equations (1)
-and (3) recovers the Euler formula (2), so the local error of the Euler method
-is $O(\Delta t^2)$. The same reasoning estimates the error of other integrators.
+The term $O(\Delta t^2)$ collects the leading truncated contribution as $\Delta t \to 0$ and bounds the error of the expansion. Comparing Equations (1) and (3) recovers the Euler formula (2), so the local error of the Euler method is $O(\Delta t^2)$. The same reasoning estimates the error of other integrators.
 
 ## 2B.3 Code efficiency
 
-Beyond writing an integrator by hand, one can use an established ODE library or
-call compiled code for speed. Here we compare three routes for the same Euler
-integration: a hand-written implementation, a library routine, and a compiled
-function, and benchmark them.
+Beyond writing an integrator by hand, one can use an established ODE library or call compiled code for speed. Here we compare three routes for the same Euler integration: a hand-written implementation, a library routine, and a compiled function, and benchmark them.
 
 ### R implementation {.impl}
 
-R has mature ODE solvers such as `deSolve` [@soetaert2010desolve]. The same
-system integrated with two step sizes reproduces our own implementation:
+R has mature ODE solvers such as `deSolve` [@soetaert2010desolve]. The same system integrated with two step sizes reproduces our own implementation:
 
 ```{r}
 #| message: false
@@ -173,9 +157,7 @@ legend("bottomright", inset = 0.02, title = "Time dynamics",
        col = 2:3, lty = 1, cex = 0.8)
 ```
 
-For maximum speed the derivative and the integration loop can be written in a
-compiled language. The Fortran routine below (`02-odes/src/sub_ode_1g.f90`)
-implements the same Euler step:
+For maximum speed the derivative and the integration loop can be written in a compiled language. The Fortran routine below (`02-odes/src/sub_ode_1g.f90`) implements the same Euler step:
 
 ```fortran
 function derivs_1g(t, x)
@@ -205,8 +187,7 @@ subroutine ode_1g_euler(x0, dt, nsteps, results)
 end subroutine ode_1g_euler
 ```
 
-We compile it into a shared library with `gfortran` (run once at the terminal,
-not during rendering):
+We compile it into a shared library with `gfortran` (run once at the terminal, not during rendering):
 
 ```bash
 gfortran -fpic -shared 02-odes/src/sub_ode_1g.f90 -o 02-odes/src/sub_ode_1g.so
@@ -226,8 +207,7 @@ a <- rbind(c(0, X0), t(results5[[4]]))   # prepend the initial condition
 plot(a[, 1], a[, 2], type = "l", xlab = "t (Minute)", ylab = "X (nM)")
 ```
 
-Finally we benchmark the three approaches with a smaller step size
-($\Delta t = 0.01$):
+Finally we benchmark the three approaches with a smaller step size ($\Delta t = 0.01$):
 
 ```{r}
 #| message: false
@@ -255,10 +235,7 @@ autoplot(my_benchmark)
 
 ### Python implementation {.impl}
 
-Python's general-purpose ODE solver is `scipy.integrate.solve_ivp`
-[@virtanen2020scipy]. Note it has no dedicated fixed-step Euler method; by
-default it uses an adaptive Runge–Kutta (RK45) scheme, so its output is not
-step-for-step identical to the Euler results but solves the same system:
+Python's general-purpose ODE solver is `scipy.integrate.solve_ivp` [@virtanen2020scipy]. Note it has no dedicated fixed-step Euler method; by default it uses an adaptive Runge–Kutta (RK45) scheme, so its output is not step-for-step identical to the Euler results but solves the same system:
 
 ```{python}
 from scipy.integrate import solve_ivp
@@ -272,10 +249,7 @@ plt.legend(loc="lower right", fontsize=8)
 plt.show()
 ```
 
-The same compiled Fortran shared library can be called from Python through
-`ctypes`. gfortran appends a trailing underscore to subroutine names, arguments
-are passed by reference, and the `results(2, nsteps)` array is column-major
-(stored as `t, x, t, x, …`):
+The same compiled Fortran shared library can be called from Python through `ctypes`. gfortran appends a trailing underscore to subroutine names, arguments are passed by reference, and the `results(2, nsteps)` array is column-major (stored as `t, x, t, x, …`):
 
 ```{python}
 import ctypes
@@ -327,32 +301,15 @@ plt.ylabel("time per call (ms)"); plt.yscale("log")
 plt.show()
 ```
 
-For this simple, fixed-step problem the hand-written loop is typically a little
-faster than `deSolve` (which stores each step's result in a list), and the
-compiled Fortran routine is about an order of magnitude faster than either. Two
-things make the R versions slow: the derivative function is interpreted R, and
-the array of time steps is repeatedly processed in the R interpreter during the
-loop. The Fortran routine avoids both: the derivative is compiled in, and,
-although it allocates a result matrix, that matrix is only used for output, never
-during the integration. Exact timings vary by machine and run, and `deSolve` can
-itself call compiled derivative functions (in C or Fortran), which would narrow
-the gap. None of this makes libraries slow. They are robust and general, but for
-tight inner loops a compiled kernel wins.
+For this simple, fixed-step problem the hand-written loop is typically a little faster than `deSolve` (which stores each step's result in a list), and the compiled Fortran routine is about an order of magnitude faster than either. Two things make the R versions slow: the derivative function is interpreted R, and the array of time steps is repeatedly processed in the R interpreter during the loop. The Fortran routine avoids both: the derivative is compiled in, and, although it allocates a result matrix, that matrix is only used for output, never during the integration. Exact timings vary by machine and run, and `deSolve` can itself call compiled derivative functions (in C or Fortran), which would narrow the gap. None of this makes libraries slow. They are robust and general, but for tight inner loops a compiled kernel wins.
 
 ## 2B.4 Second-order approximation: Heun's method
 
-In the Euler method the derivative is treated as constant over the interval
-$t \to t+\Delta t$. This works well when $\Delta t$ is small and the derivative
-varies slowly; otherwise a higher-order approximation is required. Heun's method
-[@hairer1993solving] is a second-order scheme, illustrated below.
+In the Euler method the derivative is treated as constant over the interval $t \to t+\Delta t$. This works well when $\Delta t$ is small and the derivative varies slowly; otherwise a higher-order approximation is required. Heun's method [@hairer1993solving] is a second-order scheme, illustrated below.
 
 ![](images/02b/fig2.png){width=55% fig-align="center"}
 
-We start from point A, $(X(t), t)$. An Euler step lands at point B,
-$(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, which is still some distance from the
-true point C on the $X(t)$ curve. To do better, we evaluate the derivative at B,
-$f(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, and average the two slopes (at A and
-at B); this takes us to point D, which is usually closer to C than B is. In math,
+We start from point A, $(X(t), t)$. An Euler step lands at point B, $(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, which is still some distance from the true point C on the $X(t)$ curve. To do better, we evaluate the derivative at B, $f(X(t) + f(X,t)\Delta t,\ t + \Delta t)$, and average the two slopes (at A and at B); this takes us to point D, which is usually closer to C than B is. In math,
 
 \begin{equation}
 \begin{aligned}
@@ -372,15 +329,13 @@ X(t + \Delta t) &= X(t) + \frac{dX}{dt}\Delta t + \frac{1}{2}\frac{d^2 X}{dt^2}\
 \end{aligned}
 $$
 
-where $\frac{df}{dt} = \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}$
-(chain rule, using $\frac{dX}{dt} = f$). Expanding $k_2$ to the same order,
+where $\frac{df}{dt} = \frac{\partial f}{\partial t} + f\frac{\partial f}{\partial X}$ (chain rule, using $\frac{dX}{dt} = f$). Expanding $k_2$ to the same order,
 
 $$
 k_2 = f(X,t)\Delta t + \left(f\frac{\partial f}{\partial X} + \frac{\partial f}{\partial t}\right)\Delta t^2 + O(\Delta t^3) ,
 $$
 
-so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2 + O(\Delta t^3) = X(t+\Delta t) - X(t) + O(\Delta t^3)$,
-which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
+so $\dfrac{k_1 + k_2}{2} = f(X,t)\Delta t + \dfrac{1}{2}\dfrac{df}{dt}\Delta t^2 + O(\Delta t^3) = X(t+\Delta t) - X(t) + O(\Delta t^3)$, which proves Heun's method is accurate to $O(\Delta t^3)$ per step.
 
 ::: {.callout-note title="Recipe 2B.4.1"}
 **Objective.** Implement a second-order Heun integrator for a one-variable ODE.
@@ -432,8 +387,7 @@ def Heun(derivs, X0, t_total, dt, **kwargs):
 
 ## 2B.5 Second-order Runge–Kutta method (RK2)
 
-RK2, the midpoint method [@hairer1993solving], takes a trial half-step to the
-midpoint of the interval and uses the derivative there for the full step:
+RK2, the midpoint method [@hairer1993solving], takes a trial half-step to the midpoint of the interval and uses the derivative there for the full step:
 
 \begin{equation}
 \begin{aligned}
@@ -491,8 +445,7 @@ def RK2(derivs, X0, t_total, dt, **kwargs):
 
 ## 2B.6 Fourth-order Runge–Kutta method (RK4)
 
-RK4 is the most widely used general-purpose integrator [@hairer1993solving;
-@press2007numerical], with local error $O(\Delta t^5)$:
+RK4 is the most widely used general-purpose integrator [@hairer1993solving; @press2007numerical], with local error $O(\Delta t^5)$:
 
 \begin{equation}
 \begin{aligned}
@@ -562,8 +515,7 @@ def RK4(derivs, X0, t_total, dt, **kwargs):
 
 ## 2B.7 Comparing integrator accuracy
 
-To quantify accuracy we use the root-mean-square deviation (RMSD) between the
-exact solution and each simulation over $n$ time points:
+To quantify accuracy we use the root-mean-square deviation (RMSD) between the exact solution and each simulation over $n$ time points:
 
 $$d_{RMSD}(X_1, X_2) = \sqrt{\frac{\sum_{i=1}^{n} [X_1(t_i)-X_2(t_i)]^2}{n}} .$$
 
@@ -599,9 +551,7 @@ legend("bottomright", inset = 0.02, title = "Errors",
        col = 2:5, pch = c(1, 3, 1, 1), cex = 0.8)
 ```
 
-The shared Fortran library also provides `ode_1g_rk2` and `ode_1g_rk4`. As a
-check, we compare the compiled RK4 against our R RK4, RK2, and Euler results (and
-the exact solution) at $\Delta t = 0.1$ via the RMSD:
+The shared Fortran library also provides `ode_1g_rk2` and `ode_1g_rk4`. As a check, we compare the compiled RK4 against our R RK4, RK2, and Euler results (and the exact solution) at $\Delta t = 0.1$ via the RMSD:
 
 ```{r}
 dt <- 0.1; t_total <- 80.0; X0 <- 300.0
@@ -616,9 +566,7 @@ c(vs_RK4   = rmsd(a[, 2], RK4(dX, 300, 80, dt, g = g, k = k)[, 2]),
   vs_exact = rmsd(a[, 2], ode1(300, seq(0, t_total, dt), g = g, k = k)))
 ```
 
-The Fortran RK4 matches the R RK4 (and the exact solution) to a tiny RMSD, while
-RK2 and especially Euler differ more, confirming that the compiled and
-interpreted RK4 agree.
+The Fortran RK4 matches the R RK4 (and the exact solution) to a tiny RMSD, while RK2 and especially Euler differ more, confirming that the compiled and interpreted RK4 agree.
 
 ### Python implementation {.impl}
 
@@ -653,11 +601,7 @@ plt.legend(loc="lower right", title="Errors", fontsize=8)
 plt.show()
 ```
 
-RK4 is typically orders of magnitude more accurate than RK2, which is in turn
-orders of magnitude more accurate than Euler. RK4 needs four derivative
-evaluations per step, RK2 two, and Euler one. But RK4 and RK2 tolerate much
-larger step sizes at the same accuracy, so they are usually more efficient
-overall.
+RK4 is typically orders of magnitude more accurate than RK2, which is in turn orders of magnitude more accurate than Euler. RK4 needs four derivative evaluations per step, RK2 two, and Euler one. But RK4 and RK2 tolerate much larger step sizes at the same accuracy, so they are usually more efficient overall.
 
 ## 2B.8 Backward Euler method
 
@@ -665,19 +609,15 @@ Rewriting Equation (2) with $h = \Delta t$, $X_n = X(t)$, $X_{n+1} = X(t+\Delta 
 
 $$X_{n+1} = X_n + h\,f(X_n, t) . \tag{7}$$
 
-This forward (explicit) Euler method can become unstable. For our model,
-$X_{n+1} = hg + (1-hk)X_n$, which diverges once $h > 1/k$. The backward
-(implicit) Euler method instead evaluates the derivative at the new point:
+This forward (explicit) Euler method can become unstable. For our model, $X_{n+1} = hg + (1-hk)X_n$, which diverges once $h > 1/k$. The backward (implicit) Euler method instead evaluates the derivative at the new point:
 
 $$X_{n+1} = X_n + h\,f(X_{n+1}, t_{n+1}) . \tag{8}$$
 
-In general $X_{n+1}$ must be solved for (e.g. by Newton's method or fixed-point
-iteration), but here $f = g - kX_{n+1}$ is linear, giving the closed form
+In general $X_{n+1}$ must be solved for (e.g. by Newton's method or fixed-point iteration), but here $f = g - kX_{n+1}$ is linear, giving the analytical solution
 
 $$X_{n+1} = \frac{X_n + hg}{1 + hk} .$$
 
-We use stiff parameters ($k = 10$) where forward Euler with $\Delta t = 0.2$ is
-unstable.
+We use stiff parameters ($k = 10$) where forward Euler with $\Delta t = 0.2$ is unstable.
 
 ::: {.callout-note title="Recipe 2B.8.1"}
 **Objective.** Integrate a stiff version of the model where the forward Euler method blows up, using an implicit step.
@@ -766,6 +706,4 @@ plt.legend(loc="lower right", fontsize=8)
 plt.show()
 ```
 
-Backward Euler is still only first-order accurate, but it is stable at step
-sizes where forward Euler diverges, the defining advantage of implicit methods
-for stiff systems.
+Backward Euler is still only first-order accurate, but it is stable at step sizes where forward Euler diverges, the defining advantage of implicit methods for stiff systems.

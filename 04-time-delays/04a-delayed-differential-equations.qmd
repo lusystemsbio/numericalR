@@ -4,46 +4,21 @@ author: "Mingyang Lu"
 old_id: "04A"
 ---
 
-Many processes respond not to the current state of a system but to its state some
-time earlier: a population reproduces from the adults born a generation ago, a
-gene responds to a protein that took time to be made. Such systems are described
-by **delay differential equations** (DDEs), rate equations whose right-hand side
-depends on the solution at an earlier time [@smith2011delay]. As a first example
-we revisit exponential growth, but with the rate set by $N$ a time $\tau$ in the
-past,
+Many processes respond not to the current state of a system but to its state some time earlier: a population reproduces from the adults born a generation ago, a gene responds to a protein that took time to be made. Such systems are described by **delay differential equations** (DDEs), rate equations whose right-hand side depends on the solution at an earlier time [@smith2011delay]. As a first example we revisit exponential growth, but with the rate set by $N$ a time $\tau$ in the past,
 
 $$ \frac{dN}{dt} = r\, N(t - \tau) . \tag{1} $$
 
-with constant delay $\tau = 1$. An ODE needs a single initial value $N(t_0)$; a
-DDE instead needs an entire **history**, $N(t)$ for $t \in [t_0 - \tau, t_0]$.
-Because a steady state is time-independent, a DDE has the same steady states as
-the corresponding ODE (here $N_s = 0$), so the usual root-finding methods still
-locate them. What the delay changes is *stability*: it can turn a stable state
-oscillatory or unstable.
+with constant delay $\tau = 1$. An ODE needs a single initial value $N(t_0)$; a DDE instead needs an entire **history**, $N(t)$ for $t \in [t_0 - \tau, t_0]$. Because a steady state is time-independent, a DDE has the same steady states as the corresponding ODE (here $N_s = 0$), so the usual root-finding methods still locate them. What the delay changes is *stability*: it can turn a stable state oscillatory or unstable.
 
 ## 4A.1 Euler method for DDEs
 
-The simplest way to integrate a DDE is to keep the whole trajectory, starting from
-the history interval $[t_0 - \tau, t_0]$, so that $N(t - \tau)$ can be looked up at
-any step. With a fixed step $dt$, the delayed value sits exactly $d = \tau/dt$
-steps back, so the Euler update is
+The simplest way to integrate a DDE is to keep the whole trajectory, starting from the history interval $[t_0 - \tau, t_0]$, so that $N(t - \tau)$ can be looked up at any step. With a fixed step $dt$, the delayed value sits exactly $d = \tau/dt$ steps back, so the Euler update is
 
 $$ N_{n+1} = N_n + h\, f(t_n, N_n, N_{n-d}) . \tag{2} $$
 
-We take a constant history $N(t) = N_0$ for $t \leq t_0$. This is convenient but
-makes the solution's derivative discontinuous at $t_0$ (and its higher derivatives
-at $t_0 + \tau, t_0 + 2\tau, \dots$), so DDE trajectories are only piecewise
-smooth; interpret them with care. Storing the entire trajectory is also
-memory-heavy; a leaner scheme, the *method of steps*, is left as an exercise in
-[Part 4D](04d-exercises.qmd).
+We take a constant history $N(t) = N_0$ for $t \leq t_0$. This is convenient but makes the solution's derivative discontinuous at $t_0$ (and its higher derivatives at $t_0 + \tau, t_0 + 2\tau, \dots$), so DDE trajectories are only piecewise smooth; interpret them with care. Storing the entire trajectory is also memory-heavy; a leaner scheme, the *method of steps*, is left as an exercise in [Part 4D](04d-exercises.qmd).
 
-The delay reshapes the stability of $N_s = 0$. For small $|r|$ the solution decays
-monotonically, but as $r$ decreases past the critical value $r = -\pi/2 \approx
--1.57$ the decay first becomes oscillatory and then unstable. Three values of $r$
-show the regimes: $r = -0.3$ (monotonic decay), $r = -1.4$ (just above $-\pi/2$, a
-damped oscillation), and $r = -1.7$ (just below $-\pi/2$, an oscillation that grows
-without bound). Note $N$ goes negative once it oscillates, which is unphysical for
-a population; this linear model is only illustrative.
+The delay reshapes the stability of $N_s = 0$. For small $|r|$ the solution decays monotonically, but as $r$ decreases past the critical value $r = -\pi/2 \approx -1.57$ the decay first becomes oscillatory and then unstable. Three values of $r$ show the regimes: $r = -0.3$ (monotonic decay), $r = -1.4$ (just above $-\pi/2$, a damped oscillation), and $r = -1.7$ (just below $-\pi/2$, an oscillation that grows without bound). Note $N$ goes negative once it oscillates, which is unphysical for a population; this linear model is only illustrative.
 
 ::: {.callout-note title="Recipe 4A.1.1"}
 **Objective.** Integrate a delayed exponential-growth model and see how the delay changes the approach to the steady state.
@@ -135,11 +110,7 @@ for res, r, yl, loc in [(res1, "-0.3", (0, 1), "upper right"),
 
 ## 4A.2 A second-order integrator: Heun's method
 
-Euler's method is only first-order accurate. For a cheap improvement we adapt
-**Heun's method**, a second-order scheme close to second-order Runge-Kutta but
-using only whole time steps, which makes it easy to carry over to DDEs (a method
-like RK4 would need delayed values at half-steps that are not stored). Each step
-takes a predictor and a corrector,
+Euler's method is only first-order accurate. For a cheap improvement we adapt **Heun's method**, a second-order scheme close to second-order Runge-Kutta but using only whole time steps, which makes it easy to carry over to DDEs (a method like RK4 would need delayed values at half-steps that are not stored). Each step takes a predictor and a corrector,
 
 \begin{equation}
 \begin{aligned}
@@ -150,9 +121,7 @@ N_{n+1} &= N_n + (k_1 + k_2)/2
 \end{aligned} \tag{3}
 \end{equation}
 
-Comparing the two integrators on the unstable case $r = -1.7$, they agree early
-on but drift apart at later times, with the first-order Euler trajectory
-overshooting.
+Comparing the two integrators on the unstable case $r = -1.7$, they agree early on but drift apart at later times, with the first-order Euler trajectory overshooting.
 
 ::: {.callout-note title="Recipe 4A.2.1"}
 **Objective.** Integrate the same delayed model with a second-order method and compare it to the first-order result.

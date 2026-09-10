@@ -4,11 +4,7 @@ author: "Mingyang Lu"
 old_id: "05B"
 ---
 
-From here on we use only the [velocity Verlet method](05a-second-order-integrators.qmd)
-to integrate Newton's equation of motion, generalized to systems with many
-variables: a single particle in two or three dimensions, or many interacting
-particles. The position and velocity become vectors that hold every coordinate,
-and the update equations are applied component by component.
+From here on we use only the [velocity Verlet method](05a-second-order-integrators.qmd) to integrate Newton's equation of motion, generalized to systems with many variables: a single particle in two or three dimensions, or many interacting particles. The position and velocity become vectors that hold every coordinate, and the update equations are applied component by component.
 
 ```{r}
 # Velocity Verlet for a system of many variables (2D/3D, one or many particles)
@@ -48,14 +44,11 @@ def velocity_verlet_generic(f, t0, x0, v0, t_total, dt, **kwargs):
 
 ## 5B.1 Modeling an orbital motion
 
-As a first example, a particle in a plane is attracted toward a fixed center
-(think of a satellite and the Earth) by a force whose magnitude falls off with
-distance $r$,
+As a first example, a particle in a plane is attracted toward a fixed center (think of a satellite and the Earth) by a force whose magnitude falls off with distance $r$,
 
 $$ f(r) = \frac{G}{r} , \tag{3} $$
 
-with $G$ a constant and the force pointing from the particle toward the center.
-Resolving it into Cartesian components gives
+with $G$ a constant and the force pointing from the particle toward the center. Resolving it into Cartesian components gives
 
 $$
 \begin{cases}
@@ -64,8 +57,7 @@ f_y(x, y) = -\dfrac{G y}{r^2}
 \end{cases} \tag{4}
 $$
 
-where $r^2 = x^2 + y^2$. We simulate two initial conditions and view each both as
-time series of $x(t)$ and $y(t)$ and as a trajectory in the $x$-$y$ plane.
+where $r^2 = x^2 + y^2$. We simulate two initial conditions and view each both as time series of $x(t)$ and $y(t)$ and as a trajectory in the $x$-$y$ plane.
 
 ::: {.callout-note title="Recipe 5B.1.1"}
 **Objective.** Simulate a single particle orbiting under a central attractive force.
@@ -172,17 +164,11 @@ plt.gca().set_aspect("equal")
 plt.xlabel("x"); plt.ylabel("y"); plt.xlim(-8,8); plt.ylim(-8,8); plt.show()
 ```
 
-The first initial condition produces a closed, nearly elliptical orbit, while the
-second traces a precessing rosette that gradually fills an annulus, the orbit
-never quite closing on itself.
+The first initial condition produces a closed, nearly elliptical orbit, while the second traces a precessing rosette that gradually fills an annulus, the orbit never quite closing on itself.
 
 ## 5B.2 Two-body problem
 
-Next we let two particles of equal mass attract each other in the plane, a system
-of four coordinates $(x_1, y_1, x_2, y_2)$. Each particle feels the pull of the
-other, so the force function returns all four components at once. Unlike the
-random starting conditions one might reach for, we use fixed initial positions and
-velocities so the R and Python runs trace exactly the same trajectory.
+Next we let two particles of equal mass attract each other in the plane, a system of four coordinates $(x_1, y_1, x_2, y_2)$. Each particle feels the pull of the other, so the force function returns all four components at once. Unlike the random starting conditions one might reach for, we use fixed initial positions and velocities so the R and Python runs trace exactly the same trajectory.
 
 ::: {.callout-note title="Recipe 5B.2.1"}
 **Objective.** Simulate two equal masses orbiting under mutual attraction, and remove their overall drift.
@@ -222,10 +208,7 @@ lines(result_2body[,4], result_2body[,5], col = 4)
 legend("topleft", inset = 0.02, legend = c("1","2"), col = c(2,4), lty = 1, cex = 0.8)
 ```
 
-The two orbits share a repeating pattern but drift steadily across the plane,
-because the system carries a non-zero total momentum. Moving to a reference frame
-that travels with the center of mass removes the drift: we subtract from every
-particle the mean velocity of the system, giving zero total momentum.
+The two orbits share a repeating pattern but drift steadily across the plane, because the system carries a non-zero total momentum. Moving to a reference frame that travels with the center of mass removes the drift: we subtract from every particle the mean velocity of the system, giving zero total momentum.
 
 ```{r}
 #| fig-width: 5
@@ -286,16 +269,11 @@ plt.gca().set_aspect("equal")
 plt.xlabel("x"); plt.ylabel("y"); plt.legend(loc="upper left"); plt.show()
 ```
 
-With the momentum removed, the two particles trace a stationary, closed pattern
-centered on their common center of mass.
+With the momentum removed, the two particles trace a stationary, closed pattern centered on their common center of mass.
 
 ## 5B.3 Three-body problem
 
-Adding a third particle gives a six-coordinate system in which every particle
-attracts every other. The two-body motion was regular, but three mutually
-attracting bodies are famously chaotic: their trajectories are exquisitely
-sensitive to the initial conditions, and a small perturbation eventually sends
-one particle careening away from the other two.
+Adding a third particle gives a six-coordinate system in which every particle attracts every other. The two-body motion was regular, but three mutually attracting bodies are famously chaotic: their trajectories are exquisitely sensitive to the initial conditions, and a small perturbation eventually sends one particle careening away from the other two.
 
 ::: {.callout-note title="Recipe 5B.3.1"}
 **Objective.** Simulate the chaotic three-body problem.
@@ -379,23 +357,15 @@ plt.plot(result_3body[:,5], result_3body[:,6], color="blue", label="3")
 plt.xlabel("x"); plt.ylabel("y"); plt.legend(loc="upper right"); plt.show()
 ```
 
-For a while the three particles stay bound and weave around one another, but the
-motion never settles into a repeating pattern. Given long enough, one particle
-gains enough energy to escape and the remaining pair recoils in the opposite
-direction, the hallmark of the chaotic three-body problem.
+For a while the three particles stay bound and weave around one another, but the motion never settles into a repeating pattern. Given long enough, one particle gains enough energy to escape and the remaining pair recoils in the opposite direction, the hallmark of the chaotic three-body problem.
 
 ## 5B.4 Animating the trajectories
 
-A static plot of the full trajectory hides the sequence of events; an animation
-makes the dynamics much easier to follow. The code below renders the three-body
-run as a moving picture and writes it to an animated GIF. Because a GIF cannot be
-embedded in a static book (and the rendering is slow), these blocks are shown for
-you to run locally rather than executed here.
+A static plot of the full trajectory hides the sequence of events; an animation makes the dynamics much easier to follow. The code below renders the three-body run as a moving picture and writes it to an animated GIF. Because a GIF cannot be embedded in a static book (and the rendering is slow), these blocks are shown for you to run locally rather than executed here.
 
 ### R implementation {.impl}
 
-The `gganimate` package animates a `ggplot` by mapping time onto animation
-frames.
+The `gganimate` package animates a `ggplot` by mapping time onto animation frames.
 
 ```r
 library(ggplot2)
@@ -422,8 +392,7 @@ anim_save("3-body.gif", animation = anim)
 
 ### Python implementation {.impl}
 
-The equivalent in Python uses `matplotlib.animation.FuncAnimation`, updating each
-particle's position one frame at a time.
+The equivalent in Python uses `matplotlib.animation.FuncAnimation`, updating each particle's position one frame at a time.
 
 ```python
 from matplotlib.animation import FuncAnimation
@@ -447,8 +416,7 @@ anim = FuncAnimation(fig, update, frames=frames, interval=50)
 anim.save("3-body.gif", writer="pillow", fps=20)
 ```
 
-The code writes `3-body.gif`, in which the three particles orbit, scatter, and
-finally fling one member away.
+The code writes `3-body.gif`, in which the three particles orbit, scatter, and finally fling one member away.
 
 ::: {.content-visible when-format="html:js"}
 ![The three-body run as an animation, rendered here with the R `gganimate` implementation above (the Python `matplotlib` version produces an equivalent GIF). It plays only in the HTML edition; the print editions show the static trajectory plot from the previous section.](images/05b/3-body.gif){width=70% fig-align="center"}

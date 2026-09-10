@@ -4,28 +4,15 @@ author: "Mingyang Lu"
 old_id: "09B"
 ---
 
-The MCMC methods of [Part 9A](09a-mcmc-optimization.qmd) search a landscape
-stochastically and are not guaranteed to find the global optimum. For a special class
-of problems, *dynamic programming* [@bellman1957dynamic] instead finds the exact global
-optimum efficiently. It applies when the objective decomposes into subproblems: when the
-optimal score of a size-$n$ system can be built from the optimal score of a size-$(n-1)$
-subsystem plus an extra term,
+The MCMC methods of [Part 9A](09a-mcmc-optimization.qmd) search a landscape stochastically and are not guaranteed to find the global optimum. For a special class of problems, *dynamic programming* [@bellman1957dynamic] instead finds the exact global optimum efficiently. It applies when the objective decomposes into subproblems: when the optimal score of a size-$n$ system can be built from the optimal score of a size-$(n-1)$ subsystem plus an extra term,
 
 $$ E_\text{tot}(n) = E_\text{tot}(n - 1) + e(n) . \tag{1} $$
 
-We can then solve the subproblems once, store their results, and combine them, avoiding
-the combinatorial explosion of enumerating every configuration. We illustrate this with
-two classic bioinformatics alignment algorithms and with the traveling salesman problem.
+We can then solve the subproblems once, store their results, and combine them, avoiding the combinatorial explosion of enumerating every configuration. We illustrate this with two classic bioinformatics alignment algorithms and with the traveling salesman problem.
 
 ## 9B.1 Global sequence alignment
 
-Aligning two sequences (of nucleotides or amino acids) means transforming one into the
-other through matches, mismatches, and gaps (insertions or deletions). We score a match
-by $S_\text{match} > 0$, a mismatch by $S_\text{mismatch} \le 0$, and a gap by a penalty
-$g \le 0$. The Needleman-Wunsch algorithm [@needleman1970general] finds the highest-scoring
-*global* alignment (over the whole sequences) by dynamic programming. Let $F_{i,j}$ be
-the best score for aligning the first $i$ characters of sequence $A$ with the first $j$
-of $B$. Then
+Aligning two sequences (of nucleotides or amino acids) means transforming one into the other through matches, mismatches, and gaps (insertions or deletions). We score a match by $S_\text{match} > 0$, a mismatch by $S_\text{mismatch} \le 0$, and a gap by a penalty $g \le 0$. The Needleman-Wunsch algorithm [@needleman1970general] finds the highest-scoring *global* alignment (over the whole sequences) by dynamic programming. Let $F_{i,j}$ be the best score for aligning the first $i$ characters of sequence $A$ with the first $j$ of $B$. Then
 
 $$
 \begin{cases}
@@ -34,8 +21,7 @@ F_{i,j} = \max\left( F_{i-1,j-1} + S(A_i, B_j),\ F_{i,j-1} + g,\ F_{i-1,j} + g \
 \end{cases} \tag{2}
 $$
 
-We fill the score matrix $F$ row by row, then *trace back* from $F_{n_A, n_B}$ to recover
-the alignment (several alignments can share the optimal score).
+We fill the score matrix $F$ row by row, then *trace back* from $F_{n_A, n_B}$ to recover the alignment (several alignments can share the optimal score).
 
 ::: {.callout-note title="Recipe 9B.1.1"}
 **Objective.** Compute the optimal end-to-end alignment of two sequences.
@@ -164,16 +150,11 @@ print(global_scoring(cal_similarity(A, B, 1, 0), gap=0))
 print("\n".join(global_align(A, B, s_match=3, s_mismatch=-3, gap=-2)))
 ```
 
-The `|` symbols mark matched positions. With only matches rewarded, the alignment
-maximizes matches regardless of gaps; with mismatch and gap penalties, it balances
-matches against the cost of introducing gaps, giving a different optimal alignment.
+The `|` symbols mark matched positions. With only matches rewarded, the alignment maximizes matches regardless of gaps; with mismatch and gap penalties, it balances matches against the cost of introducing gaps, giving a different optimal alignment.
 
 ## 9B.2 Local sequence alignment
 
-The Smith-Waterman algorithm [@smith1981identification] finds the best *local*
-alignment, the highest-scoring aligned subregion rather than the whole sequences. It
-changes Needleman-Wunsch in two ways: there is no initial gap penalty, and any negative
-score is reset to zero,
+The Smith-Waterman algorithm [@smith1981identification] finds the best *local* alignment, the highest-scoring aligned subregion rather than the whole sequences. It changes Needleman-Wunsch in two ways: there is no initial gap penalty, and any negative score is reset to zero,
 
 $$
 \begin{cases}
@@ -182,8 +163,7 @@ H_{i,j} = \max\left( H_{i-1,j-1} + S(A_i, B_j),\ H_{i,j-1} + g,\ H_{i-1,j} + g,\
 \end{cases} \tag{3}
 $$
 
-The traceback starts from the largest entry of $H$ and stops when it reaches a zero, so
-only the most similar stretch is aligned.
+The traceback starts from the largest entry of $H$ and stops when it reaches a zero, so only the most similar stretch is aligned.
 
 ::: {.callout-note title="Recipe 9B.2.1"}
 **Objective.** Find the best-matching subsegment of two sequences.
@@ -283,22 +263,15 @@ print("Global:\n" + "\n".join(global_align(A, B, 3, -3, -2)))
 print("\nLocal:\n" + "\n".join(local_align(A, B, 3, -3, -2)))
 ```
 
-The global alignment spans both sequences end to end, padding with gaps, while the
-local alignment reports only the best-matching internal segment.
+The global alignment spans both sequences end to end, padding with gaps, while the local alignment reports only the best-matching internal segment.
 
 ## 9B.3 The traveling salesman problem
 
-The traveling salesman problem (TSP) asks for the shortest route that visits each of
-$n$ cities once and returns to the start. Dynamic programming solves it exactly via the
-Held-Karp algorithm [@held1962dynamic]. Fixing city 1 as the start, let $g(x, z)$ be the
-length of the shortest path from city 1 to city $x$ that passes through exactly the set
-of cities $z$. It satisfies
+The traveling salesman problem (TSP) asks for the shortest route that visits each of $n$ cities once and returns to the start. Dynamic programming solves it exactly via the Held-Karp algorithm [@held1962dynamic]. Fixing city 1 as the start, let $g(x, z)$ be the length of the shortest path from city 1 to city $x$ that passes through exactly the set of cities $z$. It satisfies
 
 $$ g(x, z) = \min_{i \in z}\left( g(i, z \setminus i) + d(i, x) \right) , \tag{4} $$
 
-where $z \setminus i$ removes city $i$ from $z$ and $d(i, x)$ is the distance between
-cities $i$ and $x$. Recursing down to the empty set and remembering the best $i$ at each
-step lets us reconstruct the optimal tour. The implementation is remarkably short.
+where $z \setminus i$ removes city $i$ from $z$ and $d(i, x)$ is the distance between cities $i$ and $x$. Recursing down to the empty set and remembering the best $i$ at each step lets us reconstruct the optimal tour. The implementation is remarkably short.
 
 ::: {.callout-note title="Recipe 9B.3.1"}
 **Objective.** Find the exact shortest tour through a set of cities.
@@ -377,9 +350,4 @@ plt.plot(cities[loop, 0], cities[loop, 1], color="red")
 plt.gca().set_aspect("equal"); plt.xlabel("x"); plt.ylabel("y"); plt.show()
 ```
 
-The algorithm returns the exact shortest tour through all ten cities. Held-Karp costs
-$O(n^2 2^n)$ time when the subproblem results are stored, far less than the $O(n!)$ of
-checking every permutation, but still exponential: it is practical only for small $n$
-(the recursion above recomputes shared subproblems, so memoizing them would be needed to
-realize the full speedup). Larger instances need the approximate methods of the next
-chapters.
+The algorithm returns the exact shortest tour through all ten cities. Held-Karp costs $O(n^2 2^n)$ time when the subproblem results are stored, far less than the $O(n!)$ of checking every permutation, but still exponential: it is practical only for small $n$ (the recursion above recomputes shared subproblems, so memoizing them would be needed to realize the full speedup). Larger instances need the approximate methods of the next chapters.

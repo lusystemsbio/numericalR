@@ -4,19 +4,11 @@ author: "Mingyang Lu"
 old_id: "08A"
 ---
 
-Monte Carlo methods are numerical algorithms built on random sampling
-[@metropolis1949monte]. Instead of solving a problem exactly, we draw many random
-samples and let the law of large numbers do the work: an average over the samples
-approaches the quantity we want as the sample size grows. This chapter introduces the
-idea through a few simple examples, estimating $\pi$ two different ways and computing
-integrals by sampling.
+Monte Carlo methods are numerical algorithms built on random sampling [@metropolis1949monte]. Instead of solving a problem exactly, we draw many random samples and let the law of large numbers do the work: an average over the samples approaches the quantity we want as the sample size grows. This chapter introduces the idea through a few simple examples, estimating $\pi$ two different ways and computing integrals by sampling.
 
 ## 8A.1 Estimating π from the area of a circle
 
-A classic Monte Carlo exercise estimates $\pi$ from areas. Draw points uniformly in
-the square $-1 \le x, y \le 1$ and count the fraction that land inside the unit
-circle centered at the origin. That fraction $P$ is the ratio of the circle's area to
-the square's area,
+A classic Monte Carlo exercise estimates $\pi$ from areas. Draw points uniformly in the square $-1 \le x, y \le 1$ and count the fraction that land inside the unit circle centered at the origin. That fraction $P$ is the ratio of the circle's area to the square's area,
 
 $$ P = \frac{\pi r^2}{(2r)^2} = \frac{\pi}{4} , \tag{1} $$
 
@@ -120,19 +112,11 @@ plt.gca().set_aspect("equal")
 plt.xlabel("x"); plt.ylabel("y"); plt.show()
 ```
 
-With $n = 10^4$ samples the estimate is close but noticeably off; by $n \sim 10^5$ it
-settles near the true value. The running-estimate plot shows the slow convergence
-typical of Monte Carlo methods: the error shrinks only as $1/\sqrt{n}$, so each extra
-digit of accuracy costs a hundredfold more samples. Because R and Python draw from
-different random streams, their estimates differ slightly while following the same
-trend.
+With $n = 10^4$ samples the estimate is close but noticeably off; by $n \sim 10^5$ it settles near the true value. The running-estimate plot shows the slow convergence typical of Monte Carlo methods: the error shrinks only as $1/\sqrt{n}$, so each extra digit of accuracy costs a hundredfold more samples. Because R and Python draw from different random streams, their estimates differ slightly while following the same trend.
 
 ## 8A.2 Estimating π: Buffon's needle
 
-A second, very different route to $\pi$ is Buffon's needle problem
-[@buffon1777essai]. Drop a needle of length $l$ onto a floor ruled with parallel
-lines a distance $d$ apart. As long as $l < d$, the probability that the needle
-crosses a line is
+A second, very different route to $\pi$ is Buffon's needle problem [@buffon1777essai]. Drop a needle of length $l$ onto a floor ruled with parallel lines a distance $d$ apart. As long as $l < d$, the probability that the needle crosses a line is
 
 $$ P = \frac{2 l}{\pi d} , \tag{3} $$
 
@@ -142,12 +126,7 @@ $$ \pi = \frac{2 l}{P d} . \tag{4} $$
 
 ![](images/08A/fig1.png){width=30% fig-align="center"}
 
-To simulate one drop, we place vertical lines at $x = 0$ and $x = d$ and sample the
-$x$ coordinate $x_1$ of one end of the needle uniformly in $(0, d)$. We then need a
-uniformly random *direction*. Sampling a point $(x_2, y_2)$ in the square and keeping
-it only if it falls inside the unit circle (rejecting otherwise) gives a direction
-$(x_2, y_2)/\sqrt{x_2^2 + y_2^2}$ that is uniform in angle. The other end of the
-needle then has
+To simulate one drop, we place vertical lines at $x = 0$ and $x = d$ and sample the $x$ coordinate $x_1$ of one end of the needle uniformly in $(0, d)$. We then need a uniformly random *direction*. Sampling a point $(x_2, y_2)$ in the square and keeping it only if it falls inside the unit circle (rejecting otherwise) gives a direction $(x_2, y_2)/\sqrt{x_2^2 + y_2^2}$ that is uniform in angle. The other end of the needle then has
 
 $$ x_3 = x_1 + l \frac{x_2}{\sqrt{x_2^2 + y_2^2}} , \tag{5} $$
 
@@ -233,18 +212,11 @@ plt.plot(l, 2 / p * l / d, "o-"); plt.axhline(np.pi, color="red", linestyle=":")
 plt.xlabel("l"); plt.ylabel("Estimation"); plt.title("n = 10^5"); plt.show()
 ```
 
-At $n = 10^4$ the estimate still wanders around $\pi$, and it worsens for $l > d$,
-where Equations (3) and (4) no longer hold. Raising the count to $n = 10^5$ tightens
-it considerably. Buffon's needle is an intuitive estimator but a slow one. The
-rejection step matters: sampling the direction directly from a uniform angle would be
-simpler, but drawing $(x_2, y_2)$ in the square without rejecting the corners would
-bias the angle away from uniform and spoil the estimate.
+At $n = 10^4$ the estimate still wanders around $\pi$, and it worsens for $l > d$, where Equations (3) and (4) no longer hold. Raising the count to $n = 10^5$ tightens it considerably. Buffon's needle is an intuitive estimator but a slow one. The rejection step matters: sampling the direction directly from a uniform angle would be simpler, but drawing $(x_2, y_2)$ in the square without rejecting the corners would bias the angle away from uniform and spoil the estimate.
 
 ## 8A.3 Monte Carlo integration
 
-Monte Carlo sampling also evaluates integrals. As a reference, the ordinary
-*midpoint rule* splits $[x_1, x_2]$ into $n$ equal intervals and sums the integrand at
-the interval midpoints,
+Monte Carlo sampling also evaluates integrals. As a reference, the ordinary *midpoint rule* splits $[x_1, x_2]$ into $n$ equal intervals and sums the integrand at the interval midpoints,
 
 $$ I = \int_{x_1}^{x_2} f(x)\, dx \approx \sum_{i=1}^n f(m_i)\, \Delta x . \tag{7} $$
 
@@ -252,8 +224,7 @@ We test it on $f(x) = e^{-x^2}$, whose integral from 0 to $\infty$ is known exac
 
 $$ I = \int_0^{\infty} e^{-x^2}\, dx = \frac{\sqrt{\pi}}{2} , \tag{8} $$
 
-approximating it over $x_1 = 0$ to $x_2 = 3$. The Monte Carlo version instead draws
-$x$ uniformly in $(x_1, x_2)$ and averages,
+approximating it over $x_1 = 0$ to $x_2 = 3$. The Monte Carlo version instead draws $x$ uniformly in $(x_1, x_2)$ and averages,
 
 $$ I \approx \frac{x_2 - x_1}{n} \sum_{i=1}^n f(x_i) , \tag{9} $$
 
@@ -351,15 +322,11 @@ np.random.seed(1)
 print(mc_integration(f1, 0, 3, 10**4))
 ```
 
-Both estimates land near $\sqrt{\pi}/2 \approx 0.886$. The midpoint rule is more
-accurate for a smooth one-dimensional integrand like this one, but Monte Carlo
-integration has a decisive advantage in high dimensions, where its $1/\sqrt{n}$ error
-is independent of the number of dimensions while grid-based rules become prohibitive.
+Both estimates land near $\sqrt{\pi}/2 \approx 0.886$. The midpoint rule is more accurate for a smooth one-dimensional integrand like this one, but Monte Carlo integration has a decisive advantage in high dimensions, where its $1/\sqrt{n}$ error is independent of the number of dimensions while grid-based rules become prohibitive.
 
 ## 8A.4 Importance sampling
 
-Nothing forces the samples to be uniform. We can draw $x$ from any distribution
-$p(x)$ by rewriting the integral as
+Nothing forces the samples to be uniform. We can draw $x$ from any distribution $p(x)$ by rewriting the integral as
 
 $$ I = \int_{x_1}^{x_2} f(x)\, dx = \int_{x_1}^{x_2} \frac{f(x)}{p(x)}\, p(x)\, dx , \tag{10} $$
 
@@ -367,12 +334,7 @@ and estimating it by sampling from $p$,
 
 $$ I \approx \frac{1}{n} \sum_{i=1}^n \frac{f(x_i)}{p(x_i)} . \tag{11} $$
 
-This is *importance sampling* [@robert2004monte]. Choosing a $p(x)$ that is large
-where $f(x)$ is large concentrates the samples where they matter and improves
-convergence. For $f(x) = e^{-x^2}$ we sample from the exponential density
-$p(x) = e^{-x}$ on $[0, \infty)$, drawing $x$ by the inverse-transform method
-($x = -\ln u$ with $u$ uniform). This lets us cover a much wider range of $x$ than
-uniform sampling would afford.
+This is *importance sampling* [@robert2004monte]. Choosing a $p(x)$ that is large where $f(x)$ is large concentrates the samples where they matter and improves convergence. For $f(x) = e^{-x^2}$ we sample from the exponential density $p(x) = e^{-x}$ on $[0, \infty)$, drawing $x$ by the inverse-transform method ($x = -\ln u$ with $u$ uniform). This lets us cover a much wider range of $x$ than uniform sampling would afford.
 
 ::: {.callout-note title="Recipe 8A.4.1"}
 **Objective.** Reduce the variance of a Monte Carlo integral with importance sampling.
@@ -460,15 +422,8 @@ plt.boxplot([imp, uni], tick_labels=["MC importance", "MC"])
 plt.axhline(np.sqrt(np.pi) / 2, color="red", linestyle=":"); plt.show()
 ```
 
-Over the wide range $x \in (0, 100)$, uniform sampling wastes almost all of its
-points where $f$ is negligible, so its estimate is badly scattered. Importance
-sampling puts the points where $f$ is large and converges to $\sqrt{\pi}/2$ with far
-less variance, as the boxplots show.
+Over the wide range $x \in (0, 100)$, uniform sampling wastes almost all of its points where $f$ is negligible, so its estimate is badly scattered. Importance sampling puts the points where $f$ is large and converges to $\sqrt{\pi}/2$ with far less variance, as the boxplots show.
 
 ::: {.callout-note title="Practice Q1"}
-The Monte Carlo error falls off as $1/\sqrt{n}$. Design an experiment to confirm this
-scaling: estimate one of the integrals above many times at each of several sample
-sizes $n$, compute the standard deviation of the estimates at each $n$, and check that
-it decreases like $n^{-1/2}$ (for example, that a log-log plot of the error against
-$n$ has slope $-1/2$).
+The Monte Carlo error falls off as $1/\sqrt{n}$. Design an experiment to confirm this scaling: estimate one of the integrals above many times at each of several sample sizes $n$, compute the standard deviation of the estimates at each $n$, and check that it decreases like $n^{-1/2}$ (for example, that a log-log plot of the error against $n$ has slope $-1/2$).
 :::

@@ -4,28 +4,19 @@ author: "Mingyang Lu"
 old_id: "09A"
 ---
 
-The Metropolis-Hastings algorithm of [Part 8B](../08-monte-carlo/08b-metropolis-algorithm.qmd)
-samples a probability distribution efficiently, but it struggles as a *global
-optimizer*. Treating a cost function $f$ as an energy and sampling the Boltzmann
-distribution $P \propto e^{-f/T}$, the acceptance probability
+The Metropolis-Hastings algorithm of [Part 8B](../08-monte-carlo/08b-metropolis-algorithm.qmd) samples a probability distribution efficiently, but it struggles as a *global optimizer*. Treating a cost function $f$ as an energy and sampling the Boltzmann distribution $P \propto e^{-f/T}$, the acceptance probability
 
 $$ a = \min\left(1, e^{-(f_{x'} - f_x)/T}\right) \tag{1} $$
 
-becomes tiny at low temperature $T$. When $f$ has several local minima, a low-$T$ chain
-gets trapped in one basin and rarely crosses the barriers to the others, while a high-$T$
-chain crosses barriers freely but never settles into any minimum. This chapter develops
-MCMC methods that overcome this trade-off: simulated annealing, parallel tempering, and
-simulated tempering.
+becomes tiny at low temperature $T$. When $f$ has several local minima, a low-$T$ chain gets trapped in one basin and rarely crosses the barriers to the others, while a high-$T$ chain crosses barriers freely but never settles into any minimum. This chapter develops MCMC methods that overcome this trade-off: simulated annealing, parallel tempering, and simulated tempering.
 
 ## 9A.1 The Himmelblau test function
 
-We use Himmelblau's function [@himmelblau1972applied], a standard optimization
-benchmark,
+We use Himmelblau's function [@himmelblau1972applied], a standard optimization benchmark,
 
 $$ f(x, y) = (x^2 + y - 11)^2 + (x + y^2 - 7)^2 . \tag{2} $$
 
-It has four well-separated local minima, all with $f = 0$, which makes it a good stage
-for methods that must find or sample multiple basins.
+It has four well-separated local minima, all with $f = 0$, which makes it a good stage for methods that must find or sample multiple basins.
 
 ### R implementation {.impl}
 
@@ -77,10 +68,7 @@ The four basins sit roughly at the corners of the plotted region.
 
 ## 9A.2 Metropolis-Hastings sampling
 
-We first apply plain Metropolis-Hastings at several fixed temperatures. Each step
-proposes a small uniform displacement and accepts it with probability given by
-Equation (1). The `mh` function also returns its acceptance rate, which we reuse in the
-parallel-tempering method below.
+We first apply plain Metropolis-Hastings at several fixed temperatures. Each step proposes a small uniform displacement and accepts it with probability given by Equation (1). The `mh` function also returns its acceptance rate, which we reuse in the parallel-tempering method below.
 
 ::: {.callout-note title="Recipe 9A.2.1"}
 **Objective.** Explore a multi-minimum landscape with Metropolis-Hastings at fixed temperature.
@@ -167,19 +155,11 @@ for ax, temp in zip(axs.flat, (1, 10, 30, 50)):
 plt.tight_layout(); plt.show()
 ```
 
-At $T = 1$ the chain is trapped in the single basin it first reaches. As $T$ rises it
-explores more of the landscape, sampling several basins by $T = 50$, but then it no
-longer settles cleanly into any minimum. No single fixed temperature both explores
-widely and pins down a minimum.
+At $T = 1$ the chain is trapped in the single basin it first reaches. As $T$ rises it explores more of the landscape, sampling several basins by $T = 50$, but then it no longer settles cleanly into any minimum. No single fixed temperature both explores widely and pins down a minimum.
 
 ## 9A.3 Simulated annealing
 
-Simulated annealing (SA) resolves the trade-off by *lowering* the temperature during a
-single run [@kirkpatrick1983optimization]. It starts hot enough to roam across all
-basins and cools toward zero to settle into a minimum. Two common cooling schedules are
-a linear decrease and a geometric decrease (multiplying $T$ by a factor just below 1
-each step); the geometric schedule spends more steps at low temperature and usually
-converges faster. We fold both into one function.
+Simulated annealing (SA) resolves the trade-off by *lowering* the temperature during a single run [@kirkpatrick1983optimization]. It starts hot enough to roam across all basins and cools toward zero to settle into a minimum. Two common cooling schedules are a linear decrease and a geometric decrease (multiplying $T$ by a factor just below 1 each step); the geometric schedule spends more steps at low temperature and usually converges faster. We fold both into one function.
 
 ::: {.callout-note title="Recipe 9A.3.1"}
 **Objective.** Find a global minimum by cooling a Metropolis chain.
@@ -287,25 +267,15 @@ for ax, seed in zip(axs.flat, (1, 2, 3, 4)):
 plt.tight_layout(); plt.show()
 ```
 
-Each run cools from a broad high-temperature search (blue) into one minimum (red), but
-which minimum depends on the random path, so different seeds find different basins.
-Because SA does not guarantee the global optimum, one typically runs it many times and
-keeps the best result.
+Each run cools from a broad high-temperature search (blue) into one minimum (red), but which minimum depends on the random path, so different seeds find different basins. Because SA does not guarantee the global optimum, one typically runs it many times and keeps the best result.
 
 ## 9A.4 Parallel tempering
 
-Parallel tempering (PT), or replica exchange [@hukushima1996exchange], runs several
-chains at once, each at its own fixed temperature, and periodically proposes to *swap*
-the coordinates of two replicas. Hot replicas cross barriers and feed configurations
-down to cold replicas, which refine them in the minima. A swap between replicas $i$ and
-$j$ is accepted with
+Parallel tempering (PT), or replica exchange [@hukushima1996exchange], runs several chains at once, each at its own fixed temperature, and periodically proposes to *swap* the coordinates of two replicas. Hot replicas cross barriers and feed configurations down to cold replicas, which refine them in the minima. A swap between replicas $i$ and $j$ is accepted with
 
 $$ a = \min\left(1, e^{(f_i - f_j)(1/T_i - 1/T_j)}\right) , \tag{3} $$
 
-which preserves detailed balance so every replica still samples the Boltzmann
-distribution at its own temperature. We generalize to any number of replicas, running
-the `mh` sampler on each between swaps and only swapping adjacent temperatures (in
-alternating even/odd rounds for ergodicity).
+which preserves detailed balance so every replica still samples the Boltzmann distribution at its own temperature. We generalize to any number of replicas, running the `mh` sampler on each between swaps and only swapping adjacent temperatures (in alternating even/odd rounds for ergodicity).
 
 ::: {.callout-note title="Recipe 9A.4.1"}
 **Objective.** Sample every basin in one run by exchanging replicas across temperatures.
@@ -418,25 +388,15 @@ for ax, j in zip(axs.flat, range(nrep)):
 plt.tight_layout(); plt.show()
 ```
 
-The coldest replica ($T = 2.3$) stays tightly inside minima yet still hops between them,
-thanks to configurations passed down from the hotter replicas, while the hottest
-($T = 80$) roams over the whole landscape. Monitoring the swap acceptance rate helps
-choose the temperature spacing: if adjacent temperatures are too far apart, swaps are
-rarely accepted and more replicas are needed.
+The coldest replica ($T = 2.3$) stays tightly inside minima yet still hops between them, thanks to configurations passed down from the hotter replicas, while the hottest ($T = 80$) roams over the whole landscape. Monitoring the swap acceptance rate helps choose the temperature spacing: if adjacent temperatures are too far apart, swaps are rarely accepted and more replicas are needed.
 
 ## 9A.5 Simulated tempering
 
-Simulated tempering (ST) achieves a similar effect with a *single* chain whose
-temperature itself performs a random walk over a discrete ladder $T_1 < \dots <
-T_{n_\text{temp}}$ [@marinari1992simulated]. A mixing parameter $\alpha$ sets the
-fraction of steps spent moving in space (ordinary MH at the current temperature) versus
-moving in temperature. A proposed temperature change to $T'$ is accepted with
+Simulated tempering (ST) achieves a similar effect with a *single* chain whose temperature itself performs a random walk over a discrete ladder $T_1 < \dots < T_{n_\text{temp}}$ [@marinari1992simulated]. A mixing parameter $\alpha$ sets the fraction of steps spent moving in space (ordinary MH at the current temperature) versus moving in temperature. A proposed temperature change to $T'$ is accepted with
 
 $$ a = \min\left(1, \frac{c'}{c}\, e^{-f(1/T' - 1/T)}\right) , \tag{4} $$
 
-where the weights $c$ bias how often each temperature is visited (larger weights at low
-temperature emphasize refining minima). The weights would be the partition functions to
-sample all temperatures equally, but since those are unknown we choose them by hand.
+where the weights $c$ bias how often each temperature is visited (larger weights at low temperature emphasize refining minima). The weights would be the partition functions to sample all temperatures equally, but since those are unknown we choose them by hand.
 
 ::: {.callout-note title="Recipe 9A.5.1"}
 **Objective.** Cross barriers and settle into minima within one chain by letting the temperature wander.
@@ -541,7 +501,4 @@ axs[1].set(xlabel="Step", ylabel="Temperature")
 plt.tight_layout(); plt.show()
 ```
 
-Because the temperature wanders up and down, a single ST trajectory both crosses
-barriers (when it is hot) and settles into minima (when it is cold), visiting all four
-basins in one run. Unlike simulated annealing, which ends cold and stops, simulated
-tempering keeps sampling, and unlike parallel tempering it needs only one chain.
+Because the temperature wanders up and down, a single ST trajectory both crosses barriers (when it is hot) and settles into minima (when it is cold), visiting all four basins in one run. Unlike simulated annealing, which ends cold and stops, simulated tempering keeps sampling, and unlike parallel tempering it needs only one chain.

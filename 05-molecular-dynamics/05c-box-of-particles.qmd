@@ -4,16 +4,9 @@ author: "Mingyang Lu"
 old_id: "05C"
 ---
 
-We now scale up from a handful of bodies to a small box of many identical
-particles, the setting of a real molecular dynamics simulation. The particles
-interact through the Lennard-Jones potential, the box uses periodic boundaries to
-mimic a much larger system, and from the trajectory we compute the radial
-distribution function, a standard structural fingerprint of a liquid
-[@allen2017computer]. Throughout we use the generalized
-[velocity Verlet integrator](05b-orbital-motion.qmd) from the previous chapter.
+We now scale up from a handful of bodies to a small box of many identical particles, the setting of a real molecular dynamics simulation. The particles interact through the Lennard-Jones potential, the box uses periodic boundaries to mimic a much larger system, and from the trajectory we compute the radial distribution function, a standard structural fingerprint of a liquid [@allen2017computer]. Throughout we use the generalized [velocity Verlet integrator](05b-orbital-motion.qmd) from the previous chapter.
 
-The system is $N_\text{tot} = 25$ identical particles of unit mass in a square box
-of side $a = 6.25$, started from an evenly spaced grid.
+The system is $N_\text{tot} = 25$ identical particles of unit mass in a square box of side $a = 6.25$, started from an evenly spaced grid.
 
 ## 5C.1 The Lennard-Jones interaction
 
@@ -21,11 +14,7 @@ Any two particles a distance $r$ apart interact through the force
 
 $$ F(r) = \frac{1}{r^{13}} - \frac{1}{r^{7}} , \tag{1} $$
 
-which is the force derived from the Lennard-Jones (LJ) potential
-[@lennardjones1924], the classic model of the interaction between neutral atoms.
-The force is repulsive ($F > 0$) for $r < 1$ and attractive ($F < 0$) for $r > 1$,
-crossing zero at the equilibrium separation $r = 1$. Its potential energy is
-$E(r) = \tfrac{1}{12} r^{-12} - \tfrac{1}{6} r^{-6}$, with a minimum at $r = 1$.
+which is the force derived from the Lennard-Jones (LJ) potential [@lennardjones1924], the classic model of the interaction between neutral atoms. The force is repulsive ($F > 0$) for $r < 1$ and attractive ($F < 0$) for $r > 1$, crossing zero at the equilibrium separation $r = 1$. Its potential energy is $E(r) = \tfrac{1}{12} r^{-12} - \tfrac{1}{6} r^{-6}$, with a minimum at $r = 1$.
 
 ### R implementation {.impl}
 
@@ -106,17 +95,11 @@ plt.xlabel("r"); plt.ylabel("LJ potential"); plt.xlim(0,4); plt.ylim(-1,2); plt.
 
 ## 5C.2 Periodic boundaries and the minimum image convention
 
-To model a bulk system with only a few particles, we wrap the box with *periodic
-boundary conditions*: a particle that leaves one side re-enters from the opposite
-side. A coordinate is folded back into $[0, a)$ by subtracting the largest
-multiple of $a$ below it.
+To model a bulk system with only a few particles, we wrap the box with *periodic boundary conditions*: a particle that leaves one side re-enters from the opposite side. A coordinate is folded back into $[0, a)$ by subtracting the largest multiple of $a$ below it.
 
 ![](images/05c/fig1.png){width=42% fig-align="center"}
 
-Because each particle now stands for an infinite lattice of periodic images, a
-pair of particles has infinitely many separations. The *minimum image convention*
-keeps only the nearest one: shift each coordinate difference by the nearest
-multiple of $a$ before measuring the distance.
+Because each particle now stands for an infinite lattice of periodic images, a pair of particles has infinitely many separations. The *minimum image convention* keeps only the nearest one: shift each coordinate difference by the nearest multiple of $a$ before measuring the distance.
 
 ![](images/05c/fig2.png){width=42% fig-align="center"}
 
@@ -164,20 +147,14 @@ The velocities are never wrapped; only positions are folded back into the box.
 
 ## 5C.3 Computing the total force
 
-The force that particle $j$ exerts on particle $i$ points along their
-minimum-image separation, with the sign and magnitude set by the LJ force
-$F(r_{ij})$,
+The force that particle $j$ exerts on particle $i$ points along their minimum-image separation, with the sign and magnitude set by the LJ force $F(r_{ij})$,
 
 $$
 f_x(j \rightarrow i) = F(r_{ij}) \frac{x_i - x_j}{r_{ij}} , \qquad
 f_y(j \rightarrow i) = F(r_{ij}) \frac{y_i - y_j}{r_{ij}} , \tag{2}
 $$
 
-where $r_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}$ is the minimum-image
-distance. The total force on particle $i$ sums the pairwise contributions from
-every other particle. We store all coordinates in one length-$2N_\text{tot}$
-vector, ordered $(x_1, y_1, x_2, y_2, \ldots)$, and use Newton's third law
-($f_{j \rightarrow i} = -f_{i \rightarrow j}$) so each pair is evaluated once.
+where $r_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}$ is the minimum-image distance. The total force on particle $i$ sums the pairwise contributions from every other particle. We store all coordinates in one length-$2N_\text{tot}$ vector, ordered $(x_1, y_1, x_2, y_2, \ldots)$, and use Newton's third law ($f_{j \rightarrow i} = -f_{i \rightarrow j}$) so each pair is evaluated once.
 
 ### R implementation {.impl}
 
@@ -239,8 +216,7 @@ Each particle obeys Newton's equation with the summed LJ force,
 
 $$ m_i \frac{d^2 x_i}{dt^2} = \sum_{j \neq i} f_x(j \rightarrow i) , \tag{3} $$
 
-and likewise for $y_i$, with all masses $m_i = 1$. We reuse velocity Verlet, but
-after each position update we fold every coordinate back into the box.
+and likewise for $y_i$, with all masses $m_i = 1$. We reuse velocity Verlet, but after each position update we fold every coordinate back into the box.
 
 ::: {.callout-note title="Recipe 5C.4.1"}
 **Objective.** Build a velocity-Verlet integrator that keeps particles inside a periodic box.
@@ -299,13 +275,7 @@ def velocity_verlet_bc(f, t0, x0, v0, t_total, dt, **kwargs):
 
 ## 5C.5 Simulating the box
 
-We start every particle on the grid and give them small initial velocities.
-Rather than the random velocities one might use, we assign a fixed, evenly spread
-pattern (a golden-ratio sequence over the interval $(-0.05, 0.05)$) so both
-languages start from exactly the same initial condition and the setup is fully
-reproducible. A short warm-up run to $t = 10$ lets the ordered grid relax; a
-longer run to $t = 100$ (time step $dt = 0.01$) then brings the system to a
-disordered, liquid-like state. We plot the configuration at the end of each stage.
+We start every particle on the grid and give them small initial velocities. Rather than the random velocities one might use, we assign a fixed, evenly spread pattern (a golden-ratio sequence over the interval $(-0.05, 0.05)$) so both languages start from exactly the same initial condition and the setup is fully reproducible. A short warm-up run to $t = 10$ lets the ordered grid relax; a longer run to $t = 100$ (time step $dt = 0.01$) then brings the system to a disordered, liquid-like state. We plot the configuration at the end of each stage.
 
 ::: {.callout-note title="Recipe 5C.5.1"}
 **Objective.** Simulate a 2D box of Lennard-Jones particles from an ordered start into a disordered liquid.
@@ -391,19 +361,11 @@ plt.gca().set_aspect("equal")
 plt.xlabel("X"); plt.ylabel("Y"); plt.xlim(0,a); plt.ylim(0,a); plt.show()
 ```
 
-The particles start on the regular grid, and by the end of the long run they have
-spread into an irregular, disordered arrangement, the signature of a liquid. This
-many-body system is chaotic, so the exact final configuration is exquisitely
-sensitive to rounding and differs between the R and Python runs (and from one
-machine to another) even though both begin from the same initial condition.
-Structural averages such as the radial distribution function below are
-reproducible, however, which is what we actually care about.
+The particles start on the regular grid, and by the end of the long run they have spread into an irregular, disordered arrangement, the signature of a liquid. This many-body system is chaotic, so the exact final configuration is exquisitely sensitive to rounding and differs between the R and Python runs (and from one machine to another) even though both begin from the same initial condition. Structural averages such as the radial distribution function below are reproducible, however, which is what we actually care about.
 
 ## 5C.6 Animating the simulation
 
-As in [Part 5B](05b-orbital-motion.qmd), the run is much easier to read as an
-animation than as a pair of snapshots. The code below renders the box simulation
-to a GIF; as before it is shown to run locally rather than executed at build time.
+As in [Part 5B](05b-orbital-motion.qmd), the run is much easier to read as an animation than as a pair of snapshots. The code below renders the box simulation to a GIF; as before it is shown to run locally rather than executed at build time.
 
 ### R implementation {.impl}
 
@@ -470,21 +432,15 @@ The code produces an animation of the particle dynamics.
 
 ## 5C.7 Radial distribution function
 
-The radial distribution function $g(r)$ summarizes the structure of the fluid: it
-is the probability of finding a particle a distance $r$ from a reference particle,
-relative to the uniform (ideal-gas) expectation,
+The radial distribution function $g(r)$ summarizes the structure of the fluid: it is the probability of finding a particle a distance $r$ from a reference particle, relative to the uniform (ideal-gas) expectation,
 
 $$ g(r) = \frac{\langle \rho(r) \rangle}{\rho_0} = \frac{\langle \Delta N(r) \rangle}{2\pi r \, \Delta r \, \rho_0} , \tag{4} $$
 
-where $\rho_0 = N_\text{tot} / a^2$ is the mean density and $\langle \Delta N(r) \rangle$
-is the average count of particles in a shell of radius $r$ and thickness $\Delta r$
-around a reference particle, averaged over all particles and all time steps.
+where $\rho_0 = N_\text{tot} / a^2$ is the mean density and $\langle \Delta N(r) \rangle$ is the average count of particles in a shell of radius $r$ and thickness $\Delta r$ around a reference particle, averaged over all particles and all time steps.
 
 ![](images/05c/fig3.png){width=42% fig-align="center"}
 
-We bin pairwise minimum-image distances up to $r = a/2$ (beyond that, a shell no
-longer fits inside the periodic box) with $\Delta r = 0.05$, normalizing each bin
-by its shell area and the mean density.
+We bin pairwise minimum-image distances up to $r = a/2$ (beyond that, a shell no longer fits inside the periodic box) with $\Delta r = 0.05$, normalizing each bin by its shell area and the mean density.
 
 ::: {.callout-note title="Recipe 5C.7.1"}
 **Objective.** Measure the radial distribution function of the simulated particle box.
@@ -558,14 +514,6 @@ plt.plot(r_mean, rdf, color="red")
 plt.xlabel("r"); plt.ylabel("g(r)"); plt.show()
 ```
 
-The RDF has the shape typical of a liquid. It is near zero below $r \approx 0.8$,
-where the strong LJ repulsion forbids close approach, then rises to a sharp first
-peak near $r = 1$, the first coordination shell at the LJ equilibrium separation.
-A weaker second peak near $r = 2$ marks the second shell, and at larger $r$ the
-function settles toward $1$, the hallmark of short-range order with long-range
-disorder.
+The RDF has the shape typical of a liquid. It is near zero below $r \approx 0.8$, where the strong LJ repulsion forbids close approach, then rises to a sharp first peak near $r = 1$, the first coordination shell at the LJ equilibrium separation. A weaker second peak near $r = 2$ marks the second shell, and at larger $r$ the function settles toward $1$, the hallmark of short-range order with long-range disorder.
 
-Two caveats. This is a two-dimensional system; the same machinery extends to three
-dimensions for more realistic models, where some properties differ. And for a
-clear illustration we used a large time step and a short run; quantitatively
-reliable results need a smaller step and a much longer simulation.
+Two caveats. This is a two-dimensional system; the same machinery extends to three dimensions for more realistic models, where some properties differ. And for a clear illustration we used a large time step and a short run; quantitatively reliable results need a smaller step and a much longer simulation.

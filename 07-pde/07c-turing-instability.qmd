@@ -4,11 +4,7 @@ author: "Mingyang Lu"
 old_id: "07C"
 ---
 
-The diffusion equation of [Part 7A](07a-modeling-diffusion.qmd) and the single
-reaction-diffusion equation of [Part 7B](07b-reaction-diffusion.qmd) each followed
-one field in space. Many biological patterns instead arise from *two* interacting
-species that diffuse at different rates. For a two-component system of $u$ and $v$,
-the reaction-diffusion equations are
+The diffusion equation of [Part 7A](07a-modeling-diffusion.qmd) and the single reaction-diffusion equation of [Part 7B](07b-reaction-diffusion.qmd) each followed one field in space. Many biological patterns instead arise from *two* interacting species that diffuse at different rates. For a two-component system of $u$ and $v$, the reaction-diffusion equations are
 
 $$
 \begin{aligned}
@@ -17,23 +13,15 @@ $$
 \end{aligned} \tag{1}
 $$
 
-where $f$ and $g$ are the reaction terms and $D_u$, $D_v$ the two diffusion
-constants.
+where $f$ and $g$ are the reaction terms and $D_u$, $D_v$ the two diffusion constants.
 
 ## 7C.1 A multi-component PDE integrator
 
-We generalize the explicit finite-difference integrator of Part 7A to any number
-of components $n$. Writing $u_{k,i}^n$ for component $k$ at grid point $X_i$ and
-time step $n$, each component updates with its own reaction term and its own
-diffusion constant,
+We generalize the explicit finite-difference integrator of Part 7A to any number of components $n$. Writing $u_{k,i}^n$ for component $k$ at grid point $X_i$ and time step $n$, each component updates with its own reaction term and its own diffusion constant,
 
 $$ u_{k,i}^{n+1} = u_{k,i}^n + f_k(\mathbf{u}_i^n)\,\Delta t + D_k \frac{\Delta t}{\Delta X^2}\left( u_{k,i+1}^n + u_{k,i-1}^n - 2 u_{k,i}^n \right) . \tag{2} $$
 
-Here we use a *periodic* boundary condition, wrapping the grid so that the point
-past the right edge is the left edge and vice versa: for grid points $X_i$ with
-$i = 1, 2, \dots, n_\text{grid}$, we set $X_0 = X_{n_\text{grid}}$ and
-$X_{n_\text{grid}+1} = X_1$. This is the boundary anticipated in Part 7A; it suits
-a pattern that should tile space without an artificial edge.
+Here we use a *periodic* boundary condition, wrapping the grid so that the point past the right edge is the left edge and vice versa: for grid points $X_i$ with $i = 1, 2, \dots, n_\text{grid}$, we set $X_0 = X_{n_\text{grid}}$ and $X_{n_\text{grid}+1} = X_1$. This is the boundary anticipated in Part 7A; it suits a pattern that should tile space without an artificial edge.
 
 ::: {.callout-note title="Recipe 7C.1.1"}
 **Objective.** Build a reaction-diffusion integrator for any number of coupled components.
@@ -94,22 +82,11 @@ def pde_fd_reaction_diffusion_multi(derivs, n, ngrid, dX, dt, D, t0, t_total, p0
     return p
 ```
 
-R shifts the grid with `cbind` and Python with `numpy.roll`; both wrap the array,
-which is exactly the periodic boundary. Because the initial condition is a small
-*random* perturbation of a uniform state, the R and Python runs start from
-different noise and so settle into patterns with the same wavelength but different
-peak positions.
+R shifts the grid with `cbind` and Python with `numpy.roll`; both wrap the array, which is exactly the periodic boundary. Because the initial condition is a small *random* perturbation of a uniform state, the R and Python runs start from different noise and so settle into patterns with the same wavelength but different peak positions.
 
 ## 7C.2 Turing instability
 
-A two-component system may have a steady state that is stable when the two species
-are well mixed, yet becomes *unstable* once diffusion is allowed to act in space.
-The growing spatial modes then organize into a stationary pattern. Alan Turing
-predicted this diffusion-driven instability [@turing1952chemical], and it is now
-known as the Turing instability. Two broad classes of two-component systems produce
-it: the substrate-depletion model and the activator-inhibitor model. We illustrate
-both with the Gierer-Meinhardt model of biological pattern formation
-[@gierer1972theory].
+A two-component system may have a steady state that is stable when the two species are well mixed, yet becomes *unstable* once diffusion is allowed to act in space. The growing spatial modes then organize into a stationary pattern. Alan Turing predicted this diffusion-driven instability [@turing1952chemical], and it is now known as the Turing instability. Two broad classes of two-component systems produce it: the substrate-depletion model and the activator-inhibitor model. We illustrate both with the Gierer-Meinhardt model of biological pattern formation [@gierer1972theory].
 
 In the substrate-depletion model, Equation (1) takes $D_u = d$, $D_v = 1$, and
 
@@ -124,10 +101,7 @@ so that $v$ acts as a substrate that activates $u$, while $u$ in turn depletes $
 
 ![](images/07C/fig1.png){width=40% fig-align="center"}
 
-The model has two parameters, $d$ and $\mu$. With a fast-diffusing substrate (small
-$d$) and a large $\mu$, the uniform state loses stability and a pattern forms. We
-run the integrator in successive blocks of time and plot the $u$ and $v$ profiles
-after each, starting from a nearly uniform state $u = v \approx 1$.
+The model has two parameters, $d$ and $\mu$. With a fast-diffusing substrate (small $d$) and a large $\mu$, the uniform state loses stability and a pattern forms. We run the integrator in successive blocks of time and plot the $u$ and $v$ profiles after each, starting from a nearly uniform state $u = v \approx 1$.
 
 ::: {.callout-note title="Recipe 7C.2.1"}
 **Objective.** Reproduce Turing pattern formation and its two failure modes in a substrate-depletion model.
@@ -214,14 +188,9 @@ run_turing(turing_asdm, np.array([0.1, 1]), 1.5, u0, ngrid, dX, dt,
            t_total_iter=20, nplot=6, ylim=(0, 3))
 ```
 
-The uniform state breaks up into a periodic array of peaks in $u$ and $v$: a Turing
-pattern. The peak spacing is set by the fastest-growing unstable mode, so both
-languages produce the same wavelength even though their random starts place the
-peaks differently.
+The uniform state breaks up into a periodic array of peaks in $u$ and $v$: a Turing pattern. The peak spacing is set by the fastest-growing unstable mode, so both languages produce the same wavelength even though their random starts place the peaks differently.
 
-When the two diffusion constants are close, the mechanism fails. With $d = 0.8$
-(so $D_u$ and $D_v$ differ little) the perturbations decay and the system returns
-to a homogeneous state.
+When the two diffusion constants are close, the mechanism fails. With $d = 0.8$ (so $D_u$ and $D_v$ differ little) the perturbations decay and the system returns to a homogeneous state.
 
 ### R implementation {.impl}
 
@@ -248,9 +217,7 @@ run_turing(turing_asdm, np.array([0.8, 1]), 1.5, u0, ngrid, dX, dt,
            t_total_iter=20, nplot=6, ylim=(0, 2))
 ```
 
-A different failure mode appears at $d = 0.3$, $\mu = 0.9$: the system oscillates in
-*time* while staying uniform in *space*. Every grid point moves together, so each
-snapshot is flat, but the common level rises and falls.
+A different failure mode appears at $d = 0.3$, $\mu = 0.9$: the system oscillates in *time* while staying uniform in *space*. Every grid point moves together, so each snapshot is flat, but the common level rises and falls.
 
 ### R implementation {.impl}
 
@@ -277,8 +244,7 @@ run_turing(turing_asdm, np.array([0.3, 1]), 0.9, u0, ngrid, dX, dt,
            t_total_iter=1, nplot=6, ylim=(0, 5))
 ```
 
-To see the oscillation, we track $u$ and $v$ at the middle grid point over a longer
-run. They trace out a sustained limit cycle rather than settling to a fixed level.
+To see the oscillation, we track $u$ and $v$ at the middle grid point over a longer run. They trace out a sustained limit cycle rather than settling to a fixed level.
 
 ### R implementation {.impl}
 
@@ -318,14 +284,11 @@ plt.xlabel("t"); plt.ylabel("u or v"); plt.ylim(0, 3)
 plt.legend(loc="upper right"); plt.show()
 ```
 
-The same two-component model thus supports three qualitatively different outcomes,
-selected by the diffusion ratio $d$ and the parameter $\mu$: a stationary Turing
-pattern, a homogeneous steady state, and a spatially uniform temporal oscillation.
+The same two-component model thus supports three qualitatively different outcomes, selected by the diffusion ratio $d$ and the parameter $\mu$: a stationary Turing pattern, a homogeneous steady state, and a spatially uniform temporal oscillation.
 
 ## 7C.3 An activator-inhibitor model
 
-A second route to a Turing pattern is the activator-inhibitor model. Equation (1)
-again takes $D_u = d$, $D_v = 1$, now with
+A second route to a Turing pattern is the activator-inhibitor model. Equation (1) again takes $D_u = d$, $D_v = 1$, now with
 
 $$
 \begin{aligned}
@@ -334,15 +297,11 @@ g(u,v,t) &= \mu (u^2 - v) ,
 \end{aligned} \tag{4}
 $$
 
-where $u$ is a self-enhancing activator that also drives the inhibitor $v$, while
-$v$ suppresses $u$. As before, the inhibitor diffuses much faster than the
-activator, the "local self-enhancement, long-range inhibition" that underlies
-Gierer-Meinhardt patterning [@gierer1972theory].
+where $u$ is a self-enhancing activator that also drives the inhibitor $v$, while $v$ suppresses $u$. As before, the inhibitor diffuses much faster than the activator, the "local self-enhancement, long-range inhibition" that underlies Gierer-Meinhardt patterning [@gierer1972theory].
 
 ![](images/07C/fig2.png){width=40% fig-align="center"}
 
-With $d = 0.1$ and $\mu = 1.5$ the model again forms a Turing pattern, but here $u$
-and $v$ peak together in space rather than out of phase.
+With $d = 0.1$ and $\mu = 1.5$ the model again forms a Turing pattern, but here $u$ and $v$ peak together in space rather than out of phase.
 
 ::: {.callout-note title="Recipe 7C.3.1"}
 **Objective.** Form a Turing pattern from an activator-inhibitor model and contrast it with substrate depletion.
@@ -392,6 +351,4 @@ run_turing(turing_aim, np.array([0.1, 1]), 1.5, u0, ngrid, dX, dt,
            t_total_iter=5, nplot=6, ylim=(0, 2))
 ```
 
-Both Gierer-Meinhardt variants generate stationary periodic patterns from an almost
-uniform start, the hallmark of the Turing instability: a difference in diffusion
-rates destabilizes a state that would be stable without diffusion.
+Both Gierer-Meinhardt variants generate stationary periodic patterns from an almost uniform start, the hallmark of the Turing instability: a difference in diffusion rates destabilizes a state that would be stable without diffusion.

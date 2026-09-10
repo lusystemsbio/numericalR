@@ -4,18 +4,11 @@ author: "Mingyang Lu"
 old_id: "01B"
 ---
 
-Writing R or Python code is not hard. Writing it efficiently is a different
-skill, and it matters most for the numerical work in this book: a simulation
-that reruns thousands of times, or a loop over every particle in a system, is
-where a slow first draft becomes a real problem. Both languages are
-interpreted, so neither competes with a compiled language like C or Fortran on
-raw speed, but each has its own set of levers for closing most of that gap
-without leaving the language.
+Our goal is not just to learn how to write R or Python code, but learn how to write code that runs efficiently. Efficient programming is especially important for numerical methods, as they often involve a simulation that reruns thousands of times, or a loop over every particle in a system, which would become extremely slow if not optimized. Both R and Python are interpreted languages, so their execution performance can't compete with a compiled language like C or Fortran on raw speed. Yet, each language has its own tricks to improve code efficiency and close the gap with compiled languages.
 
 ## 1B.1 Avoid growing vectors
 
-The following is slow for large `n`, because R copies the entire vector every
-time it grows by one element.
+The following is slow for large `n`, because the script copies the entire vector every time it grows by one element.
 
 ### R implementation {.impl}
 
@@ -81,9 +74,7 @@ v = v**2
 print(v)
 ```
 
-Loops are especially costly when they run thousands of times inside a larger
-calculation. Consider computing the mean and standard deviation of a series
-of numbers,
+Loops are especially costly when they run thousands of times inside a larger calculation. Consider computing the mean and standard deviation of a series of numbers,
 
 $$\sigma(\mathbf{x})=\sqrt{\frac{\sum_{j=1}^{n}(\mathbf{x_j}-\mathbf{\overline{x}})^2}{n}} ,$$
 
@@ -125,8 +116,7 @@ sd <- sqrt(apply(mat^2, 2, mean) - means^2)
 sd
 ```
 
-R's own `sd()` divides by $n-1$ rather than $n$, the usual statistical
-convention for an unbiased estimate from a sample:
+R's own `sd()` divides by $n-1$ rather than $n$, the usual statistical convention for an unbiased estimate from a sample:
 
 ```{r}
 apply(mat, 2, sd)
@@ -158,8 +148,7 @@ my_sd = np.sqrt(np.mean(v**2) - my_mean**2)
 print(my_mean, my_sd)
 ```
 
-`apply` on a `pandas` DataFrame performs the same calculation for every column
-of a matrix at once.
+`apply` on a `pandas` DataFrame performs the same calculation for every column of a matrix at once.
 
 ```{python}
 import pandas as pd
@@ -173,70 +162,13 @@ print(sd)
 
 ## 1B.3 Byte-compiling and JIT compilation
 
-R can compile a function to byte code with `compiler::cmpfun`, which used to
-give a reliable speedup for a function built around an explicit loop.
+An interpreted language works out what a function does every time that function is called, and the repeated bookkeeping is a large part of why an R or Python loop is slower than the same loop in C. Compiling the function once into a lower-level form removes the repeated work. R and Python differ in whether you have to ask for it.
 
-### R implementation {.impl}
+In R, byte compiler has been on by default since R 3.4 (2017): a function is compiled to byte code the first time it is called, and package code is byte-compiled when the package is installed. The `compiler` package still provides `cmpfun` for compiling a function by hand, and it still works, but on a current R no performance change would be noticed.
 
-A loop-based standard deviation function is the kind of code `cmpfun` is
-meant for:
-
-```{r}
-library(compiler)
-
-make_sd_loop <- function() {
-  function(x) {
-    n <- length(x)
-    s <- 0; s2 <- 0
-    for (i in seq_len(n)) {
-      s <- s + x[i]
-      s2 <- s2 + x[i]^2
-    }
-    m <- s / n
-    sqrt(s2 / n - m^2)
-  }
-}
-```
-
-`make_sd_loop()` returns a fresh, never-yet-called function each time, so
-comparing a new copy against a `cmpfun`-compiled copy of that same fresh
-function isolates the effect of compiling. On a modern R install, disabling
-automatic compilation first is required to see any difference at all:
-
-```{r}
-library(microbenchmark)
-v <- rnorm(1000)
-
-compiler::enableJIT(0)   # turn off R's automatic compilation
-my_sd_loop <- make_sd_loop()
-cmp_sd_loop <- cmpfun(make_sd_loop())
-microbenchmark(interpreted = my_sd_loop(v), compiled = cmp_sd_loop(v), times = 50)
-```
-
-That gap is what `cmpfun` used to buy on every call, back when R did not
-compile functions on its own. Re-enabling the default and repeating the same
-comparison with two more freshly made functions shows why: R has compiled
-every function to byte code automatically, the first time it is called, by
-default since R 3.4 (2017), so an explicitly `cmpfun`-compiled copy and a
-plain one now perform about the same.
-
-```{r}
-compiler::enableJIT(3)   # restore the default
-my_sd_loop2 <- make_sd_loop()
-cmp_sd_loop2 <- cmpfun(make_sd_loop())
-microbenchmark(interpreted = my_sd_loop2(v), compiled = cmp_sd_loop2(v), times = 50)
-```
-
-`cmpfun` still exists and still works. It is mostly doing today what R
-already does on its own.
+CPython makes no such promise. A Python loop is interpreted on every pass, however many times it runs, so compilation has to be requested explicitly. The usual tool is [Numba](https://numba.pydata.org), whose `@njit` decorator compiles a function to machine code the first time it is called with a given argument type. Later calls skip the interpreter entirely and run at a speed comparable to compiled C.
 
 ### Python implementation {.impl}
-
-Python has no equivalent manual step, because CPython does not automatically
-compile hot functions the way R now does; a plain Python loop stays
-interpreted no matter how many times it runs. The nearest lever is
-[Numba](https://numba.pydata.org)'s `@njit` decorator, a just-in-time
-compiler applied explicitly to one function:
 
 ```{python}
 from numba import njit
@@ -274,14 +206,11 @@ t2 = time.time()
 print("interpreted:", t1 - t0, " compiled:", t2 - t1)
 ```
 
-Unlike R's `cmpfun` today, `@njit` gives a real, large speedup here, since
-Python never compiles the interpreted version on its own.
+The first call is left out of the timing because it pays for the compilation itself. After that, the JIT-compiled loop runs many times faster than the interpreted one. That gap is what R now closes on its own, and what Python still asks you to close by hand.
 
 ## 1B.4 Calling compiled Fortran code
 
-Both languages can call a function written in a compiled language directly.
-Here is a Fortran subroutine computing the same standard deviation, in
-`01-intro/src/sub_cal_sd.f90`:
+Both languages can call a function written in a compiled language directly. Here is a Fortran subroutine computing the same standard deviation, in `01-intro/src/sub_cal_sd.f90`:
 
 ```fortran
 subroutine cal_sd(n,x,sd)
@@ -303,9 +232,7 @@ subroutine cal_sd(n,x,sd)
 end subroutine cal_sd
 ```
 
-Only integer, double precision, and logical arguments are allowed across the
-Fortran-R or Fortran-Python interface. Compile it to a shared library with
-`gfortran`:
+Only integer, double precision, and logical arguments are allowed across the Fortran-R or Fortran-Python interface. Compile it to a shared library with `gfortran`:
 
 ```bash
 gfortran -fpic -shared 01-intro/src/sub_cal_sd.f90 -o 01-intro/src/sub_cal_sd.so
@@ -327,10 +254,7 @@ my_sd_R(seq_len(100))
 
 ### Python implementation {.impl}
 
-The same compiled shared library can be called from Python through `ctypes`.
-As in [Part 2B](../02-odes/02b-numerical-integration.qmd), gfortran appends a
-trailing underscore to the subroutine name, and arguments are passed by
-reference:
+The same compiled shared library can be called from Python through `ctypes`. As in [Part 2B](../02-odes/02b-numerical-integration.qmd), gfortran appends a trailing underscore to the subroutine name, and arguments are passed by reference:
 
 ```{python}
 import ctypes
@@ -350,9 +274,7 @@ my_sd_fortran(np.arange(1, 101))
 
 ## 1B.5 Parallelization
 
-If a calculation is repeated many times independently, splitting the
-repetitions across CPU cores can help, provided each repetition does enough
-work to outweigh the cost of coordinating across processes.
+If a calculation is repeated many times independently, splitting the repetitions across CPU cores can help, provided each repetition does enough work to outweigh the cost of coordinating across processes.
 
 ### R implementation {.impl}
 
@@ -380,12 +302,8 @@ cat("serial:", as.numeric(t1 - t0), "s  parallel:", as.numeric(t2 - t1), "s\n")
 ```{python}
 import multiprocessing as mp
 
-# "fork" duplicates the current process directly, so the worker functions
-# defined above are already present in each child; Python's plain
-# multiprocessing.Pool defaults to "spawn" on macOS, which instead
-# re-imports the calling script from scratch in each worker, and fails here
-# with "module '__main__' has no attribute 'my_test'" since this chunk isn't
-# running as a standalone script
+# "fork" copies this process, so my_test is already defined in each worker;
+# the macOS default "spawn" re-imports the calling script, which this is not
 ctx = mp.get_context("fork")
 numCores = ctx.cpu_count()
 print(numCores)
@@ -406,26 +324,11 @@ t2 = time.time()
 print("serial:", t1 - t0, "s  parallel:", t2 - t1, "s")
 ```
 
-R's `mclapply` also forks directly, so it needs no equivalent adjustment.
-Forking is a Unix feature (macOS and Linux, not Windows); on Windows, Python
-falls back to `spawn` regardless, and code meant to run there needs to live
-in an actual script file with a `if __name__ == "__main__":` guard, not in a
-notebook cell or a document chunk like this one.
-
 ## 1B.6 Using AI to speed up your code
 
-The techniques above are exactly the kind of thing worth asking an AI
-assistant about, both to get a first pass and to sanity-check your own
-optimization. Paste the growing-vector loop from 1B.1 into Claude Code and
-ask something concrete: "this loop rebuilds `v` on every iteration; how would
-you rewrite it to avoid that, and why is the rewrite faster?" A useful answer
-does not just hand you the vectorized version. It names the actual
-mechanism, that `c(v, i^2)` allocates an entirely new, longer vector and
-copies the old contents into it every single iteration, so the loop's cost
-grows with the square of `n` rather than linearly.
+The techniques above are exactly the kind of thing worth asking an AI assistant about, both to get a first pass and to sanity-check your own optimization. Paste the growing-vector loop from 1B.1 into Claude Code and ask something concrete: "this loop rebuilds `v` on every iteration; how would you rewrite it to avoid that, and why is the rewrite faster?" A useful answer does not just hand you the vectorized version. It names the actual mechanism, that `c(v, i^2)` allocates an entirely new, longer vector and copies the old contents into it every single iteration, so the loop's cost grows with the square of `n` rather than linearly.
 
-Verify it the same way you would verify any other AI-assisted explanation:
-time both versions yourself.
+Verify it the same way you would verify any other AI-assisted explanation: time both versions yourself.
 
 ```{r}
 n <- 20000
@@ -437,7 +340,4 @@ t2 <- Sys.time()
 cat("growing:", as.numeric(t1 - t0), "s  preallocated:", as.numeric(t2 - t1), "s\n")
 ```
 
-The gap you measure, not the explanation on its own, is what confirms the
-fix actually worked. This same paste-explain-verify loop applies to any
-inefficiency you run into later in this book: an unexpectedly slow chunk is
-worth asking about before you assume it has to be that slow.
+The gap you measure here would allow you to confirm whether the fix actually worked or not. This same paste-explain-verify loop applies to any inefficiency you run into later in this book.

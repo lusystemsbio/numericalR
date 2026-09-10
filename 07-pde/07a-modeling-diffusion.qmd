@@ -4,49 +4,33 @@ author: "Mingyang Lu"
 old_id: "07A"
 ---
 
-In [Part 6](../06-stochastic/06b-brownian-motion.qmd) we modeled Brownian motion
-with an SDE. For a purely diffusive one-variable system,
+In [Part 6](../06-stochastic/06b-brownian-motion.qmd) we modeled Brownian motion with an SDE. For a purely diffusive one-variable system,
 
 $$ \frac{dX}{dt} = \sqrt{2D}\,\eta(t) , \tag{1} $$
 
-with $\eta(t)$ the Gaussian white noise, we followed a single random trajectory
-$X(t)$ and recovered its statistics ($\langle X \rangle$, $\langle X^2 \rangle$)
-from many runs. Here we take the complementary view and follow the probability
-distribution $P(X, t)$ directly. It obeys the *diffusion equation*
-[@gardiner2009stochastic],
+with $\eta(t)$ the Gaussian white noise, we followed a single random trajectory $X(t)$ and recovered its statistics ($\langle X \rangle$, $\langle X^2 \rangle$) from many runs. Here we take the complementary view and follow the probability distribution $P(X, t)$ directly. It obeys the *diffusion equation* [@gardiner2009stochastic],
 
 $$ \frac{\partial P(X, t)}{\partial t} = D \frac{\partial^2 P(X, t)}{\partial X^2} , \tag{2} $$
 
-a partial differential equation (PDE): $P$ depends on two variables, and $\partial
-P / \partial t$ is a *partial derivative*, taken while holding $X$ fixed,
+a partial differential equation (PDE): $P$ depends on two variables, and $\partial P / \partial t$ is a *partial derivative*, taken while holding $X$ fixed,
 
 $$ \frac{\partial P(X, t)}{\partial t} = \lim_{\Delta t \to 0} \frac{P(X, t + \Delta t) - P(X, t)}{\Delta t} . \tag{3} $$
 
 ## 7A.1 The finite difference method
 
-The most direct way to solve a PDE like Equation (2) is the *finite difference
-method* [@leveque2007finite], which replaces each derivative by a difference over a
-grid. Write $P_i^n$ for the value at grid point $X_i$ and time
-$t_n = t_0 + n\,\Delta t$. A Taylor expansion in time gives a forward difference for
-the time derivative, accurate to $O(\Delta t)$,
+The most direct way to solve a PDE like Equation (2) is the *finite difference method* [@leveque2007finite], which replaces each derivative by a difference over a grid. Write $P_i^n$ for the value at grid point $X_i$ and time $t_n = t_0 + n\,\Delta t$. A Taylor expansion in time gives a forward difference for the time derivative, accurate to $O(\Delta t)$,
 
 $$ \frac{\partial P}{\partial t} \approx \frac{P_i^{n+1} - P_i^n}{\Delta t} . \tag{4} $$
 
-Adding the Taylor expansions of $P_{i+1}^n$ and $P_{i-1}^n$ cancels the odd-order
-terms and gives a centered difference for the second space derivative, accurate to
-$O(\Delta X^2)$,
+Adding the Taylor expansions of $P_{i+1}^n$ and $P_{i-1}^n$ cancels the odd-order terms and gives a centered difference for the second space derivative, accurate to $O(\Delta X^2)$,
 
 $$ \frac{\partial^2 P}{\partial X^2} \approx \frac{P_{i+1}^n + P_{i-1}^n - 2 P_i^n}{\Delta X^2} . \tag{5} $$
 
-Substituting both into Equation (2) gives an explicit update, the diffusion analog
-of the Euler method for ODEs,
+Substituting both into Equation (2) gives an explicit update, the diffusion analog of the Euler method for ODEs,
 
 $$ P_i^{n+1} = P_i^n + D\, \frac{\Delta t}{\Delta X^2} \left( P_{i+1}^n + P_{i-1}^n - 2 P_i^n \right) . \tag{6} $$
 
-The prefactor $D\,\Delta t / \Delta X^2$ must stay small for stability, so the time
-step cannot be large relative to $\Delta X^2$. We also need boundary and initial
-conditions. Here we impose a *Dirichlet* condition, $P = 0$ at the two ends
-$X = \pm l/2$, by padding the shifted arrays with zeros.
+The prefactor $D\,\Delta t / \Delta X^2$ must stay small for stability, so the time step cannot be large relative to $\Delta X^2$. We also need boundary and initial conditions. Here we impose a *Dirichlet* condition, $P = 0$ at the two ends $X = \pm l/2$, by padding the shifted arrays with zeros.
 
 ::: {.callout-note title="Recipe 7A.1.1"}
 **Objective.** Build the explicit finite-difference scheme for the 1D diffusion equation.
@@ -99,9 +83,7 @@ def pde_fd_diffusion(ngrid, X_all, dX, dt, D, t0, t_total, p0):
 
 ## 7A.2 Diffusion from the center
 
-We start all the probability at the origin, $P(X = 0, t = 0) = 1$, and watch it
-spread. On a box of size $l = 100$ with $\Delta X = 1$, $\Delta t = 0.01$, and
-$D = 1$, we plot the distribution after each of five successive runs.
+We start all the probability at the origin, $P(X = 0, t = 0) = 1$, and watch it spread. On a box of size $l = 100$ with $\Delta X = 1$, $\Delta t = 0.01$, and $D = 1$, we plot the distribution after each of five successive runs.
 
 ::: {.callout-note title="Recipe 7A.2.1"}
 **Objective.** Diffuse an initially concentrated distribution and compare its spread to theory.
@@ -136,8 +118,7 @@ for (i in 1:5) {
 legend("topright", inset = 0.02, title = "Iterations", legend = 0:5, col = 1:6, lty = 1, cex = 0.8)
 ```
 
-Each run broadens the distribution into a wider Gaussian, exactly the spreading we
-saw for the random walk. To quantify it we track the mean and variance of $X$,
+Each run broadens the distribution into a wider Gaussian, exactly the spreading we saw for the random walk. To quantify it we track the mean and variance of $X$,
 
 $$
 \begin{aligned}
@@ -213,16 +194,11 @@ axs[2].plot(t_all, 2 * D * t_all, color="black")            # theory: sigma^2 = 
 plt.tight_layout(); plt.show()
 ```
 
-The variance grows as $\sigma^2 = 2Dt$ at early times, matching the random-walk
-result. The total probability, which should be conserved, slowly leaks away
-because the Dirichlet boundaries absorb whatever reaches the edges; once $P$ is
-appreciable near the ends, the variance also grows more slowly than $2Dt$.
+The variance grows as $\sigma^2 = 2Dt$ at early times, matching the random-walk result. The total probability, which should be conserved, slowly leaks away because the Dirichlet boundaries absorb whatever reaches the edges; once $P$ is appreciable near the ends, the variance also grows more slowly than $2Dt$.
 
 ## 7A.3 Diffusion from the left
 
-A different initial condition places all the probability on the left half,
-$P(X < 0, t = 0) = 1$ (normalized). The distribution then spreads rightward,
-filling the box.
+A different initial condition places all the probability on the left half, $P(X < 0, t = 0) = 1$ (normalized). The distribution then spreads rightward, filling the box.
 
 ### R implementation {.impl}
 
@@ -256,18 +232,8 @@ plt.xlabel("X"); plt.ylabel("P"); plt.xlim(-50, 50); plt.ylim(0, 0.02)
 plt.legend(title="Iterations", loc="upper right"); plt.show()
 ```
 
-The step spreads and flattens, diffusing from the filled left side toward the
-empty right, until it would eventually even out (were it not for the absorbing
-ends).
+The step spreads and flattens, diffusing from the filled left side toward the empty right, until it would eventually even out (were it not for the absorbing ends).
 
 ## 7A.4 Other boundary conditions
 
-The Dirichlet condition ($P = 0$ at the ends) is only one choice, and different
-boundaries give different dynamics. A **Neumann** condition instead fixes the flux
-by setting $\partial P / \partial X = 0$ at each end, which prevents probability
-from leaking out; numerically, one copies each boundary point from its inward
-neighbor. Implementing it and comparing the dynamics is left as an
-[exercise](07f-exercises.qmd). A
-third choice, the **periodic** boundary, wraps the grid so that $P(X_0) = P(X_n)$
-and $P(X_{n+1}) = P(X_1)$; we use it for the pattern-forming systems of
-[Part 7C](07c-turing-instability.qmd).
+The Dirichlet condition ($P = 0$ at the ends) is only one choice, and different boundaries give different dynamics. A **Neumann** condition instead fixes the flux by setting $\partial P / \partial X = 0$ at each end, which prevents probability from leaking out; numerically, one copies each boundary point from its inward neighbor. Implementing it and comparing the dynamics is left as an [exercise](07f-exercises.qmd). A third choice, the **periodic** boundary, wraps the grid so that $P(X_0) = P(X_n)$ and $P(X_{n+1}) = P(X_1)$; we use it for the pattern-forming systems of [Part 7C](07c-turing-instability.qmd).

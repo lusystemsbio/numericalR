@@ -6,15 +6,11 @@ old_id: "08E"
 
 ## 8E.1 Sampling a mixture of bivariate Gaussians
 
-We wish to simulate flow-cytometry-like data for a population of cells in two distinct
-states. Consider the (unnormalized) 2D distribution $p(x, y)$, a mixture of two
-bivariate Gaussians, where $x$ and $y$ are the expression levels of two proteins in a
-single cell,
+We wish to simulate flow-cytometry-like data for a population of cells in two distinct states. Consider the (unnormalized) 2D distribution $p(x, y)$, a mixture of two bivariate Gaussians, where $x$ and $y$ are the expression levels of two proteins in a single cell,
 
 $$ p(x, y) = e^{-(x + 10y - 1)^2 - (x - 0.1y + 2)^2} + e^{-(x - 5y + 2)^2 - (x + 0.2y - 1)^2} . \tag{1} $$
 
-The following function evaluates $p(x, y)$ (with $x$ and $y$ passed as a length-2
-vector), and the accompanying code draws its contours, two elongated, tilted blobs.
+The following function evaluates $p(x, y)$ (with $x$ and $y$ passed as a length-2 vector), and the accompanying code draws its contours, two elongated, tilted blobs.
 
 ```r
 library(ggplot2)
@@ -31,27 +27,15 @@ ggplot(data, aes(x, y, z = z)) +
   geom_contour(breaks = 10^(seq(-2, 0, by = 0.3)), colour = "black")
 ```
 
-Design a Metropolis-Hastings algorithm ([Part 8B](08b-metropolis-algorithm.qmd)) to
-sample from this distribution, and show your results as a density map of the sampled
-points.
+Design a Metropolis-Hastings algorithm ([Part 8B](08b-metropolis-algorithm.qmd)) to sample from this distribution, and show your results as a density map of the sampled points.
 
-Hint: think about an appropriate local move for proposing new $(x, y)$ values. You can
-visualize the sampled density with `geom_bin2d` from ggplot2.
+Hint: think about an appropriate local move for proposing new $(x, y)$ values. You can visualize the sampled density with `geom_bin2d` from ggplot2.
 
 ## 8E.2 Markov chain modeling of a gene regulatory network
 
-Design a Markov chain model for the expression dynamics of a gene regulatory network
-(GRN). The network has nodes (genes), each with a binary expression level $+1$ or
-$-1$, and directed edges (regulations) from a regulator to a target, each either an
-activation ($+1$) or an inhibition ($-1$). At every step, pick one edge at random
-(with equal probability) and update its target gene: with probability $\alpha$ the
-target takes the state dictated by the regulation, $s \cdot X_\text{regulator}$ (where
-$s = \pm 1$ is the regulation type), and with probability $1 - \alpha$ it takes the
-opposite state.
+Design a Markov chain model for the expression dynamics of a gene regulatory network (GRN). The network has nodes (genes), each with a binary expression level $+1$ or $-1$, and directed edges (regulations) from a regulator to a target, each either an activation ($+1$) or an inhibition ($-1$). At every step, pick one edge at random (with equal probability) and update its target gene: with probability $\alpha$ the target takes the state dictated by the regulation, $s \cdot X_\text{regulator}$ (where $s = \pm 1$ is the regulation type), and with probability $1 - \alpha$ it takes the opposite state.
 
-We apply the model to the repressilator in Figure 1: $X$ inhibits $Y$, $Y$ inhibits
-$Z$, and $Z$ inhibits $X$. This ring of three repressions is a net-negative feedback
-loop that oscillates, the classic repressilator [@elowitz2000repressilator].
+We apply the model to the repressilator in Figure 1: $X$ inhibits $Y$, $Y$ inhibits $Z$, and $Z$ inhibits $X$. This ring of three repressions is a net-negative feedback loop that oscillates, the classic repressilator [@elowitz2000repressilator].
 
 ![](images/08E/repressilator.png){width=30% fig-align="center"}
 
@@ -60,54 +44,31 @@ loop that oscillates, the classic repressilator [@elowitz2000repressilator].
 - `n_nodes`: the number of genes,
 - `n_edges`: the number of regulatory edges,
 - `n_steps`: the number of Markov chain steps,
-- `topo`: an `n_edges` $\times$ 3 topology matrix, each row an edge as (regulator
-  node, target node, regulation type $\pm 1$),
+- `topo`: an `n_edges` $\times$ 3 topology matrix, each row an edge as (regulator node, target node, regulation type $\pm 1$),
 - `X0`: the initial expression vector of length `n_nodes` with entries $\pm 1$,
 - `alpha`: the probability of applying the correct regulation,
 
 and return an `n_steps` $\times$ `n_nodes` matrix of the gene states at every step.
 
-**(b)** Encode the network of Figure 1 as a `topo` matrix and simulate it for 1000
-steps from a random initial condition, with $\alpha = 0.9$. Plot each gene's
-expression level over time.
+**(b)** Encode the network of Figure 1 as a `topo` matrix and simulate it for 1000 steps from a random initial condition, with $\alpha = 0.9$. Plot each gene's expression level over time.
 
-**(c)** Each gene should show stochastic oscillations. Estimate the mean oscillation
-period. (Hint: count how many times a gene's state switches from $-1$ to $+1$ and back
-over the run.)
+**(c)** Each gene should show stochastic oscillations. Estimate the mean oscillation period. (Hint: count how many times a gene's state switches from $-1$ to $+1$ and back over the run.)
 
-**(d)** Using the simulated trajectories, show that the state transitions of gene $X$
-consistently precede those of gene $Y$, and those of $Y$ precede those of $Z$,
-reflecting the direction $X \rightarrow Y \rightarrow Z$ in which the regulatory signal
-travels around the ring.
+**(d)** Using the simulated trajectories, show that the state transitions of gene $X$ consistently precede those of gene $Y$, and those of $Y$ precede those of $Z$, reflecting the direction $X \rightarrow Y \rightarrow Z$ in which the regulatory signal travels around the ring.
 
 ## 8E.3 The 2D Ising model
 
-The Ising model [@ising1925beitrag] describes interacting spins on a lattice. Consider
-an $N \times N$ square lattice with periodic boundaries, where each site $i$ carries a
-spin $s_i \in \{-1, +1\}$. The energy is
+The Ising model [@ising1925beitrag] describes interacting spins on a lattice. Consider an $N \times N$ square lattice with periodic boundaries, where each site $i$ carries a spin $s_i \in \{-1, +1\}$. The energy is
 
 $$ E = -J \sum_{\langle i, j \rangle} s_i s_j , $$
 
-where the sum runs over nearest-neighbor pairs and $J$ is the interaction strength
-(take $J = 1$).
+where the sum runs over nearest-neighbor pairs and $J$ is the interaction strength (take $J = 1$).
 
-**(a)** Implement the Metropolis algorithm to sample the Boltzmann distribution
-$P \propto e^{-E/T}$, proposing a single random spin flip at each step and respecting
-the periodic boundary. Start from a lattice of random spins with $N = 20$. The 1D
-Ising sampler in [Part 8B](08b-metropolis-algorithm.qmd) is a useful template.
+**(a)** Implement the Metropolis algorithm to sample the Boltzmann distribution $P \propto e^{-E/T}$, proposing a single random spin flip at each step and respecting the periodic boundary. Start from a lattice of random spins with $N = 20$. The 1D Ising sampler in [Part 8B](08b-metropolis-algorithm.qmd) is a useful template.
 
-**(b)** Compute the magnetization per spin, $M = \frac{1}{N^2} \sum_i s_i$. At
-temperature $T = 1.5$, run a short simulation ($\sim 10^4$ steps) and plot the total
-energy and the mean absolute magnetization $\langle |M| \rangle$ against the step
-number. Once these look sensible, run a much longer simulation ($\sim 10^6$ steps) to
-estimate the relaxation time to steady behavior.
+**(b)** Compute the magnetization per spin, $M = \frac{1}{N^2} \sum_i s_i$. At temperature $T = 1.5$, run a short simulation ($\sim 10^4$ steps) and plot the total energy and the mean absolute magnetization $\langle |M| \rangle$ against the step number. Once these look sensible, run a much longer simulation ($\sim 10^6$ steps) to estimate the relaxation time to steady behavior.
 
-**(c)** To study the phase transition, run the sampler at ten temperatures
-$T \in [1.5, 3.5]$. For each, compute $\langle |M| \rangle$ over the steady-state
-portion of a long run (discard the early transient). Plot $\langle |M| \rangle$
-against $T$ and identify the critical temperature $T_c$ where the magnetization drops
-sharply. Compare it with Onsager's exact result for the infinite lattice
-[@onsager1944crystal],
+**(c)** To study the phase transition, run the sampler at ten temperatures $T \in [1.5, 3.5]$. For each, compute $\langle |M| \rangle$ over the steady-state portion of a long run (discard the early transient). Plot $\langle |M| \rangle$ against $T$ and identify the critical temperature $T_c$ where the magnetization drops sharply. Compare it with Onsager's exact result for the infinite lattice [@onsager1944crystal],
 
 $$ T_c = \frac{2J}{\ln(1 + \sqrt{2})} \approx 2.269 . $$
 
@@ -119,11 +80,7 @@ $$ S + I \xrightarrow{\beta} 2I , \qquad I \xrightarrow{\nu} R , $$
 
 with $\beta = 0.003$ and $\nu = 1$.
 
-**(a)** Start from $S(0) = 1000$, $I(0) = 1$, $R(0) = 0$. Compute the basic
-reproduction number $R_0$. Run a Gillespie simulation and plot the dynamics of $S$,
-$I$, and $R$. You can reuse the `gillespie_step` and `ssa` functions from
-[Part 8D](08d-gillespie-algorithm.qmd), supplying your own propensity and stoichiometry
-functions in this form:
+**(a)** Start from $S(0) = 1000$, $I(0) = 1$, $R(0) = 0$. Compute the basic reproduction number $R_0$. Run a Gillespie simulation and plot the dynamics of $S$, $I$, and $R$. You can reuse the `gillespie_step` and `ssa` functions from [Part 8D](08d-gillespie-algorithm.qmd), supplying your own propensity and stoichiometry functions in this form:
 
 ```r
 my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)
@@ -134,10 +91,7 @@ my_stoichiometry <- function(r_ind) {   # r_ind: the chosen reaction
 }
 ```
 
-**(b)** Run a deterministic simulation of the corresponding SIR ODEs
-($dS/dt = -\beta S I$, $dI/dt = \beta S I - \nu I$, $dR/dt = \nu I$) and compare it
-visually with the stochastic dynamics. For the ODE integration you can use a
-generic RK4 routine:
+**(b)** Run a deterministic simulation of the corresponding SIR ODEs ($dS/dt = -\beta S I$, $dI/dt = \beta S I - \nu I$, $dR/dt = \nu I$) and compare it visually with the stochastic dynamics. For the ODE integration you can use a generic RK4 routine:
 
 ```r
 RK4_generic <- function(derivs, X0, n, t.total, dt, ...) {
@@ -155,21 +109,16 @@ RK4_generic <- function(derivs, X0, n, t.total, dt, ...) {
 }
 ```
 
-**(c)** Now take $\beta = 0.3$, $\nu = 1$, and $S(0) = 10$, $I(0) = 1$, $R(0) = 0$.
-This gives the same $R_0$, so the deterministic dynamics are similar to part (a). Run
-the Gillespie simulation several times with different random seeds and compare with
-the deterministic result. With enough runs you should see a variety of outcomes:
+**(c)** Now take $\beta = 0.3$, $\nu = 1$, and $S(0) = 10$, $I(0) = 1$, $R(0) = 0$. This gives the same $R_0$, so the deterministic dynamics are similar to part (a). Run the Gillespie simulation several times with different random seeds and compare with the deterministic result. With enough runs you should see a variety of outcomes:
 
-1. dynamics like the deterministic one, with a peak in $I(t)$ that then dies out while
-   some $S$ remains;
+1. dynamics like the deterministic one, with a peak in $I(t)$ that then dies out while some $S$ remains;
 2. $I(t)$ dies out immediately;
 3. $I(t)$ peaks but dies out early, leaving a large $S$ population;
 4. $I(t)$ peaks and the epidemic consumes essentially all of $S$.
 
 ## 8E.5 A stochastic toggle switch
 
-Model a toggle switch of two mutually inhibiting genes $X$ and $Y$
-[@gardner2000toggle] with the reaction network
+Model a toggle switch of two mutually inhibiting genes $X$ and $Y$ [@gardner2000toggle] with the reaction network
 
 $$
 \begin{aligned}
@@ -182,11 +131,9 @@ $$ D_x + 2Y \underset{k_{-1}}{\overset{k_1}{\rightleftharpoons}} C_x , \tag{2} $
 
 $$ D_y + 2X \underset{k_{-1}}{\overset{k_1}{\rightleftharpoons}} C_y , \tag{3} $$
 
-with kinetic parameters $g$, $k$, $k_1$, $k_{-1}$, and the promoter constraints
-$D_x + C_x = 1$, $D_y + C_y = 1$.
+with kinetic parameters $g$, $k$, $k_1$, $k_{-1}$, and the promoter constraints $D_x + C_x = 1$, $D_y + C_y = 1$.
 
-**(a)** Assuming fast binding and unbinding, show that the deterministic model reduces
-to
+**(a)** Assuming fast binding and unbinding, show that the deterministic model reduces to
 
 $$
 \begin{cases}
@@ -195,23 +142,13 @@ $$
 \end{cases}
 $$
 
-with $X_0 = Y_0 = \sqrt{2 k_{-1} / k_1}$. Hint: the forward rate of Equation (2) is
-$\tfrac{1}{2} k_1 D_x Y^2$; at quasi-steady state it balances the backward rate,
-$\tfrac{1}{2} k_1 D_x Y^2 = k_{-1} C_x$, and similarly for Equation (3).
+with $X_0 = Y_0 = \sqrt{2 k_{-1} / k_1}$. Hint: the forward rate of Equation (2) is $\tfrac{1}{2} k_1 D_x Y^2$; at quasi-steady state it balances the backward rate, $\tfrac{1}{2} k_1 D_x Y^2 = k_{-1} C_x$, and similarly for Equation (3).
 
-**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00001$, and $k_{-1} = 0.2$, show from the
-deterministic ODEs that the circuit is monostable. Integrate the equations from several
-initial conditions and confirm that they all converge to the same steady state.
+**(b)** Using $g = 40$, $k = 0.1$, $k_1 = 0.00001$, and $k_{-1} = 0.2$, show from the deterministic ODEs that the circuit is monostable. Integrate the equations from several initial conditions and confirm that they all converge to the same steady state.
 
-**(c)** Perform a stochastic simulation of the full network with the Gillespie
-algorithm, using the same parameters and the initial condition $D_x = 1$, $C_x = 0$,
-$D_y = 0$, $C_y = 1$, $X = 300$, $Y = 200$, over a total time of 1000. Plot the
-dynamics of $X$ and $Y$; you are supposed to observe stochastic state transitions.
-These are *noise-induced state transitions*: although the deterministic circuit is
-monostable, the noise effectively makes it bistable.
+**(c)** Perform a stochastic simulation of the full network with the Gillespie algorithm, using the same parameters and the initial condition $D_x = 1$, $C_x = 0$, $D_y = 0$, $C_y = 1$, $X = 300$, $Y = 200$, over a total time of 1000. Plot the dynamics of $X$ and $Y$; you are supposed to observe stochastic state transitions. These are *noise-induced state transitions*: although the deterministic circuit is monostable, the noise effectively makes it bistable.
 
-As in [Part 8D](08d-gillespie-algorithm.qmd), reuse `gillespie_step` and `ssa` and
-supply your own propensity and stoichiometry functions:
+As in [Part 8D](08d-gillespie-algorithm.qmd), reuse `gillespie_step` and `ssa` and supply your own propensity and stoichiometry functions:
 
 ```r
 my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)

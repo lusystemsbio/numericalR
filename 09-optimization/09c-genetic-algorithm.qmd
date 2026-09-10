@@ -4,12 +4,7 @@ author: "Mingyang Lu"
 old_id: "09C"
 ---
 
-A *genetic algorithm* (GA) is a stochastic global optimizer inspired by natural
-selection [@holland1975adaptation]. It maintains a *population* of candidate solutions
-and improves it over successive *generations* by three operators borrowed from
-evolution: *crossover* (combining two solutions), *mutation* (randomly perturbing one),
-and *selection* (keeping the fittest). It needs only a genetic representation of a
-solution (usually a vector) and a fitness function to optimize.
+A *genetic algorithm* (GA) is a stochastic global optimizer inspired by natural selection [@holland1975adaptation]. It maintains a *population* of candidate solutions and improves it over successive *generations* by three operators borrowed from evolution: *crossover* (combining two solutions), *mutation* (randomly perturbing one), and *selection* (keeping the fittest). It needs only a genetic representation of a solution (usually a vector) and a fitness function to optimize.
 
 ## 9C.1 Genetic algorithm for continuous variables
 
@@ -17,16 +12,7 @@ We first optimize a continuous function, the Rastrigin function [@torn1989global
 
 $$ f(x_1, x_2) = 20 + \sum_{i=1}^{2} \left( x_i^2 - 10\cos(2\pi x_i) \right) , $$
 
-a standard benchmark that is strongly *multimodal*: a regular lattice of local minima
-sits on a broad bowl, with the global minimum $f = 0$ at the origin. Escaping the many
-local minima is exactly the kind of global search a genetic algorithm is built for. The
-function is also *separable* (each coordinate contributes independently), which suits the
-crossover below: it recombines whole coordinates from two parents, so a good $x_1$ from
-one parent can join a good $x_2$ from another. The genetic representation is the vector
-$(x_1, x_2)$ and the fitness is $f$ (to be minimized). Crossover swaps variables between
-two parents to make two offspring; mutation nudges one randomly chosen variable by a
-small uniform step. Each generation we make `np` offspring from `np` parents, then keep
-the best `np` of the combined pool.
+a standard benchmark that is strongly *multimodal*: a regular lattice of local minima sits on a broad bowl, with the global minimum $f = 0$ at the origin. Escaping the many local minima is exactly the kind of global search a genetic algorithm is built for. The function is also *separable* (each coordinate contributes independently), which suits the crossover below: it recombines whole coordinates from two parents, so a good $x_1$ from one parent can join a good $x_2$ from another. The genetic representation is the vector $(x_1, x_2)$ and the fitness is $f$ (to be minimized). Crossover swaps variables between two parents to make two offspring; mutation nudges one randomly chosen variable by a small uniform step. Each generation we make `np` offspring from `np` parents, then keep the best `np` of the combined pool.
 
 ::: {.callout-note title="Recipe 9C.1.1"}
 **Objective.** Minimize a rugged multimodal function with a genetic algorithm.
@@ -163,17 +149,11 @@ plt.plot(range(100), s.max(1), "b", label="max")
 plt.yscale("log"); plt.xlabel("Generation"); plt.ylabel("Score"); plt.legend(); plt.show()
 ```
 
-The best score drops toward zero, converging on the global minimum at the origin
-despite the many local minima that would trap a purely local method. The min/mean/max
-curves show the whole population improving, with the spread narrowing as it converges.
-Performance depends on the crossover rate, population size, and number of generations.
+The best score drops toward zero, converging on the global minimum at the origin despite the many local minima that would trap a purely local method. The min/mean/max curves show the whole population improving, with the spread narrowing as it converges. Performance depends on the crossover rate, population size, and number of generations.
 
 ## 9C.2 Genetic algorithm for the TSP
 
-For the traveling salesman problem the genetic representation is a *permutation* of the
-city indices, and the fitness is the total tour length. Permutations need
-permutation-preserving operators. For mutation we use either a *point* swap (exchange
-two cities) or an *inversion* (reverse the order of a segment).
+For the traveling salesman problem the genetic representation is a *permutation* of the city indices, and the fitness is the total tour length. Permutations need permutation-preserving operators. For mutation we use either a *point* swap (exchange two cities) or an *inversion* (reverse the order of a segment).
 
 ::: {.callout-note title="Recipe 9C.2.1"}
 **Objective.** Approximate the shortest tour of many cities with a genetic algorithm.
@@ -222,12 +202,7 @@ def mut_inverse(n, z):
 
 ## 9C.3 Crossover operators for permutations
 
-Ordinary crossover would produce invalid tours with repeated or missing cities, so
-permutations use special operators [@goldberg1989genetic]. We implement three classic
-ones. *Partially mapped crossover* (PMX) copies a segment from one parent and repairs
-the rest through the position mapping between parents. *Order crossover* (OX) keeps a
-segment from one parent and fills the rest in the order they appear in the other.
-*Cycle crossover* (CX) builds offspring from cycles of positions shared by the parents.
+Ordinary crossover would produce invalid tours with repeated or missing cities, so permutations use special operators [@goldberg1989genetic]. We implement three classic ones. *Partially mapped crossover* (PMX) copies a segment from one parent and repairs the rest through the position mapping between parents. *Order crossover* (OX) keeps a segment from one parent and fills the rest in the order they appear in the other. *Cycle crossover* (CX) builds offspring from cycles of positions shared by the parents.
 
 ### R implementation {.impl}
 
@@ -327,9 +302,7 @@ print("pmx:\n", pmx(n, z1, z2)); print("ox:\n", ox(n, z1, z2)); print("cx:\n", c
 
 ## 9C.4 Testing on the TSP
 
-The GA for the TSP follows the same loop as the continuous version, now with the
-permutation operators. We start from random tours and, each generation, pair parents to
-produce offspring by crossover or mutation, then keep the fittest.
+The GA for the TSP follows the same loop as the continuous version, now with the permutation operators. We start from random tours and, each generation, pair parents to produce offspring by crossover or mutation, then keep the fittest.
 
 ### R implementation {.impl}
 
@@ -476,21 +449,6 @@ res_oi = tsp_ga(52, d52, 40, 0.7, 2000, ox, mut_inverse)
 plot_tsp(c52, res_oi, 2000, f"OX + inversion, length {res_oi['s']:.0f}")
 ```
 
-On the ten-city instance the GA recovers the exact optimum found by dynamic programming
-in [Part 9B](09b-dynamic-programming.qmd). That Held-Karp solution is guaranteed to be
-optimal, but its cost grows exponentially ($O(n^2 2^n)$) and becomes hopeless well
-before 52 cities; the GA reproduces the known answer here and, unlike the exact method,
-still runs on the larger instance. The 52-city berlin52 instance [@reinelt1991tsplib] is
-much harder (its known optimal tour length is about 7542). Partially mapped crossover
-with point-swap mutation converges to a poor, self-crossing tour, whereas order crossover
-with inversion mutation, which better preserves useful sub-tours, reaches a considerably
-shorter one, though still above the optimum. The choice of operators, not just the
-parameters, drives the performance.
+On the ten-city instance the GA recovers the exact optimum found by dynamic programming in [Part 9B](09b-dynamic-programming.qmd). That Held-Karp solution is guaranteed to be optimal, but its cost grows exponentially ($O(n^2 2^n)$) and becomes hopeless well before 52 cities; the GA reproduces the known answer here and, unlike the exact method, still runs on the larger instance. The 52-city berlin52 instance [@reinelt1991tsplib] is much harder (its known optimal tour length is about 7542). Partially mapped crossover with point-swap mutation converges to a poor, self-crossing tour, whereas order crossover with inversion mutation, which better preserves useful sub-tours, reaches a considerably shorter one, though still above the optimum. The choice of operators, not just the parameters, drives the performance.
 
-The convergence plots also show the population losing diversity and plateauing well
-above 7542: the greedy "keep the best `np`" selection converges prematurely. A basic GA
-like this can be pushed much closer to the optimum with a less greedy selection that
-preserves diversity (for example tournament selection), or by hybridizing it with a
-local search such as 2-opt that refines each tour (a memetic algorithm). Even so, unlike
-the exact Held-Karp algorithm, the GA gives only a heuristic solution with no guarantee
-of optimality.
+The convergence plots also show the population losing diversity and plateauing well above 7542: the greedy "keep the best `np`" selection converges prematurely. A basic GA like this can be pushed much closer to the optimum with a less greedy selection that preserves diversity (for example tournament selection), or by hybridizing it with a local search such as 2-opt that refines each tour (a memetic algorithm). Even so, unlike the exact Held-Karp algorithm, the GA gives only a heuristic solution with no guarantee of optimality.

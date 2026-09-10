@@ -4,17 +4,11 @@ author: "Mingyang Lu"
 old_id: "10A"
 ---
 
-Biological data are often high-dimensional: a gene-expression experiment measures
-thousands of genes across many samples. To visualize and interpret such data we reduce
-their dimensionality, mapping each sample to a few coordinates that capture most of the
-structure. This chapter builds *principal component analysis* (PCA) from scratch, uses
-it on a real gene-expression dataset, and then demonstrates nonlinear embeddings (MDS,
-t-SNE, and UMAP).
+Biological data are often high-dimensional: a gene-expression experiment measures thousands of genes across many samples. To visualize and interpret such data we reduce their dimensionality, mapping each sample to a few coordinates that capture most of the structure. This chapter builds *principal component analysis* (PCA) from scratch, uses it on a real gene-expression dataset, and then demonstrates nonlinear embeddings (MDS, t-SNE, and UMAP).
 
 ## 10A.1 Projecting data onto a line
 
-The simplest reduction takes two-dimensional points and describes them by a single
-number. Consider 100 points scattered in a narrow, tilted strip.
+The simplest reduction takes two-dimensional points and describes them by a single number. Consider 100 points scattered in a narrow, tilted strip.
 
 ### R implementation {.impl}
 
@@ -66,22 +60,11 @@ plt.gca().set_aspect("equal"); plt.xlabel("x"); plt.ylabel("y")
 plt.xlim(0, 1); plt.ylim(0.5, 1.5); plt.show()
 ```
 
-Each blue point is the closest position on the line to its original point. The single
-coordinate along the line (the projection) keeps most of the spread of the data, since
-the points barely deviate from the line. PCA generalizes this idea: it finds the
-directions of largest variance automatically, without being told to use a regression
-line, and works in any number of dimensions.
+Each blue point is the closest position on the line to its original point. The single coordinate along the line (the projection) keeps most of the spread of the data, since the points barely deviate from the line. PCA generalizes this idea: it finds the directions of largest variance automatically, without being told to use a regression line, and works in any number of dimensions.
 
 ## 10A.2 Principal component analysis from scratch
 
-PCA re-expresses the data in a new orthogonal basis, the *principal components*, ordered
-by how much variance they capture [@pearson1901lines; @hotelling1933analysis]. The
-recipe is: center the data, then find the directions along which it varies most. Those
-directions are the eigenvectors of the covariance matrix, and their eigenvalues give the
-variance captured. We implement it two equivalent ways: eigen-decomposition of the
-covariance matrix, and the *singular value decomposition* (SVD) of the centered data,
-which is numerically preferable and much cheaper when there are more features than
-samples.
+PCA re-expresses the data in a new orthogonal basis, the *principal components*, ordered by how much variance they capture [@pearson1901lines; @hotelling1933analysis]. The recipe is: center the data, then find the directions along which it varies most. Those directions are the eigenvectors of the covariance matrix, and their eigenvalues give the variance captured. We implement it two equivalent ways: eigen-decomposition of the covariance matrix, and the *singular value decomposition* (SVD) of the centered data, which is numerically preferable and much cheaper when there are more features than samples.
 
 ::: {.callout-note title="Recipe 10A.2.1"}
 **Objective.** Compute principal components from scratch and confirm two routes agree.
@@ -137,17 +120,11 @@ def pca(X, method="svd"):
 print(np.round(np.vstack([pca(data1, "eigen")["values"], pca(data1, "svd")["values"]]), 5))
 ```
 
-Both routes return the same variances. For the strip data the first principal component
-carries almost all the variance and points along the strip, recovering the direction we
-fit by hand in the previous section.
+Both routes return the same variances. For the strip data the first principal component carries almost all the variance and points along the strip, recovering the direction we fit by hand in the previous section.
 
 ## 10A.3 Interpreting components with loadings
 
-We now apply PCA to a real dataset: expression of 500 genes measured across 26 samples
-spanning nine experimental conditions (A through I). The samples are the observations
-and the genes are the features, so we transpose the table. The *loadings* (the columns
-of the eigenvector matrix) say how much each gene contributes to each component;
-inspecting the largest loadings tells us which genes drive the dominant patterns.
+We now apply PCA to a real dataset: expression of 500 genes measured across 26 samples spanning nine experimental conditions (A through I). The samples are the observations and the genes are the features, so we transpose the table. The *loadings* (the columns of the eigenvector matrix) say how much each gene contributes to each component; inspecting the largest loadings tells us which genes drive the dominant patterns.
 
 ### R implementation {.impl}
 
@@ -210,19 +187,11 @@ for i in top:
 plt.xlabel("PC1 loading"); plt.ylabel("PC2 loading"); plt.title("Gene loadings"); plt.show()
 ```
 
-Each principal component is a weighted combination of all 500 genes. The handful of
-genes with the largest loadings dominate that component, so PC1 can be read as the
-coordinated expression pattern of these top genes, the axis along which the samples vary
-most. Plotting each gene's PC1 and PC2 loadings together shows most of the 500 genes
-clustered near the origin, contributing little to either component, while the ten genes
-highlighted above stand out along PC1; several of them also carry a substantial PC2
-loading, showing that a gene's influence is not always confined to a single component.
+Each principal component is a weighted combination of all 500 genes. The handful of genes with the largest loadings dominate that component, so PC1 can be read as the coordinated expression pattern of these top genes, the axis along which the samples vary most. Plotting each gene's PC1 and PC2 loadings together shows most of the 500 genes clustered near the origin, contributing little to either component, while the ten genes highlighted above stand out along PC1; several of them also carry a substantial PC2 loading, showing that a gene's influence is not always confined to a single component.
 
 ## 10A.4 Visualizing the samples
 
-With the same PCA, we look at the sample side. The *scree plot* shows how much variance
-each component explains, guiding how many to keep. Projecting the samples onto the first
-two components then reveals their structure.
+With the same PCA, we look at the sample side. The *scree plot* shows how much variance each component explains, guiding how many to keep. Projecting the samples onto the first two components then reveals their structure.
 
 ::: {.callout-note title="Recipe 10A.4.1"}
 **Objective.** Project samples onto their leading principal components and summarize the trend with a principal curve.
@@ -311,26 +280,11 @@ plt.plot(curve[:, 0], curve[:, 1], color="red", lw=2)
 plt.xlabel(pc_lab[0]); plt.ylabel(pc_lab[1]); plt.show()
 ```
 
-The first component alone explains most of the variance, and the samples fall into an
-ordered arc from condition A to I in the PC1-PC2 plane. Fitting a principal curve, a
-smooth one-dimensional path that threads through the middle of the points
-[@hastie1989principal], summarizes this trajectory: the experiment traces a continuous
-progression of gene-expression states, and the position along the curve is a natural
-one-dimensional coordinate for each sample. Rather than implementing the fitting
-algorithm (project, order, smooth, repeat) from scratch, we use the R `princurve`
-package and its Python port `pcurvepy2`, both established implementations of the same
-Hastie-Stuetzle procedure.
+The first component alone explains most of the variance, and the samples fall into an ordered arc from condition A to I in the PC1-PC2 plane. Fitting a principal curve, a smooth one-dimensional path that threads through the middle of the points [@hastie1989principal], summarizes this trajectory: the experiment traces a continuous progression of gene-expression states, and the position along the curve is a natural one-dimensional coordinate for each sample. Rather than implementing the fitting algorithm (project, order, smooth, repeat) from scratch, we use the R `princurve` package and its Python port `pcurvepy2`, both established implementations of the same Hastie-Stuetzle procedure.
 
 ## 10A.5 Nonlinear embeddings: MDS, t-SNE, and UMAP
 
-PCA is a linear projection. When the data lie on a curved manifold, nonlinear methods
-can separate structure that PCA blurs. We demonstrate three, using established libraries
-rather than building them from scratch. *Multidimensional scaling* (MDS) places points
-in 2D so their pairwise distances match the high-dimensional distances as closely as
-possible [@torgerson1952multidimensional]. *t-SNE* [@vandermaaten2008tsne] and *UMAP*
-[@mcinnes2018umap] instead preserve local neighborhoods, and are the standard tools for
-visualizing high-dimensional biological data, at the cost of being stochastic and
-distorting global distances.
+PCA is a linear projection. When the data lie on a curved manifold, nonlinear methods can separate structure that PCA blurs. We demonstrate three, using established libraries rather than building them from scratch. *Multidimensional scaling* (MDS) places points in 2D so their pairwise distances match the high-dimensional distances as closely as possible [@torgerson1952multidimensional]. *t-SNE* [@vandermaaten2008tsne] and *UMAP* [@mcinnes2018umap] instead preserve local neighborhoods, and are the standard tools for visualizing high-dimensional biological data, at the cost of being stochastic and distorting global distances.
 
 ::: {.callout-note title="Recipe 10A.5.1"}
 **Objective.** Embed high-dimensional samples in 2D three different ways and compare what each preserves.
@@ -396,14 +350,4 @@ for ax, (name, e) in zip(axs, [("MDS", emb_mds), ("t-SNE", emb_tsne), ("UMAP", e
 plt.tight_layout(); plt.show()
 ```
 
-All three separate the nine conditions, and MDS, like PCA, lays them out along the A-to-I
-progression because it preserves global distances (R's `cmdscale` and the classical MDS
-computed above are the same algorithm, so the two panels agree up to rotation and
-reflection). t-SNE and UMAP emphasize tight local clusters (the replicates of each
-condition group together) but their between-cluster distances should not be read as
-meaningful. The R and Python t-SNE/UMAP panels will not overlay exactly: `Rtsne`/`uwot`
-and `scikit-learn`/`umap-learn` are independent implementations with different default
-optimizers and initializations, so a shared random seed does not make them numerically
-identical, only comparable in the cluster structure they recover. For this small, smoothly
-varying dataset PCA already captures the essential structure; the nonlinear methods become
-more valuable for larger datasets with distinct, non-linear cluster structure.
+All three separate the nine conditions, and MDS, like PCA, lays them out along the A-to-I progression because it preserves global distances (R's `cmdscale` and the classical MDS computed above are the same algorithm, so the two panels agree up to rotation and reflection). t-SNE and UMAP emphasize tight local clusters (the replicates of each condition group together) but their between-cluster distances should not be read as meaningful. The R and Python t-SNE/UMAP panels will not overlay exactly: `Rtsne`/`uwot` and `scikit-learn`/`umap-learn` are independent implementations with different default optimizers and initializations, so a shared random seed does not make them numerically identical, only comparable in the cluster structure they recover. For this small, smoothly varying dataset PCA already captures the essential structure; the nonlinear methods become more valuable for larger datasets with distinct, non-linear cluster structure.

@@ -4,36 +4,21 @@ author: "Mingyang Lu"
 old_id: "02E"
 ---
 
-We continue with the single self-activating gene from
-[Part 2A](02a-modeling-gene-circuits.qmd) (Equations (7) and (8)). As we saw in
-[Part 2D](02d-effective-potential.qmd), varying the degradation rate $k$ changes
-the number of steady states: the circuit is monostable for some $k$ and bistable
-(two stable states plus one unstable state) for others. To see the whole picture
-at once, we treat $k$ as a *control parameter* and plot the steady-state level
-$X_s$ against $k$. This curve is a one-dimensional **bifurcation diagram**. We use
-the rate equation
+We continue with the single self-activating gene from [Part 2A](02a-modeling-gene-circuits.qmd) (Equations (7) and (8)). As we saw in [Part 2D](02d-effective-potential.qmd), varying the degradation rate $k$ changes the number of steady states: the circuit is monostable for some $k$ and bistable (two stable states plus one unstable state) for others. To see the whole picture at once, we treat $k$ as a *control parameter* and plot the steady-state level $X_s$ against $k$. This curve is a one-dimensional **bifurcation diagram**. We use the rate equation
 
 \begin{equation}
 \frac{dX}{dt} = f(X,k) = 10 + 45\frac{X^4}{X^4 + 200^4} - kX , \tag{1}
 \end{equation}
 
-with state variable $X$ and control parameter $k$. Every point on the diagram is
-a steady state, so it satisfies $f(X, k) = 0$. This chapter finds those steady
-states directly: at each value of $k$ we locate the roots of $f(X, k) = 0$, or
-reach them by simulation, and assemble the diagram from the resulting points.
-[Part 2F](02f-bifurcation-curves.qmd) takes the complementary view, tracing the
-diagram as a continuous curve. Some methods here are robust; others are homemade
-and work well only for this saddle-node example, as noted where they appear.
+with state variable $X$ and control parameter $k$. Every point on the diagram is a steady state, so it satisfies $f(X, k) = 0$. This chapter finds those steady states directly: at each value of $k$ we locate the roots of $f(X, k) = 0$, or reach them by simulation, and assemble the diagram from the resulting points. [Part 2F](02f-bifurcation-curves.qmd) takes the complementary view, tracing the diagram as a continuous curve. Some methods here are robust; others are homemade and work well only for this saddle-node example, as noted where they appear.
 
 ## 2E.1 Separation of variables
 
-For this particular $f$, the steady-state condition $f(X, k) = 0$ can be solved
-for $k$ explicitly as a function of $X$:
+For this particular $f$, the steady-state condition $f(X, k) = 0$ can be solved for $k$ explicitly as a function of $X$:
 
 $$ k = \frac{10}{X} + 45\frac{X^3}{X^4 + 200^4} . $$
 
-Sweeping $X$ over a range (avoiding $X = 0$) and evaluating $k$ traces the curve
-directly, with no root-finding needed.
+Sweeping $X$ over a range (avoiding $X = 0$) and evaluating $k$ traces the curve directly, with no root-finding needed.
 
 ### R implementation {.impl}
 
@@ -65,36 +50,15 @@ plt.xlim(0.09, 0.21); plt.ylim(0, 600)
 plt.show()
 ```
 
-The resulting curve is S-shaped and shows how the circuit's behavior changes with
-$k$. It has two turning points, near $k = 0.125$ and $k = 0.170$, where a stable
-steady state and the unstable steady state meet and annihilate; these are the
-**bifurcation points**. For $k$ below the first point the system is monostable at
-a relatively high $X$; between the two points it is bistable, with a high and a
-low stable state (and an unstable one in between); above the second point it is
-monostable again at a low $X$. Because the branches meet and vanish at the turning
-points, this is a *saddle-node* bifurcation [@strogatz2015nonlinear].
+The resulting curve is S-shaped and shows how the circuit's behavior changes with $k$. It has two turning points, near $k = 0.125$ and $k = 0.170$, where a stable steady state and the unstable steady state meet and annihilate; these are the **bifurcation points**. For $k$ below the first point the system is monostable at a relatively high $X$; between the two points it is bistable, with a high and a low stable state (and an unstable one in between); above the second point it is monostable again at a low $X$. Because the branches meet and vanish at the turning points, this is a *saddle-node* bifurcation [@strogatz2015nonlinear].
 
-This method is exact and cheap, but it depends on being able to solve
-$f(X, k) = 0$ for $k$ in closed form. The remaining methods do not, so they also
-apply to circuits where no such shortcut exists.
+This method is exact and cheap, but it depends on being able to solve $f(X, k) = 0$ for $k$ analytically. The remaining methods do not, so they also apply to circuits where no such shortcut exists.
 
 ## 2E.2 Direct method: find all roots
 
-The most direct general approach samples $k$ uniformly and, at each $k$, finds
-every root $X_s$ of $f(X, k) = 0$. We classify each root from the sign of
-$\frac{df}{dX}$ ([Part 2D](02d-effective-potential.qmd)), stable when it is
-negative and unstable otherwise,
-estimated here with a small finite step $dx$. This is the most robust method in
-the chapter and works well for our example, though for a general nonlinear $f$
-there is no guarantee of finding every root, and it is slower than the methods
-that follow.
+The most direct general approach samples $k$ uniformly and, at each $k$, finds every root $X_s$ of $f(X, k) = 0$. We classify each root from the sign of $\frac{df}{dX}$ ([Part 2D](02d-effective-potential.qmd)), stable when it is negative and unstable otherwise, estimated here with a small finite step $dx$. This is the most robust method in the chapter and works well for our example, though for a general nonlinear $f$ there is no guarantee of finding every root, and it is slower than the methods that follow.
 
-The roots come out as a scatter of $(k, X_s)$ points that are not ordered along
-the curve, so joining them in the order found would give a tangled line. We
-reorder them with a nearest-neighbor walk: start at the leftmost point, then
-repeatedly step to the closest unused point until all points are used. (In the
-inverse-distance matrix used below, the nearest point is the one with the largest
-score.)
+The roots come out as a scatter of $(k, X_s)$ points that are not ordered along the curve, so joining them in the order found would give a tangled line. We reorder them with a nearest-neighbor walk: start at the leftmost point, then repeatedly step to the closest unused point until all points are used. (In the inverse-distance matrix used below, the nearest point is the one with the largest score.)
 
 ::: {.callout-note title="Recipe 2E.2.1"}
 **Objective.** Trace the bifurcation curve: at each value of the parameter k, find every steady state and mark it stable or unstable.
@@ -112,8 +76,7 @@ score.)
 
 ### R implementation {.impl}
 
-`rootSolve::uniroot.all` finds all roots of a function on an interval in one call
-[@soetaert2009rootsolve].
+`rootSolve::uniroot.all` finds all roots of a function on an interval in one call [@soetaert2009rootsolve].
 
 ```{r}
 #| message: false
@@ -177,10 +140,7 @@ plot(results[sequence, 1], results[sequence, 2], type = "l", col = 2,
 
 ### Python implementation {.impl}
 
-`scipy.optimize.fsolve` returns one root per initial guess, so we pass a vector of
-guesses and then discard spurious roots (where $|f|$ is not near zero) and any
-outside the range. Several guesses can converge to the same root, so we also drop
-duplicates; `uniroot.all` in R does this in one step.
+`scipy.optimize.fsolve` returns one root per initial guess, so we pass a vector of guesses and then discard spurious roots (where $|f|$ is not near zero) and any outside the range. Several guesses can converge to the same root, so we also drop duplicates; `uniroot.all` in R does this in one step.
 
 ```{python}
 #| warning: false
@@ -254,30 +214,13 @@ plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
 plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 ```
 
-The scatter shows both stable branches (high and low $X$) and the unstable middle
-branch, colored by stability. After reordering, the points connect into the same
-smooth S-curve found by separation of variables, now obtained without an explicit
-formula for $k(X)$.
+The scatter shows both stable branches (high and low $X$) and the unstable middle branch, colored by stability. After reordering, the points connect into the same smooth S-curve found by separation of variables, now obtained without an explicit formula for $k(X)$.
 
 ## 2E.3 Bisection method
 
-The library root-finder can be replaced by a homemade one. The **bisection
-method** [@press2007numerical] brackets a root: if $f$ has opposite signs at the
-two ends of an interval, a root must lie between them, and repeatedly halving the
-interval (keeping the half across which the sign still changes) converges to it.
-Bisection is simple and robust, but it has two limitations. It needs a sign
-change, so it misses roots where $f$ only touches zero, and it returns nothing
-when the two endpoints share a sign even if roots exist between them. It also
-finds only one root per interval. Both effects show up when we test it on the
-whole range $[0, 600]$: at $k = 0.12$ and $k = 0.2$ (monostable) it returns the
-single root, while at $k = 0.15$ (bistable) it returns just one of the three.
+The library root-finder can be replaced by a homemade one. The **bisection method** [@press2007numerical] brackets a root: if $f$ has opposite signs at the two ends of an interval, a root must lie between them, and repeatedly halving the interval (keeping the half across which the sign still changes) converges to it. Bisection is simple and robust, but it has two limitations. It needs a sign change, so it misses roots where $f$ only touches zero, and it returns nothing when the two endpoints share a sign even if roots exist between them. It also finds only one root per interval. Both effects show up when we test it on the whole range $[0, 600]$: at $k = 0.12$ and $k = 0.2$ (monostable) it returns the single root, while at $k = 0.15$ (bistable) it returns just one of the three.
 
-To find every root, we bracket: scan the range in many small windows and apply
-bisection to each window that contains a sign change (the `all_roots_bracketing`
-driver, with `resolution` setting the window width). Applied across $k$, this
-reproduces the same scattered $(k, X_s)$ points as in 2E.2. Reordering them into
-the curve is the identical nearest-neighbor walk from 2E.2 and is omitted here.
-Both implementations reuse the model derivative `derivs_k` defined in 2E.2.
+To find every root, we bracket: scan the range in many small windows and apply bisection to each window that contains a sign change (the `all_roots_bracketing` driver, with `resolution` setting the window width). Applied across $k$, this reproduces the same scattered $(k, X_s)$ points as in 2E.2. Reordering them into the curve is the identical nearest-neighbor walk from 2E.2 and is omitted here. Both implementations reuse the model derivative `derivs_k` defined in 2E.2.
 
 ::: {.callout-note title="Recipe 2E.3.1"}
 **Objective.** Find steady states with a homemade bracketing root-finder, and recover all roots by scanning windows.
@@ -405,27 +348,17 @@ plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
 plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 ```
 
-The three-value test confirms the single-root limitation: at $k = 0.15$ bisection
-on $[0, 600]$ returns only one of the three steady states. The bracketed driver
-recovers all of them, giving the same scatter (and, after the 2E.2 reordering,
-the same S-curve).
+The three-value test confirms the single-root limitation: at $k = 0.15$ bisection on $[0, 600]$ returns only one of the three steady states. The bracketed driver recovers all of them, giving the same scatter (and, after the 2E.2 reordering, the same S-curve).
 
 ## 2E.4 False position method
 
-The false-position method [@press2007numerical] is bisection with a better guess.
-Instead of the midpoint, it takes the point where the straight line through the
-two endpoints $(x_{min}, f_1)$ and $(x_{max}, f_2)$ crosses zero:
+The false-position method [@press2007numerical] is bisection with a better guess. Instead of the midpoint, it takes the point where the straight line through the two endpoints $(x_{min}, f_1)$ and $(x_{max}, f_2)$ crosses zero:
 
 \begin{equation}
 x_{new} = \frac{x_{min} f_2 - x_{max} f_1}{f_2 - f_1} . \tag{2}
 \end{equation}
 
-Everything else is unchanged: the same sign-change bookkeeping and the same
-`all_roots_bracketing` driver from 2E.3, so it inherits the same limitations (one
-root per interval, and it needs a sign change). It can converge faster than
-bisection. As with bisection, testing on $[0, 600]$ at $k = 0.15$ returns only one
-of the three roots, though possibly a different one, since the interpolation
-takes a different path.
+Everything else is unchanged: the same sign-change bookkeeping and the same `all_roots_bracketing` driver from 2E.3, so it inherits the same limitations (one root per interval, and it needs a sign change). It can converge faster than bisection. As with bisection, testing on $[0, 600]$ at $k = 0.15$ returns only one of the three roots, though possibly a different one, since the interpolation takes a different path.
 
 ::: {.callout-note title="Recipe 2E.4.1"}
 **Objective.** Find roots with the false-position bracketing method.
@@ -528,37 +461,22 @@ plt.xlabel(r"$k$ (Minute$^{-1}$)"); plt.ylabel(r"$X_s$ (nM)")
 plt.xlim(0.09, 0.21); plt.ylim(0, 600); plt.show()
 ```
 
-The bracketed scatter is the same as bisection's. For this smooth, well-behaved
-problem false position offers no visible advantage; its speedup matters more when
-each function evaluation is expensive.
+The bracketed scatter is the same as bisection's. For this smooth, well-behaved problem false position offers no visible advantage; its speedup matters more when each function evaluation is expensive.
 
 ## 2E.5 Bifurcation curve by ODE simulation
 
-Every method so far solves $f(X, k) = 0$ algebraically. A different idea is to
-*follow* the steady states with the ODE itself. Starting at $k = 0.1$ from an
-arbitrary $X_0$, we integrate $\frac{dX}{dt} = f(X, k)$ until it settles on a
-stable steady state, record it, nudge $k$ by a small $\Delta k$, and repeat from
-the previous state. Tracing a branch this way is cheap and needs no root-finding.
+Every method so far solves $f(X, k) = 0$ algebraically. A different idea is to *follow* the steady states with the ODE itself. Starting at $k = 0.1$ from an arbitrary $X_0$, we integrate $\frac{dX}{dt} = f(X, k)$ until it settles on a stable steady state, record it, nudge $k$ by a small $\Delta k$, and repeat from the previous state. Tracing a branch this way is cheap and needs no root-finding.
 
 Two tricks let it cover the whole S-curve:
 
-- **Reversing at a catastrophe.** When $k$ passes a bifurcation point the current
-  stable branch disappears, and the next integration lands far away ($|X_i -
-  X_{i-1}|$ exceeds a threshold `gap`). Detecting that jump, we reverse the sweep
-  direction of $k$ (flip $d \to -d$) and carry on.
-- **Capturing the unstable branch.** Integrating $\frac{dX}{dt} = -f(X, k)$
-  (i.e. $d = -1$) flips the stability, so the unstable steady state becomes an
-  attractor. Sweeping $k$ backward under $-f$ therefore traces the unstable
-  middle branch.
+- **Reversing at a catastrophe.** When $k$ passes a bifurcation point the current stable branch disappears, and the next integration lands far away ($|X_i - X_{i-1}|$ exceeds a threshold `gap`). Detecting that jump, we reverse the sweep direction of $k$ (flip $d \to -d$) and carry on.
+- **Capturing the unstable branch.** Integrating $\frac{dX}{dt} = -f(X, k)$ (i.e. $d = -1$) flips the stability, so the unstable steady state becomes an attractor. Sweeping $k$ backward under $-f$ therefore traces the unstable middle branch.
 
 \begin{equation}
 \frac{dX}{dt} = d\,f(X, k), \qquad d = \pm 1 . \tag{3}
 \end{equation}
 
-Together the sweep climbs the high stable branch, reverses at the upper
-bifurcation and returns along the unstable branch, reverses again at the lower
-bifurcation, and finishes up the low stable branch. The initial $X_0$ is random;
-we fix a seed here so the figure is reproducible.
+Together the sweep climbs the high stable branch, reverses at the upper bifurcation and returns along the unstable branch, reverses again at the lower bifurcation, and finishes up the low stable branch. The initial $X_0$ is random; we fix a seed here so the figure is reproducible.
 
 ::: {.callout-note title="Recipe 2E.5.1"}
 **Objective.** Trace the full S-shaped bifurcation curve, including the unstable branch, by following steady states with ODE integration rather than root-finding.
@@ -626,8 +544,7 @@ legend("topright", inset = 0.02, legend = c("Stable", "Unstable"),
 
 ### Python implementation {.impl}
 
-SciPy has no direct `runsteady`, so we integrate with `solve_ivp` to a large
-`t_max` and take the final value as the steady state.
+SciPy has no direct `runsteady`, so we integrate with `solve_ivp` to a large `t_max` and take the final value as the steady state.
 
 ```{python}
 #| warning: false
@@ -670,11 +587,4 @@ plt.xlim(0.09, 0.21); plt.ylim(0, 600)
 plt.legend(loc="upper right", fontsize=8); plt.show()
 ```
 
-This recovers every steady state, stable and unstable, from the dynamics alone.
-It is also the most fragile method here. It works for this saddle-node example,
-but the result depends on the numerical parameters: too small a `gap` misreads
-ordinary branch motion as a catastrophe, while too large a one misses a real
-jump, and `t_max` must be long enough to actually reach a steady state. The
-approach also assumes each branch has a single attractor to fall onto, which need
-not hold for other kinds of bifurcation. Try adjusting `gap`, `t_max`, and `dX`
-and watch how the diagram changes.
+This recovers every steady state, stable and unstable, from the dynamics alone. It is also the most fragile method here. It works for this saddle-node example, but the result depends on the numerical parameters: too small a `gap` misreads ordinary branch motion as a catastrophe, while too large a one misses a real jump, and `t_max` must be long enough to actually reach a steady state. The approach also assumes each branch has a single attractor to fall onto, which need not hold for other kinds of bifurcation. Try adjusting `gap`, `t_max`, and `dX` and watch how the diagram changes.

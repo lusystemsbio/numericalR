@@ -4,19 +4,11 @@ author: "Mingyang Lu"
 old_id: "03H"
 ---
 
-The phase-plane tools of Part 3 extend naturally to circuits with more than two
-genes. This chapter works through four systems of growing size: a two-gene
-negative-feedback loop that spirals, the two-gene toggle switch, a three-gene
-repressilator that oscillates on a limit cycle, and a fifty-species ecological
-model. The same generic RK4 integrator handles all of them; only the derivative
-function changes.
+The phase-plane tools of Part 3 extend naturally to circuits with more than two genes. This chapter works through four systems of growing size: a two-gene negative-feedback loop that spirals, the two-gene toggle switch, a three-gene repressilator that oscillates on a limit cycle, and a fifty-species ecological model. The same generic RK4 integrator handles all of them; only the derivative function changes.
 
 ## 3H.1 RK4 for any number of components
 
-The `RK4_generic` routine from [Part 3A](03a-nullclines.qmd) already works for any
-number of variables: it only requires that the derivative function return a vector
-the same length as the state `X0`. Nothing about the integrator itself is
-two-dimensional.
+The `RK4_generic` routine from [Part 3A](03a-nullclines.qmd) already works for any number of variables: it only requires that the derivative function return a vector the same length as the state `X0`. Nothing about the integrator itself is two-dimensional.
 
 ::: {.callout-note title="Recipe 3H.1.1"}
 **Objective.** Integrate a system with any number of components using a single RK4 routine.
@@ -86,10 +78,7 @@ After nondimensionalization the dynamics are
 \end{cases} \tag{1}
 \end{equation}
 
-with maximum production rates $g$ and $h$. We set $g = h = 10$. Drawing the unit
-vector field and overlaying trajectories from ten random starts shows every
-trajectory spiraling inward to a single steady state: the negative feedback
-produces damped oscillations.
+with maximum production rates $g$ and $h$. We set $g = h = 10$. Drawing the unit vector field and overlaying trajectories from ten random starts shows every trajectory spiraling inward to a single steady state: the negative feedback produces damped oscillations.
 
 ::: {.callout-note title="Recipe 3H.2.1"}
 **Objective.** Simulate a two-gene negative-feedback loop (X activates Y, Y represses X).
@@ -182,11 +171,7 @@ plt.xlim(0, 3); plt.ylim(0, 5); plt.show()
 
 ## 3H.3 A reusable phase-plane function
 
-The two steps just used, drawing the unit vector field and overlaying a few
-simulated trajectories, recur for every 2D system, so it pays to package them into
-one function. The routine below takes a derivative function and plotting ranges
-and returns the combined phase portrait; extra parameters are forwarded to the
-derivative function.
+The two steps just used, drawing the unit vector field and overlaying a few simulated trajectories, recur for every 2D system, so it pays to package them into one function. The routine below takes a derivative function and plotting ranges and returns the combined phase portrait; extra parameters are forwarded to the derivative function.
 
 ### R implementation {.impl}
 
@@ -242,8 +227,7 @@ def plot_phase_plane(func, xrange, yrange, ngrids=11, vscale=1, rseed=77, nsim=5
 
 ## 3H.4 The toggle switch (double-negative feedback)
 
-The toggle switch of [Part 3A](03a-nullclines.qmd) has $X$ and $Y$ repressing each
-other, a double-negative loop.
+The toggle switch of [Part 3A](03a-nullclines.qmd) has $X$ and $Y$ repressing each other, a double-negative loop.
 
 ![](images/03h/toggle.png){width=38% fig-align="center"}
 
@@ -256,9 +240,7 @@ Its nondimensionalized form is
 \end{cases} \tag{2}
 \end{equation}
 
-With $g = h = 5$, the reusable function draws the whole phase portrait in one
-call. The trajectories separate into two basins and settle on the two stable
-states, the bistability we analyzed before.
+With $g = h = 5$, the reusable function draws the whole phase portrait in one call. The trajectories separate into two basins and settle on the two stable states, the bistability we analyzed before.
 
 ::: {.callout-note title="Recipe 3H.4.1"}
 **Objective.** Simulate the toggle switch (X and Y repress each other) in nondimensionalized form.
@@ -306,8 +288,7 @@ plot_phase_plane(derivs_ts, (0, 6), (0, 6), ngrids=11, vscale=0.3, nsim=10,
 
 ## 3H.5 A three-gene repressilator
 
-A repressilator is a ring of three repressions: $X$ represses $Y$, $Y$ represses
-$Z$, and $Z$ represses $X$ [@elowitz2000repressilator].
+A repressilator is a ring of three repressions: $X$ represses $Y$, $Y$ represses $Z$, and $Z$ represses $X$ [@elowitz2000repressilator].
 
 ![](images/03h/repressilator.png){width=28% fig-align="center"}
 
@@ -319,12 +300,7 @@ $Z$, and $Z$ represses $X$ [@elowitz2000repressilator].
 \end{cases} \tag{3}
 \end{equation}
 
-This is a three-variable system, so we project it onto the $(X, Y)$ plane. For the
-background vector field we compute $(dX/dt, dY/dt)$ at each grid point assuming
-$Z$ is at its quasi-steady state $dZ/dt = 0$, i.e. $z = l/(1 + y^3)$. The
-trajectories, in contrast, are simulated with the full three-variable system and
-then projected. With $g = h = l = 5$ the trajectories converge to a closed loop, a
-**limit cycle**: the repressilator is a genetic oscillator.
+This is a three-variable system, so we project it onto the $(X, Y)$ plane. For the background vector field we compute $(dX/dt, dY/dt)$ at each grid point assuming $Z$ is at its quasi-steady state $dZ/dt = 0$, i.e. $z = l/(1 + y^3)$. The trajectories, in contrast, are simulated with the full three-variable system and then projected. With $g = h = l = 5$ the trajectories converge to a closed loop, a **limit cycle**: the repressilator is a genetic oscillator.
 
 ::: {.callout-note title="Recipe 3H.5.1"}
 **Objective.** Simulate a three-gene repressilator (a ring of three repressions) and see sustained oscillations.
@@ -411,18 +387,11 @@ plt.xlim(0, 4); plt.ylim(0, 4); plt.show()
 
 ## 3H.6 A many-component system
 
-Nothing limits the integrator to a handful of variables. As a large example we
-take a generalized Lotka-Volterra model of $S$ interacting bacterial species,
-following @hu2022emergent,
+Nothing limits the integrator to a handful of variables. As a large example we take a generalized Lotka-Volterra model of $S$ interacting bacterial species, following @hu2022emergent,
 
 $$ \frac{dN_i}{dt} = N_i\Big(1 - \sum_{j=1}^{S} a_{ij} N_j\Big) + D , $$
 
-where $N_i$ is the abundance of species $i$, $a_{ij}$ is the inhibition of $i$ by
-$j$, and $D = 10^{-6}$ is a small dispersal (immigration) rate. The self-terms are
-$a_{ii} = 1$, and the off-diagonal $a_{ij}$ are drawn uniformly from $(0, 2a)$,
-where $a$ is the mean interaction strength. Sweeping $a$ moves the community
-between qualitatively different regimes: at weak interaction it settles to stable
-coexistence, and at strong interaction it never settles, fluctuating persistently.
+where $N_i$ is the abundance of species $i$, $a_{ij}$ is the inhibition of $i$ by $j$, and $D = 10^{-6}$ is a small dispersal (immigration) rate. The self-terms are $a_{ii} = 1$, and the off-diagonal $a_{ij}$ are drawn uniformly from $(0, 2a)$, where $a$ is the mean interaction strength. Sweeping $a$ moves the community between qualitatively different regimes: at weak interaction it settles to stable coexistence, and at strong interaction it never settles, fluctuating persistently.
 
 ::: {.callout-note title="Recipe 3H.6.1"}
 **Objective.** Simulate a large system of many interacting species with the same integrator.
@@ -498,9 +467,4 @@ sim(S, a=0.16, D=D)   # intermediate interaction
 sim(S, a=0.64, D=D)   # strong interaction: persistent fluctuations
 ```
 
-The three runs illustrate the "emergent phases" of @hu2022emergent: as the mean
-interaction strength grows, a diverse community that would otherwise settle into a
-fixed composition instead keeps rearranging, with species abundances rising and
-falling indefinitely. The R and Python runs use independent random interaction
-matrices, so the individual traces differ, but the qualitative shift from stable
-coexistence to persistent fluctuations is the same.
+The three runs illustrate the "emergent phases" of @hu2022emergent: as the mean interaction strength grows, a diverse community that would otherwise settle into a fixed composition instead keeps rearranging, with species abundances rising and falling indefinitely. The R and Python runs use independent random interaction matrices, so the individual traces differ, but the qualitative shift from stable coexistence to persistent fluctuations is the same.

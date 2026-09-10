@@ -4,18 +4,11 @@ author: "Mingyang Lu"
 old_id: "04C"
 ---
 
-A time delay often stands in for a chain of intermediate steps left out of a
-model. A delayed edge from gene $A$ to gene $B$ can instead be written as an
-explicit intermediate node $C$ with edges $A \to C \to B$: the time it takes to
-build up $C$ becomes the lag. This chapter makes that idea concrete by comparing a
-delayed two-node negative-feedback loop with longer, undelayed feedback loops, and
-finding that they behave alike. We integrate ODEs with a second-order Heun scheme
-and DDEs with its delay version from [Part 4B](04b-modeling-time-delays.qmd).
+A time delay often stands in for a chain of intermediate steps left out of a model. A delayed edge from gene $A$ to gene $B$ can instead be written as an explicit intermediate node $C$ with edges $A \to C \to B$: the time it takes to build up $C$ becomes the lag. This chapter makes that idea concrete by comparing a delayed two-node negative-feedback loop with longer, undelayed feedback loops, and finding that they behave alike. We integrate ODEs with a second-order Heun scheme and DDEs with its delay version from [Part 4B](04b-modeling-time-delays.qmd).
 
 ## 4C.1 A two-node negative-feedback loop
 
-Consider two genes where $X$ activates $Y$ and $Y$ represses $X$, a
-negative-feedback loop.
+Consider two genes where $X$ activates $Y$ and $Y$ represses $X$, a negative-feedback loop.
 
 ![](images/04c/two-node.png){width=30% fig-align="center"}
 
@@ -28,8 +21,7 @@ After nondimensionalization,
 \end{cases} \tag{1}
 \end{equation}
 
-with maximum production rates $g$ and $h$. With $g = h = 10$ and no delay, the
-loop relaxes to a stable steady state.
+with maximum production rates $g$ and $h$. With $g = h = 10$ and no delay, the loop relaxes to a stable steady state.
 
 ::: {.callout-note title="Recipe 4C.1.1"}
 **Objective.** Simulate a two-gene negative-feedback loop without any delay, as a baseline.
@@ -101,8 +93,7 @@ plt.legend(loc="upper left"); plt.show()
 
 ## 4C.2 The same loop with a time delay
 
-Now suppose the repression of $X$ by $Y$ acts with a delay $\tau$ (the time to make
-and act through $Y$),
+Now suppose the repression of $X$ by $Y$ acts with a delay $\tau$ (the time to make and act through $Y$),
 
 \begin{equation}
 \begin{cases}
@@ -111,8 +102,7 @@ and act through $Y$),
 \end{cases} \tag{2}
 \end{equation}
 
-with constant history $x(t) = x_0$, $y(t) = y_0$ for $t \leq 0$. With $\tau = 2$
-the stable steady state gives way to a sustained oscillation.
+with constant history $x(t) = x_0$, $y(t) = y_0$ for $t \leq 0$. With $\tau = 2$ the stable steady state gives way to a sustained oscillation.
 
 ::: {.callout-note title="Recipe 4C.2.1"}
 **Objective.** Add a delay to the two-node loop's repression and see it destabilize.
@@ -189,9 +179,7 @@ plt.legend(loc="upper left"); plt.show()
 
 ## 4C.3 Trading the delay for intermediate nodes
 
-Instead of a delay, we can lengthen the loop with real intermediate genes. A
-three-node ring, $X \to Y \to Z \dashv X$ (two activations and one repression, so
-the feedback is still negative), is
+Instead of a delay, we can lengthen the loop with real intermediate genes. A three-node ring, $X \to Y \to Z \dashv X$ (two activations and one repression, so the feedback is still negative), is
 
 \begin{equation}
 \begin{cases}
@@ -203,10 +191,7 @@ the feedback is still negative), is
 
 ![](images/04c/three-node.png){width=26% fig-align="center"}
 
-With $g = h = l = 10$ and no delay at all, the three-node loop already oscillates,
-though with a shorter period than the delayed two-node loop. Adding a fourth node
-($X \to Y \to Z \to W \dashv X$) lengthens the period further and brings the
-dynamics closer to the $\tau = 2$ delayed case:
+With $g = h = l = 10$ and no delay at all, the three-node loop already oscillates, though with a shorter period than the delayed two-node loop. Adding a fourth node ($X \to Y \to Z \to W \dashv X$) lengthens the period further and brings the dynamics closer to the $\tau = 2$ delayed case:
 
 \begin{equation}
 \begin{cases}
@@ -219,8 +204,7 @@ dynamics closer to the $\tau = 2$ delayed case:
 
 ![](images/04c/four-node.png){width=24% fig-align="center"}
 
-A time delay and a chain of intermediate reactions are thus two ways to model the
-same lag.
+A time delay and a chain of intermediate reactions are thus two ways to model the same lag.
 
 ::: {.callout-note title="Recipe 4C.3.1"}
 **Objective.** Show that a chain of intermediate genes can stand in for a delay in producing oscillations.

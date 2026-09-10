@@ -4,53 +4,29 @@ author: "Mingyang Lu"
 old_id: "07D"
 ---
 
-The finite-difference machinery of [Part 7A](07a-modeling-diffusion.qmd) also drives
-a very different kind of model, in which a continuous chemical field is coupled to
-discrete, excitable cells. The social amoeba *Dictyostelium discoideum* aggregates
-by relaying pulses of cyclic AMP (cAMP), and the relayed pulses organize into
-rotating spiral waves. Here we reproduce that pattern with the model of Kessler and
-Levine [@kessler1993pattern], who represent the cells as discrete excitable entities
-(they call them *bions*) sitting on a lattice through which cAMP diffuses.
+The finite-difference machinery of [Part 7A](07a-modeling-diffusion.qmd) also drives a very different kind of model, in which a continuous chemical field is coupled to discrete, excitable cells. The social amoeba *Dictyostelium discoideum* aggregates by relaying pulses of cyclic AMP (cAMP), and the relayed pulses organize into rotating spiral waves. Here we reproduce that pattern with the model of Kessler and Levine [@kessler1993pattern], who represent the cells as discrete excitable entities (they call them *bions*) sitting on a lattice through which cAMP diffuses.
 
-The model has two coupled parts. The cAMP concentration $c(X, Y, t)$ is a single
-continuous field on a two-dimensional lattice, and it obeys a reaction-diffusion
-equation,
+The model has two coupled parts. The cAMP concentration $c(X, Y, t)$ is a single continuous field on a two-dimensional lattice, and it obeys a reaction-diffusion equation,
 
 $$ \frac{\partial c}{\partial t} = a^2 \left( \frac{\partial^2 c}{\partial X^2} + \frac{\partial^2 c}{\partial Y^2} \right) - k c + s(X, Y, t) , \tag{1} $$
 
-where $a$ is the lattice spacing, $k$ the cAMP degradation rate, and $s$ the cAMP
-secreted by cells. On top of this field sit the cells, placed at random lattice
-points with density $\rho$. Each cell is an excitable element that cycles through
-three states:
+where $a$ is the lattice spacing, $k$ the cAMP degradation rate, and $s$ the cAMP secreted by cells. On top of this field sit the cells, placed at random lattice points with density $\rho$. Each cell is an excitable element that cycles through three states:
 
-- **inactive** (state 1): the resting state; the cell waits here until the local
-  cAMP rises above a threshold $c_T$;
-- **excited** (state 2): once $c > c_T$, the cell fires, secreting cAMP at rate
-  $\Delta c / t_e$ for a fixed excitation time $t_e$;
-- **refractory** (state 3): after firing, the cell cannot respond for a recovery
-  time $t_r$, after which it returns to inactive.
+- **inactive** (state 1): the resting state; the cell waits here until the local cAMP rises above a threshold $c_T$;
+- **excited** (state 2): once $c > c_T$, the cell fires, secreting cAMP at rate $\Delta c / t_e$ for a fixed excitation time $t_e$;
+- **refractory** (state 3): after firing, the cell cannot respond for a recovery time $t_r$, after which it returns to inactive.
 
-The firing cells are the source term $s$ in Equation (1), so an excited cell raises
-the cAMP of its neighbors, which can push them over threshold in turn. This relay is
-what propagates a wave.
+The firing cells are the source term $s$ in Equation (1), so an excited cell raises the cAMP of its neighbors, which can push them over threshold in turn. This relay is what propagates a wave.
 
-We discretize Equation (1) exactly as in Part 7A, but now in two dimensions. With
-lattice spacing $a = \Delta X = 1$, the centered second difference gives the
-five-point Laplacian,
+We discretize Equation (1) exactly as in Part 7A, but now in two dimensions. With lattice spacing $a = \Delta X = 1$, the centered second difference gives the five-point Laplacian,
 
 $$ \nabla^2 c \approx c_{i+1,j} + c_{i-1,j} + c_{i,j+1} + c_{i,j-1} - 4 c_{i,j} , \tag{2} $$
 
-and we impose a *no-flux* (Neumann) boundary by copying each edge value from its
-inward neighbor, so that no cAMP leaves the domain.
+and we impose a *no-flux* (Neumann) boundary by copying each edge value from its inward neighbor, so that no cAMP leaves the domain.
 
 ## 7D.1 Model setup
 
-We place `ncell` cells at random on an $n \times n$ lattice and give cAMP an initial
-linear gradient (from 0 to 2, mean 1) across the lattice in one direction. The
-fraction of cells that start in the refractory state rises linearly in the
-*perpendicular* direction. This offset between the chemical gradient and the
-refractory gradient breaks the symmetry and seeds a single rotating spiral rather
-than concentric target waves.
+We place `ncell` cells at random on an $n \times n$ lattice and give cAMP an initial linear gradient (from 0 to 2, mean 1) across the lattice in one direction. The fraction of cells that start in the refractory state rises linearly in the *perpendicular* direction. This offset between the chemical gradient and the refractory gradient breaks the symmetry and seeds a single rotating spiral rather than concentric target waves.
 
 ### R implementation {.impl}
 
@@ -135,19 +111,11 @@ ax[1].set(xlabel="x", ylabel="y", title="cAMP")
 plt.tight_layout(); plt.show()
 ```
 
-The left panel shows the cells, colored black for inactive and green for refractory
-(no cell is excited yet); the right panel shows the smooth initial cAMP gradient.
-Because R and Python draw independent random cell placements, the two starting
-configurations differ in detail while sharing the same statistics.
+The left panel shows the cells, colored black for inactive and green for refractory (no cell is excited yet); the right panel shows the smooth initial cAMP gradient. Because R and Python draw independent random cell placements, the two starting configurations differ in detail while sharing the same statistics.
 
 ## 7D.2 Simulation
 
-Each time step does two things: it advances every cell through the state machine
-described above, then updates the cAMP field with one explicit finite-difference
-step of Equation (1), adding the secreted cAMP at the location of every excited
-cell. We write the cell update as vectorized operations over all cells at once,
-which keeps the R and Python versions identical in structure and fast enough to run
-the full simulation inline.
+Each time step does two things: it advances every cell through the state machine described above, then updates the cAMP field with one explicit finite-difference step of Equation (1), adding the secreted cAMP at the location of every excited cell. We write the cell update as vectorized operations over all cells at once, which keeps the R and Python versions identical in structure and fast enough to run the full simulation inline.
 
 ::: {.callout-note title="Recipe 7D.2.1"}
 **Objective.** Simulate spiral cAMP waves in a Dictyostelium colony of excitable cells.
@@ -277,22 +245,11 @@ ax[1].set(xlabel="x", ylabel="y", title="cAMP")
 plt.tight_layout(); plt.show()
 ```
 
-Partway through the run, both the cells and the cAMP field have organized into a
-rotating spiral. In the cAMP panel the bright band (high cAMP) is the wave crest; in
-the cell panel the excited cells (red) sit on that crest, trailed by a band of
-refractory cells (green), with inactive cells (black) waiting ahead of the front.
-The spiral rotates around the point where the chemical and refractory gradients
-cross. As before, R and Python evolve independent random realizations, so each
-produces its own spiral of the same character rather than an identical picture.
+Partway through the run, both the cells and the cAMP field have organized into a rotating spiral. In the cAMP panel the bright band (high cAMP) is the wave crest; in the cell panel the excited cells (red) sit on that crest, trailed by a band of refractory cells (green), with inactive cells (black) waiting ahead of the front. The spiral rotates around the point where the chemical and refractory gradients cross. As before, R and Python evolve independent random realizations, so each produces its own spiral of the same character rather than an identical picture.
 
 ## 7D.3 Animation
 
-A single snapshot only hints at the dynamics. To watch the spiral rotate, we render
-every saved frame to a PNG and assemble the frames into an animated GIF. In R we use
-`magick` (the same ImageMagick tool used elsewhere in the book), and in Python
-`matplotlib.animation`. The animation code below is shown as a listing you can run;
-the resulting GIFs are pre-generated and embedded so the book does not rebuild them
-on every render.
+A single snapshot only hints at the dynamics. To watch the spiral rotate, we render every saved frame to a PNG and assemble the frames into an animated GIF. In R we use `magick` (the same ImageMagick tool used elsewhere in the book), and in Python `matplotlib.animation`. The animation code below is shown as a listing you can run; the resulting GIFs are pre-generated and embedded so the book does not rebuild them on every render.
 
 ### R implementation {.impl}
 
@@ -349,24 +306,17 @@ anim.save("images/07D/dicty_con.gif", writer=PillowWriter(fps=10))
 ```
 
 ::: {.content-visible when-format="html:js"}
-The cell-state animation shows the excitation wave sweeping around the spiral core.
-Black: inactive; red: excited; green: refractory.
+The cell-state animation shows the excitation wave sweeping around the spiral core. Black: inactive; red: excited; green: refractory.
 
 ![](images/07D/dicty_states.gif){width=60% fig-align="center"}
 
-The cAMP animation shows the corresponding chemical spiral. Yellow: high
-concentration; red: low.
+The cAMP animation shows the corresponding chemical spiral. Yellow: high concentration; red: low.
 
 ![](images/07D/dicty_con.gif){width=60% fig-align="center"}
 :::
 
 ::: {.content-visible unless-format="html:js"}
-The animated spiral waves are available in the online HTML edition of this book; the
-snapshots in Section 7D.2 show one frame of each.
+The animated spiral waves are available in the online HTML edition of this book; the snapshots in Section 7D.2 show one frame of each.
 :::
 
-The two views tell the same story from different angles. The cAMP spiral is the
-chemical signal, and the cell-state spiral is the population responding to it: each
-cell fires as the wave arrives, then falls refractory and recovers just in time for
-the next pass. This self-sustaining relay is how *Dictyostelium* coordinates
-aggregation across thousands of cells with only local chemical signaling.
+The two views tell the same story from different angles. The cAMP spiral is the chemical signal, and the cell-state spiral is the population responding to it: each cell fires as the wave arrives, then falls refractory and recovers just in time for the next pass. This self-sustaining relay is how *Dictyostelium* coordinates aggregation across thousands of cells with only local chemical signaling.

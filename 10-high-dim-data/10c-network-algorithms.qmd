@@ -4,30 +4,11 @@ author: "Mingyang Lu"
 old_id: "10C"
 ---
 
-Many biological systems are naturally described as *networks*: protein-protein
-interaction networks, gene regulatory networks, metabolic networks, and cell-signaling
-networks all connect components (genes, proteins, metabolites) by their interactions
-[@barabasi2004network]. A network, or *graph*, is a set of *vertices* (nodes) joined by
-*edges*. This chapter represents networks as adjacency matrices, computes their
-structural properties, generates random-network models, detects community structure by
-modularity, and models discrete gene-regulatory dynamics with Boolean networks. We
-compute the core quantities from scratch and use `igraph` (R) and `networkx` (Python)
-for graph layout and the longer standard algorithms.
+Many biological systems are naturally described as *networks*: protein-protein interaction networks, gene regulatory networks, metabolic networks, and cell-signaling networks all connect components (genes, proteins, metabolites) by their interactions [@barabasi2004network]. A network, or *graph*, is a set of *vertices* (nodes) joined by *edges*. This chapter represents networks as adjacency matrices, computes their structural properties, generates random-network models, detects community structure by modularity, and models discrete gene-regulatory dynamics with Boolean networks. We compute the core quantities from scratch and use `igraph` (R) and `networkx` (Python) for graph layout and the longer standard algorithms.
 
 ## 10C.1 Networks and their properties
 
-A network of $n$ vertices is stored as an $n \times n$ *adjacency matrix* $A$, with
-$A_{ij} = 1$ when vertices $i$ and $j$ are connected and 0 otherwise (symmetric for an
-undirected network). From $A$ we read off the basic structure. The *degree* of a vertex
-is its number of neighbors, $k_i = \sum_j A_{ij}$. The *clustering coefficient* measures
-how interconnected a vertex's neighbors are: for a vertex of degree $k$ with $e$ edges
-among its neighbors, $c = e / \binom{k}{2}$. The *distance* between two vertices is the
-length of the shortest path between them, and the *diameter* is the largest such
-distance. We illustrate on Zachary's karate club [@zachary1977information], a classic
-34-member social network, drawn with the Kamada-Kawai layout [@kamada1989algorithm]: unlike
-a force-directed layout, this is a deterministic stress-majorization of the shortest-path
-distances, so the R and Python renderings closely agree instead of depending on each
-library's own stochastic algorithm.
+A network of $n$ vertices is stored as an $n \times n$ *adjacency matrix* $A$, with $A_{ij} = 1$ when vertices $i$ and $j$ are connected and 0 otherwise (symmetric for an undirected network). From $A$ we read off the basic structure. The *degree* of a vertex is its number of neighbors, $k_i = \sum_j A_{ij}$. The *clustering coefficient* measures how interconnected a vertex's neighbors are: for a vertex of degree $k$ with $e$ edges among its neighbors, $c = e / \binom{k}{2}$. The *distance* between two vertices is the length of the shortest path between them, and the *diameter* is the largest such distance. We illustrate on Zachary's karate club [@zachary1977information], a classic 34-member social network, drawn with the Kamada-Kawai layout [@kamada1989algorithm]: unlike a force-directed layout, this is a deterministic stress-majorization of the shortest-path distances, so the R and Python renderings closely agree instead of depending on each library's own stochastic algorithm.
 
 ::: {.callout-note title="Recipe 10C.1.1"}
 **Objective.** Compute the structural properties of a network.
@@ -146,24 +127,11 @@ axs[1].scatter(degree_v, bc * (n - 1) * (n - 2) / 2); axs[1].set(xlabel="degree"
 plt.tight_layout(); plt.show()
 ```
 
-The karate club has a few high-degree hubs and many low-degree members, a mean degree
-near 4.6, a diameter of 5, and a fairly high clustering coefficient (about 0.57):
-friends of friends tend to be friends, a hallmark of the "small-world" networks of Watts
-and Strogatz [@watts1998collective]. Betweenness, the number of shortest paths passing
-through a vertex [@freeman1977set], tracks degree loosely but not exactly; the two
-highest-betweenness nodes are the instructor and the club president, the bridges through
-which most paths run.
+The karate club has a few high-degree hubs and many low-degree members, a mean degree near 4.6, a diameter of 5, and a fairly high clustering coefficient (about 0.57): friends of friends tend to be friends, a hallmark of the "small-world" networks of Watts and Strogatz [@watts1998collective]. Betweenness, the number of shortest paths passing through a vertex [@freeman1977set], tracks degree loosely but not exactly; the two highest-betweenness nodes are the instructor and the club president, the bridges through which most paths run.
 
 ## 10C.2 Random-network models
 
-To judge whether a real network's structure is surprising, we compare it with random
-models. The *Erdős-Rényi* model [@erdos1959random] connects each pair of vertices
-independently with probability $p$, giving a Poisson-like degree distribution peaked at
-the mean. The *Barabási-Albert* model [@barabasi1999emergence] grows a network by
-*preferential attachment*: each new vertex attaches to $m$ existing ones with probability
-proportional to their degree, so hubs accumulate ever more connections. This produces a
-*scale-free* degree distribution with a heavy, power-law tail, closer to what many
-biological networks show. Both generators are short to write.
+To judge whether a real network's structure is surprising, we compare it with random models. The *Erdős-Rényi* model [@erdos1959random] connects each pair of vertices independently with probability $p$, giving a Poisson-like degree distribution peaked at the mean. The *Barabási-Albert* model [@barabasi1999emergence] grows a network by *preferential attachment*: each new vertex attaches to $m$ existing ones with probability proportional to their degree, so hubs accumulate ever more connections. This produces a *scale-free* degree distribution with a heavy, power-law tail, closer to what many biological networks show. Both generators are short to write.
 
 ::: {.callout-note title="Recipe 10C.2.1"}
 **Objective.** Generate random networks from two classic models and compare their degree distributions.
@@ -252,27 +220,15 @@ axs[1].loglog(v, c, "o"); axs[1].set(title="Barabasi-Albert (log-log)", xlabel="
 plt.tight_layout(); plt.show()
 ```
 
-The Erdős-Rényi degrees cluster tightly around the mean, so a highly connected hub is
-essentially impossible. The Barabási-Albert degrees instead fall off as a straight line
-on log-log axes, the signature of a power law: most vertices have few links but a few
-hubs have very many. Biological networks such as protein interaction networks resemble
-the scale-free model far more than the random one, which is why hubs (often essential
-genes) are a recurring theme.
+The Erdős-Rényi degrees cluster tightly around the mean, so a highly connected hub is essentially impossible. The Barabási-Albert degrees instead fall off as a straight line on log-log axes, the signature of a power law: most vertices have few links but a few hubs have very many. Biological networks such as protein interaction networks resemble the scale-free model far more than the random one, which is why hubs (often essential genes) are a recurring theme.
 
 ## 10C.3 Community detection by modularity
 
-Networks often divide into *communities*, groups of vertices more densely connected
-among themselves than to the rest. Newman's *modularity* $Q$ measures how good a division
-is, comparing the fraction of edges inside groups with the fraction expected if edges
-were placed at random while preserving degrees [@newman2006modularity],
+Networks often divide into *communities*, groups of vertices more densely connected among themselves than to the rest. Newman's *modularity* $Q$ measures how good a division is, comparing the fraction of edges inside groups with the fraction expected if edges were placed at random while preserving degrees [@newman2006modularity],
 
 $$ Q = \frac{1}{2m} \sum_{i,j} \left( A_{ij} - \frac{k_i k_j}{2m} \right) \delta(c_i, c_j) , \tag{1} $$
 
-where $m$ is the number of edges, $k_i$ the degree of vertex $i$, and $\delta(c_i, c_j)$
-is 1 when $i$ and $j$ are in the same community. Newman's *spectral method* splits a
-network in two using the *modularity matrix* $B_{ij} = A_{ij} - k_i k_j / 2m$: the signs
-of the leading eigenvector of $B$ assign vertices to the two groups, the division that
-best increases $Q$.
+where $m$ is the number of edges, $k_i$ the degree of vertex $i$, and $\delta(c_i, c_j)$ is 1 when $i$ and $j$ are in the same community. Newman's *spectral method* splits a network in two using the *modularity matrix* $B_{ij} = A_{ij} - k_i k_j / 2m$: the signs of the leading eigenvector of $B$ assign vertices to the two groups, the division that best increases $Q$.
 
 ::: {.callout-note title="Recipe 10C.3.1"}
 **Objective.** Split a network into communities by maximizing modularity.
@@ -347,24 +303,11 @@ nx.draw(G, pos, node_color=["tomato" if c else "skyblue" for c in comm],
 plt.show()
 ```
 
-The spectral split cleanly separates the karate club into two communities of sizes 18
-and 16, with modularity $Q \approx 0.37$, and this partition closely matches the actual
-split of the club into two factions after a dispute, the outcome Zachary recorded. For
-more than two communities one applies the bisection recursively or uses a fast optimizer
-such as the Louvain method [@blondel2008fast] (`cluster_louvain` in igraph,
-`greedy_modularity_communities` in networkx), which we would reach for on larger networks.
+The spectral split cleanly separates the karate club into two communities of sizes 18 and 16, with modularity $Q \approx 0.37$, and this partition closely matches the actual split of the club into two factions after a dispute, the outcome Zachary recorded. For more than two communities one applies the bisection recursively or uses a fast optimizer such as the Louvain method [@blondel2008fast] (`cluster_louvain` in igraph, `greedy_modularity_communities` in networkx), which we would reach for on larger networks.
 
 ## 10C.4 Boolean network models
 
-Gene regulatory networks can be modeled without kinetic parameters by treating each gene
-as either on (1) or off (0) and updating its state by a logical rule of its regulators'
-states [@kauffman1969metabolic]. The system state is a binary vector; in *synchronous*
-updating, every gene is updated together at each discrete time step, $x_i(t+1) =
-f_i(\mathbf{x}(t))$. Iterating from any start eventually falls into an *attractor*: a
-fixed point (a steady state, $\mathbf{x}(t+1) = \mathbf{x}(t)$) or a cycle (an
-oscillation). We enumerate the attractors by running every possible initial state to its
-repeat, then apply this to two circuits already studied as continuous systems in
-[Part 3H](../03-phase-plane/03h-multi-component.qmd): a toggle switch and a repressilator.
+Gene regulatory networks can be modeled without kinetic parameters by treating each gene as either on (1) or off (0) and updating its state by a logical rule of its regulators' states [@kauffman1969metabolic]. The system state is a binary vector; in *synchronous* updating, every gene is updated together at each discrete time step, $x_i(t+1) = f_i(\mathbf{x}(t))$. Iterating from any start eventually falls into an *attractor*: a fixed point (a steady state, $\mathbf{x}(t+1) = \mathbf{x}(t)$) or a cycle (an oscillation). We enumerate the attractors by running every possible initial state to its repeat, then apply this to two circuits already studied as continuous systems in [Part 3H](../03-phase-plane/03h-multi-component.qmd): a toggle switch and a repressilator.
 
 ::: {.callout-note title="Recipe 10C.4.1"}
 **Objective.** Enumerate the attractors of a Boolean network.
@@ -431,8 +374,7 @@ A toggle switch is two genes that mutually repress each other:
 
 $$ X(t+1) = \neg Y(t), \qquad Y(t+1) = \neg X(t) $$
 
-Its Boolean form reduces each gene to on or off; applying `boolean_attractors` to this
-update rule enumerates all its attractors from every one of the 4 possible starting states.
+Its Boolean form reduces each gene to on or off; applying `boolean_attractors` to this update rule enumerates all its attractors from every one of the 4 possible starting states.
 
 ::: {.callout-note title="Recipe 10C.5.1"}
 **Objective.** Find the attractors of a Boolean toggle switch.
@@ -477,8 +419,7 @@ A repressilator is a ring of three repressions, each gene repressing the next:
 
 $$ X(t+1) = \neg Z(t), \qquad Y(t+1) = \neg X(t), \qquad Z(t+1) = \neg Y(t) $$
 
-Its continuous version oscillates on a limit cycle [@elowitz2000repressilator]; the
-Boolean version has the same three-gene ring topology, reduced to on/off states.
+Its continuous version oscillates on a limit cycle [@elowitz2000repressilator]; the Boolean version has the same three-gene ring topology, reduced to on/off states.
 
 ::: {.callout-note title="Recipe 10C.6.1"}
 **Objective.** Find the attractors of a Boolean repressilator.
@@ -513,11 +454,6 @@ print(show_att(boolean_attractors(repressilator, 3)))
 The Boolean repressilator has no fixed points, only two cyclic attractors:
 
 - `000 -> 111 -> 000`, a short two-state oscillation
-- `100 -> 101 -> 001 -> 011 -> 010 -> 110 -> 100`, a six-state cycle, the discrete analog
-  of the continuous limit cycle
+- `100 -> 101 -> 001 -> 011 -> 010 -> 110 -> 100`, a six-state cycle, the discrete analog of the continuous limit cycle
 
-Despite their extreme simplicity, Boolean networks reproduce the qualitative dynamics of
-real regulatory circuits: Li et al. showed that the Boolean network of the yeast cell
-cycle has a single dominant attractor corresponding to the biological cell-cycle sequence
-[@li2004yeast], evidence that the network's wiring, not finely tuned parameters, sets its
-behavior.
+Despite their extreme simplicity, Boolean networks reproduce the qualitative dynamics of real regulatory circuits: Li et al. showed that the Boolean network of the yeast cell cycle has a single dominant attractor corresponding to the biological cell-cycle sequence [@li2004yeast], evidence that the network's wiring, not finely tuned parameters, sets its behavior.

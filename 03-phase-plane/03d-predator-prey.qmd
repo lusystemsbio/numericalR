@@ -4,18 +4,7 @@ author: "Mingyang Lu"
 old_id: "03D"
 ---
 
-This chapter models a predator-prey system, a cornerstone example of how
-populations regulate one another in an ecosystem [@carroll2016serengeti], with the
-classic **Lotka-Volterra** equations
-[@lotka1925elements; @volterra1926fluctuations; @sontag_systemsbio].
-Unlike the toggle switch and chemostat of [Part 3A](03a-nullclines.qmd) through
-[Part 3C](03c-chemostat.qmd), where every trajectory settled onto a fixed point,
-this system oscillates: its trajectories form closed orbits around a *center*.
-That difference reshapes the analysis, so beyond reusing the phase-plane tools we
-also look at what a center means for stability and, at the end, how to fit the
-model's parameters to real population data. The general derivations (RK4,
-vector fields, the Jacobian stability test) are only referenced here; see Parts
-3A and 3B for them.
+This chapter models a predator-prey system, a cornerstone example of how populations regulate one another in an ecosystem [@carroll2016serengeti], with the classic **Lotka-Volterra** equations [@lotka1925elements; @volterra1926fluctuations; @sontag_systemsbio]. Unlike the toggle switch and chemostat of [Part 3A](03a-nullclines.qmd) through [Part 3C](03c-chemostat.qmd), where every trajectory settled onto a fixed point, this system oscillates: its trajectories form closed orbits around a *center*. That difference reshapes the analysis, so beyond reusing the phase-plane tools we also look at what a center means for stability and, at the end, how to fit the model's parameters to real population data. The general derivations (RK4, vector fields, the Jacobian stability test) are only referenced here; see Parts 3A and 3B for them.
 
 ## 3D.1 Lotka-Volterra model
 
@@ -28,20 +17,11 @@ Let $N$ be the prey population and $P$ the predator population. The model is
 \end{cases} \tag{1}
 \end{equation}
 
-Prey grow exponentially at rate $a$ and are eaten at a rate $bP$ proportional to
-the predator level; predators die off at rate $d$ and reproduce at a rate $cN$
-set by the available prey. All four parameters are positive. Throughout we take
-$a = d = 1$, $b = 0.03$, and $c = 0.02$.
+Prey grow exponentially at rate $a$ and are eaten at a rate $bP$ proportional to the predator level; predators die off at rate $d$ and reproduce at a rate $cN$ set by the available prey. All four parameters are positive. Throughout we take $a = d = 1$, $b = 0.03$, and $c = 0.02$.
 
 ## 3D.2 Oscillations and closed orbits
 
-With predators absent ($P = 0$) the prey equation reduces to $dN/dt = aN$, pure
-exponential growth; with prey absent ($N = 0$) the predators decay as
-$dP/dt = -dP$. When both are present the two populations chase each other and the
-levels oscillate in time. In the phase plane this shows up as **closed orbits**:
-starting from different initial conditions traces a family of nested loops, none
-of which spirals in or out. This is the signature of a conservative (center-type)
-system and is qualitatively different from the attractor dynamics of Parts 3A-3C.
+With predators absent ($P = 0$) the prey equation reduces to $dN/dt = aN$, pure exponential growth; with prey absent ($N = 0$) the predators decay as $dP/dt = -dP$. When both are present the two populations chase each other and the levels oscillate in time. In the phase plane this shows up as **closed orbits**: starting from different initial conditions traces a family of nested loops, none of which spirals in or out. This is the signature of a conservative (center-type) system and is qualitatively different from the attractor dynamics of Parts 3A-3C.
 
 ::: {.callout-note title="Recipe 3D.2.1"}
 **Objective.** Simulate the Lotka-Volterra predator-prey model and see its oscillations and closed orbits.
@@ -157,30 +137,16 @@ plt.legend(title="Initial (N, P)", loc="upper right", fontsize=8); plt.show()
 ```
 
 ::: {.callout-note title="Practice Q1"}
-Confirm the two degenerate regimes analytically and by simulation: with $P(0) = 0$
-the prey grow as $N(t) = N(0)e^{at}$, and with $N(0) = 0$ the predators decay as
-$P(t) = P(0)e^{-dt}$. Why do these axes act as invariant boundaries the full
-trajectories can never cross?
+Confirm the two degenerate regimes analytically and by simulation: with $P(0) = 0$ the prey grow as $N(t) = N(0)e^{at}$, and with $N(0) = 0$ the predators decay as $P(t) = P(0)e^{-dt}$. Why do these axes act as invariant boundaries the full trajectories can never cross?
 :::
 
 ::: {.callout-note title="Practice Q2"}
-The Lotka-Volterra system has a conserved quantity,
-$H(N, P) = cN - d\ln N + bP - a\ln P$, that stays constant along every
-trajectory. Verify numerically that $H$ is (nearly) constant along a simulated
-orbit, and explain why its conservation forces the orbits to be closed rather
-than spiraling.
+The Lotka-Volterra system has a conserved quantity, $H(N, P) = cN - d\ln N + bP - a\ln P$, that stays constant along every trajectory. Verify numerically that $H$ is (nearly) constant along a simulated orbit, and explain why its conservation forces the orbits to be closed rather than spiraling.
 :::
 
 ## 3D.3 Nullclines and steady states
 
-The nullclines follow directly from Equation (1). The **N-nullcline** ($dN/dt = 0$)
-is $N = 0$ or $P = a/b$; the **P-nullcline** ($dP/dt = 0$) is $P = 0$ or
-$N = d/c$. Each nullcline is therefore a pair of straight lines. A steady state
-requires *both* derivatives to vanish, so only crossings between an N-nullcline
-line and a P-nullcline line count (two lines from the same nullcline crossing do
-not). That gives two steady states, $X_1 = (0, 0)$ and $X_2 = (d/c, a/b)$. Below
-we draw the unit vector field (as in [Part 3A](03a-nullclines.qmd)), overlay the
-four nullcline lines and the two steady states, and add one orbit.
+The nullclines follow directly from Equation (1). The **N-nullcline** ($dN/dt = 0$) is $N = 0$ or $P = a/b$; the **P-nullcline** ($dP/dt = 0$) is $P = 0$ or $N = d/c$. Each nullcline is therefore a pair of straight lines. A steady state requires *both* derivatives to vanish, so only crossings between an N-nullcline line and a P-nullcline line count (two lines from the same nullcline crossing do not). That gives two steady states, $X_1 = (0, 0)$ and $X_2 = (d/c, a/b)$. Below we draw the unit vector field (as in [Part 3A](03a-nullclines.qmd)), overlay the four nullcline lines and the two steady states, and add one orbit.
 
 ### R implementation {.impl}
 
@@ -242,20 +208,9 @@ plt.legend(loc="upper right", fontsize=8); plt.show()
 
 ## 3D.4 Stability: a saddle and a center
 
-Perturbing each steady state slightly (keeping $N, P \geq 0$) reveals two very
-different behaviors. Near $X_1 = (0, 0)$ the trajectory swings away, so $X_1$ is
-unstable. Near $X_2 = (d/c, a/b) = (50, 33.3)$ the trajectory loops around the
-point on a closed orbit without approaching or leaving it, the defining feature
-of a **center**.
+Perturbing each steady state slightly (keeping $N, P \geq 0$) reveals two very different behaviors. Near $X_1 = (0, 0)$ the trajectory swings away, so $X_1$ is unstable. Near $X_2 = (d/c, a/b) = (50, 33.3)$ the trajectory loops around the point on a closed orbit without approaching or leaving it, the defining feature of a **center**.
 
-The same conclusion follows from the Jacobian eigenvalues, using the numerical
-stability classifier of [Part 3B](03b-steady-states-2d.qmd) (redefined here so the
-chapter runs on its own). $X_1$ has real eigenvalues of opposite sign, a saddle
-(code `3`). $X_2$ has a pure imaginary pair, the mark of a center. Note the
-numerical classifier reports code `5` (unstable spiral) for $X_2$: finite-
-difference noise nudges the zero real part slightly positive, and linear analysis
-alone cannot separate a true center from a very weak spiral. The closed orbits of
-3D.2 are what confirm it is a genuine center.
+The same conclusion follows from the Jacobian eigenvalues, using the numerical stability classifier of [Part 3B](03b-steady-states-2d.qmd) (redefined here so the chapter runs on its own). $X_1$ has real eigenvalues of opposite sign, a saddle (code `3`). $X_2$ has a pure imaginary pair, the mark of a center. Note the numerical classifier reports code `5` (unstable spiral) for $X_2$: finite- difference noise nudges the zero real part slightly positive, and linear analysis alone cannot separate a true center from a very weak spiral. The closed orbits of 3D.2 are what confirm it is a genuine center.
 
 ### R implementation {.impl}
 
@@ -306,23 +261,12 @@ for ss in ss_all:
 ```
 
 ::: {.callout-note title="Practice Q3"}
-Work out the Jacobian of Equation (1) by hand and evaluate it at
-$X_2 = (d/c, a/b)$. Show that its eigenvalues are $\pm i\sqrt{ad}$, purely
-imaginary, so linear theory predicts a center. Explain why the numerical
-classifier cannot reliably detect this, and how the conserved quantity of Q2
-settles the question.
+Work out the Jacobian of Equation (1) by hand and evaluate it at $X_2 = (d/c, a/b)$. Show that its eigenvalues are $\pm i\sqrt{ad}$, purely imaginary, so linear theory predicts a center. Explain why the numerical classifier cannot reliably detect this, and how the conserved quantity of Q2 settles the question.
 :::
 
 ## 3D.5 The lynx-hare data
 
-To ground the model in data, we fit its parameters $a, b, c, d$ to real
-populations: the Hudson's Bay Company fur-trade records of snowshoe hare and
-Canada lynx from 1900-1920, a classic predator-prey series discussed in both
-@carroll2016serengeti and @sontag_systemsbio. Both populations rise and fall in a
-coupled roughly ten-year cycle, the lynx peaks trailing the hare peaks, the same
-qualitative pattern the model produces. We first look at the data as time courses
-and as a trajectory in the phase plane, then fit it two ways in the following
-sections.
+To ground the model in data, we fit its parameters $a, b, c, d$ to real populations: the Hudson's Bay Company fur-trade records of snowshoe hare and Canada lynx from 1900-1920, a classic predator-prey series discussed in both @carroll2016serengeti and @sontag_systemsbio. Both populations rise and fall in a coupled roughly ten-year cycle, the lynx peaks trailing the hare peaks, the same qualitative pattern the model produces. We first look at the data as time courses and as a trajectory in the phase plane, then fit it two ways in the following sections.
 
 ### R implementation {.impl}
 
@@ -391,13 +335,7 @@ plt.xlim(0, 100); plt.ylim(0, 100); plt.show()
 
 ## 3D.6 Fitting by error minimization
 
-Error minimization simulates the model for a trial parameter set, measures the
-sum of squared differences (SSD) between the simulated and observed levels, and
-adjusts the parameters until the SSD is as small as possible. The minimizer (R's
-Newton-based `nlm`, or `scipy.optimize.minimize` with BFGS) finds only a *local*
-minimum, so it needs a reasonable starting guess; here we begin from a hand-picked
-one. The fitted trajectory follows both the time courses and the phase-plane loop
-of the data.
+Error minimization simulates the model for a trial parameter set, measures the sum of squared differences (SSD) between the simulated and observed levels, and adjusts the parameters until the SSD is as small as possible. The minimizer (R's Newton-based `nlm`, or `scipy.optimize.minimize` with BFGS) finds only a *local* minimum, so it needs a reasonable starting guess; here we begin from a hand-picked one. The fitted trajectory follows both the time courses and the phase-plane loop of the data.
 
 ::: {.callout-note title="Recipe 3D.6.1"}
 **Objective.** Fit the Lotka-Volterra parameters to observed data by minimizing the error.
@@ -501,23 +439,12 @@ plt.xlim(0, 100); plt.ylim(0, 100); plt.legend(fontsize=8); plt.show()
 ```
 
 ::: {.callout-note title="Practice Q4"}
-Explore how sensitive the fit is to the optimizer and the starting point. Try
-several initial guesses and several optimizers (in R, `nlm` and the methods of
-`optim`; in Python, `minimize` with `Nelder-Mead`, `BFGS`, and `Powell`). Which
-combinations reach the good fit and which stall at a poor local minimum? What does
-that say about non-convex fitting problems?
+Explore how sensitive the fit is to the optimizer and the starting point. Try several initial guesses and several optimizers (in R, `nlm` and the methods of `optim`; in Python, `minimize` with `Nelder-Mead`, `BFGS`, and `Powell`). Which combinations reach the good fit and which stall at a poor local minimum? What does that say about non-convex fitting problems?
 :::
 
 ## 3D.7 Fitting by linear regression
 
-Linear regression exploits a special feature of this model: the rate equations
-are *linear* in the parameters. Replacing the time derivatives with centered
-finite differences at each year turns Equation (1) into a linear system, for the
-prey $\frac{N_{t+1} - N_{t-1}}{2} = a\,N_t - b\,N_t P_t$ and similarly for the
-predator, which ordinary least squares solves directly (no intercept). It is exact
-only for closely spaced data, so on the sparse yearly record the fit is rougher
-than error minimization. It is deterministic and cheap, though, which makes it an
-excellent starting guess for the error minimization (Practice Q5).
+Linear regression exploits a special feature of this model: the rate equations are *linear* in the parameters. Replacing the time derivatives with centered finite differences at each year turns Equation (1) into a linear system, for the prey $\frac{N_{t+1} - N_{t-1}}{2} = a\,N_t - b\,N_t P_t$ and similarly for the predator, which ordinary least squares solves directly (no intercept). It is exact only for closely spaced data, so on the sparse yearly record the fit is rougher than error minimization. It is deterministic and cheap, though, which makes it an excellent starting guess for the error minimization (Practice Q5).
 
 ::: {.callout-note title="Recipe 3D.7.1"}
 **Objective.** Fit the Lotka-Volterra parameters by linear regression, using that the model is linear in its parameters.
@@ -605,27 +532,16 @@ plt.xlabel("Hare (x1000)"); plt.ylabel("Lynx (x1000)")
 plt.xlim(0, 100); plt.ylim(0, 100); plt.legend(fontsize=8); plt.show()
 ```
 
-Error minimization tracks the oscillations closely. The raw linear-regression fit
-is rougher, since finite differences on once-a-year data are crude, but it is a
-cheap, principled starting point. Neither is perfect: the real lynx-hare cycle is
-noisier and more complex than a two-species model.
+Error minimization tracks the oscillations closely. The raw linear-regression fit is rougher, since finite differences on once-a-year data are crude, but it is a cheap, principled starting point. Neither is perfect: the real lynx-hare cycle is noisier and more complex than a two-species model.
 
 ::: {.callout-note title="Practice Q5"}
-Feed the linear-regression estimate `p_lr` into the error minimization as its
-initial guess, in place of the hand-picked `p0`. Does it reach a comparable (or
-lower) SSD, and in fewer steps? Seeding a nonlinear fit with a cheap linear one is
-a common, robust recipe.
+Feed the linear-regression estimate `p_lr` into the error minimization as its initial guess, in place of the hand-picked `p0`. Does it reach a comparable (or lower) SSD, and in fewer steps? Seeding a nonlinear fit with a cheap linear one is a common, robust recipe.
 :::
 
 ::: {.callout-note title="Practice Q6"}
-Test the claim that the regression error comes mainly from the coarse yearly
-spacing. Generate a denser dataset by sampling the fitted simulation every few
-time steps, run the linear regression on it, and check whether the recovered
-parameters are closer to the ones used to generate it.
+Test the claim that the regression error comes mainly from the coarse yearly spacing. Generate a denser dataset by sampling the fitted simulation every few time steps, run the linear regression on it, and check whether the recovered parameters are closer to the ones used to generate it.
 :::
 
 ::: {.callout-note title="Practice Q7"}
-Add random noise of increasing amplitude to the data points and refit with both
-methods. Which approach, linear regression or error minimization, degrades more
-gracefully, and why?
+Add random noise of increasing amplitude to the data points and refit with both methods. Which approach, linear regression or error minimization, degrades more gracefully, and why?
 :::

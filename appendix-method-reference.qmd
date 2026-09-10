@@ -46,7 +46,7 @@ main table.table td, main table.table th { vertical-align: top; }
 | Backward (implicit) Euler | `Euler_backward_1g` | `euler_backward_1g` | [2B](02-odes/02b-numerical-integration.qmd) |
 | ODE integration via library | `deSolve::ode` | `scipy.integrate.odeint` / `solve_ivp` | [2B](02-odes/02b-numerical-integration.qmd) |
 | Hill functions | `hill_ex`, `hill_inh` | `hill_ex`, `hill_inh` | [2A](02-odes/02a-modeling-gene-circuits.qmd) |
-| Analytical / closed-form solutions | `ode1`, `N_exact`, `logistic_exact` | `ode1`, `N_exact`, `logistic_exact` | [2A](02-odes/02a-modeling-gene-circuits.qmd), [2C](02-odes/02c-bacterial-growth.qmd) |
+| Analytical solutions | `ode1`, `N_exact`, `logistic_exact` | `ode1`, `N_exact`, `logistic_exact` | [2A](02-odes/02a-modeling-gene-circuits.qmd), [2C](02-odes/02c-bacterial-growth.qmd) |
 | Effective potential (1D) | `cal_int`, `cal_dfdx` | `cal_int`, `cal_dfdx` | [2D](02-odes/02d-effective-potential.qmd) |
 | Root finding (bisection, false position, bracketing) | `bisection`, `false_position`, `all_roots_bracketing` | `bisection`, `false_position`, `all_roots_bracketing` | [2E](02-odes/02e-bifurcation.qmd) |
 | Root finding via library | `rootSolve::uniroot.all` | `scipy.optimize.fsolve` | [2E](02-odes/02e-bifurcation.qmd) |

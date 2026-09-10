@@ -4,33 +4,17 @@ author: "Mingyang Lu"
 old_id: "02A"
 ---
 
-Starting here, we introduce numerical methods in the context of concrete
-real-world applications. Each section opens with the background of an
-application and the quantitative model behind it, then develops the associated
-numerical method. For every method we focus on three things: (1) the underlying
-theory, (2) its implementation in both R and Python, and (3) the libraries
-available in each language.
+Starting here, we introduce numerical methods in the context of concrete real-world applications. Each section opens with the background of an application and the quantitative model behind it, then develops the associated numerical method. For every method we focus on three things: (1) the underlying theory, (2) its implementation in both R and Python, and (3) the libraries available in each language.
 
-This first section is about how gene regulation can be turned into a set of
-*rate equations*, ordinary differential equations (ODEs) that track how the
-concentration of a gene product changes over time. The modeling framework used
-throughout follows the standard treatment of gene-regulatory circuits in systems
-biology [@alon2019systems].
+This first section is about how gene regulation can be turned into a set of *rate equations*, ordinary differential equations (ODEs) that track how the concentration of a gene product changes over time. The modeling framework used throughout follows the standard treatment of gene-regulatory circuits in systems biology [@alon2019systems].
 
 ## 2A.1 Circuit of a constitutively expressed gene
 
-Consider a gene whose expression is independent of any regulator. The full
-process (transcription, translation, and protein degradation) is sketched
-below.
+Consider a gene whose expression is independent of any regulator. The full process (transcription, translation, and protein degradation) is sketched below.
 
 ![](images/02a/fig1.png){width=70% fig-align="center"}
 
-The promoter of gene $X$ plays no active role here. The symbol $\varnothing$
-denotes "null", *i.e.*, a protein $X$ is removed in the degradation step. We
-adopt a simplified model in which transcription and translation are lumped into
-a single zero-order reaction with transcription rate $g$, while degradation is a
-first-order reaction with degradation rate $k$. The corresponding chemical
-scheme is
+The promoter of gene $X$ plays no active role here. The symbol $\varnothing$ denotes "null", *i.e.*, a protein $X$ is removed in the degradation step. We adopt a simplified model in which transcription and translation are lumped into a single zero-order reaction with transcription rate $g$, while degradation is a first-order reaction with degradation rate $k$. The corresponding chemical scheme is
 
 $$
 \varnothing {\stackrel{g}{\rightarrow}} X {\stackrel{k}{\rightarrow}} \varnothing
@@ -42,8 +26,7 @@ The rate equation for the level of gene $X$ is
 \frac{dX}{dt} = g - kX \tag{1}
 \end{equation}
 
-This is a typical ordinary differential equation (ODE). At steady state, the
-level $X_s$ satisfies
+This is a typical ordinary differential equation (ODE). At steady state, the level $X_s$ satisfies
 
 $$
 \frac{dX}{dt} = 0 ,
@@ -55,8 +38,7 @@ so that
 X_s = \frac{g}{k} . \tag{2}
 \end{equation}
 
-We can also solve for $X$ as an explicit function of time, $X(t)$, given the
-initial condition
+We can also solve for $X$ as an explicit function of time, $X(t)$, given the initial condition
 
 $$
 X(t=0) = X_0 .
@@ -80,15 +62,13 @@ whose general solution is
 x(t) = c_1 e^{-kt} + c_2 . \tag{5}
 \end{equation}
 
-The constants $c_1$ and $c_2$ are fixed by the initial condition. Combining
-Equations (2), (3), and (5), we obtain
+The constants $c_1$ and $c_2$ are fixed by the initial condition. Combining Equations (2), (3), and (5), we obtain
 
 \begin{equation}
 X(t) = X_0 + \left(\frac{g}{k} - X_0\right)\left(1 - e^{-kt}\right) . \tag{6}
 \end{equation}
 
-Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show
-$X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
+Let us set $g = 50$ nM per minute and $k = 0.1$ per minute. The plots below show $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 
 ::: {.callout-note title="Recipe 2A.1.1"}
 **Objective.** Plot the time course of a constitutively expressed gene from several initial conditions and watch them settle to a common steady state.
@@ -107,7 +87,7 @@ $X(t)$ for five initial conditions, $X = 300, 400, 500, 600, 700$ nM.
 ### R implementation {.impl}
 
 ```{r}
-ode1 <- function(X0, t) {   # closed-form X(t) from Equation (6)
+ode1 <- function(X0, t) {   # analytical X(t) from Equation (6)
   g <- 50; k <- 0.1
   X0 + (g / k - X0) * (1 - exp(-k * t))
 }
@@ -132,7 +112,7 @@ legend("topright", inset = 0.02, title = "Initial conditions",
 import numpy as np
 import matplotlib.pyplot as plt
 
-def ode1(X0, t):            # closed-form X(t) from Equation (6)
+def ode1(X0, t):            # analytical X(t) from Equation (6)
     g, k = 50, 0.1
     return X0 + (g / k - X0) * (1 - np.exp(-k * t))
 
@@ -148,17 +128,11 @@ ax.legend(title="Initial conditions", loc="upper right", fontsize=8)
 plt.show()
 ```
 
-The system has a single stable steady state: regardless of the initial
-condition, $X$ always relaxes to $X_s = g/k = 500$ nM. Here an analytical
-solution is easy to obtain, but in most problems it is much harder or impossible
-to find one, so numerical integration becomes necessary. We introduce numerical
-methods for integrating ODEs in [Part 2B](02b-numerical-integration.qmd).
+The system has a single stable steady state: regardless of the initial condition, $X$ always relaxes to $X_s = g/k = 500$ nM. Here an analytical solution is easy to obtain, but in most problems it is much harder or impossible to find one, so numerical integration becomes necessary. We introduce numerical methods for integrating ODEs in [Part 2B](02b-numerical-integration.qmd).
 
 ## 2A.2 Circuit with a self-activating gene
 
-Now consider a gene whose expression is regulated by its own product: protein
-$X$ binds its own promoter and modifies the transcription rate, making it a
-function $g(X)$.
+Now consider a gene whose expression is regulated by its own product: protein $X$ binds its own promoter and modifies the transcription rate, making it a function $g(X)$.
 
 ![](images/02a/fig2.png){width=55% fig-align="center"}
 
@@ -172,20 +146,13 @@ The transcription rate is modeled as
 g(X) = g_0 + g_1 H^{ex}(X) , \tag{7}
 \end{equation}
 
-where $g_0$ is the basal (minimum) transcription rate, $g_0 + g_1$ is the maximum
-rate, and $H^{ex}(X)$ is the *excitatory Hill function*
+where $g_0$ is the basal (minimum) transcription rate, $g_0 + g_1$ is the maximum rate, and $H^{ex}(X)$ is the *excitatory Hill function*
 
 \begin{equation}
 H^{ex}(X) \equiv \frac{(X/X_{th})^{n_X}}{1 + (X/X_{th})^{n_X}} . \tag{8}
 \end{equation}
 
-Here $X_{th}$ is the threshold level of $X$ and $n_X$ is the Hill coefficient.
-$H^{ex}$ is nonlinear, rising from $0$ at $X = 0$ toward $1$ as
-$X \to \infty$. The Hill function originates from Hill's model of cooperative
-oxygen binding to haemoglobin [@hill1910aggregation] and is now the standard way
-to describe cooperative protein interactions and transcription-factor–DNA
-binding [@alon2019systems]. The plots below show $H^{ex}$ for several Hill
-coefficients.
+Here $X_{th}$ is the threshold level of $X$ and $n_X$ is the Hill coefficient. $H^{ex}$ is nonlinear, rising from $0$ at $X = 0$ toward $1$ as $X \to \infty$. The Hill function originates from Hill's model of cooperative oxygen binding to haemoglobin [@hill1910aggregation] and is now the standard way to describe cooperative protein interactions and transcription-factor–DNA binding [@alon2019systems]. The plots below show $H^{ex}$ for several Hill coefficients.
 
 ### R implementation {.impl}
 
@@ -234,8 +201,7 @@ The rate equation for a self-activating gene is
 \frac{dX}{dt} = g_0 + g_1 H^{ex}(X) - kX . \tag{9}
 \end{equation}
 
-Finding an analytical solution of Equation (9) is non-trivial because of the
-nonlinear Hill term; we return to its numerical solution in [Part 2D](02d-effective-potential.qmd).
+Finding an analytical solution of Equation (9) is non-trivial because of the nonlinear Hill term; we return to its numerical solution in [Part 2D](02d-effective-potential.qmd).
 
 ## 2A.3 Circuit with a self-inhibiting gene
 
@@ -255,8 +221,7 @@ where $H^{inh}(X)$ is the *inhibitory Hill function*
 H^{inh}(X) \equiv \frac{1}{1 + (X/X_{th})^{n_X}} . \tag{11}
 \end{equation}
 
-By construction $H^{inh}(X) \equiv 1 - H^{ex}(X)$. The plots below show $H^{inh}$
-for several Hill coefficients.
+By construction $H^{inh}(X) \equiv 1 - H^{ex}(X)$. The plots below show $H^{inh}$ for several Hill coefficients.
 
 ### R implementation {.impl}
 
@@ -299,10 +264,7 @@ The rate equation for the self-inhibiting gene is
 
 ## 2A.4 Toggle switch circuit
 
-Finally, we consider a two-gene circuit with transcription factors $X$ and $Y$
-in which $X$ represses gene $Y$ and $Y$ represses gene $X$. This mutually
-repressive motif is the classic genetic *toggle switch* first engineered in
-*Escherichia coli* [@gardner2000toggle].
+Finally, we consider a two-gene circuit with transcription factors $X$ and $Y$ in which $X$ represses gene $Y$ and $Y$ represses gene $X$. This mutually repressive motif is the classic genetic *toggle switch* first engineered in *Escherichia coli* [@gardner2000toggle].
 
 ![](images/02a/fig5.png){width=38% fig-align="center"}
 
@@ -315,7 +277,4 @@ The chemical rate equations for the levels of $X$ and $Y$ are
 \end{cases} \tag{13}
 \end{equation}
 
-The system is now described by two coupled ODEs, with solutions $X(t)$ and
-$Y(t)$. Because there are two variables, more sophisticated tools are needed to
-analyze the dynamics; we take this up in
-[Part 3A](../03-phase-plane/03a-nullclines.qmd).
+The system is now described by two coupled ODEs, with solutions $X(t)$ and $Y(t)$. Because there are two variables, more sophisticated tools are needed to analyze the dynamics; we take this up in [Part 3A](../03-phase-plane/03a-nullclines.qmd).

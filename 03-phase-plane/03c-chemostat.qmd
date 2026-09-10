@@ -4,21 +4,11 @@ author: "Mingyang Lu"
 old_id: "03C"
 ---
 
-This chapter applies the phase-plane toolkit of [Part 3A](03a-nullclines.qmd) and
-[Part 3B](03b-steady-states-2d.qmd) to a different two-variable system, the
-classic **chemostat** model of bacterial growth in continuous culture
-[@sontag_systemsbio]. It introduces no new methods; the numerical steps are the
-same as before (RK4 integration, vector fields, nullclines, steady-state
-stability), so the focus is on setting up a new model and reusing that machinery
-in both R and Python. Practice questions are embedded throughout.
+This chapter applies the phase-plane toolkit of [Part 3A](03a-nullclines.qmd) and [Part 3B](03b-steady-states-2d.qmd) to a different two-variable system, the classic **chemostat** model of bacterial growth in continuous culture [@sontag_systemsbio]. It introduces no new methods; the numerical steps are the same as before (RK4 integration, vector fields, nullclines, steady-state stability), so the focus is on setting up a new model and reusing that machinery in both R and Python. Practice questions are embedded throughout.
 
 ## 3C.1 Chemostat model
 
-A chemostat is a continuous culture device: fresh medium is pumped in at a
-constant rate and an equal volume of culture (cells plus medium) is drawn off, so
-the working volume stays fixed. Writing $N$ for the (scaled) bacterial population
-and $C$ for the (scaled) limiting-nutrient concentration, the dimensionless model
-is [@sontag_systemsbio]
+A chemostat is a continuous culture device: fresh medium is pumped in at a constant rate and an equal volume of culture (cells plus medium) is drawn off, so the working volume stays fixed. Writing $N$ for the (scaled) bacterial population and $C$ for the (scaled) limiting-nutrient concentration, the dimensionless model is [@sontag_systemsbio]
 
 \begin{equation}
 \begin{cases}
@@ -27,29 +17,16 @@ is [@sontag_systemsbio]
 \end{cases} \tag{1}
 \end{equation}
 
-The $\frac{C}{C+1}$ term is Michaelis-Menten nutrient uptake, $\alpha_1$ sets the
-maximum growth rate relative to the washout rate, and $\alpha_2$ is the scaled
-inflow nutrient concentration. Setting both derivatives to zero gives two steady
-states,
+The $\frac{C}{C+1}$ term is Michaelis-Menten nutrient uptake, $\alpha_1$ sets the maximum growth rate relative to the washout rate, and $\alpha_2$ is the scaled inflow nutrient concentration. Setting both derivatives to zero gives two steady states,
 
 $$ \bar{X}_1 = (0, \alpha_2) \qquad \text{and} \qquad
    \bar{X}_2 = \left(\alpha_1\left(\alpha_2 - \frac{1}{\alpha_1 - 1}\right),\ \frac{1}{\alpha_1 - 1}\right) . \tag{2} $$
 
-$\bar{X}_1$ is the *washout* state (no bacteria); $\bar{X}_2$ is the *coexistence*
-state. For both to be physical (non-negative coordinates) we need $\alpha_1 > 1$
-and $\alpha_2 > \frac{1}{\alpha_1 - 1}$. Throughout we take $\alpha_1 = 2$ and
-$\alpha_2 = 5$, for which $\bar{X}_1 = (0, 5)$ and $\bar{X}_2 = (8, 1)$.
+$\bar{X}_1$ is the *washout* state (no bacteria); $\bar{X}_2$ is the *coexistence* state. For both to be physical (non-negative coordinates) we need $\alpha_1 > 1$ and $\alpha_2 > \frac{1}{\alpha_1 - 1}$. Throughout we take $\alpha_1 = 2$ and $\alpha_2 = 5$, for which $\bar{X}_1 = (0, 5)$ and $\bar{X}_2 = (8, 1)$.
 
 ## 3C.2 Simulation and the phase plane
 
-We integrate with the same generic RK4 routine as
-[Part 3A](03a-nullclines.qmd), now carrying $\alpha_1$ and $\alpha_2$ as extra
-parameters. Starting exactly at $N = 0$ the population cannot grow, so the system
-relaxes to the washout state $\bar{X}_1 = (0, 5)$. Seeding an arbitrarily small
-population instead ($N(0) = 0.01$) sends the very same dynamics to the
-coexistence state $\bar{X}_2 = (8, 1)$: the trajectory first drifts toward
-$\bar{X}_1$, then peels away and ends at $\bar{X}_2$. The phase plane below shows
-both trajectories.
+We integrate with the same generic RK4 routine as [Part 3A](03a-nullclines.qmd), now carrying $\alpha_1$ and $\alpha_2$ as extra parameters. Starting exactly at $N = 0$ the population cannot grow, so the system relaxes to the washout state $\bar{X}_1 = (0, 5)$. Seeding an arbitrarily small population instead ($N(0) = 0.01$) sends the very same dynamics to the coexistence state $\bar{X}_2 = (8, 1)$: the trajectory first drifts toward $\bar{X}_1$, then peels away and ends at $\bar{X}_2$. The phase plane below shows both trajectories.
 
 ::: {.callout-note title="Recipe 3C.2.1"}
 **Objective.** Simulate a chemostat (population N and substrate C) and see it reach either washout or coexistence.
@@ -145,42 +122,24 @@ plt.xlabel("N"); plt.ylabel("C"); plt.legend(loc="upper right"); plt.show()
 ```
 
 ::: {.callout-note title="Practice Q1"}
-Repeat the simulation for the initial conditions (a) $X(0) = \bar{X}_1 = (0, 5)$;
-(b) $(0.01, 5)$, slightly off $\bar{X}_1$ in $N$; and (c) $(0, 5.01)$, slightly
-off in $C$. Which perturbations decay back to $\bar{X}_1$ and which grow away
-toward $\bar{X}_2$? What does that already tell you about the stability of
-$\bar{X}_1$?
+Repeat the simulation for the initial conditions (a) $X(0) = \bar{X}_1 = (0, 5)$; (b) $(0.01, 5)$, slightly off $\bar{X}_1$ in $N$; and (c) $(0, 5.01)$, slightly off in $C$. Which perturbations decay back to $\bar{X}_1$ and which grow away toward $\bar{X}_2$? What does that already tell you about the stability of $\bar{X}_1$?
 :::
 
 ::: {.callout-note title="Practice Q2"}
-Vary $\alpha_1$ and $\alpha_2$ and confirm that the coexistence state
-$\bar{X}_2$ follows Equation (2). For which parameter values do both steady
-states stay physical (non-negative)?
+Vary $\alpha_1$ and $\alpha_2$ and confirm that the coexistence state $\bar{X}_2$ follows Equation (2). For which parameter values do both steady states stay physical (non-negative)?
 :::
 
 ::: {.callout-note title="Practice Q3"}
-Let $Z(t) = N(t) + \alpha_1 C(t) - \alpha_1 \alpha_2$. Show analytically that
-$Z(t) = Z(0)\, e^{-t}$, so $Z \to 0$ from any start. Verify it in a simulation,
-and show that the line $Z(N, C) = 0$ passes through both $\bar{X}_1$ and
-$\bar{X}_2$. This is one way to prove that $\bar{X}_2$ is the global attractor of
-the chemostat.
+Let $Z(t) = N(t) + \alpha_1 C(t) - \alpha_1 \alpha_2$. Show analytically that $Z(t) = Z(0)\, e^{-t}$, so $Z \to 0$ from any start. Verify it in a simulation, and show that the line $Z(N, C) = 0$ passes through both $\bar{X}_1$ and $\bar{X}_2$. This is one way to prove that $\bar{X}_2$ is the global attractor of the chemostat.
 :::
 
 ## 3C.3 Vector field and nullclines
 
-Drawing the unit vector field over the phase plane shows the flow at a glance,
-exactly as in [Part 3A](03a-nullclines.qmd). Overlaying the two nullclines
-locates the steady states at their crossings. The chemostat's *N-nullcline*
-($dN/dt = 0$) factors into two straight pieces, $N = 0$ and
-$C = \frac{1}{\alpha_1 - 1}$, while the *C-nullcline* ($dC/dt = 0$) solves in
-closed form for $N$ as a function of $C$,
+Drawing the unit vector field over the phase plane shows the flow at a glance, exactly as in [Part 3A](03a-nullclines.qmd). Overlaying the two nullclines locates the steady states at their crossings. The chemostat's *N-nullcline* ($dN/dt = 0$) factors into two straight pieces, $N = 0$ and $C = \frac{1}{\alpha_1 - 1}$, while the *C-nullcline* ($dC/dt = 0$) solves analytically for $N$ as a function of $C$,
 
 $$ N(C) = \frac{\alpha_2}{C} + \alpha_2 - 1 - C . \tag{3} $$
 
-Sweeping $C$ traces it directly. When separation of variables is not available,
-the same nullcline can be found by root finding: for each fixed $N$, solve
-$g(N, C) = 0$ for $C$. Both are shown below; the contour and continuation
-methods of Part 3A apply here too and are left as practice.
+Sweeping $C$ traces it directly. When separation of variables is not available, the same nullcline can be found by root finding: for each fixed $N$, solve $g(N, C) = 0$ for $C$. Both are shown below; the contour and continuation methods of Part 3A apply here too and are left as practice.
 
 ### R implementation {.impl}
 
@@ -291,46 +250,23 @@ plt.xlabel("N"); plt.ylabel("C"); plt.legend(loc="upper right"); plt.show()
 ```
 
 ::: {.callout-note title="Practice Q4"}
-Compute the C-nullcline by ODE relaxation instead of root finding: for each fixed
-$N$, treat $\frac{dC}{dt} = g(N, C)$ as a one-variable ODE, start from $(N, 0)$,
-and integrate to steady state to get $C$. Sweep $N$ to trace the whole nullcline.
-How does this compare to root finding in robustness and generality?
+Compute the C-nullcline by ODE relaxation instead of root finding: for each fixed $N$, treat $\frac{dC}{dt} = g(N, C)$ as a one-variable ODE, start from $(N, 0)$, and integrate to steady state to get $C$. Sweep $N$ to trace the whole nullcline. How does this compare to root finding in robustness and generality?
 :::
 
 ::: {.callout-note title="Practice Q5"}
-A related, warm-started sweep: begin at $(0, 0)$, relax $C$ to steady state at
-fixed $N$, record $(N, C)$, then step $N \to N + \Delta N$ using the previous $C$
-as the new starting point, and repeat up to $N = 15$. Implement it and compare
-with Q4.
+A related, warm-started sweep: begin at $(0, 0)$, relax $C$ to steady state at fixed $N$, record $(N, C)$, then step $N \to N + \Delta N$ using the previous $C$ as the new starting point, and repeat up to $N = 15$. Implement it and compare with Q4.
 :::
 
 ::: {.callout-note title="Practice Q6"}
-Implement arc-length numerical continuation for the C-nullcline, as in
-[Part 3A](03a-nullclines.qmd) and [Part 2F](../02-odes/02f-bifurcation-curves.qmd).
-Parameterize the curve by arc length $s$ so the tracing survives points where
-$\frac{dC}{dN} \to \infty$, with a Newton correction to stay on $g(N, C) = 0$.
+Implement arc-length numerical continuation for the C-nullcline, as in [Part 3A](03a-nullclines.qmd) and [Part 2F](../02-odes/02f-bifurcation-curves.qmd). Parameterize the curve by arc length $s$ so the tracing survives points where $\frac{dC}{dN} \to \infty$, with a Newton correction to stay on $g(N, C) = 0$.
 :::
 
 ## 3C.4 Steady states and stability
 
-The steady states are the intersections of the two nullclines, and their
-stability follows from the eigenvalues of the Jacobian. Both the line-intersection
-routines (`find_intersection`, `find_intersection_all_fast`) and the numerical
-Jacobian classifier (`stability_2D`) are exactly the ones built in
-[Part 3B](03b-steady-states-2d.qmd), so rather than repeat them we apply them
-directly to the chemostat's nullclines.
+The steady states are the intersections of the two nullclines, and their stability follows from the eigenvalues of the Jacobian. Both the line-intersection routines (`find_intersection`, `find_intersection_all_fast`) and the numerical Jacobian classifier (`stability_2D`) are exactly the ones built in [Part 3B](03b-steady-states-2d.qmd), so rather than repeat them we apply them directly to the chemostat's nullclines.
 
-Doing so returns the two steady states of Equation (2). The Jacobian eigenvalues
-classify $\bar{X}_2 = (8, 1)$ as a **stable node** and $\bar{X}_1 = (0, 5)$ as a
-**saddle**. This is consistent with the simulations of 3C.2, where a trajectory
-started at the washout state $\bar{X}_1$ was driven away by the smallest seed
-population and settled on the coexistence state $\bar{X}_2$.
+Doing so returns the two steady states of Equation (2). The Jacobian eigenvalues classify $\bar{X}_2 = (8, 1)$ as a **stable node** and $\bar{X}_1 = (0, 5)$ as a **saddle**. This is consistent with the simulations of 3C.2, where a trajectory started at the washout state $\bar{X}_1$ was driven away by the smallest seed population and settled on the coexistence state $\bar{X}_2$.
 
 ::: {.callout-note title="Practice Q7"}
-The N-nullcline is stored as two separate line pieces ($N = 0$ and
-$C = \frac{1}{\alpha_1 - 1}$), so running the all-pairs intersection search of
-[Part 3B](03b-steady-states-2d.qmd) can report the same steady state more than
-once. Why does that happen, and how would you deduplicate the results? Then apply
-`find_intersection_all_fast` and `stability_2D` to reproduce the classification
-above.
+The N-nullcline is stored as two separate line pieces ($N = 0$ and $C = \frac{1}{\alpha_1 - 1}$), so running the all-pairs intersection search of [Part 3B](03b-steady-states-2d.qmd) can report the same steady state more than once. Why does that happen, and how would you deduplicate the results? Then apply `find_intersection_all_fast` and `stability_2D` to reproduce the classification above.
 :::

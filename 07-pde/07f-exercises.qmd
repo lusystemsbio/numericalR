@@ -10,30 +10,17 @@ In [Part 7A](07a-modeling-diffusion.qmd) we solved the diffusion equation
 
 $$ \frac{\partial P(X, t)}{\partial t} = D \frac{\partial^2 P(X, t)}{\partial X^2} \tag{1} $$
 
-under a Dirichlet boundary condition, fixing $P = 0$ at the two ends. A common
-alternative is the *Neumann* boundary condition, which instead fixes the flux by
-setting $\partial P / \partial X = 0$ at both $X = -l/2$ and $X = l/2$, so that no
-probability leaves the system. Approximating the derivative at an end by a one-sided
-difference,
+under a Dirichlet boundary condition, fixing $P = 0$ at the two ends. A common alternative is the *Neumann* boundary condition, which instead fixes the flux by setting $\partial P / \partial X = 0$ at both $X = -l/2$ and $X = l/2$, so that no probability leaves the system. Approximating the derivative at an end by a one-sided difference,
 
 $$ \frac{\partial P}{\partial X}(X, t) \approx \frac{P(X + \Delta X, t) - P(X, t)}{\Delta X} = 0 , $$
 
-shows that the condition is enforced by copying each boundary point from its inward
-neighbor.
+shows that the condition is enforced by copying each boundary point from its inward neighbor.
 
-**(a)** Modify the diffusion integrator `pde_fd_diffusion` of Part 7A to use the
-Neumann boundary condition instead of the Dirichlet one.
+**(a)** Modify the diffusion integrator `pde_fd_diffusion` of Part 7A to use the Neumann boundary condition instead of the Dirichlet one.
 
-**(b)** Repeat the "diffusion from the center" experiment of Part 7A with your
-Neumann integrator, starting from $P(X = 0, t = 0) = 1$ and using the same
-parameters. Plot the distribution $P(X)$ at several time points, and plot the total
-probability, $\langle X \rangle$, and $\sigma^2(X)$ as functions of $t$. Compare with
-the Dirichlet results: which quantities now stay conserved, and why?
+**(b)** Repeat the "diffusion from the center" experiment of Part 7A with your Neumann integrator, starting from $P(X = 0, t = 0) = 1$ and using the same parameters. Plot the distribution $P(X)$ at several time points, and plot the total probability, $\langle X \rangle$, and $\sigma^2(X)$ as functions of $t$. Compare with the Dirichlet results: which quantities now stay conserved, and why?
 
-**(c)** Repeat the "diffusion from the left" experiment, starting from
-$P(X < 0, t = 0) = 1$ (normalizing the total probability is optional). Plot $P(X)$ at
-several time points and describe how the Neumann boundary changes the long-time
-behavior.
+**(c)** Repeat the "diffusion from the left" experiment, starting from $P(X < 0, t = 0) = 1$ (normalizing the total probability is optional). Plot $P(X)$ at several time points and describe how the Neumann boundary changes the long-time behavior.
 
 ## 7F.2 A multistable gene circuit
 
@@ -41,26 +28,14 @@ Consider a single gene with self-activation, governed by the rate equation
 
 $$ \frac{dX}{dt} = f(X, k) = 10 + 45 \frac{X^4}{X^4 + 200^4} - k X , \tag{2} $$
 
-where $k$ is an adjustable degradation rate. This is the bistable circuit modeled
-with ODEs in [Part 2E](../02-odes/02e-bifurcation.qmd) and with SDEs in
-[Part 6C](../06-stochastic/06c-sde-integrators.qmd); for a range of $k$ it has two
-stable steady states. Here we describe its stochastic dynamics instead with the
-Fokker-Planck equation
+where $k$ is an adjustable degradation rate. This is the bistable circuit modeled with ODEs in [Part 2E](../02-odes/02e-bifurcation.qmd) and with SDEs in [Part 6C](../06-stochastic/06c-sde-integrators.qmd); for a range of $k$ it has two stable steady states. Here we describe its stochastic dynamics instead with the Fokker-Planck equation
 
 $$ \frac{\partial P}{\partial t} = -\frac{\partial (f P)}{\partial X} + D \frac{\partial^2 P}{\partial X^2} , \tag{3} $$
 
 with $f$ from Equation (2) and a diffusion constant (noise level) $D = 10$.
 
-**(a)** Set up the PDE using the `pde_fd_fokker_planck` integrator of
-[Part 7B](07b-reaction-diffusion.qmd), on a grid from $X = 0$ to $X = 600$, starting
-from a uniform probability distribution. Choose the discretization carefully: the
-step $\Delta X$ needs to be fairly large (but not too large) and the time step
-$\Delta t$ small, or the solution develops spurious values.
+**(a)** Set up the PDE using the `pde_fd_fokker_planck` integrator of [Part 7B](07b-reaction-diffusion.qmd), on a grid from $X = 0$ to $X = 600$, starting from a uniform probability distribution. Choose the discretization carefully: the step $\Delta X$ needs to be fairly large (but not too large) and the time step $\Delta t$ small, or the solution develops spurious values.
 
-**(b)** Sweep $k$ over the values 0.1, 0.12, 0.14, 0.16, 0.18, and 0.2. For each,
-integrate long enough to reach the stationary distribution, and plot the
-steady-state $P(X)$.
+**(b)** Sweep $k$ over the values 0.1, 0.12, 0.14, 0.16, 0.18, and 0.2. For each, integrate long enough to reach the stationary distribution, and plot the steady-state $P(X)$.
 
-**(c)** Explain what you see. How does the shape of the steady-state distribution
-change with $k$, and how does it relate to the number and stability of the steady
-states of the deterministic circuit in Equation (2)?
+**(c)** Explain what you see. How does the shape of the steady-state distribution change with $k$, and how does it relate to the number and stability of the steady states of the deterministic circuit in Equation (2)?

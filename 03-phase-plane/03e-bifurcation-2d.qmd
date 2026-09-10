@@ -4,19 +4,9 @@ author: "Mingyang Lu"
 old_id: "03E"
 ---
 
-[Part 3A](03a-nullclines.qmd) and [Part 3B](03b-steady-states-2d.qmd) built the
-tools to locate a two-variable system's steady states and classify their stability
-at a fixed set of parameters. This chapter puts them to work to trace a
-**bifurcation diagram**: how the steady states, and their stability, change as a
-control parameter varies. As in [Part 2E](../02-odes/02e-bifurcation.qmd) for
-one-variable systems, a qualitative change in the number or stability of steady
-states is a bifurcation [@strogatz2015nonlinear]. Here two classic types appear in
-the same two-gene toggle switch [@gardner2000toggle], depending on which parameter
-we sweep.
+[Part 3A](03a-nullclines.qmd) and [Part 3B](03b-steady-states-2d.qmd) built the tools to locate a two-variable system's steady states and classify their stability at a fixed set of parameters. This chapter puts them to work to trace a **bifurcation diagram**: how the steady states, and their stability, change as a control parameter varies. As in [Part 2E](../02-odes/02e-bifurcation.qmd) for one-variable systems, a qualitative change in the number or stability of steady states is a bifurcation [@strogatz2015nonlinear]. Here two classic types appear in the same two-gene toggle switch [@gardner2000toggle], depending on which parameter we sweep.
 
-We use a slightly modified toggle switch with two variables $X$ and $Y$ and two
-tunable parameters, the maximum production rate $g_X$ and the common degradation
-rate $k$,
+We use a slightly modified toggle switch with two variables $X$ and $Y$ and two tunable parameters, the maximum production rate $g_X$ and the common degradation rate $k$,
 
 \begin{equation}
 \begin{cases}
@@ -25,20 +15,11 @@ rate $k$,
 \end{cases} \tag{1}
 \end{equation}
 
-At $g_X = 50$ the two genes have identical parameters, so the circuit is symmetric
-under swapping $X \leftrightarrow Y$; moving $g_X$ away from $50$ breaks that
-symmetry. We build a bifurcation diagram by varying either $g_X$ or $k$.
+At $g_X = 50$ the two genes have identical parameters, so the circuit is symmetric under swapping $X \leftrightarrow Y$; moving $g_X$ away from $50$ breaks that symmetry. We build a bifurcation diagram by varying either $g_X$ or $k$.
 
 ## 3E.1 The bifurcation scan
 
-The recipe reuses the whole Part 3A/3B pipeline at each parameter value: (1) build
-the two nullclines by separation of variables (Part 3A), (2) find their
-intersections, the steady states (Part 3B), and (3) classify each by the
-eigenvalues of its Jacobian (Part 3B). Sweeping the control parameter and plotting
-the steady-state $X$ against it, colored by stability, traces the diagram. The
-function `find_steady_states` packages the three steps; `find_intersection`,
-`find_intersection_all_fast`, and `stability_2D` are exactly the routines from
-Part 3B.
+The recipe reuses the whole Part 3A/3B pipeline at each parameter value: (1) build the two nullclines by separation of variables (Part 3A), (2) find their intersections, the steady states (Part 3B), and (3) classify each by the eigenvalues of its Jacobian (Part 3B). Sweeping the control parameter and plotting the steady-state $X$ against it, colored by stability, traces the diagram. The function `find_steady_states` packages the three steps; `find_intersection`, `find_intersection_all_fast`, and `stability_2D` are exactly the routines from Part 3B.
 
 ::: {.callout-note title="Recipe 3E.1.1"}
 **Objective.** Trace a bifurcation diagram: the steady states of the toggle switch versus a control parameter, colored by stability.
@@ -210,12 +191,7 @@ def find_steady_states(gX, k, X_range, Y_range):
 
 ## 3E.2 Saddle-node bifurcation
 
-Sweeping $g_X$ from $0$ to $100$ (at fixed $k = 0.1$) breaks the $X \leftrightarrow Y$
-symmetry. The diagram colors each steady state by stability (stable node or
-saddle). As $g_X$ increases past a critical value a stable node and a saddle
-appear together, so the circuit turns from monostable to bistable. Two branches
-being created (or destroyed) at a point in this way is a **saddle-node**
-bifurcation.
+Sweeping $g_X$ from $0$ to $100$ (at fixed $k = 0.1$) breaks the $X \leftrightarrow Y$ symmetry. The diagram colors each steady state by stability (stable node or saddle). As $g_X$ increases past a critical value a stable node and a saddle appear together, so the circuit turns from monostable to bistable. Two branches being created (or destroyed) at a point in this way is a **saddle-node** bifurcation.
 
 ### R implementation {.impl}
 
@@ -252,14 +228,7 @@ plt.legend(loc="upper left"); plt.show()
 
 ## 3E.3 Pitchfork bifurcation
 
-Now fix $g_X = 50$, where the circuit is symmetric under $X \leftrightarrow Y$,
-and sweep the degradation rate $k$. Below a critical value near $k = 0.03$ a
-single steady state is in view; above it the diagram splits into three, a central
-saddle flanked by two stable branches. Because the two stable states are related
-by the $X \leftrightarrow Y$ symmetry, they emerge together as a matched pair when
-the symmetric state turns into the saddle. This splitting of one state into a
-symmetric pair is a **pitchfork** bifurcation, and it is the symmetry (absent when
-$g_X \neq 50$) that makes it a pitchfork rather than a saddle-node.
+Now fix $g_X = 50$, where the circuit is symmetric under $X \leftrightarrow Y$, and sweep the degradation rate $k$. Below a critical value near $k = 0.03$ a single steady state is in view; above it the diagram splits into three, a central saddle flanked by two stable branches. Because the two stable states are related by the $X \leftrightarrow Y$ symmetry, they emerge together as a matched pair when the symmetric state turns into the saddle. This splitting of one state into a symmetric pair is a **pitchfork** bifurcation, and it is the symmetry (absent when $g_X \neq 50$) that makes it a pitchfork rather than a saddle-node.
 
 ### R implementation {.impl}
 
@@ -292,19 +261,8 @@ plt.xlabel("k"); plt.ylabel("X"); plt.xlim(0, 0.15); plt.ylim(0, 800)
 plt.legend(loc="upper left"); plt.show()
 ```
 
-Both diagrams were cheap to compute because the nullclines followed from
-separation of variables. When they cannot be written in closed form, the general
-tool is numerical continuation, the arc-length predictor-corrector of
-[Part 2F](../02-odes/02f-bifurcation-curves.qmd) generalized from one equation in
-two variables to $n$ equations in $n + 1$ variables (here $n = 2$). Reproducing
-these bifurcation curves by numerical continuation is left as an exercise in
-[Part 3I](03i-exercises.qmd).
+Both diagrams were cheap to compute because the nullclines followed from separation of variables. When they cannot be solved analytically, the general tool is numerical continuation, the arc-length predictor-corrector of [Part 2F](../02-odes/02f-bifurcation-curves.qmd) generalized from one equation in two variables to $n$ equations in $n + 1$ variables (here $n = 2$). Reproducing these bifurcation curves by numerical continuation is left as an exercise in [Part 3I](03i-exercises.qmd).
 
 ::: {.callout-note title="Practice Q1"}
-Both diagrams come from the same circuit. Varying $k$ keeps the
-$X \leftrightarrow Y$ symmetry of Equation (1) at $g_X = 50$ (both genes then have
-identical parameters), while varying $g_X$ breaks it. Explain how that difference
-produces a pitchfork in one case and a saddle-node in the other. (Hint: a
-pitchfork needs a symmetry for the two outer branches to appear as a matched
-pair.)
+Both diagrams come from the same circuit. Varying $k$ keeps the $X \leftrightarrow Y$ symmetry of Equation (1) at $g_X = 50$ (both genes then have identical parameters), while varying $g_X$ breaks it. Explain how that difference produces a pitchfork in one case and a saddle-node in the other. (Hint: a pitchfork needs a symmetry for the two outer branches to appear as a matched pair.)
 :::
