@@ -2,16 +2,82 @@
 title: "Preface"
 ---
 
-This book, *Numerical ReciPy: Computational Systems Biology and Biophysics in
-R and Python*, illustrates the
-numerical methods and algorithms used to model biological systems, solve
-differential equations, run simulations, and analyze data. Each
-method is presented language-agnostically and then implemented in both **R** and
-**Python**, so the same concept can be studied in either language.
+This book, *Numerical ReciPy: Computational Systems Biology and Biophysics in R and Python*, illustrates the numerical methods and algorithms used to model biological systems, solve differential equations, run simulations, and analyze data. Each method is presented independently of language, then implemented in both **R** and **Python**, so the same concept can be studied in either language.
 
-::: {.callout-note}
-This is a work-in-progress migration from the original parallel R Markdown,
-Jupyter, and MATLAB materials into a single Quarto book. Chapters are being
-merged and proofread one at a time; the content below is placeholder scaffolding
-used to validate the build pipeline.
-:::
+It is written for graduate and advanced undergraduate students in bioengineering, biomedical engineering, biophysics, and data science, and for researchers who want to build and run their own models rather than treat a solver as a black box. The mathematics assumes calculus and a first course in ordinary differential equations. The programming assumes some prior experience, though not necessarily in R or Python.
+
+## How these materials came about
+
+While I was at The Jackson Laboratory, I wrote a set of problems on gene circuit modeling for an undergraduate student doing research in my group. The student liked working through them, and so did the instructors at their university, who asked for permission to use the problems in their own class. Questions of that kind have been the material my students have learned systems biology modeling from ever since.
+
+After I began teaching Dynamical Systems in Biological Engineering (BIOE 5115) and Computational Methods in Systems Bioengineering (BIOE 5880) at Northeastern University, I kept developing that material for the classroom, including homework questions and the code that goes with them. Those notes became the first version of the `numericalR` repository and its HTML pages, and they gradually turned into this book.
+
+The Python implementations were added later for my classes, written as a separate parallel set of files. Keeping two versions side by side proved harder than expected. The explanations had grown up around the R code, so the Python material was largely code with little of the surrounding discussion. A few topics existed in one language and not the other, and small discrepancies in method and in default parameters had crept in over time. All of this motivated me to merge the two versions into one, with a single shared explanation of each method, followed by an R implementation and a Python implementation that have been checked against each other. Quarto is what made that practical. A single document can execute both R and Python code, so the explanation and the two implementations sit on one page, and every result and figure in the book is produced by the code printed beside it.
+
+## What has changed
+
+The R code in that first version was written before the AI era. The assistants available then produced code that was essentially unusable and almost always required a lot of debugging. However, that is no longer true. In a few years the tools have moved from code completion, to chat windows, to agentic systems that read a whole project, edit files, and run what they write. Given a well-posed prompt, the code an assistant returns today is good enough to be worth checking, and trustworthy in certain scenarios. Throughout this book, I have explored prompt engineering for numerical methods.
+
+The change in programming practice also showed up in my classroom. In the earlier years of the course, students spent much of their effort on basic programming and debugging, and many were held back by it. That barrier has largely fallen, and students now reach working code far more easily. However, when it comes to open-ended questions on assignments, I noticed that answers became more uniform than before, which actually defeats the original purpose of the questions: to encourage students to find their own solutions.
+
+## Why learn to program at all
+
+That leaves the obvious question. If an assistant can write the code, why should a student still learn to program?
+
+The skills now worth building are:
+
+1. how to use an assistant effectively, both for writing code and for managing a project;
+2. how to assess AI-generated code critically, instead of accepting a plausible-looking result;
+3. how to recognize where an implementation goes wrong;
+4. how to fix what goes wrong;
+5. how to learn a subject with an assistant's help, rather than around it.
+
+The third point carries particular weight in numerical work. A wrong method rarely crashes. It returns a number and draws a curve, and nothing announces the error. Judging whether the answer is right takes understanding the method well enough to know what it should produce, which is the one thing an assistant cannot supply on your behalf.
+
+## Two cautions
+
+Do not let an assistant stand in for the learning. A homework problem provides an opportunity to think, and handing it over whole gets you the answer while costing you the chance to learn.
+
+Do not be satisfied with having the work done for you either. If everything you do can be done by a machine, you have made yourself easy to replace. Rather, you should think about what you can achieve now, with these tools, that you could not have attempted before.
+
+## Recipes and prompts
+
+Each major method in this book is stated as a **recipe** before its code, a short box with six fields: Objective, Model, Method, Test, Show, and Verification. The fields are written in plain words and equations, stated fully enough that the method can be rebuilt without reading the implementation.
+
+A recipe doubles as a **structured prompt**. Filling a fixed template with its fields turns it into a request precise enough for an assistant to act on, and one that also states the output to produce and the check to run, so what comes back can be tested against a known result. In the HTML edition every recipe box carries a Copy prompt button that fills the template for you, and all of the boxes are gathered in the [recipe index](appendix-recipe-index.qmd).
+
+These prompts were themselves put to the test. Each of the 116 recipes was handed to an assistant with no access to this book and no other context, and the code it returned was executed and compared against the book's own verified output. Five attempts were made per recipe, and of those 580 attempts, 96% reproduced the book's result.
+
+## How to use this book
+
+Each section states the method first, in words and equations that do not depend on the language, and then gives an R implementation and a Python implementation of the same algorithm. Where a section has a recipe box, it comes before the code, so you can attempt the problem yourself before reading a solution.
+
+In the HTML edition, a **Both / R / Python** switch at the top of each chapter hides the code for the language you are not using, while leaving the shared explanation in place. To work in one language offline instead, `scripts/make-lang-variants.py` writes a single-language copy of every dual-language chapter beside the original.
+
+Practice questions are embedded in the chapters as **Practice Q** boxes, each attached to the model it extends, and every part closes with a chapter of longer exercises.
+
+Three appendices collect what is easier to look up than to search for: a [method reference](appendix-method-reference.qmd) mapping each method to the function that implements it and the chapter it appears in, a [library map](appendix-library-map.qmd) pairing the R and Python packages used for each task, and the [recipe index](appendix-recipe-index.qmd).
+
+Every chapter runs on its own. A function introduced earlier is redefined where it is needed again, so any page can be opened and executed without having worked through the ones before it.
+
+## What the book covers
+
+Part 1 sets up the working environment in R and Python and introduces the ideas that recur throughout: writing efficient code, and what a numerical method is and how its error behaves.
+
+The chapters that follow fall into four areas.
+
+**Modeling biological systems**, mostly gene regulatory circuits and population dynamics. Rate equations and numerical integration, phase-plane analysis, bifurcations, systems with time delays, stochastic differential equations, and reaction-diffusion systems and pattern formation (Parts 2 to 4, 6, and 7).
+
+**Molecular dynamics and computational biophysics**. Integrators for second-order equations, orbital motion, and simulation of a box of interacting particles (Part 5).
+
+**Sampling and optimization**. Monte Carlo methods, the Metropolis algorithm, the Gillespie algorithm for stochastic kinetics, and global optimization by simulated annealing, dynamic programming, and genetic algorithms (Parts 8 and 9).
+
+**High-dimensional data analysis**. Dimensionality reduction, clustering, and network algorithms (Part 10).
+
+## The source, and reporting errors
+
+The book is written in Quarto, and the complete source is at [github.com/lusystemsbio/numericalR](https://github.com/lusystemsbio/numericalR), with the rendered version published at [lusystemsbio.github.io/numericalR](https://lusystemsbio.github.io/numericalR). Part 1A lists what to install; the code here is tested against R 4.6.1 and Python 3.14. If you find an error, in the text or in the code, please open an issue on GitHub. The code in this book is released under the MIT license, so any function here can be copied into your own work freely. The text, figures, and exercises remain under copyright; if you would like to use them in a course, please get in touch.
+
+## Acknowledgments
+
+My thanks to Tossapol Pholcharee, for tackling the very first version of modeling problem sets, which motivated the development of the whole book. I would also like to thank the students of BIOE 5115 and BIOE 5880, who worked through every version of this material. Their questions, suggestions, feedback, and performance have greatly helped to make this book possible.
