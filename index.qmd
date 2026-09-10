@@ -8,7 +8,7 @@ It is written for graduate and advanced undergraduate students in bioengineering
 
 ## How these materials came about
 
-While I was at The Jackson Laboratory, I wrote a set of problems on gene circuit modeling for an undergraduate student doing research in my group. The student liked working through them, and so did the instructors at their university, who asked for permission to use the problems in their own class. Questions of that kind have been the material my students have learned systems biology modeling from ever since.
+While I was at The Jackson Laboratory, I wrote a set of problems on gene circuit modeling for students doing research in my group. These problem sets are open-ended and can be answered in many ways. They have been well received by students at very different levels, from high schoolers to undergraduates to graduate students.
 
 After I began teaching Dynamical Systems in Biological Engineering (BIOE 5115) and Computational Methods in Systems Bioengineering (BIOE 5880) at Northeastern University, I kept developing that material for the classroom, including homework questions and the code that goes with them. Those notes became the first version of the `numericalR` repository and its HTML pages, and they gradually turned into this book.
 
