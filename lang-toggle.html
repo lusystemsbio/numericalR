@@ -5,10 +5,11 @@
      "Both / R / Python" control hides the non-selected language's CODE only. Prose
      (shared concept text, shared post-Python discussion) is never tagged, so it stays
      visible in every mode. The choice persists across chapters via localStorage. The
-     switch appears only on genuinely dual-language chapter pages (both languages
-     present, not an exercises page). Single-language SOURCE copies for practice are a
-     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
-     chapter's .qmd), not a web download. -->
+     switch appears on any genuinely dual-language page (both languages present),
+     including exercises pages that carry paired implementations (1D, 2G); pages with
+     no `.impl` headings, or only one language, get no switch. Single-language SOURCE
+     copies for practice are a separate, local mechanism (scripts/make-lang-variants.py
+     writes them beside each chapter's .qmd), not a web download. -->
 <style>
 .lang-switch {
   display: inline-flex; margin: 0.25rem 0 1.25rem 0;
@@ -28,7 +29,6 @@ body.lang-py .impl-r  { display: none !important; }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
   var heads = document.querySelectorAll("h3.impl");
   if (!heads.length) return;   // no R/Python implementation blocks -> no switch
 
