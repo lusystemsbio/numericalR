@@ -104,3 +104,14 @@ copy directly. These copies are git-ignored and are **not** part of the rendered
 regenerate them any time by re-running the script. The online HTML edition additionally
 offers a **Both / R / Python** switch at the top of each chapter to hide one language's
 code while reading.
+
+## License
+
+The source code in this repository (the R, Python, and Fortran in the chapters,
+and the build scripts) is licensed under the MIT license (`LICENSE-CODE`) and
+can be reused freely.
+
+The book's text, figures, and exercises are not covered by that license.
+Copyright (c) 2021-2026 Mingyang Lu, Lu Lab for Computational Systems Biology.
+All rights reserved. To use them in a course or elsewhere, please contact the
+author.
