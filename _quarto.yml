@@ -16,9 +16,11 @@ book:
   title: "Numerical ReciPy"
   subtitle: "Computational Systems Biology and Biophysics in R and Python"
   output-file: "NumericalReciPy"   # base name for the PDF/EPUB downloads
+  favicon: assets/favicon.svg     # simplified mark; legible down to 16px
   # Fold the left nav: parts collapsed by default, only the current part
   # expands to show its chapters (keeps the sidebar short as chapters grow).
   sidebar:
+    logo: assets/logo.svg
     collapse-level: 1
   chapters:
     - index.qmd

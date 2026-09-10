@@ -1,3 +1,5 @@
+<img src="assets/logo-512.png" alt="Numerical ReciPy logo" width="118" align="right"/>
+
 # Numerical ReciPy
 
 ### *Computational Systems Biology and Biophysics in R and Python*
