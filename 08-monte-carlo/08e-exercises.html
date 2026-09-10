@@ -658,7 +658,10 @@ window.Quarto = {
 <p>We wish to simulate flow-cytometry-like data for a population of cells in two distinct states. Consider the (unnormalized) 2D distribution <span class="math inline">\(p(x, y)\)</span>, a mixture of two bivariate Gaussians, where <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> are the expression levels of two proteins in a single cell,</p>
 <p><span class="math display">\[ p(x, y) = e^{-(x + 10y - 1)^2 - (x - 0.1y + 2)^2} + e^{-(x - 5y + 2)^2 - (x + 0.2y - 1)^2} . \tag{1} \]</span></p>
 <p>The following function evaluates <span class="math inline">\(p(x, y)\)</span> (with <span class="math inline">\(x\)</span> and <span class="math inline">\(y\)</span> passed as a length-2 vector), and the accompanying code draws its contours, two elongated, tilted blobs.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<section id="r-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation">R implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>p_mixture <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  f1 <span class="ot">&lt;-</span> x[<span class="dv">1</span>] <span class="sc">+</span> <span class="dv">10</span> <span class="sc">*</span> x[<span class="dv">2</span>] <span class="sc">-</span> <span class="dv">1</span>; f2 <span class="ot">&lt;-</span> x[<span class="dv">1</span>] <span class="sc">-</span> <span class="fl">0.1</span> <span class="sc">*</span> x[<span class="dv">2</span>] <span class="sc">+</span> <span class="dv">2</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  f3 <span class="ot">&lt;-</span> x[<span class="dv">1</span>] <span class="sc">-</span> <span class="dv">5</span> <span class="sc">*</span> x[<span class="dv">2</span>] <span class="sc">+</span> <span class="dv">2</span>;  f4 <span class="ot">&lt;-</span> x[<span class="dv">1</span>] <span class="sc">+</span> <span class="fl">0.2</span> <span class="sc">*</span> x[<span class="dv">2</span>] <span class="sc">-</span> <span class="dv">1</span></span>
@@ -670,8 +673,51 @@ window.Quarto = {
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>z <span class="ot">&lt;-</span> <span class="fu">apply</span>(data, <span class="dv">1</span>, p_mixture)</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(x, y, <span class="at">z =</span> z)) <span class="sc">+</span></span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_contour</span>(<span class="at">breaks =</span> <span class="dv">10</span><span class="sc">^</span>(<span class="fu">seq</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="dv">0</span>, <span class="at">by =</span> <span class="fl">0.3</span>)), <span class="at">colour =</span> <span class="st">"black"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08e-exercises_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="python-implementation" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation">Python implementation</h3>
+<div class="cell" data-layout-align="center">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> p_mixture(x):</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    f1 <span class="op">=</span> x[<span class="dv">0</span>] <span class="op">+</span> <span class="dv">10</span> <span class="op">*</span> x[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">1</span><span class="op">;</span> f2 <span class="op">=</span> x[<span class="dv">0</span>] <span class="op">-</span> <span class="fl">0.1</span> <span class="op">*</span> x[<span class="dv">1</span>] <span class="op">+</span> <span class="dv">2</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    f3 <span class="op">=</span> x[<span class="dv">0</span>] <span class="op">-</span> <span class="dv">5</span> <span class="op">*</span> x[<span class="dv">1</span>] <span class="op">+</span> <span class="dv">2</span><span class="op">;</span>  f4 <span class="op">=</span> x[<span class="dv">0</span>] <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> x[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.exp(<span class="op">-</span>f1<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> f2<span class="op">**</span><span class="dv">2</span>) <span class="op">+</span> np.exp(<span class="op">-</span>f3<span class="op">**</span><span class="dv">2</span> <span class="op">-</span> f4<span class="op">**</span><span class="dv">2</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>x_all <span class="op">=</span> np.arange(<span class="op">-</span><span class="dv">5</span>, <span class="dv">5</span> <span class="op">+</span> <span class="fl">0.05</span>, <span class="fl">0.05</span>)<span class="op">;</span> y_all <span class="op">=</span> np.arange(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span> <span class="op">+</span> <span class="fl">0.01</span>, <span class="fl">0.01</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>X, Y <span class="op">=</span> np.meshgrid(x_all, y_all)      <span class="co"># p_mixture is vectorized, so the whole grid</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Z <span class="op">=</span> p_mixture([X, Y])                 <span class="co"># goes through it as a length-2 list</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>levels <span class="op">=</span> <span class="fl">10.0</span> <span class="op">**</span> np.arange(<span class="op">-</span><span class="dv">2</span>, <span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>plt.contour(X, Y, Z, levels<span class="op">=</span>levels, colors<span class="op">=</span><span class="st">"black"</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># zoom to where the contours actually are, as ggplot does automatically</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>inside <span class="op">=</span> Z <span class="op">&gt;=</span> levels[<span class="dv">0</span>]</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>plt.xlim(X[inside].<span class="bu">min</span>(), X[inside].<span class="bu">max</span>())<span class="op">;</span> plt.ylim(Y[inside].<span class="bu">min</span>(), Y[inside].<span class="bu">max</span>())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(-4.050000000000003, 2.899999999999972)
+(-0.02999999999999825, 1.1600000000000028)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"x"</span>)<span class="op">;</span> plt.ylabel(<span class="st">"y"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="08e-exercises_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:55.0%"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>Design a Metropolis-Hastings algorithm (<a href="../08-monte-carlo/08b-metropolis-algorithm.html">Part 8B</a>) to sample from this distribution, and show your results as a density map of the sampled points.</p>
 <p>Hint: think about an appropriate local move for proposing new <span class="math inline">\((x, y)\)</span> values. You can visualize the sampled density with <code>geom_bin2d</code> from ggplot2.</p>
+</section>
 </section>
 <section id="e.2-markov-chain-modeling-of-a-gene-regulatory-network" class="level2">
 <h2 class="anchored" data-anchor-id="e.2-markov-chain-modeling-of-a-gene-regulatory-network">8E.2 Markov chain modeling of a gene regulatory network</h2>
@@ -712,26 +758,55 @@ window.Quarto = {
 <p><span class="math display">\[ S + I \xrightarrow{\beta} 2I , \qquad I \xrightarrow{\nu} R , \]</span></p>
 <p>with <span class="math inline">\(\beta = 0.003\)</span> and <span class="math inline">\(\nu = 1\)</span>.</p>
 <p><strong>(a)</strong> Start from <span class="math inline">\(S(0) = 1000\)</span>, <span class="math inline">\(I(0) = 1\)</span>, <span class="math inline">\(R(0) = 0\)</span>. Compute the basic reproduction number <span class="math inline">\(R_0\)</span>. Run a Gillespie simulation and plot the dynamics of <span class="math inline">\(S\)</span>, <span class="math inline">\(I\)</span>, and <span class="math inline">\(R\)</span>. You can reuse the <code>gillespie_step</code> and <code>ssa</code> functions from <a href="../08-monte-carlo/08d-gillespie-algorithm.html">Part 8D</a>, supplying your own propensity and stoichiometry functions in this form:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>my_propensity <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs) {      <span class="co"># Xs: current state (plus any parameters)</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns a vector of propensities, one per reaction</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>my_stoichiometry <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind) {   <span class="co"># r_ind: the chosen reaction</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="r-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-1">R implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>my_propensity <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs) {      <span class="co"># Xs: current state (plus any parameters)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns a vector of propensities, one per reaction</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>my_stoichiometry <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind) {   <span class="co"># r_ind: the chosen reaction</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="python-implementation-1" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-1">Python implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_propensity(Xs):        <span class="co"># Xs: current state (plus any parameters)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    ...                       <span class="co"># returns an array of propensities, one per reaction</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_stoichiometry(r_ind):  <span class="co"># r_ind: the chosen reaction, counted from 0 in Python</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    ...                       <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(b)</strong> Run a deterministic simulation of the corresponding SIR ODEs (<span class="math inline">\(dS/dt = -\beta S I\)</span>, <span class="math inline">\(dI/dt = \beta S I - \nu I\)</span>, <span class="math inline">\(dR/dt = \nu I\)</span>) and compare it visually with the stochastic dynamics. For the ODE integration you can use a generic RK4 routine:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>RK4_generic <span class="ot">&lt;-</span> <span class="cf">function</span>(derivs, X0, n, t.total, dt, ...) {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  t_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, t.total, <span class="at">by =</span> dt); n_all <span class="ot">&lt;-</span> <span class="fu">length</span>(t_all)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  X_all <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n_all, n); X_all[<span class="dv">1</span>, ] <span class="ot">&lt;-</span> X0</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(n_all <span class="sc">-</span> <span class="dv">1</span>)) {</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    t0 <span class="ot">&lt;-</span> t_all[i]; t_half <span class="ot">&lt;-</span> t0 <span class="sc">+</span> dt <span class="sc">/</span> <span class="dv">2</span>; t1 <span class="ot">&lt;-</span> t0 <span class="sc">+</span> dt</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    k1 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t0, X_all[i, ], ...)</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    k2 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t_half, X_all[i, ] <span class="sc">+</span> k1 <span class="sc">/</span> <span class="dv">2</span>, ...)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    k3 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t_half, X_all[i, ] <span class="sc">+</span> k2 <span class="sc">/</span> <span class="dv">2</span>, ...)</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    k4 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t1, X_all[i, ] <span class="sc">+</span> k3, ...)</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    X_all[i <span class="sc">+</span> <span class="dv">1</span>, ] <span class="ot">&lt;-</span> X_all[i, ] <span class="sc">+</span> (k1 <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> k2 <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> k3 <span class="sc">+</span> k4) <span class="sc">/</span> <span class="dv">6</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(t_all, X_all)</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="r-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-2">R implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>RK4_generic <span class="ot">&lt;-</span> <span class="cf">function</span>(derivs, X0, n, t.total, dt, ...) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  t_all <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, t.total, <span class="at">by =</span> dt); n_all <span class="ot">&lt;-</span> <span class="fu">length</span>(t_all)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  X_all <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n_all, n); X_all[<span class="dv">1</span>, ] <span class="ot">&lt;-</span> X0</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>(n_all <span class="sc">-</span> <span class="dv">1</span>)) {</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    t0 <span class="ot">&lt;-</span> t_all[i]; t_half <span class="ot">&lt;-</span> t0 <span class="sc">+</span> dt <span class="sc">/</span> <span class="dv">2</span>; t1 <span class="ot">&lt;-</span> t0 <span class="sc">+</span> dt</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    k1 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t0, X_all[i, ], ...)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    k2 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t_half, X_all[i, ] <span class="sc">+</span> k1 <span class="sc">/</span> <span class="dv">2</span>, ...)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    k3 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t_half, X_all[i, ] <span class="sc">+</span> k2 <span class="sc">/</span> <span class="dv">2</span>, ...)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    k4 <span class="ot">&lt;-</span> dt <span class="sc">*</span> <span class="fu">derivs</span>(t1, X_all[i, ] <span class="sc">+</span> k3, ...)</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    X_all[i <span class="sc">+</span> <span class="dv">1</span>, ] <span class="ot">&lt;-</span> X_all[i, ] <span class="sc">+</span> (k1 <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> k2 <span class="sc">+</span> <span class="dv">2</span> <span class="sc">*</span> k3 <span class="sc">+</span> k4) <span class="sc">/</span> <span class="dv">6</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(t_all, X_all)</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="python-implementation-2" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-2">Python implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> RK4_generic(derivs, X0, n, t_total, dt, <span class="op">**</span>kw):</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    t_all <span class="op">=</span> np.arange(<span class="dv">0</span>, t_total <span class="op">+</span> dt, dt)<span class="op">;</span> n_all <span class="op">=</span> <span class="bu">len</span>(t_all)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    X_all <span class="op">=</span> np.zeros((n_all, n))<span class="op">;</span> X_all[<span class="dv">0</span>] <span class="op">=</span> X0</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_all <span class="op">-</span> <span class="dv">1</span>):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        t0 <span class="op">=</span> t_all[i]<span class="op">;</span> t_half <span class="op">=</span> t0 <span class="op">+</span> dt <span class="op">/</span> <span class="dv">2</span><span class="op">;</span> t1 <span class="op">=</span> t0 <span class="op">+</span> dt</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        k1 <span class="op">=</span> dt <span class="op">*</span> np.array(derivs(t0,     X_all[i],          <span class="op">**</span>kw))</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        k2 <span class="op">=</span> dt <span class="op">*</span> np.array(derivs(t_half, X_all[i] <span class="op">+</span> k1 <span class="op">/</span> <span class="dv">2</span>, <span class="op">**</span>kw))</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        k3 <span class="op">=</span> dt <span class="op">*</span> np.array(derivs(t_half, X_all[i] <span class="op">+</span> k2 <span class="op">/</span> <span class="dv">2</span>, <span class="op">**</span>kw))</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        k4 <span class="op">=</span> dt <span class="op">*</span> np.array(derivs(t1,     X_all[i] <span class="op">+</span> k3,     <span class="op">**</span>kw))</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        X_all[i <span class="op">+</span> <span class="dv">1</span>] <span class="op">=</span> X_all[i] <span class="op">+</span> (k1 <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> k2 <span class="op">+</span> <span class="dv">2</span> <span class="op">*</span> k3 <span class="op">+</span> k4) <span class="op">/</span> <span class="dv">6</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.column_stack((t_all, X_all))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>(c)</strong> Now take <span class="math inline">\(\beta = 0.3\)</span>, <span class="math inline">\(\nu = 1\)</span>, and <span class="math inline">\(S(0) = 10\)</span>, <span class="math inline">\(I(0) = 1\)</span>, <span class="math inline">\(R(0) = 0\)</span>. This gives the same <span class="math inline">\(R_0\)</span>, so the deterministic dynamics are similar to part (a). Run the Gillespie simulation several times with different random seeds and compare with the deterministic result. With enough runs you should see a variety of outcomes:</p>
 <ol type="1">
 <li>dynamics like the deterministic one, with a peak in <span class="math inline">\(I(t)\)</span> that then dies out while some <span class="math inline">\(S\)</span> remains;</li>
@@ -739,6 +814,7 @@ window.Quarto = {
 <li><span class="math inline">\(I(t)\)</span> peaks but dies out early, leaving a large <span class="math inline">\(S\)</span> population;</li>
 <li><span class="math inline">\(I(t)\)</span> peaks and the epidemic consumes essentially all of <span class="math inline">\(S\)</span>.</li>
 </ol>
+</section>
 </section>
 <section id="e.5-a-stochastic-toggle-switch" class="level2">
 <h2 class="anchored" data-anchor-id="e.5-a-stochastic-toggle-switch">8E.5 A stochastic toggle switch</h2>
@@ -763,12 +839,22 @@ D_y &amp;\xrightarrow{g} D_y + Y , &amp; Y &amp;\xrightarrow{k} \varnothing ,
 <p><strong>(b)</strong> Using <span class="math inline">\(g = 40\)</span>, <span class="math inline">\(k = 0.1\)</span>, <span class="math inline">\(k_1 = 0.00001\)</span>, and <span class="math inline">\(k_{-1} = 0.2\)</span>, show from the deterministic ODEs that the circuit is monostable. Integrate the equations from several initial conditions and confirm that they all converge to the same steady state.</p>
 <p><strong>(c)</strong> Perform a stochastic simulation of the full network with the Gillespie algorithm, using the same parameters and the initial condition <span class="math inline">\(D_x = 1\)</span>, <span class="math inline">\(C_x = 0\)</span>, <span class="math inline">\(D_y = 0\)</span>, <span class="math inline">\(C_y = 1\)</span>, <span class="math inline">\(X = 300\)</span>, <span class="math inline">\(Y = 200\)</span>, over a total time of 1000. Plot the dynamics of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>; you are supposed to observe stochastic state transitions. These are <em>noise-induced state transitions</em>: although the deterministic circuit is monostable, the noise effectively makes it bistable.</p>
 <p>As in <a href="../08-monte-carlo/08d-gillespie-algorithm.html">Part 8D</a>, reuse <code>gillespie_step</code> and <code>ssa</code> and supply your own propensity and stoichiometry functions:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>my_propensity <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs) {      <span class="co"># Xs: current state (plus any parameters)</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns a vector of propensities, one per reaction</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>my_stoichiometry <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind) {   <span class="co"># r_ind: the chosen reaction</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="r-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="r-implementation-3">R implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>my_propensity <span class="ot">&lt;-</span> <span class="cf">function</span>(Xs) {      <span class="co"># Xs: current state (plus any parameters)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns a vector of propensities, one per reaction</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>my_stoichiometry <span class="ot">&lt;-</span> <span class="cf">function</span>(r_ind) {   <span class="co"># r_ind: the chosen reaction</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="python-implementation-3" class="level3 impl">
+<h3 class="impl anchored" data-anchor-id="python-implementation-3">Python implementation</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_propensity(Xs):        <span class="co"># Xs: current state (plus any parameters)</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    ...                       <span class="co"># returns an array of propensities, one per reaction</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> my_stoichiometry(r_ind):  <span class="co"># r_ind: the chosen reaction, counted from 0 in Python</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    ...                       <span class="co"># returns the stoichiometry vector for reaction r_ind</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 <div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
@@ -788,6 +874,7 @@ Kermack, William O., and Anderson G. McKendrick. 1927. <span>“A Contribution t
 Onsager, Lars. 1944. <span>“Crystal Statistics. I. A Two-Dimensional Model with an Order-Disorder Transition.”</span> <em>Physical Review</em> 65 (3–4): 117–49. <a href="https://doi.org/10.1103/PhysRev.65.117">https://doi.org/10.1103/PhysRev.65.117</a>.
 </div>
 </div>
+</section>
 </section>
 
 </main> <!-- /main -->
@@ -861,10 +948,11 @@ Onsager, Lars. 1944. <span>“Crystal Statistics. I. A Two-Dimensional Model wit
      "Both / R / Python" control hides the non-selected language's CODE only. Prose
      (shared concept text, shared post-Python discussion) is never tagged, so it stays
      visible in every mode. The choice persists across chapters via localStorage. The
-     switch appears only on genuinely dual-language chapter pages (both languages
-     present, not an exercises page). Single-language SOURCE copies for practice are a
-     separate, local mechanism (scripts/make-lang-variants.py writes them beside each
-     chapter's .qmd), not a web download. -->
+     switch appears on any genuinely dual-language page (both languages present),
+     including exercises pages that carry paired implementations (1D, 2G); pages with
+     no `.impl` headings, or only one language, get no switch. Single-language SOURCE
+     copies for practice are a separate, local mechanism (scripts/make-lang-variants.py
+     writes them beside each chapter's .qmd), not a web download. -->
 <style>
 .lang-switch {
   display: inline-flex; margin: 0.25rem 0 1.25rem 0;
@@ -884,7 +972,6 @@ body.lang-py .impl-r  { display: none !important; }
 </style>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-  if (/-exercises\.html?$/.test(location.pathname)) return;  // exercises pages skipped
   var heads = document.querySelectorAll("h3.impl");
   if (!heads.length) return;   // no R/Python implementation blocks -> no switch
 
