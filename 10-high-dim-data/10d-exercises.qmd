@@ -21,14 +21,19 @@ You are given a directed graph with $n_V = 10$ vertices and $n_E = 20$ edges, ea
 | 2 | 7 | 3 | | 2 | 5 | 1 |
 | 3 | 8 | 4 | | 3 | 6 | 2 |
 
-The following builds and draws the graph:
+The following builds and draws the graph. The edge list has a regular structure that
+is worth exposing in the drawing: vertices 1 to 5 form one chain, 6 to 10 form another,
+and each vertex $i$ in the first chain has an edge to $i + 5$ in the second. Placing the
+two chains as two rows, one directly above the other, turns those edges into vertical
+rungs and leaves the remaining "skip" edges (1 to 3, 10 to 6, and so on) as arcs, which
+is far easier to read than an automatic layout.
 
 ### R implementation {.impl}
 
 ```{r}
-#| fig-width: 6
-#| fig-height: 5
-#| out-width: "65%"
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "95%"
 #| message: false
 library(igraph)
 edges <- data.frame(
@@ -36,18 +41,26 @@ edges <- data.frame(
   to     = c(2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 7, 8, 9, 10, 6, 8, 5, 6),
   weight = c(5, 3, 2, 6, 7, 4, 1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 5, 1, 2))
 graph <- graph_from_data_frame(edges, directed = TRUE)
-# Kamada-Kawai (as in Part 10C): deterministic, so the R and Python drawings agree
-plot(graph, edge.label = edges$weight, edge.arrow.size = 0.5,
-     vertex.color = "gold", vertex.frame.color = NA, edge.color = "#B3B3B3",
-     layout = layout_with_kk(graph))
+
+# two-row layout: vertices 1-5 on top, 6-10 directly below
+v <- as.integer(V(graph)$name)
+lay <- cbind(ifelse(v <= 5, v - 1, v - 6), ifelse(v <= 5, 1, 0))
+# curving the edges lifts each skip edge off the vertices it would otherwise pass
+# through; rescale = FALSE keeps the wide two-row shape, which igraph would
+# otherwise stretch to a square and so lengthen the rungs
+plot(graph, layout = lay, rescale = FALSE, asp = 0,
+     xlim = c(-0.25, 4.25), ylim = c(-0.55, 1.55),
+     edge.curved = 0.3, edge.label = edges$weight, edge.arrow.size = 0.5,
+     vertex.size = 22, vertex.color = "gold", vertex.frame.color = NA,
+     edge.color = "#B3B3B3")
 ```
 
 ### Python implementation {.impl}
 
 ```{python}
-#| fig-width: 6
-#| fig-height: 5
-#| out-width: "65%"
+#| fig-width: 9
+#| fig-height: 4.5
+#| out-width: "95%"
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -55,13 +68,18 @@ edges = [(1, 2, 5), (1, 3, 3), (2, 3, 2), (2, 4, 6), (3, 4, 7), (3, 5, 4), (4, 5
          (1, 6, 2), (2, 7, 3), (3, 8, 4), (4, 9, 5), (5, 10, 6), (6, 7, 2), (7, 8, 3),
          (8, 9, 4), (9, 10, 5), (10, 6, 6), (6, 8, 5), (2, 5, 1), (3, 6, 2)]
 graph = nx.DiGraph(); graph.add_weighted_edges_from(edges)
-# Kamada-Kawai (as in Part 10C): deterministic, so the R and Python drawings agree
-pos = nx.kamada_kawai_layout(graph)
+
+# the same two-row layout, built directly as coordinates
+pos = {i: (i - 1, 1) if i <= 5 else (i - 6, 0) for i in graph.nodes}
+# matplotlib's rad uses the opposite sign convention to igraph's edge.curved, so a
+# negative rad here bows the arcs outward exactly as edge.curved = 0.3 does in R
+curve = "arc3,rad=-0.25"
 # horizontal dark-blue labels, matching igraph's defaults on the R side
 nx.draw(graph, pos, with_labels=True, node_color="gold", edge_color="#B3B3B3",
-        font_color="darkblue")
+        font_color="darkblue", node_size=600, connectionstyle=curve)
 _ = nx.draw_networkx_edge_labels(graph, pos, rotate=False, font_color="darkblue",
-                                 edge_labels=nx.get_edge_attributes(graph, "weight"))
+                                 edge_labels=nx.get_edge_attributes(graph, "weight"),
+                                 connectionstyle=curve)
 plt.show()
 ```
 
