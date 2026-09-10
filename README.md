@@ -5,17 +5,30 @@
 #### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 
 This book is a hands-on introduction to the numerical methods and algorithms used
-in computational systems biology: modeling gene-regulatory circuits, solving
-ordinary and stochastic differential equations, running simulations, performing
-optimization, and analyzing high-dimensional data. Rather than treating solvers
-as black boxes, each topic develops the underlying theory and then implements the
-algorithm from scratch, in the context of real problems in bioengineering,
-biomedical engineering, and data science.
+in computational systems biology and biophysics: modeling gene-regulatory circuits,
+solving ordinary, stochastic, and partial differential equations, running molecular
+dynamics and Monte Carlo simulations, performing global optimization, and analyzing
+high-dimensional data. Rather than treating solvers as black boxes, each topic
+develops the underlying theory and then implements the algorithm from scratch, in
+the context of real problems in bioengineering, biomedical engineering, and data
+science.
 
-Every method is presented **language-agnostically** and then implemented in both
-**R** and **Python**, so the same concept can be studied and run in either
-language. The book is built with [Quarto](https://quarto.org) and rendered to
-HTML, PDF, and EPUB from a single source.
+It is written for graduate and advanced undergraduate students, and for researchers
+who want to build and run their own models. The mathematics assumes calculus and a
+first course in ordinary differential equations. The programming assumes some prior
+experience, though not necessarily in R or Python, since Part 1 sets up both.
+
+Every method is presented independently of language and then implemented in both
+**R** and **Python**, so the same concept can be studied and run in either language.
+The book is built with [Quarto](https://quarto.org) and rendered to HTML, PDF, and
+EPUB from a single source. Quarto executes both languages in the same document, so
+every result and figure is produced by the code printed beside it.
+
+Each major method is also stated as a **recipe**: a short box giving the objective,
+the model, the numerical method, a concrete test case, the output to produce, and a
+verification check, written fully enough that the method can be rebuilt without
+reading the implementation. A recipe doubles as a structured prompt for an AI
+assistant, and the HTML edition puts a **Copy prompt** button on every box.
 
 The live HTML version is published at
 <https://lusystemsbio.github.io/numericalR>.
@@ -30,8 +43,9 @@ The live HTML version is published at
 - `requirements.txt` / `scripts/install-packages.R` — the full Python/R package
   lists needed to render the book (see Prerequisites below).
 - `scripts/` — build helpers run automatically during rendering.
-- `archive/` — original R Markdown / Jupyter source material retained for
-  reference during the migration; not part of the rendered book.
+- `appendix-*.qmd` — method reference, R/Python library map, and the recipe index.
+- `archive/` — the original R Markdown and Jupyter source material, kept for
+  reference; not part of the rendered book.
 
 ## Building the book
 
