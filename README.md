@@ -1,8 +1,7 @@
-<img src="assets/logo-512.png" alt="Numerical ReciPy logo" width="118" align="right"/>
-
-# Numerical ReciPy
-
-### *Computational Systems Biology and Biophysics in R and Python*
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/lockup-dark.png">
+  <img src="assets/lockup-light.png" alt="Numerical ReciPy — Computational Systems Biology and Biophysics in R and Python" width="620">
+</picture>
 
 #### [Mingyang Lu](https://lusystemsbio.northeastern.edu) — Lu Lab for Computational Systems Biology, Northeastern University
 
