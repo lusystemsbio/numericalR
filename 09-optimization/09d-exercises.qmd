@@ -18,9 +18,23 @@ Hint: at a steady state $f(X) = 0$. Define a scoring function that measures how 
 
 To distribute a vaccine efficiently, we want the shortest route that visits each of $N = 50$ cities once and returns to the distribution center (the first city). The file `us50.txt` gives the city coordinates. An example (non-optimal) route is shown below.
 
+### R implementation {.impl}
+
 ```r
-us50 <- read.table("us50.txt", col.names = c("x", "y"))
+us50 <- read.table("09-optimization/data/us50.txt", col.names = c("x", "y"))
 plot(us50$x, us50$y, xlab = "x", ylab = "y")
+```
+
+### Python implementation {.impl}
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+us50 = np.loadtxt("09-optimization/data/us50.txt")   # x, y columns
+plt.scatter(us50[:, 0], us50[:, 1])
+plt.xlabel("x"); plt.ylabel("y")
+plt.show()
 ```
 
 ![](images/09d/tsp-example.png){width=75% fig-align="center"}
@@ -67,9 +81,23 @@ $$ DP[k][j] = \min_{i \in \{k-1, \dots, j-1\}} \left( DP[k-1][i] + \mathrm{SSE}(
 
 **(c)** Test it on the provided series `timeseries.csv`, shown below. Run it with $K = 4$, report the estimated breakpoints, and plot the series together with the fitted piecewise-constant segments.
 
+### R implementation {.impl}
+
 ```r
-df <- read.csv("timeseries.csv")
+df <- read.csv("09-optimization/data/timeseries.csv")
 plot(df$time, df$value, xlab = "Time", ylab = "x", type = "l", lwd = 2)
+```
+
+### Python implementation {.impl}
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("09-optimization/data/timeseries.csv")
+plt.plot(df["time"], df["value"], linewidth=2)
+plt.xlabel("Time"); plt.ylabel("x")
+plt.show()
 ```
 
 ![](images/09d/timeseries.png){width=90% fig-align="center"}

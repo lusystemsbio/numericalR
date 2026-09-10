@@ -16,8 +16,9 @@ Py-only (<name>-py.qmd): R implementation heading + ```{r} chunks removed,
 
 Prose is kept verbatim (concept text and the shared post-Python discussion), and the
 retained language's ### implementation heading is kept, matching the design settled
-with the author. Display-only listings (```r / ```python / ```bash, no braces) are
-kept in both variants. Eligibility is decided purely by content: any page carrying both
+with the author. Display-only listings are treated by language just like executable
+chunks: ```r / ```python (no braces) are dropped from the other language's variant,
+while shared ones (```bash / ```sh / ```fortran, or a plain fence) are kept in both. Eligibility is decided purely by content: any page carrying both
 a `### R implementation` and a `### Python implementation` heading gets variants, including
 exercises pages (1D, 2G); pages with only one language, or none, get none. Idempotent and fast.
 """

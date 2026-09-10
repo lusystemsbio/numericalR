@@ -12,6 +12,8 @@ $$ p(x, y) = e^{-(x + 10y - 1)^2 - (x - 0.1y + 2)^2} + e^{-(x - 5y + 2)^2 - (x +
 
 The following function evaluates $p(x, y)$ (with $x$ and $y$ passed as a length-2 vector), and the accompanying code draws its contours, two elongated, tilted blobs.
 
+### R implementation {.impl}
+
 ```r
 library(ggplot2)
 p_mixture <- function(x) {
@@ -25,6 +27,25 @@ data <- expand.grid(x = x_all, y = y_all)
 data$z <- apply(data, 1, p_mixture)
 ggplot(data, aes(x, y, z = z)) +
   geom_contour(breaks = 10^(seq(-2, 0, by = 0.3)), colour = "black")
+```
+
+### Python implementation {.impl}
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+def p_mixture(x):
+    f1 = x[0] + 10 * x[1] - 1; f2 = x[0] - 0.1 * x[1] + 2
+    f3 = x[0] - 5 * x[1] + 2;  f4 = x[0] + 0.2 * x[1] - 1
+    return np.exp(-f1**2 - f2**2) + np.exp(-f3**2 - f4**2)
+
+x_all = np.arange(-5, 5 + 0.05, 0.05); y_all = np.arange(-2, 2 + 0.01, 0.01)
+X, Y = np.meshgrid(x_all, y_all)      # p_mixture is vectorized, so the whole grid
+Z = p_mixture([X, Y])                 # goes through it as a length-2 list
+plt.contour(X, Y, Z, levels=10.0 ** np.arange(-2, 0, 0.3), colors="black")
+plt.xlabel("x"); plt.ylabel("y")
+plt.show()
 ```
 
 Design a Metropolis-Hastings algorithm ([Part 8B](08b-metropolis-algorithm.qmd)) to sample from this distribution, and show your results as a density map of the sampled points.
@@ -82,6 +103,8 @@ with $\beta = 0.003$ and $\nu = 1$.
 
 **(a)** Start from $S(0) = 1000$, $I(0) = 1$, $R(0) = 0$. Compute the basic reproduction number $R_0$. Run a Gillespie simulation and plot the dynamics of $S$, $I$, and $R$. You can reuse the `gillespie_step` and `ssa` functions from [Part 8D](08d-gillespie-algorithm.qmd), supplying your own propensity and stoichiometry functions in this form:
 
+### R implementation {.impl}
+
 ```r
 my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)
   # returns a vector of propensities, one per reaction
@@ -91,7 +114,19 @@ my_stoichiometry <- function(r_ind) {   # r_ind: the chosen reaction
 }
 ```
 
+### Python implementation {.impl}
+
+```python
+def my_propensity(Xs):        # Xs: current state (plus any parameters)
+    ...                       # returns an array of propensities, one per reaction
+
+def my_stoichiometry(r_ind):  # r_ind: the chosen reaction, counted from 0 in Python
+    ...                       # returns the stoichiometry vector for reaction r_ind
+```
+
 **(b)** Run a deterministic simulation of the corresponding SIR ODEs ($dS/dt = -\beta S I$, $dI/dt = \beta S I - \nu I$, $dR/dt = \nu I$) and compare it visually with the stochastic dynamics. For the ODE integration you can use a generic RK4 routine:
+
+### R implementation {.impl}
 
 ```r
 RK4_generic <- function(derivs, X0, n, t.total, dt, ...) {
@@ -107,6 +142,24 @@ RK4_generic <- function(derivs, X0, n, t.total, dt, ...) {
   }
   cbind(t_all, X_all)
 }
+```
+
+### Python implementation {.impl}
+
+```python
+import numpy as np
+
+def RK4_generic(derivs, X0, n, t_total, dt, **kw):
+    t_all = np.arange(0, t_total + dt, dt); n_all = len(t_all)
+    X_all = np.zeros((n_all, n)); X_all[0] = X0
+    for i in range(n_all - 1):
+        t0 = t_all[i]; t_half = t0 + dt / 2; t1 = t0 + dt
+        k1 = dt * np.array(derivs(t0,     X_all[i],          **kw))
+        k2 = dt * np.array(derivs(t_half, X_all[i] + k1 / 2, **kw))
+        k3 = dt * np.array(derivs(t_half, X_all[i] + k2 / 2, **kw))
+        k4 = dt * np.array(derivs(t1,     X_all[i] + k3,     **kw))
+        X_all[i + 1] = X_all[i] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    return np.column_stack((t_all, X_all))
 ```
 
 **(c)** Now take $\beta = 0.3$, $\nu = 1$, and $S(0) = 10$, $I(0) = 1$, $R(0) = 0$. This gives the same $R_0$, so the deterministic dynamics are similar to part (a). Run the Gillespie simulation several times with different random seeds and compare with the deterministic result. With enough runs you should see a variety of outcomes:
@@ -150,6 +203,8 @@ with $X_0 = Y_0 = \sqrt{2 k_{-1} / k_1}$. Hint: the forward rate of Equation (2)
 
 As in [Part 8D](08d-gillespie-algorithm.qmd), reuse `gillespie_step` and `ssa` and supply your own propensity and stoichiometry functions:
 
+### R implementation {.impl}
+
 ```r
 my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)
   # returns a vector of propensities, one per reaction
@@ -157,4 +212,14 @@ my_propensity <- function(Xs) {      # Xs: current state (plus any parameters)
 my_stoichiometry <- function(r_ind) {   # r_ind: the chosen reaction
   # returns the stoichiometry vector for reaction r_ind
 }
+```
+
+### Python implementation {.impl}
+
+```python
+def my_propensity(Xs):        # Xs: current state (plus any parameters)
+    ...                       # returns an array of propensities, one per reaction
+
+def my_stoichiometry(r_ind):  # r_ind: the chosen reaction, counted from 0 in Python
+    ...                       # returns the stoichiometry vector for reaction r_ind
 ```

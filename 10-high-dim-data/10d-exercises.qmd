@@ -23,6 +23,8 @@ You are given a directed graph with $n_V = 10$ vertices and $n_E = 20$ edges, ea
 
 The following builds and (optionally) draws the graph:
 
+### R implementation {.impl}
+
 ```r
 library(igraph)
 edges <- data.frame(
@@ -30,7 +32,27 @@ edges <- data.frame(
   to     = c(2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 7, 8, 9, 10, 6, 5, 5, 6),
   weight = c(5, 3, 2, 6, 7, 4, 1, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 5, 1, 2))
 graph <- graph_from_data_frame(edges, directed = TRUE)
-plot(graph, edge.label = edges$weight, edge.arrow.size = 0.5)
+# Kamada-Kawai (as in Part 10C): deterministic, so the R and Python drawings agree
+plot(graph, edge.label = edges$weight, edge.arrow.size = 0.5,
+     layout = layout_with_kk(graph))
+```
+
+### Python implementation {.impl}
+
+```python
+import networkx as nx
+import matplotlib.pyplot as plt
+
+edges = [(1, 2, 5), (1, 3, 3), (2, 3, 2), (2, 4, 6), (3, 4, 7), (3, 5, 4), (4, 5, 1),
+         (1, 6, 2), (2, 7, 3), (3, 8, 4), (4, 9, 5), (5, 10, 6), (6, 7, 2), (7, 8, 3),
+         (8, 9, 4), (9, 10, 5), (10, 6, 6), (6, 5, 5), (2, 5, 1), (3, 6, 2)]
+graph = nx.DiGraph(); graph.add_weighted_edges_from(edges)
+# Kamada-Kawai (as in Part 10C): deterministic, so the R and Python drawings agree
+pos = nx.kamada_kawai_layout(graph)
+nx.draw(graph, pos, with_labels=True, node_color="gold", edge_color="#B3B3B3")
+_ = nx.draw_networkx_edge_labels(graph, pos,
+                                 edge_labels=nx.get_edge_attributes(graph, "weight"))
+plt.show()
 ```
 
 Write a function `shortest_path_dp(graph, nV, nE, s)`, where `graph` is a matrix whose rows are (source, destination, weight), `nV`/`nE` are the numbers of vertices/edges, and `s` is the source vertex. Inside it:
@@ -49,8 +71,18 @@ Write a function `shortest_path_dp(graph, nV, nE, s)`, where `graph` is a matrix
 
 You are given a simulated single-cell gene-expression dataset, `gene_expression.csv`, with 100 genes measured in 1000 cells. You will visualize its structure with the low-dimensional projections of [Part 10A](10a-dimensionality-reduction.qmd) and then cluster it with the methods of [Part 10B](10b-clustering.qmd). Use the relevant libraries for each method.
 
+### R implementation {.impl}
+
 ```r
-expr <- read.csv("gene_expression.csv", row.names = 1)   # 1000 cells x 100 genes
+expr <- read.csv("10-high-dim-data/data/gene_expression.csv", row.names = 1)   # 1000 cells x 100 genes
+```
+
+### Python implementation {.impl}
+
+```python
+import pandas as pd
+
+expr = pd.read_csv("10-high-dim-data/data/gene_expression.csv", index_col=0)   # 1000 cells x 100 genes
 ```
 
 **(a)** Load the data and apply a log transformation to the expression matrix, for example $\log(x + 1)$.
