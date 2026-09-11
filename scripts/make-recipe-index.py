@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 """Quarto pre-render hook: scan every chapter for numbered Recipe callouts and
-(re)generate recipe-index-generated.qmd, a table fragment that the Method and library
-reference chapter (reference-tables.qmd) pulls in with an {{< include >}} shortcode.
-Each row links a recipe's number to its section and shows its Objective. The fragment
-is git-ignored and rebuilt here, so the index stays in sync as recipe boxes change.
+(re)generate recipe-index-generated.qmd, a table fragment that appendix-recipe-index.qmd
+pulls in with an {{< include >}} shortcode. Each row links a recipe's number to its
+section and names that section, so the index stays in sync as recipe boxes change.
 Run scripts/number-recipes.py first so the callout titles carry their numbers.
+
+recipe-index-generated.qmd IS TRACKED IN GIT ON PURPOSE and must stay that way. Quarto
+expands {{< include >}} while building the book's project config (findChapters ->
+bookRenderItems -> projectContext), which happens BEFORE any pre-render script runs, so
+this hook can never satisfy that include on a fresh clone. While the fragment was
+git-ignored, `quarto render` failed on a clean machine with "Include directive failed ...
+could not find file recipe-index-generated.qmd", yet worked on any machine where the file
+happened to survive from an earlier render. Do NOT re-add it to .gitignore. The output is
+deterministic and is rewritten only when it actually changes, so tracking costs no diff
+churn.
 """
 import glob
 import os
@@ -63,8 +72,13 @@ def main():
             "|--------|------------------------------------------|--------|------------------------------------------|",
             *lines, ""]
     dest = os.path.join(ROOT, "recipe-index-generated.qmd")
-    open(dest, "w", encoding="utf-8").write("\n".join(frag) + "\n")
-    print(f"make-recipe-index: indexed {total} recipe boxes")
+    new = "\n".join(frag) + "\n"
+    old = open(dest, encoding="utf-8").read() if os.path.exists(dest) else None
+    if new == old:
+        print(f"make-recipe-index: indexed {total} recipe boxes (unchanged)")
+        return
+    open(dest, "w", encoding="utf-8").write(new)
+    print(f"make-recipe-index: indexed {total} recipe boxes (rewrote {os.path.basename(dest)})")
 
 
 if __name__ == "__main__":
