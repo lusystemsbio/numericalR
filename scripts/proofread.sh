@@ -6,6 +6,9 @@
 #
 # The old file is found from the .qmd's own `old_id:` frontmatter, so split
 # chapters (2e and 2f both map to 02E.Rmd) resolve correctly.
+#
+# archive/ has since been deleted from the working tree, so the reference .Rmd is
+# recovered from git history into a temp file. Nothing to restore by hand.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -19,6 +22,21 @@ qmd="$(ls "${part}"-*/"${part}${letter}"-*.qmd 2>/dev/null | grep -vE -- '-(R|py
 
 old_id="$(grep -m1 '^old_id:' "$qmd" | sed 's/old_id://; s/[" ]//g')"
 rmd="archive/${old_id}.Rmd"
+
+# archive/ is no longer in the working tree; pull the reference out of git history.
+if [ ! -f "$rmd" ]; then
+  last="$(git rev-list -1 HEAD -- "$rmd" 2>/dev/null || true)"
+  if [ -n "$last" ]; then
+    tmp="$(mktemp -t "proofread-${old_id}")-${old_id}.Rmd"
+    # the newest version of the path, else its state just before the commit that removed it
+    if git show "${last}:${rmd}" > "$tmp" 2>/dev/null \
+       || git show "${last}^:${rmd}" > "$tmp" 2>/dev/null; then
+      rmd="$tmp"
+    else
+      rm -f "$tmp"
+    fi
+  fi
+fi
 
 echo "new: $qmd"
 echo "old: $rmd  (old_id=$old_id)"
