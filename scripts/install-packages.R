@@ -8,6 +8,11 @@
 # against these first.
 
 pkgs <- c(
+  # Quarto's knitr engine itself. A fresh R install has NEITHER, and nothing else in
+  # this list pulls them in, so without them `quarto render` fails immediately with
+  # "The rmarkdown package is not available in this R installation."
+  "knitr",           # 1.51   -- executes the R chunks (engine: knitr)
+  "rmarkdown",       # 2.31   -- required by that engine even though the book is .qmd
   "reticulate",      # 1.46.0 -- R/Python bridge (see .Rprofile, _quarto.yml execute-dir)
   "languageserver",  # 0.3.18 -- VS Code R language support
   "deSolve",         # 1.42   -- ODE/DDE integration (Part 2 onward)
