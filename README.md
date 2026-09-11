@@ -173,11 +173,43 @@ For `02-odes/02b-numerical-integration.qmd` this writes
 `02-odes/02b-numerical-integration-R.qmd` (Python implementation removed, `engine: knitr`)
 and `02-odes/02b-numerical-integration-py.qmd` (R removed, `engine: jupyter`, so it needs
 no R). Because each copy lives in its chapter's own folder, all of the chapter's
-resources (`images/`, `src/`, data files) resolve normally, and you can open and run the
-copy directly. These copies are git-ignored and are **not** part of the rendered book;
-regenerate them any time by re-running the script. The online HTML edition additionally
-offers a **Both / R / Python** switch at the top of each chapter to hide one language's
-code while reading.
+resources (`images/`, `src/`, data files) sit right beside it. These copies are
+git-ignored and are **not** part of the rendered book; regenerate them any time by
+re-running the script. The online HTML edition additionally offers a
+**Both / R / Python** switch at the top of each chapter to hide one language's code
+while reading.
+
+### Working on a single chapter
+
+Render a practice copy from the repo root, passing `--execute-dir .`:
+
+```bash
+quarto render 02-odes/02b-numerical-integration-R.qmd --execute-dir .
+```
+
+The `--execute-dir .` matters. Several chapters refer to their data and compiled
+libraries by a path from the repo root (`02-odes/src/sub_ode_1g.so`,
+`09-optimization/data/us50.txt`), which works for the book because `_quarto.yml` sets
+`execute-dir: project`. A practice copy is not listed in `_quarto.yml`, so Quarto runs
+it with the chapter's own folder as the working directory instead, and those paths
+resolve one level too deep. The symptom is a doubled path:
+
+```
+unable to load shared object '.../02-odes/02-odes/src/sub_ode_1g.so'
+```
+
+`--execute-dir .` restores the repo root and the chapter runs. The chapters that need
+it are 1B, 1D, 2B, 6D, 9C, 9D, 10A, 10B and 10D; the rest work either way, so it is
+simplest to always pass it.
+
+The rendered HTML is written next to the `.qmd` (not into `_book/`) and is git-ignored.
+
+To run the chunks interactively instead of rendering, set the working directory to the
+repo root first, for the same reason (`setwd()` in R, or open the repo root as the
+folder/project in VS Code or RStudio).
+
+An `-R.qmd` copy needs no Python and a `-py.qmd` copy needs no R, so you only have to
+install the toolchain for the language you are working in.
 
 ## License
 
