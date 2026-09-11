@@ -113,6 +113,20 @@ quarto preview             # live-reloading local preview
 
 The rendered site is written to `_book/` (git-ignored).
 
+To work on a single chapter, pass its path:
+
+```bash
+quarto render 02-odes/02b-numerical-integration.qmd   # -> _book/02-odes/...html
+quarto preview 02-odes/02b-numerical-integration.qmd  # same, live-reloading
+```
+
+A single-chapter render always re-executes that chapter, so it is the way to pick up
+a package or data change. A whole-book `quarto render` is incremental instead:
+`execute: freeze: auto` re-runs only the chapters whose source changed and loads the
+rest from the `_freeze/` cache, so a full build after one edit takes seconds. Keep
+`_freeze/`; to force a chapter to re-run, render that chapter on its own (or delete
+its `_freeze/` entry). Either way the pre-render steps still run first.
+
 PDF and EPUB are **not** built by default, since they are slow and rarely needed
 while writing. Those two formats are configured in `_quarto-print.yml` and are
 enabled by Quarto's `print` profile:
