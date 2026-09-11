@@ -50,6 +50,14 @@ import pandas as pd
 def pdb_to_dataframe(pdb_id):
     pdbl = PDB.PDBList()
     pdb_file_path = pdbl.retrieve_pdb_file(pdb_id, pdir=tempfile.gettempdir(), file_format="pdb")
+    if pdb_file_path is None:
+        # Bio.PDB returns None when the download fails, and passing that on gives the
+        # unhelpful "'NoneType' object has no attribute 'readlines'" further down.
+        raise RuntimeError(
+            f"Could not download PDB entry {pdb_id}. If you installed Python from "
+            "python.org on macOS, run its 'Install Certificates.command' once (see the "
+            "README prerequisites), since without it every HTTPS download fails; "
+            "otherwise check your network connection.")
     pdb_parser = PDB.PDBParser(QUIET=True)
     structure = pdb_parser.get_structure(pdb_id, pdb_file_path)
     atom_data = []

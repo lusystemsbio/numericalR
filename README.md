@@ -67,7 +67,18 @@ The live HTML version is published at
   python3 -m pip install -r requirements.txt
   ```
   R and Python chunks run in the same document via `knitr` + `reticulate`; the
-  interpreter is pinned once in the repo-root `.Rprofile`.
+  repo-root `.Rprofile` picks the first interpreter that has these packages, so a
+  Homebrew or python.org install both work. To force a specific one, set
+  `RETICULATE_PYTHON=/path/to/python3`.
+- **macOS + python.org Python only:** run the installer's certificate step once.
+  ```bash
+  "/Applications/Python 3.14/Install Certificates.command"    # match your version
+  ```
+  The python.org build does not point Python at a CA bundle, so without this every
+  HTTPS download fails. Chapter 1D.1 fetches a structure from the Protein Data Bank
+  and would fail with `'NoneType' object has no attribute 'readlines'`, which is
+  Biopython returning `None` for the failed download rather than a certificate error.
+  Homebrew Python does not need this.
 - **gfortran** — required for the pre-build step below
   (macOS: `brew install gcc`; Debian/Ubuntu: `apt-get install gfortran`).
 - **ImageMagick** (`convert`/`magick` on your `PATH`) — required for the
