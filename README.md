@@ -81,6 +81,13 @@ The live HTML version is published at
   Homebrew Python does not need this.
 - **gfortran** — required for the pre-build step below
   (macOS: `brew install gcc`; Debian/Ubuntu: `apt-get install gfortran`).
+  On macOS, Homebrew's gfortran often cannot find the Command Line Tools SDK and
+  fails to link with `ld: library 'System' not found`. Point it at the SDK:
+  ```bash
+  export SDKROOT=$(xcrun --show-sdk-path)     # add to ~/.zshrc to make it stick
+  ```
+  Also make sure Homebrew's `bin` is on your `PATH` (`/opt/homebrew/bin` on Apple
+  Silicon), or `gfortran` will not be found at all.
 - **ImageMagick** (`convert`/`magick` on your `PATH`) — required for the
   figure-crop hook (macOS: `brew install imagemagick`; Debian/Ubuntu:
   `apt-get install imagemagick`).
@@ -89,6 +96,15 @@ The live HTML version is published at
 If a chapter fails to render with a missing-package error, re-run the two
 install commands above before troubleshooting further — package lists here
 have drifted out of sync with the actual environment before.
+
+### Platform support
+
+Developed and rendered on macOS; Linux is expected to work unchanged. Windows is
+not currently supported for two parts of the book: the chapters that call compiled
+Fortran (1B, 2B, 6D) load `.so` libraries built by a POSIX shell script, where
+Windows R needs `.dll`, and the parallel examples in 1B rely on Unix `fork`, which
+Windows lacks for both `multiprocessing` and `parallel::mclapply`. Everything else
+is platform-neutral. On Windows, WSL2 avoids both problems.
 
 ### Pre-build step (automatic)
 
