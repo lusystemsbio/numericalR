@@ -47,6 +47,9 @@ The live HTML version is published at
   lists needed to render the book (see Prerequisites below).
 - `scripts/` — build helpers (some run automatically during rendering) and
   authoring utilities.
+- `archive/` — the pre-Quarto `.Rmd`/`.html` originals, kept as a reference for the
+  proofreading pass; not part of the rendered book. See `proofread.md` for how to
+  compare a chapter against its original.
 - `appendix-*.qmd` — method reference, R/Python library map, and the recipe index.
 - `archive/` — the original R Markdown and Jupyter source material, kept for
   reference; not part of the rendered book.
