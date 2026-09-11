@@ -24,6 +24,8 @@ local({
              "/opt/homebrew/bin/python3",               # Homebrew (Apple Silicon)
              "/usr/local/opt/python3/bin/python3",      # Homebrew (Intel)
              Sys.which("python3"),
+             Sys.which("python"),                       # Windows: the installer ships
+                                                        # python.exe, not python3.exe
              rev(sort(Sys.glob("/Library/Frameworks/Python.framework/Versions/*/bin/python3"))))
   cands <- unique(cands[nzchar(cands) & file.exists(cands)])
 
