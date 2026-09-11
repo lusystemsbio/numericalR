@@ -1,0 +1,317 @@
+---
+title: "Part 3: Phase plane"
+subtitle: "H. Multi-component systems"
+author: "Mingyang Lu"
+date: "01/29/2024"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# ODE integration for a multi-component systems
+
+For a system with more than two components, we can still use the previously introduced function of RK4, *RK4_generic*, for ODE integration. Note that in the following function, the length of the output vector for the derivative function *derivs* should be the same as the length of the initial condition *X0*, both being the number of variables.  
+
+```{r}
+# 4th order Runge-Kutta (RK4) for a generic multi-variable system
+RK4_generic <- function(derivs, X0, t.total, dt, ...){
+  # derivs: the function of the derivatives 
+  # X0: initial condition, a vector of multiple variables
+  # t.total: total simulation time, assuming t starts from 0 at the beginning
+  # dt: time step size 
+  t_all = seq(0, t.total, by=dt)
+  n_all = length(t_all)
+  nx = length(X0)
+  X_all = matrix(0, nrow = n_all, ncol = nx)
+  X_all[1,] =  X0
+  for (i in 1:(n_all-1)) {
+    t_0= t_all[i]
+    t_0.5 = t_0 + 0.5*dt
+    t_1 = t_0 + dt
+    k1 = dt * derivs(t_0,X_all[i,],...)
+    k2 = dt * derivs(t_0.5,X_all[i,] + k1/2,...)
+    k3 = dt * derivs(t_0.5,X_all[i,] + k2/2,...)
+    k4 = dt * derivs(t_1,X_all[i,] + k3,...)
+    X_all[i+1,] = X_all[i,] + (k1+2*k2+2*k3+k4)/6
+  }
+  return(cbind(t_all, X_all))   # the output is a matrix of t & X(t) for all time steps
+}
+```
+
+# A two-gene circuit with a negative feedback loop
+
+<center> ![Figure 1](./extra/data/03H/fig1.png){width=20%} </center>
+
+In this gene circuit, $X$ activates $Y$, and $Y$ represses $X$. The gene expression dynamics of this circuit can be modeled by a set of ODEs
+
+\begin{equation}
+\begin{cases} \frac{dx}{dt} = \frac{g}{1+ y^3} - x \\
+              \frac{dy}{dt} = \frac{hx^3}{1+ x^3} - y \end{cases} \tag{1}
+\end{equation}
+
+where $x$ and $y$ are the levels of $X$ and $Y$, respectively. $g$ and $h$ are the maximal production rates of $X$ and $Y$, respectively. Nondimensionalization has been applied here to reduce the other parameters. 
+
+``` {r}
+derivs_neg <- function(t, Xs, g, h) { 
+  x = Xs[1]
+  y = Xs[2]
+  dxdt = g/(1+ y**3) - x
+  dydt = h*x**3/(1+x**3) - y
+  return(c(dxdt, dydt))
+}
+```
+
+We set $g = h = 10$. First, using the derivative function, we can plot the vector field.
+
+```{r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+g = 10; h = 10
+
+X_all = seq(0, 3, by= 0.3)   # all X grids
+Y_all = seq(0, 5, by= 0.5)   # all Y grids
+XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
+results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
+  v = derivs_neg(0, Xs, g = g, h = h )
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate all vector field data
+colnames(results_unit) = c("X", "Y", "dX", "dY")
+
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
+  geom_segment(aes(xend=X+0.2*dX, yend=Y+0.2*dY), arrow = arrow(length = unit(0.05,"in")))
+print(p1)
+```
+
+ODE simulations are performed for a series of random initial conditions. The resulted time trajectories are plotted in the phase plane. The trajectories and vectors field are consistent.
+
+```{r,fig.width = 5, fig.height = 5}
+set.seed(77) 
+X_init_all = array(runif(20, 0, 2), dim = c(10,2)) # generate 10 random initial conditions
+
+t.total = 100
+dt  = 0.01
+for(i in seq_len(nrow(X_init_all))){
+  results = RK4_generic(derivs = derivs_neg, X0 = X_init_all[i,], t.total = t.total, dt = dt,
+                        g = g, h = h)
+  colnames(results) = c("t", "X", "Y")
+  p1 = p1 + geom_path(data = as.data.frame(results), aes(x=X, y=Y), colour = i+1, size=1) 
+}
+print(p1)
+```
+
+From the phase plane, a consistent pattern of spiral trajectories is clearly observed. 
+
+The analysis code can be converted into an R function for general use.
+
+```{r}
+plot_phase_plane <- function(func, xrange, yrange, ngrids = 11, vscale = 1, 
+                             rseed = 1, nsim = 5, xrange_init, yrange_init,
+                            dt = 0.01, t.total = 100, linewidth = 1, ...)
+{
+  require(ggplot2)
+  # func: derivative function
+  # xrange: c(xmin, xmax) for the range of x-axis in the phase plane
+  # yrange: c(ymin, ymax) for the range of y-axis in the phase plane
+  # ngrids: number of grid points along x or y
+  # vscale: scaling factor for vector field
+  # rseed: seed of RNG
+  # nsim: number of simulation trajectories
+  # xrange_init: c(xmin, xmax) for the range of x of the initial conditions 
+  # yrange_init: c(ymin, ymax) for the range of y of the initial conditions 
+  # dt: time step size
+  # t.total: total simulation time
+  # linewidth: line width for trajectories
+  
+  # plot vector field in the phase plane
+  dx = (xrange[2] - xrange[1])/(ngrids-1)
+  dy = (yrange[2] - yrange[1])/(ngrids-1)
+  X_all = seq(xrange[1], xrange[2], by= dx)   # all X grids
+  Y_all = seq(yrange[1], yrange[2], by= dy)   # all Y grids
+  XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
+  results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
+    v = func(0, Xs, ...)
+    v_norm = v / sqrt(v[1]**2 + v[2]**2)
+    return(c(Xs, v_norm))})) # generate all vector field data
+  colnames(results_unit) = c("X", "Y", "dX", "dY")
+  
+  p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
+    geom_segment(aes(xend=X+vscale*dX, yend=Y+vscale*dY), 
+                 arrow = arrow(length = unit(0.05,"in")))
+  print(p1)
+  
+  # simulate nsim time trajectories and plot them in the phase plane. 
+  set.seed(77) 
+  xinit = runif(nsim, xrange_init[1], xrange_init[2])
+  yinit = runif(nsim, yrange_init[1], yrange_init[2])
+  X_init_all = cbind(xinit, yinit)
+  
+  for(i in seq_len(nrow(X_init_all))){
+    results = RK4_generic(derivs = func, X0 = X_init_all[i,], t.total = t.total, dt = dt, ...)
+    colnames(results) = c("t", "X", "Y")
+    p1 = p1 + geom_path(data = as.data.frame(results), aes(x=X, y=Y), 
+                        colour = i+1, size=linewidth) 
+  }
+  print(p1)
+}
+```
+
+See below for an application of this plotting function.
+
+# A two-gene circuit with double-negative feedback loop
+
+We next model a toggle switch circuit with two genes $X$ and $Y$. $X$ suppresses $Y$, and $Y$ suppresses $X$.
+
+<center> ![Figure 2](./extra/data/02A/fig5.png) </center>
+
+The nondimensionalized ODEs for $X$ and $Y$ is
+
+\begin{equation}
+\begin{cases} \frac{dx}{dt} = \frac{gy^3}{1+ y^3} - x \\
+              \frac{dy}{dt} = \frac{hx^3}{1+ x^3} - y \end{cases} \tag{2}
+\end{equation}
+
+``` {r}
+derivs_ts <- function(t, Xs, g, h) { 
+  x = Xs[1]
+  y = Xs[2]
+  dxdt = g/(1 + y**3) - x
+  dydt = h/(1 + x**3) - y
+  return(c(dxdt, dydt))
+}
+```
+
+We set $g = h = 5$.
+
+```{r,fig.width = 5, fig.height = 5}
+plot_phase_plane(func = derivs_ts, xrange = c(0, 6), yrange = c(0, 6), ngrids = 11, 
+                 vscale = 0.3, rseed = 77, nsim = 10, xrange_init = c(0, 5), 
+                 yrange_init = c(0, 5), dt = 0.01, t.total = 100, linewidth = 1, g = 5, h = 5)
+```
+
+# A three-gene repressilator circuit
+
+In a repressilator circuit, $X$ suppresses $Y$, $Y$ suppresses $Z$, and $Z$ suppresses $X$. The gene expression dynamics of this circuit can be modeled by a set of ODEs
+
+\begin{equation}
+\begin{cases} \frac{dx}{dt} = \frac{g}{1+ z^3} - x \\
+              \frac{dy}{dt} = \frac{h}{1+ x^3} - y \\
+              \frac{dz}{dt} = \frac{l}{1+ y^3} - z \\ \end{cases} \tag{3}
+\end{equation}
+
+where $x$, $y$, and $z$ are the levels of $X$, $Y$, and $Z$, respectively. $g$, $h$, $l$ are the maximal production rates of $X$, $Y$, $Z$, respectively.
+
+<center> ![Figure 3](./extra/data/03H/fig2.png){width=20%} </center>
+
+``` {r}
+# Derivative function of the 3-variable repressilator system
+derivs_rep <- function(t, Xs, g) { 
+  x = Xs[1]
+  y = Xs[2]
+  z = Xs[3]
+  dxdt = g[1]/(1+z**3) - x
+  dydt = g[2]/(1+x**3) - y
+  dzdt = g[3]/(1+y**3) - z
+  return(c(dxdt, dydt, dzdt))
+}
+```
+
+We will simulate the 3-variable ODEs and plot the time trajectory along the phase plane of $X$ and $Y$. To show a corresponding vector field in the phase plane, we define the following function to compute ($\frac{dX}{dt}$, $\frac{dY}{dt}$) for any grid point ($X$, $Y$) by assuming
+
+$$\frac{dZ}{dt} = 0$$.
+
+```{r}
+# Derivative function of X & Y == assuming that dZ/dt = 0
+derivs_rep_xy <- function(t, Xs, g) { 
+  x = Xs[1]
+  y = Xs[2]
+  z = g[3]/(1+y**3)
+  
+  dxdt = g[1]/(1+z**3) - x
+  dydt = g[2]/(1+x**3) - y
+  return(c(dxdt, dydt))
+}
+```
+
+We set $g = h = l = 5$. 
+
+```{r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+g = c(5,5,5)
+
+X_all = seq(0, 4, by= 0.4)   # all X grids
+Y_all = seq(0, 4, by= 0.4)   # all Y grids
+XY_all = expand.grid(X_all, Y_all)   # all combinations of X and Y
+results_unit = t(apply(XY_all, MARGIN=1, function(Xs) {
+  v = derivs_rep_xy(0, Xs, g = g)
+  v_norm = v / sqrt(v[1]**2 + v[2]**2)
+  return(c(Xs, v_norm))})) # generate all vector field data
+colnames(results_unit) = c("X", "Y", "dX", "dY")
+
+p1 = ggplot(data=as.data.frame(results_unit), aes(x=X, y=Y)) + 
+  geom_segment(aes(xend=X+0.3*dX, yend=Y+0.3* dY), arrow = arrow(length = unit(0.05,"in")))
+print(p1)
+```
+
+```{r,fig.width = 5, fig.height = 5}
+set.seed(71) 
+X_init_all = array(runif(12, 0, 4), dim = c(4,3)) # generate 4 random initial conditions
+
+t.total = 50
+dt  = 0.01
+for(i in seq_len(nrow(X_init_all))){
+  results = RK4_generic(derivs = derivs_rep, X0 = X_init_all[i,], t.total = t.total, dt = dt,
+                        g = g)
+  colnames(results) = c("t", "X", "Y", "Z")
+  p1 = p1 + geom_path(data = as.data.frame(results), aes(x=X, y=Y), colour = i+1, size=0.5) 
+}
+print(p1)
+```
+
+# A many-componenet system
+
+The following example is adopted from Hu et al, Science, 2022. Consider a generalized Lotka-Volterra model to describe population dynamics of many bacteria species:
+
+$$ \frac{dN_i}{dt} = N_i (1 - \sum^S_{j=1}{a_{ij}N_j}) +D $$
+$N_i$ is the population size of species $i$, $a_{ij}$ is strength of inhibition from $j$ to $i$, $S$ is the total number of species, $D = 10^{-6}$ is the dispersal rate. $a_{ij}$ is randomly sampled from a uniform distribution (0, $2a$) for $i \ne j$ and 1 for $i=j$. $a$ is the mean interaction strength.
+
+```{r}
+derivs_many <- function(t, Xs, A, D){
+  inter =  A %*% Xs
+  dxdt = Xs - Xs * inter + D
+  return(dxdt)
+}
+
+sim <- function(func, S, a, D, t.total = 100){
+  A = matrix(runif(S*S, 0, 2*a), nrow = S)
+  for(i in seq_len(S)){
+    A[i,i] = 1
+  }
+  
+  X0 = rep(0.1, times = S)
+  results = RK4_generic(derivs = derivs_many, X0 = X0, t.total = t.total, 
+                        dt = 0.01, A = A, D = D)
+  plot(NULL, xlab="t", ylab="N", xlim=c(1,t.total), ylim=c(10e-6,1), log = "xy") 
+  for(i in seq_len(S)){
+    lines(results[,1], results[,i+1], col = i)
+  }
+}
+```
+
+```{r}
+set.seed(3)
+S = 50; D = 1e-6
+
+sim(func = derivs_many, S = S, a = 0.08, D = D, t.total = 1000)
+```
+
+```{r}
+sim(func = derivs_many, S = S, a = 0.16, D = D, t.total = 1000)
+```
+
+```{r}
+sim(func = derivs_many, S = S, a = 0.64, D = D, t.total = 1000)
+```

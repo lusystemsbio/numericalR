@@ -1,0 +1,49 @@
+---
+title: "Part 7: Partial differential equations"
+subtitle: "E. Exercises"
+author: "Mingyang Lu"
+date: "08/20/2023"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Neumann's Boundary Condition
+
+In Part 7A, we modeled diffusion with PDEs under the Dirichlet boundary condition.
+
+$$\frac{\partial P(X,t)}{\partial t} = D \frac{\partial^2 P(X,t)}{\partial X^2} \tag{1} $$
+Another common type of boundary condition for a PDE is Neumann boundary condition, where we set $\frac{\partial P}{\partial X}(X, t) = 0$ for both $X = -l/2$ and $X = l/2$. This boundary condition would ensure no probability flux outside the system. Since
+
+$$  \frac{\partial P}{\partial X}(X, t) = \frac{P(X + \Delta X, t) - P(X, t)}{\Delta X} = 0$$
+
+, we set $P(X,t)$ at a boundary point same as the $P(X,t)$ for the nearby grid point. 
+
+**(a)** Modify the PDE integrator function *pde_fd_diffusion* (see Part 7A) for the Neumann boundary condition. 
+
+**(b)** Read the section "Diffusion from the center". Model diffusion for the Neumann boundary condition. The initial condition is $P(X=0,t=0)=1$. Use the same parameters as provided in Part 7A. Plot the probability distributions as a function of $X$ for multiple time points. Plot the total $P$, $<X>$, and $<\sigma (X)^2>$ as functions of $t$. 
+
+**(c)** Diffusion from the left. Model diffusion with the initial condition $P(X<0,t=0)=1$ (normalization of the total probability is optional). Plot the probability distributions as a function of $X$ for multiple time points.
+
+# 2. Gene circuit with multistability
+
+Consider a circuit of one gene with self-activation, described by the chemical rate equation:
+
+$$\frac{dX}{dt} = f(t, X,k) = 10 + 45\frac{X^4}{X^4+200^4} - kX. \tag{2}$$
+
+Here $k$ is an adjustable control parameter. This is the system that we have previously modeled using both ODE and SDE. The system can generate two stable steady states. Here, we model the stochastic dynamics of the circuit with the following Fokker-Planck equation:
+
+$$\frac{\partial P}{\partial t} = -\frac{\partial (fP)}{\partial X}  + \frac{\partial^2 (DP)}{\partial X^2} \tag{3} $$
+
+, where $f$ is described by Equation (2), the diffusion constant (or noise level) $D = 10$.
+
+**(a)** Setup the PDE system by using the provided integrator *pde_fd_kokker_planck* (see Part 7B). Choose grid points from $X=0$ to $X=600$. Find an appropriate time step size $dt$ and an $X$ interval $dX$. (You may find weird $P$ values otherwise. You will need $dX$ to be relatively large, but not too large, and $dt$ to be small). The initial condition is chosen to be a uniform probability distribution. The initial condition is chosen to be a uniform probability distribution.
+
+**(b)** Try a series $k$ values (0.1, 0.12, 0.14, 0.16, 0.18, and 0.2). For each value of $k$, show the steady-state probability distributions (*i.e.*, the stationary probability distribution, which can be obtained after a sufficiently long PDE integration).
+
+**(c)** Explain your observation. 

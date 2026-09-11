@@ -1,0 +1,139 @@
+---
+title: "Part 3: Phase plane"
+subtitle: "G. Effective potential revisited"
+author: "Mingyang Lu"
+date: "11/08/2021"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We now attempt to generalize the concept of effective potential, as described in Part 2C, to a two-variable system. Again, we consider the following rate equations
+
+\begin{equation}
+\begin{cases} \frac{dX}{dt} = f_X(X,Y) \\
+              \frac{dY}{dt} = f_Y(X,Y) \end{cases}
+\end{equation}
+
+We make an analogy between circuit dynamics with an overdamped particle in 2D. Here, $(-f_X, -f_Y)$  is regarded as the 2D force. Therefore, we can compute the potential function by
+
+$$ U(X,Y) = -\int_{s_0}^s f(X,Y)ds(X,Y) + U(X_0, Y_0) \tag{1}$$
+
+Here, $s$ is a particular path in the $(X, Y)$ space.
+
+Numerically, we can  compute the integration for a path by
+
+$$ \Delta U(X,Y) = -f_X(X, Y)\Delta x - f_Y(X, Y)\Delta y \tag {2}$$
+In the following, we will show that **such a potential definition has a serious problem**.
+
+We take the toggle switch circuit again as an example to illustrate the integration of the 2D effective potential. We will compute the potential along the two nullclines. As in the first nullcline, $f_X(X, Y) = 0$. So when computing $U(X,Y)$ with Equation (1), we can omit the first term from the right hand side of Equation (2). 
+
+$$ U(X+\Delta x, Y+\Delta y) = U(X, Y) - \frac{f_Y(X,Y) + f_Y(X+ \Delta x, Y + \Delta y)}{2}\Delta y $$
+We can also compute the potential along the second nullcline, $f_Y(X,Y) = 0$. Here, the second term from the right hand side of Equation (2) can be omitted.
+
+$$ U(X+\Delta x, Y+\Delta y) = U(X, Y) - \frac{f_X(X,Y) + f_X(X+ \Delta x, Y + \Delta y)}{2}\Delta x $$
+The R script below specifies the system.
+
+``` {r,fig.width = 5, fig.height = 5}
+library(ggplot2)
+# define ODE terms
+derivs_ts <- function(t, Xs) {
+  dXdt = 5 + 20/(1+(Xs[2]/100)**4) - 0.1 * Xs[1]
+  dYdt = 5 + 20/(1+(Xs[1]/100)**4) - 0.1 * Xs[2]
+  return(c(dXdt, dYdt))
+}
+
+null_fx <- function(gX, X_range, Y_range) {
+  Y_all = seq(Y_range[1], Y_range[2], length.out = 1000)
+  X_all = (5 + gX/(1 + (Y_all/100)**4))/0.1
+  ind = which((X_all - X_range[1]) *(X_all - X_range[2]) <= 0)
+  results = cbind(X_all, Y_all)
+  colnames(results) = c("X", "Y")
+  return(results)
+}
+
+null_fy <- function(gY, X_range, Y_range) {
+  X_all = seq(X_range[1], X_range[2], length.out = 1000)
+  Y_all = (5 + gY/(1 + (X_all/100)**4)) /0.1 
+  ind = which((Y_all - Y_range[1]) *(Y_all - Y_range[2]) <= 0)
+  results = cbind(X_all, Y_all)
+  colnames(results) = c("X", "Y")
+  return(results)
+}
+
+X_range = c(0, 250)
+Y_range = c(0, 250)
+null1 = null_fx(20, X_range, Y_range)
+null2 = null_fy(20, X_range, Y_range)
+
+# steady states ss can be found using the following code from Part 3C. The three steady states are provided directly. Readers can try to obtain these steady states. 
+##dX/dt along the nullcline dY/dt = 0
+#dxdt_y_null = apply(null2, MARGIN = 1, function(Xs) {
+#  d = derivs_ts(0, Xs)
+#  return(d[1])})
+##dY/dt along the nullcline dX/dt = 0
+#dydt_x_null = apply(null1, MARGIN = 1, function(Xs) {
+#  d = derivs_ts(0, Xs)
+#  return(d[2])})
+#ss_all = find_intersection_all_fast(null1, null2, dxdt_y_null, dydt_x_null)
+#ss1 = c(56.76438, 231.18787)
+#ss2 = c(118.02210, 118.02210)
+#ss3 = c(231.18787, 56.76438)
+
+ggplot() +
+  geom_path(data=as.data.frame(null1), aes(x=X, y=Y), color = "red") +
+  geom_path(data=as.data.frame(null2), aes(x=X, y=Y), color = "blue") 
+    
+```
+
+Now we compute the effective potential with the trapezoidal rule. We provide an implementation for any path that is specified in the matrix *line*.
+
+``` {r}
+# now integrate f_Y(X,Y) with the trapezoidal rule
+cal_int_2D_line <- function(line, derivs) {
+  
+  ntot = nrow(line) 
+  U_all = array(0, dim = ntot)
+  X = 0
+  U_all[1] =  0
+  for(i in 1:(ntot-1)) {
+    dx = line[i+1,1] - line[i,1]
+    dy = line[i+1,2] - line[i,2]
+    Xs_i = line[i,]
+    Xs_i1 = line[i+1,]
+    dX_i = derivs(0,Xs_i)
+    dX_i1 = derivs(0,Xs_i1)
+    
+    U_all[i+1] = U_all[i] - (dX_i[1] + dX_i1[1])/2*dx - (dX_i[2] + dX_i1[2])/2*dy
+  }
+  return(cbind(line,U_all))
+}
+
+U1 = cal_int_2D_line(null1, derivs_ts)
+U2 = cal_int_2D_line(null2, derivs_ts)
+
+plot(U1[,1], U1[,3], type = "l",  col =1,
+    xlab="X (nM)", ylab="Effective Potential", xlim=c(0,250), ylim = c(-500,100))
+lines(U2[,1], U2[,3], col=3)
+legend("bottom", inset=0.02, legend = c("along dX/dt=0", "along dY/dt=0"),
+       col=c(1,3), lty=1, cex=0.8)
+
+plot(U1[,2], U1[,3], type = "l",  col =1,
+    xlab="Y (nM)", ylab="Effective Potential", xlim=c(0,250), ylim = c(-500,100))
+lines(U2[,2], U2[,3], col=3)
+legend("bottom", inset=0.02, legend = c("along dX/dt=0", "along dY/dt=0"),
+       col=c(1,3), lty=1, cex=0.8)
+```
+
+The above plot shows that, while the effective potential curves correctly capture the steady states as the local extrema, the potential values depend on the path! However, in physics, a potential function should be path independent. Therefore, for a 2D nonlinear dynamical system, the method to define the effective potential here is invalid. The main reason is that the $(f_X, f_Y)$ is  non-conservative, *i.e.*,
+
+$$\frac{\partial F_Y}{\partial X} - \frac{\partial F_X}{\partial Y} \neq 0$$
+Usually, for a molecular system, the force $F$ is derived from a molecular potential $U$. Thus, $F_X =-\frac{\partial U}{\partial X}$, and $F_Y =-\frac{\partial U}{\partial Y}$. So,
+
+$$\frac{\partial F_Y}{\partial X} = \frac{\partial F_X}{\partial Y} = - \frac{\partial^2 U}{\partial X\partial Y}$$
+Therefore, a molecular force field is always conservative. Such a property is usually not true for a nonlinear dynamical system. There are certainly other ways to define effective potential for these situations. But this is out of the scope of this tutorial. 
